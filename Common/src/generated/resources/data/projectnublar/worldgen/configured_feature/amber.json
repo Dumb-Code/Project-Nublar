@@ -1,0 +1,7 @@
+{
+  "type": "projectnublar:amber_feature",
+  "config": {
+    "discard_chance_on_air_exposure": 1.0,
+    "size": 15
+  }
+}

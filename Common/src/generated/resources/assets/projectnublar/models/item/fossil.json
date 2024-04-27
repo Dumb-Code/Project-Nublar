@@ -1,0 +1,9 @@
+{
+  "loader": "projectnublar:fossil",
+  "base_model": {
+    "parent": "minecraft:item/generated",
+    "textures": {
+      "layer0": "projectnublar:block/fossil_overlay/common/tail"
+    }
+  }
+}

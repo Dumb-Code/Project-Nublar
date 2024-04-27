@@ -21,3 +21,10 @@ build
 # other
 eclipse
 run
+client
+server
+/Forge/client
+/Forge/server
+/Forge/production
+/Fabric/client
+/Fabric/server

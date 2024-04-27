@@ -12,10 +12,10 @@
   "environment": "*",
   "entrypoints": {
     "main": [
-      "com.nyfaria.nyfsmultiloader.ExampleMod"
+      "com.nyfaria.projectnublar.ProjectNublar"
     ],
     "client": [
-      "com.nyfaria.nyfsmultiloader.ExampleModClient"
+      "com.nyfaria.projectnublar.ProjectNublarClient"
     ]
   },
   "mixins": [
