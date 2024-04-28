@@ -20,12 +20,13 @@ dependencies {
     include(implementation(annotationProcessor("io.github.llamalad7:mixinextras-fabric:0.2.0-rc.3")))
     modApi "fuzs.forgeconfigapiport:forgeconfigapiport-fabric:${project.forge_config_api_port_version}"
     include "fuzs.forgeconfigapiport:forgeconfigapiport-fabric:${project.forge_config_api_port_version}"
+    include(implementation 'com.moandjiezana.toml:toml4j:0.7.2')
 }
 
 loom {
 
     if (project.hasProperty('fabric_aws_enabled') && project.findProperty('fabric_aws_enabled').toBoolean()) {
-        accessWidenerPath = project(":Common").file("src/main/resources/${mod_id}.accesswidener")
+        accessWidenerPath = project(":Common").file("src/main/resources/accesstransformers.accesswidener")
     }
     runs {
         client {

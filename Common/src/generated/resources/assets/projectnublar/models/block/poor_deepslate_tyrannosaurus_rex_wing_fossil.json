@@ -1,0 +1,6 @@
+{
+  "parent": "projectnublar:block/fossil_base",
+  "textures": {
+    "0": "minecraft:block/deepslate"
+  }
+}

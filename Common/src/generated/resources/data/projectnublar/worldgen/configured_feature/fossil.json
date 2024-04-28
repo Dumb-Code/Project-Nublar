@@ -1,0 +1,7 @@
+{
+  "type": "projectnublar:fossil_feature",
+  "config": {
+    "discard_chance_on_air_exposure": 0.0,
+    "size": 15
+  }
+}
