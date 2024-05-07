@@ -2,6 +2,7 @@ package com.nyfaria.projectnublar.block;
 
 import com.nyfaria.projectnublar.api.FossilPiece;
 import com.nyfaria.projectnublar.api.Quality;
+import com.nyfaria.projectnublar.block.api.MultiBlock;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.util.valueproviders.ConstantInt;
 import net.minecraft.world.level.block.Block;

@@ -6,11 +6,16 @@ import com.nyfaria.projectnublar.api.FossilPieces;
 import com.nyfaria.projectnublar.api.Quality;
 import com.nyfaria.projectnublar.config.FossilsConfig;
 import com.nyfaria.projectnublar.item.AmberItem;
+import com.nyfaria.projectnublar.item.ComputerChipItem;
+import com.nyfaria.projectnublar.item.FilterItem;
 import com.nyfaria.projectnublar.item.FossilItem;
+import com.nyfaria.projectnublar.item.TankItem;
+import com.nyfaria.projectnublar.item.TestTubeItem;
 import com.nyfaria.projectnublar.registration.RegistrationProvider;
 import com.nyfaria.projectnublar.registration.RegistryObject;
 import net.minecraft.core.registries.Registries;
 import net.minecraft.network.chat.Component;
+import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.item.CreativeModeTab;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
@@ -78,8 +83,65 @@ public class ItemInit {
                         });
                     })
             .build());
+
+    public static final RegistryObject<CreativeModeTab> MACHINES_TAB = CREATIVE_MODE_TABS.register(Constants.MODID + "_machines", () -> CreativeModeTab.builder(CreativeModeTab.Row.TOP, 0)
+            .title(Component.translatable("itemGroup." + Constants.MODID + ".machines"))
+            .icon(() -> new ItemStack(BlockInit.PROCESSOR.get()))
+            .displayItems(
+                    (itemDisplayParameters, output) -> {
+                        output.accept(BlockInit.PROCESSOR.get());
+                    })
+            .build());
+    public static final RegistryObject<CreativeModeTab> MISC_TAB = CREATIVE_MODE_TABS.register(Constants.MODID + "_misc", () -> CreativeModeTab.builder(CreativeModeTab.Row.TOP, 0)
+            .title(Component.translatable("itemGroup." + Constants.MODID + ".misc"))
+            .icon(() -> new ItemStack(ItemInit.IRON_FILTER.get()))
+            .displayItems(
+                    (itemDisplayParameters, output) -> {
+                        output.accept(ItemInit.IRON_FILTER.get());
+                        output.accept(ItemInit.GOLD_FILTER.get());
+                        output.accept(ItemInit.DIAMOND_FILTER.get());
+                        output.accept(ItemInit.IRON_TANK_UPGRADE.get());
+                        output.accept(ItemInit.GOLD_TANK_UPGRADE.get());
+                        output.accept(ItemInit.DIAMOND_TANK_UPGRADE.get());
+                        output.accept(ItemInit.IRON_COMPUTER_CHIP.get());
+                        output.accept(ItemInit.GOLD_COMPUTER_CHIP.get());
+                        output.accept(ItemInit.DIAMOND_COMPUTER_CHIP.get());
+                    })
+            .build());
+
+    public static final RegistryObject<CreativeModeTab> DNA_TAB = CREATIVE_MODE_TABS.register(Constants.MODID + "_dna", () -> CreativeModeTab.builder(CreativeModeTab.Row.TOP, 0)
+            .title(Component.translatable("itemGroup." + Constants.MODID + ".dna"))
+            .icon(() -> new ItemStack(ItemInit.TEST_TUBE_ITEM.get()))
+            .displayItems(
+                    (itemDisplayParameters, output) -> {
+                        output.accept(ItemInit.TEST_TUBE_ITEM.get());
+                        for (RegistryObject<EntityType<?>> entry : EntityInit.ENTITIES.getEntries()) {
+                            ItemStack stack = new ItemStack(ItemInit.TEST_TUBE_ITEM.get());
+                            stack.getOrCreateTag().putString("dino", entry.getId().toString());
+                            stack.getOrCreateTag().putDouble("dna_percentage", 0.5);
+                            output.accept(stack);
+                        }
+                    })
+            .build());
+
     public static final RegistryObject<Item> FOSSIL_ITEM = ITEMS.register("fossil", () -> new FossilItem(getItemProperties()));
     public static final RegistryObject<Item> AMBER_ITEM = ITEMS.register("amber", () -> new AmberItem(getItemProperties()));
+
+    public static final RegistryObject<Item> TEST_TUBE_ITEM = ITEMS.register("test_tube", () -> new TestTubeItem(getItemProperties()));
+
+    public static final RegistryObject<Item> IRON_FILTER = ITEMS.register("iron_filter", () -> new FilterItem(getItemProperties().durability(100), 0.25));
+    public static final RegistryObject<Item> GOLD_FILTER = ITEMS.register("gold_filter", () -> new FilterItem(getItemProperties().durability(100),0.5));
+    public static final RegistryObject<Item> DIAMOND_FILTER = ITEMS.register("diamond_filter", () -> new FilterItem(getItemProperties().durability(100),1));
+
+    public static final RegistryObject<Item> IRON_TANK_UPGRADE = ITEMS.register("iron_tank_upgrade", () -> new TankItem(getItemProperties(), 3000));
+    public static final RegistryObject<Item> GOLD_TANK_UPGRADE = ITEMS.register("gold_tank_upgrade", () -> new TankItem(getItemProperties(), 4000));
+    public static final RegistryObject<Item> DIAMOND_TANK_UPGRADE = ITEMS.register("diamond_tank_upgrade", () -> new TankItem(getItemProperties(),8000));
+
+    public static final RegistryObject<Item> IRON_COMPUTER_CHIP = ITEMS.register("iron_computer_chip", () -> new ComputerChipItem(getItemProperties(), 3*20*60));
+    public static final RegistryObject<Item> GOLD_COMPUTER_CHIP = ITEMS.register("gold_computer_chip", () -> new ComputerChipItem(getItemProperties(),2*20*60));
+    public static final RegistryObject<Item> DIAMOND_COMPUTER_CHIP = ITEMS.register("diamond_computer_chip", () -> new ComputerChipItem(getItemProperties(),20*60));
+
+
     public static Item.Properties getItemProperties() {
         return new Item.Properties();
     }

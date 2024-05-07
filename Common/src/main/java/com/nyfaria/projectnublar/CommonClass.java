@@ -7,6 +7,7 @@ import com.nyfaria.projectnublar.init.EntityInit;
 import com.nyfaria.projectnublar.init.FeatureInit;
 import com.nyfaria.projectnublar.init.ItemInit;
 import com.nyfaria.projectnublar.init.LootFunctionInit;
+import com.nyfaria.projectnublar.init.MenuTypeInit;
 import net.minecraft.util.random.SimpleWeightedRandomList;
 
 import java.io.IOException;
@@ -27,6 +28,7 @@ public class CommonClass {
         EntityInit.loadClass();
         LootFunctionInit.loadClass();
         FeatureInit.loadClass();
+        MenuTypeInit.loadClass();
     }
 
 }

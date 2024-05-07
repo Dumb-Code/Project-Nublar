@@ -85,6 +85,8 @@ dependencies {
         jarJar.ranged(it, "[0.2.0-rc.3,)")
     }
     annotationProcessor "org.spongepowered:mixin:${mixin_version}:processor"
+    implementation fg.deobf("software.bernie.geckolib:geckolib-forge-${minecraft_version}:${geckolib_version}")
+    implementation fg.deobf("net.tslat.smartbrainlib:SmartBrainLib-neoforge-${minecraft_version}:${project.sbl_version}")
 }
 
 tasks.withType(JavaCompile) {

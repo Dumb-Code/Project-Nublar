@@ -17,6 +17,8 @@ import java.util.Map;
 public class FossilsConfig {
     private static final Map<String, Fossil> FOSSILS = new HashMap<>();
     private static final Map<String, Set> SETS = new HashMap<>();
+    private static final Map<String, Quality> QUALITIES = new HashMap<>();
+
     static {
         Pair<FossilsConfig, ForgeConfigSpec> pair = new ForgeConfigSpec.Builder().configure(FossilsConfig::new);
         CONFIG_SPEC = pair.getRight();
@@ -42,6 +44,8 @@ public class FossilsConfig {
     public Fossil tyrannosaurus_rex;
 
     public FossilsConfig(ForgeConfigSpec.Builder builder) {
+
+
         super();
         builder.push("fossils");
         builder.comment("defines the configured information for each type of fossil");
@@ -53,13 +57,13 @@ public class FossilsConfig {
         builder.push("sets");
         builder.comment("define the pieces that belong to each set");
         builder.push("biped");
-        biped = registerSet("biped", builder.defineList("pieces", List.of("ribcage", "foot", "arm", "leg", "tail", "spine"), s -> s instanceof String st && FossilPieces.getPieceByName(st)!=null), builder.defineList("weights", List.of(1, 2, 2, 2, 1, 1), o -> o instanceof Integer));
+        biped = registerSet("biped", builder.defineList("pieces", List.of("ribcage", "foot", "arm", "leg", "tail", "spine"), s -> s instanceof String st && FossilPieces.getPieceByName(st) != null), builder.defineList("weights", List.of(1, 2, 2, 2, 1, 1), o -> o instanceof Integer));
         builder.pop();
         builder.push("quadruped");
-        quadruped = registerSet("quadruped", builder.defineList("pieces", List.of("ribcage", "foot", "arm", "leg", "tail", "spine"), s -> s instanceof String st && FossilPieces.getPieceByName(st)!=null), builder.defineList("weights", List.of(1, 4, 4, 1, 1), o -> o instanceof Integer));
+        quadruped = registerSet("quadruped", builder.defineList("pieces", List.of("ribcage", "foot", "arm", "leg", "tail", "spine"), s -> s instanceof String st && FossilPieces.getPieceByName(st) != null), builder.defineList("weights", List.of(1, 4, 4, 1, 1), o -> o instanceof Integer));
         builder.pop();
         builder.push("fern");
-        fern = registerSet("fern", builder.defineList("pieces", List.of("leaf"), s -> s instanceof String st && FossilPieces.getPieceByName(st)!=null), builder.defineList("weights", List.of(1), o -> o instanceof Integer));
+        fern = registerSet("fern", builder.defineList("pieces", List.of("leaf"), s -> s instanceof String st && FossilPieces.getPieceByName(st) != null), builder.defineList("weights", List.of(1), o -> o instanceof Integer));
         builder.pop();
         builder.pop();
 
@@ -99,6 +103,10 @@ public class FossilsConfig {
         pristine = new Quality(builder.defineInRange("weight", 30, 0, Integer.MAX_VALUE), builder.defineInRange("dna_yield", 30, 0, 100));
         builder.pop();
         builder.pop();
+        QUALITIES.put("fragmented", fragmented);
+        QUALITIES.put("poor", poor);
+        QUALITIES.put("common", common);
+        QUALITIES.put("pristine", pristine);
     }
 
     public static Fossil registerFossil(String fossilName, Fossil fossil) {
@@ -130,13 +138,18 @@ public class FossilsConfig {
         }
         return "unknown";
     }
-    public static boolean testPeriodChance(String period, RandomSource random){
+
+    public static boolean testPeriodChance(String period, RandomSource random) {
         return switch (period) {
             case "carboniferous" -> random.nextDouble() < INSTANCE.carboniferous.rarityModifier.get();
             case "jurassic" -> random.nextDouble() < INSTANCE.jurassic.rarityModifier.get();
             case "cretaceous" -> random.nextDouble() < INSTANCE.cretaceous.rarityModifier.get();
             default -> false;
         };
+    }
+
+    public static Quality getQuality(String quality) {
+        return QUALITIES.get(quality);
     }
     public class Fossil {
         ForgeConfigSpec.ConfigValue<String> pieces;
