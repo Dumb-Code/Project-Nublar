@@ -2,11 +2,10 @@ package com.nyfaria.projectnublar.datagen;
 
 import com.nyfaria.projectnublar.Constants;
 import com.nyfaria.projectnublar.api.FossilCollection;
-import com.nyfaria.projectnublar.api.FossilPiece;
 import com.nyfaria.projectnublar.block.AmberBlock;
 import com.nyfaria.projectnublar.block.FossilBlock;
+import com.nyfaria.projectnublar.init.BlockInit;
 import net.minecraft.data.PackOutput;
-import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.level.block.Block;
 import net.minecraftforge.client.model.generators.BlockModelBuilder;
 import net.minecraftforge.client.model.generators.BlockStateProvider;
@@ -45,6 +44,7 @@ public class ModBlockStateProvider extends BlockStateProvider {
                     amberBlock(block, (AmberBlock) blockRegistryObject.get());
             });
         });
+        simpleBlock(BlockInit.PROCESSOR.get(), models().getBuilder("block/processor").texture("particle", modLoc("block/processor")));
     }
 
     protected void simpleCubeBottomTopBlockState(Block block) {

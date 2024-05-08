@@ -1,5 +1,10 @@
 package com.nyfaria.projectnublar.platform.services;
 
+import net.minecraft.client.renderer.entity.EntityRenderer;
+import net.minecraft.world.entity.EntityType;
+
+import java.util.function.Supplier;
+
 public interface IPlatformHelper {
 
     /**

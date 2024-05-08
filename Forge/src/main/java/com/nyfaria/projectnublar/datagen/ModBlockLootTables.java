@@ -4,9 +4,8 @@ import com.nyfaria.projectnublar.api.loot.functions.AmberItemFunction;
 import com.nyfaria.projectnublar.api.loot.functions.FossilItemFunction;
 import com.nyfaria.projectnublar.block.AmberBlock;
 import com.nyfaria.projectnublar.block.FossilBlock;
-import com.nyfaria.projectnublar.item.AmberItem;
-import com.nyfaria.projectnublar.registration.RegistryObject;
 import com.nyfaria.projectnublar.init.BlockInit;
+import com.nyfaria.projectnublar.registration.RegistryObject;
 import net.minecraft.data.loot.BlockLootSubProvider;
 import net.minecraft.world.flag.FeatureFlags;
 import net.minecraft.world.item.Items;
@@ -17,6 +16,7 @@ import net.minecraft.world.level.storage.loot.LootTable;
 import net.minecraft.world.level.storage.loot.entries.LootItem;
 import net.minecraft.world.level.storage.loot.providers.number.ConstantValue;
 
+import java.util.List;
 import java.util.Set;
 import java.util.stream.Stream;
 
@@ -29,6 +29,10 @@ public class ModBlockLootTables extends BlockLootSubProvider {
 
         this.getBlockStream().filter(this::shouldDropSelf).filter(b->b instanceof FossilBlock).map( b->(FossilBlock)b).forEach(this::fossilDrops);
         this.getBlockStream().filter(this::shouldDropSelf).filter(b->b instanceof AmberBlock).map(b->(AmberBlock)b).forEach(this::amberDrops);
+        List.of(BlockInit.PROCESSOR)
+                .stream()
+                .map(RegistryObject::get)
+                .forEach(this::dropSelf);
     }
 
     @Override
