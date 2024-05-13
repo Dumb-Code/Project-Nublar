@@ -12,10 +12,10 @@
   "environment": "*",
   "entrypoints": {
     "main": [
-      "com.nyfaria.projectnublar.ProjectNublar"
+      "net.dumbcode.projectnublar.ProjectNublar"
     ],
     "client": [
-      "com.nyfaria.projectnublar.ProjectNublarClient"
+      "net.dumbcode.projectnublar.ProjectNublarClient"
     ]
   },
   "mixins": [

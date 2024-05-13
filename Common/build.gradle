@@ -33,6 +33,7 @@ dependencies {
     implementation 'com.moandjiezana.toml:toml4j:0.7.2'
     implementation "net.tslat.smartbrainlib:SmartBrainLib-common-${project.minecraft_version}:${project.sbl_version}"
     compileOnly "software.bernie.geckolib:geckolib-neoforge-${minecraft_version}:${geckolib_version}"
+    implementation "com.nyfaria.nyfsguilib:nyfsguilib-common-${minecraft_version}:${ngl_version}"
 }
 sourceSets.main.resources.srcDir './src/generated/resources'
 processResources {

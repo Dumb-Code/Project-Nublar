@@ -23,6 +23,8 @@ dependencies {
     include(implementation 'com.moandjiezana.toml:toml4j:0.7.2')
     modImplementation "net.tslat.smartbrainlib:SmartBrainLib-fabric-${project.minecraft_version}:${project.sbl_version}"
     modImplementation "software.bernie.geckolib:geckolib-fabric-${minecraft_version}:${geckolib_version}"
+    modImplementation "com.nyfaria.nyfsguilib:nyfsguilib-fabric-${minecraft_version}:${ngl_version}"
+    include("com.nyfaria.nyfsguilib:nyfsguilib-fabric-${minecraft_version}:${ngl_version}")
 }
 
 loom {

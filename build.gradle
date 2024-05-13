@@ -2,7 +2,7 @@ plugins {
     id 'com.matyrobbrt.mc.registrationutils' version "$regutils_version" // The plugin is located at the Gradle plugin portal
 }
 registrationUtils {
-    group "com.nyfaria.${mod_id}.registration"
+    group "net.dumbcode.${mod_id}.registration"
     projects {
         Fabric { type 'fabric' } // The fabric project
         Forge { type 'forge' } // The forge project
@@ -45,6 +45,7 @@ subprojects {
 
     repositories {
 
+        mavenLocal()
         mavenCentral()
         maven { url 'https://jitpack.io' }
         maven {

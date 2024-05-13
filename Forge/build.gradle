@@ -9,7 +9,7 @@ plugins {
 }
 
 archivesBaseName = "${mod_id}-forge-${minecraft_version}"
-
+jarJar.enable()
 minecraft {
     mappings channel: mappings_channel, version: mappings_version
     jarJar.enable()
@@ -87,6 +87,9 @@ dependencies {
     annotationProcessor "org.spongepowered:mixin:${mixin_version}:processor"
     implementation fg.deobf("software.bernie.geckolib:geckolib-forge-${minecraft_version}:${geckolib_version}")
     implementation fg.deobf("net.tslat.smartbrainlib:SmartBrainLib-neoforge-${minecraft_version}:${project.sbl_version}")
+    implementation(jarJar(fg.deobf("com.nyfaria.nyfsguilib:nyfsguilib-forge-${minecraft_version}:${ngl_version}")) {
+        jarJar.ranged(it, "[${ngl_version},)")
+    });
 }
 
 tasks.withType(JavaCompile) {
