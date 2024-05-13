@@ -1,4 +1,7 @@
 {
   "parent": "minecraft:item/generated",
-  "loader": "projectnublar:test_tube"
+  "loader": "projectnublar:test_tube",
+  "textures": {
+    "layer0": "projectnublar:item/test_tube"
+  }
 }
