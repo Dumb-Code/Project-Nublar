@@ -5,6 +5,7 @@ import net.dumbcode.projectnublar.client.model.testtube.TestTubeModelLoader;
 import com.google.gson.JsonObject;
 import net.dumbcode.projectnublar.Constants;
 import net.dumbcode.projectnublar.api.FossilCollection;
+import net.dumbcode.projectnublar.init.BlockInit;
 import net.dumbcode.projectnublar.init.ItemInit;
 import net.minecraft.data.PackOutput;
 import net.minecraft.resources.ResourceLocation;
@@ -41,10 +42,14 @@ public class ModItemModelProvider extends ItemModelProvider {
                         ItemInit.DIAMOND_COMPUTER_CHIP,
                         ItemInit.DIAMOND_TANK_UPGRADE,
                         ItemInit.HARD_DRIVE,
-                        ItemInit.SSD
+                        ItemInit.SSD,
+                ItemInit.SEQUENCER_COMPUTER,
+                ItemInit.SEQUENCER_DOOR,
+                ItemInit.SEQUENCER_SCREEN
                 )
                 .map(Supplier::get)
                 .forEach(this::simpleGeneratedModel);
+        simpleGeneratedModel(BlockInit.SEQUENCER.get().asItem());
         FossilCollection.COLLECTIONS.forEach((s, fossilCollection) -> {
             fossilCollection.fossilblocks().forEach((block, qualityMap) -> {
                 qualityMap.forEach((quality, fossilPieceRegistryObjectMap) -> {

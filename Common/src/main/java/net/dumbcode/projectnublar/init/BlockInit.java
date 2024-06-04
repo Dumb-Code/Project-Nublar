@@ -24,7 +24,7 @@ public class BlockInit {
 
     public static FossilCollection FOSSIL = FossilCollection.create("tyrannosaurus_rex");
     public static RegistryObject<Block> PROCESSOR = registerBlock("processor", () -> new ProcessorBlock(BlockBehaviour.Properties.of().noOcclusion()), block->()-> new GeoMultiBlockItem(block.get(),ItemInit.getItemProperties(),3,2, 2));
-    public static RegistryObject<Block> SEQUENCER = registerBlock("sequencer", () -> new SequencerBlock(BlockBehaviour.Properties.of().noOcclusion()), block->()-> new GeoMultiBlockItem(block.get(),ItemInit.getItemProperties(),3,2, 2));
+    public static RegistryObject<Block> SEQUENCER = registerBlock("sequencer", () -> new SequencerBlock(BlockBehaviour.Properties.of().noOcclusion()), block->()-> new GeoMultiBlockItem(block.get(),ItemInit.getItemProperties(),2,1, 2));
 
 
 

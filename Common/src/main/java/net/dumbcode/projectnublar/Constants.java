@@ -17,5 +17,5 @@ public class Constants {
 	public static final ResourceKey<ConfiguredFeature<?,?>> AMBER = FeatureUtils.createKey(Constants.MODID + ":amber");
 	public static final ResourceKey<PlacedFeature> FOSSIL_PLACED = PlacementUtils.createKey(Constants.MODID + ":fossil");
 	public static final ResourceKey<PlacedFeature> AMBER_PLACED = PlacementUtils.createKey(Constants.MODID + ":amber");
-
+	public static final int BORDER_COLOR = 0xFF577694;
 }

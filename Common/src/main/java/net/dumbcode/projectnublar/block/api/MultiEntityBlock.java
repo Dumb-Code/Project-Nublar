@@ -83,7 +83,7 @@ public abstract class MultiEntityBlock extends BaseEntityBlock implements MultiB
             for (int c = 0; c < 2; c++) {
                 for (int d = 0; d < 2; d++) {
                     BlockPos blockPos = corePos.relative(direction.getOpposite(), d).relative(direction.getCounterClockWise(), c).relative(Direction.UP, r);
-                    if (!pLevel.getBlockState(blockPos).isAir()) {
+                    if (!pLevel.getBlockState(blockPos).isAir() && pLevel.getBlockState(blockPos).is(this)) {
                         pLevel.destroyBlock(blockPos, false);
                     }
                 }
