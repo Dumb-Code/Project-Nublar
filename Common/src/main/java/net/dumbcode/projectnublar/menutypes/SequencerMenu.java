@@ -1,5 +1,6 @@
 package net.dumbcode.projectnublar.menutypes;
 
+import net.dumbcode.projectnublar.api.DinoData;
 import net.dumbcode.projectnublar.container.CloneDisplaySlot;
 import net.dumbcode.projectnublar.container.ToggleSlot;
 import net.dumbcode.projectnublar.init.MenuTypeInit;
@@ -67,6 +68,9 @@ public class SequencerMenu extends AbstractContainerMenu {
     public int getDataSlot(int slot) {
         return data.get(slot);
     }
+
+
+
     @Override
     public ItemStack quickMoveStack(Player player, int i) {
         return ItemStack.EMPTY;

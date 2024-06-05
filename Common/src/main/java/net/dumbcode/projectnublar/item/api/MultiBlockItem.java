@@ -41,7 +41,7 @@ public class MultiBlockItem extends BlockItem {
                                     .setValue(MultiBlock.COLUMNS, j)
                                     .setValue(MultiBlock.ROWS, i)
                             ,
-                            11)) {
+                            Block.UPDATE_ALL_IMMEDIATE)) {
                         return false;
                     }
                 }

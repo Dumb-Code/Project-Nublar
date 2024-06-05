@@ -3,6 +3,7 @@ package net.dumbcode.projectnublar;
 import net.dumbcode.projectnublar.api.FossilPiece;
 import net.dumbcode.projectnublar.init.BlockInit;
 import net.dumbcode.projectnublar.init.CreativeTabInit;
+import net.dumbcode.projectnublar.init.DataSerializerInit;
 import net.dumbcode.projectnublar.init.EntityInit;
 import net.dumbcode.projectnublar.init.FeatureInit;
 import net.dumbcode.projectnublar.init.ItemInit;
@@ -26,6 +27,7 @@ public class CommonClass {
         FeatureInit.loadClass();
         MenuTypeInit.loadClass();
         CreativeTabInit.loadClass();
+        DataSerializerInit.loadClass();
     }
 
 }

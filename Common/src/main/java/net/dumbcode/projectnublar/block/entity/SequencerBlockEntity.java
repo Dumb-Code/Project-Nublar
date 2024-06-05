@@ -1,10 +1,10 @@
 package net.dumbcode.projectnublar.block.entity;
 
 import net.dumbcode.projectnublar.api.DNAData;
-import net.dumbcode.projectnublar.item.DiskStorageItem;
-import net.dumbcode.projectnublar.menutypes.SequencerMenu;
 import net.dumbcode.projectnublar.block.api.SyncingContainerBlockEntity;
 import net.dumbcode.projectnublar.init.BlockInit;
+import net.dumbcode.projectnublar.item.DiskStorageItem;
+import net.dumbcode.projectnublar.menutypes.SequencerMenu;
 import net.minecraft.ChatFormatting;
 import net.minecraft.core.BlockPos;
 import net.minecraft.nbt.CompoundTag;
@@ -17,12 +17,20 @@ import net.minecraft.world.inventory.ContainerData;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.state.BlockState;
+import software.bernie.geckolib.animatable.GeoBlockEntity;
+import software.bernie.geckolib.core.animatable.instance.AnimatableInstanceCache;
+import software.bernie.geckolib.core.animation.AnimatableManager;
+import software.bernie.geckolib.util.GeckoLibUtil;
 
-public class SequencerBlockEntity extends SyncingContainerBlockEntity {
+public class SequencerBlockEntity extends SyncingContainerBlockEntity implements GeoBlockEntity {
+    private final AnimatableInstanceCache cache = GeckoLibUtil.createInstanceCache(this);
     private ItemStack storage = ItemStack.EMPTY;
     private ItemStack dna_input = ItemStack.EMPTY;
     private ItemStack empty_vial_output = ItemStack.EMPTY;
     private float sequencingTime = 0;
+    private boolean hasComputer = false;
+    private boolean hasDoor = false;
+    private boolean hasScreen = false;
     protected final ContainerData dataAccess = new ContainerData() {
         public int get(int slot) {
             return switch (slot) {
@@ -50,6 +58,33 @@ public class SequencerBlockEntity extends SyncingContainerBlockEntity {
 
     public SequencerBlockEntity(BlockPos pos, BlockState state) {
         super(BlockInit.SEQUENCER_BLOCK_ENTITY.get(), pos, state);
+    }
+
+    public boolean isHasComputer() {
+        return hasComputer;
+    }
+
+    public void setHasComputer(boolean hasComputer) {
+        this.hasComputer = hasComputer;
+        updateBlock();
+    }
+
+    public boolean isHasDoor() {
+        return hasDoor;
+    }
+
+    public void setHasDoor(boolean hasDoor) {
+        this.hasDoor = hasDoor;
+        updateBlock();
+    }
+
+    public boolean isHasScreen() {
+        return hasScreen;
+    }
+
+    public void setHasScreen(boolean hasScreen) {
+        this.hasScreen = hasScreen;
+        updateBlock();
     }
 
     public void tick(Level world, BlockPos pos, BlockState pState, SequencerBlockEntity be) {
@@ -82,10 +117,11 @@ public class SequencerBlockEntity extends SyncingContainerBlockEntity {
                         sequencingTime = 0;
                     }
                 }
+                updateBlock();
             } else {
                 sequencingTime = 0;
+                updateBlock();
             }
-            updateBlock();
         }
     }
 
@@ -95,6 +131,9 @@ public class SequencerBlockEntity extends SyncingContainerBlockEntity {
         tag.put("dna_input", dna_input.save(new CompoundTag()));
         tag.put("empty_vial_output", empty_vial_output.save(new CompoundTag()));
         tag.putFloat("sequencingTime", sequencingTime);
+        tag.putBoolean("hasComputer", hasComputer);
+        tag.putBoolean("hasDoor", hasDoor);
+        tag.putBoolean("hasScreen", hasScreen);
     }
 
     @Override
@@ -103,6 +142,9 @@ public class SequencerBlockEntity extends SyncingContainerBlockEntity {
         dna_input = ItemStack.of(tag.getCompound("dna_input"));
         empty_vial_output = ItemStack.of(tag.getCompound("empty_vial_output"));
         sequencingTime = tag.getFloat("sequencingTime");
+        hasComputer = tag.getBoolean("hasComputer");
+        hasDoor = tag.getBoolean("hasDoor");
+        hasScreen = tag.getBoolean("hasScreen");
     }
 
     @Override
@@ -219,5 +261,15 @@ public class SequencerBlockEntity extends SyncingContainerBlockEntity {
         storage = ItemStack.EMPTY;
         dna_input = ItemStack.EMPTY;
         empty_vial_output = ItemStack.EMPTY;
+    }
+
+    @Override
+    public void registerControllers(AnimatableManager.ControllerRegistrar controllers) {
+
+    }
+
+    @Override
+    public AnimatableInstanceCache getAnimatableInstanceCache() {
+        return cache;
     }
 }

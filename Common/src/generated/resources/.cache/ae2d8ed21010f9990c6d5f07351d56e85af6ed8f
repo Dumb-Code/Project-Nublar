@@ -1,4 +1,4 @@
-// 1.20.1	2024-05-11T08:50:03.7828999	Item Models: projectnublar
+// 1.20.1	2024-05-26T10:10:18.2295744	Item Models: projectnublar
 d9a1d385a6d7ae4ebb344304b32fc194d502752e assets/projectnublar/models/item/amber.json
 9c918dfedf21b391efd3c30f219ab2f87a33daa0 assets/projectnublar/models/item/andesite_tyrannosaurus_rex_amber.json
 327b5da8126b2c336346c7ea95974bb7ec31149a assets/projectnublar/models/item/andesite_tyrannosaurus_rex_arm_fossil.json
@@ -630,6 +630,10 @@ ac9847956e3f447f25c737bb7fdbf55f50d9f8e8 assets/projectnublar/models/item/sandst
 0f2fa71fdc0701690905e4a76e795b79d570dcc8 assets/projectnublar/models/item/sandstone_tyrannosaurus_rex_spine_fossil.json
 4b7b0287dade38625d09c48e688b904e6fbf3aac assets/projectnublar/models/item/sandstone_tyrannosaurus_rex_tail_fossil.json
 5a6b0a2b24bdd52d0e023999f1240888b2230466 assets/projectnublar/models/item/sandstone_tyrannosaurus_rex_wing_fossil.json
+e81f7258287789e0b544743dbf5623c9b16e5066 assets/projectnublar/models/item/sequencer.json
+56305c8504101c9d65f627a48b658fb6c5426432 assets/projectnublar/models/item/sequencer_computer.json
+2a8e569a8b94cc37ca16d076f997acfb2935661d assets/projectnublar/models/item/sequencer_door.json
+fedd514e164261ce1b9e0cbdebb646ac79e7e3e0 assets/projectnublar/models/item/sequencer_monitor.json
 e2e1930d13581636f9b69651232b42b09cb8dc14 assets/projectnublar/models/item/ssd.json
 053267ac442b107d50c805f52bcd1a2de1815820 assets/projectnublar/models/item/stone_tyrannosaurus_rex_amber.json
 cd6075e503ba01ca62d2466ac949a3a6bb4025b0 assets/projectnublar/models/item/stone_tyrannosaurus_rex_arm_fossil.json

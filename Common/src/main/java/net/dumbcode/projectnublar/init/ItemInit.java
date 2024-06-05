@@ -11,8 +11,17 @@ import net.dumbcode.projectnublar.item.FilterItem;
 import net.dumbcode.projectnublar.item.SyringeItem;
 import net.dumbcode.projectnublar.registration.RegistrationProvider;
 import net.dumbcode.projectnublar.registration.RegistryObject;
+import net.minecraft.core.BlockPos;
 import net.minecraft.core.registries.Registries;
+import net.minecraft.world.InteractionResult;
 import net.minecraft.world.item.Item;
+import net.minecraft.world.item.context.UseOnContext;
+import net.minecraft.world.level.Level;
+import net.minecraft.world.level.block.Blocks;
+import net.minecraft.world.level.block.HorizontalDirectionalBlock;
+import net.minecraft.world.level.block.state.BlockState;
+import net.minecraft.world.level.block.state.properties.BedPart;
+import net.minecraft.world.level.block.state.properties.BlockStateProperties;
 
 public class ItemInit {
     public static final RegistrationProvider<Item> ITEMS = RegistrationProvider.get(Registries.ITEM, Constants.MODID);
@@ -42,7 +51,12 @@ public class ItemInit {
     public static final RegistryObject<Item> DEV_SSD = ITEMS.register("dev_ssd", () -> new DiskStorageItem(getItemProperties(), 10));
 
     public static final RegistryObject<Item> SYRINGE = ITEMS.register("syringe", () -> new SyringeItem(getItemProperties()));
-
+    public static final RegistryObject<Item> SEQUENCER_DOOR = registerSingleItem("sequencer_door");
+    public static final RegistryObject<Item> SEQUENCER_SCREEN = registerSingleItem("sequencer_monitor");
+    public static final RegistryObject<Item> SEQUENCER_COMPUTER = registerSingleItem("sequencer_computer");
+    public static RegistryObject<Item> registerSingleItem(String name) {
+        return ITEMS.register(name, () -> new Item(getItemProperties().stacksTo(1)));
+    }
     public static Item.Properties getItemProperties() {
         return new Item.Properties();
     }

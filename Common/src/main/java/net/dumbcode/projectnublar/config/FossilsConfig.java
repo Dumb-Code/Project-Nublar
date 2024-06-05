@@ -83,24 +83,24 @@ public class FossilsConfig {
         builder.pop();
         builder.push("cretaceous");
         cretaceous = new Period(
-                builder.comment("the min y value that this period generates in").defineInRange("min_y", -40, -64, 255),
-                builder.comment("the max y value that this period generates in").defineInRange("max_y", -10, -64, 255),
-                builder.comment("the rarity modifier to apply to the \"will generate\" method of this vein").defineInRange("rarity_mod", 0.3, 0.0, 1.0));
+                builder.comment("the min y value that this period generates in").defineInRange("min_y", 40, -64, 255),
+                builder.comment("the max y value that this period generates in").defineInRange("max_y", 56, -64, 255),
+                builder.comment("the rarity modifier to apply to the \"will generate\" method of this vein").defineInRange("rarity_mod", 0.4, 0.0, 1.0));
         builder.pop();
         builder.pop();
 
         builder.comment("define the weights of each fossil quality, (weight / total weights) = percentage chance this quality will generate and how much dna they will yield as a percentage of a full genome.").push("qualities");
         builder.push("fragmented");
-        fragmented = new Quality(builder.defineInRange("weight", 10, 0, Integer.MAX_VALUE), builder.defineInRange("dna_yield", 10, 0, 100));
+        fragmented = new Quality(builder.defineInRange("weight", 40, 0, Integer.MAX_VALUE), builder.defineInRange("dna_yield", 5.0, 0, 100));
         builder.pop();
         builder.push("poor");
-        poor = new Quality(builder.defineInRange("weight", 20, 0, Integer.MAX_VALUE), builder.defineInRange("dna_yield", 20, 0, 100));
+        poor = new Quality(builder.defineInRange("weight", 20, 0, Integer.MAX_VALUE), builder.defineInRange("dna_yield", 7.5, 0, 100));
         builder.pop();
         builder.push("common");
-        common = new Quality(builder.defineInRange("weight", 40, 0, Integer.MAX_VALUE), builder.defineInRange("dna_yield", 40, 0, 100));
+        common = new Quality(builder.defineInRange("weight", 15, 0, Integer.MAX_VALUE), builder.defineInRange("dna_yield", 10.0, 0, 100));
         builder.pop();
         builder.push("pristine");
-        pristine = new Quality(builder.defineInRange("weight", 30, 0, Integer.MAX_VALUE), builder.defineInRange("dna_yield", 30, 0, 100));
+        pristine = new Quality(builder.defineInRange("weight", 4, 0, Integer.MAX_VALUE), builder.defineInRange("dna_yield", 30.0, 0, 100));
         builder.pop();
         builder.pop();
         QUALITIES.put("fragmented", fragmented);
@@ -216,6 +216,6 @@ public class FossilsConfig {
                          ForgeConfigSpec.DoubleValue rarityModifier) {
     }
 
-    public record Quality(ForgeConfigSpec.IntValue weight, ForgeConfigSpec.IntValue dnaYield) {
+    public record Quality(ForgeConfigSpec.IntValue weight, ForgeConfigSpec.DoubleValue dnaYield) {
     }
 }

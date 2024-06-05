@@ -74,7 +74,7 @@ public class ModWorldGenProvider extends DatapackBuiltinEntriesProvider {
     public static void placedFeatures(BootstapContext<PlacedFeature> context) {
         context.register(Constants.FOSSIL_PLACED, new PlacedFeature(context.lookup(Registries.CONFIGURED_FEATURE).get(Constants.FOSSIL).get(),
                         List.of(
-                                CountPlacement.of(UniformInt.of(4,10)),
+                                CountPlacement.of(ConstantInt.of(100)),
                                 HeightRangePlacement.uniform(VerticalAnchor.absolute(-64),VerticalAnchor.absolute(256)),
                                 InSquarePlacement.spread(),
                                 BiomeFilter.biome()
