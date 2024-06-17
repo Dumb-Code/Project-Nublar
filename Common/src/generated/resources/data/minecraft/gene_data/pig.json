@@ -1,0 +1,11 @@
+{
+  "colors": {
+    "base": [
+      11711154
+    ]
+  },
+  "genes": {
+    "defense": 1.2,
+    "immunity": 1.25
+  }
+}

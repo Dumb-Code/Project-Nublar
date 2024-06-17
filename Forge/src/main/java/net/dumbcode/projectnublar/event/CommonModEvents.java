@@ -6,8 +6,10 @@ import net.dumbcode.projectnublar.api.FossilCollection;
 import net.dumbcode.projectnublar.api.FossilPiece;
 import net.dumbcode.projectnublar.api.FossilPieces;
 import net.dumbcode.projectnublar.config.FossilsConfig;
+import net.dumbcode.projectnublar.data.GeneDataReloadListener;
 import net.dumbcode.projectnublar.init.EntityInit;
 import net.minecraft.util.random.SimpleWeightedRandomList;
+import net.minecraftforge.event.AddReloadListenerEvent;
 import net.minecraftforge.event.entity.EntityAttributeCreationEvent;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
 import net.minecraftforge.fml.common.Mod;
@@ -53,4 +55,5 @@ public class CommonModEvents {
         });
         boolean breakHere = true;
     }
+
 }

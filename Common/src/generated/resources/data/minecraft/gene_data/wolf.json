@@ -1,0 +1,13 @@
+{
+  "colors": {
+    "base": [
+      11711154
+    ]
+  },
+  "genes": {
+    "intelligence": 1.75,
+    "pack_size": 1.75,
+    "speed": 1.25,
+    "tamability": 2.75
+  }
+}

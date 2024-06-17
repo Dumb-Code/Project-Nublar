@@ -1,0 +1,16 @@
+{
+  "colors": {
+    "base": [
+      11711154,
+      2236962
+    ]
+  },
+  "genes": {
+    "defense": 0.5,
+    "eat_rate": 0.9,
+    "fertility": 0.7,
+    "speed": 0.8,
+    "stomach_capacity": 1.75,
+    "strength": 1.25
+  }
+}

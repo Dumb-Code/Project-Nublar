@@ -27,28 +27,46 @@ public class SequencerBlockEntity extends SyncingContainerBlockEntity implements
     private ItemStack storage = ItemStack.EMPTY;
     private ItemStack dna_input = ItemStack.EMPTY;
     private ItemStack empty_vial_output = ItemStack.EMPTY;
+    private ItemStack water = ItemStack.EMPTY;
+    private ItemStack bone_matter = ItemStack.EMPTY;
+    private ItemStack sugar = ItemStack.EMPTY;
+    private ItemStack plant_matter = ItemStack.EMPTY;
+    private ItemStack empty_tube_input = ItemStack.EMPTY;
+    private ItemStack dna_test_tube_output = ItemStack.EMPTY;
     private float sequencingTime = 0;
     private boolean hasComputer = false;
     private boolean hasDoor = false;
     private boolean hasScreen = false;
+    private int waterLevel = 0;
+    private int boneMatterLevel = 0;
+    private int sugarLevel = 0;
+    private int plantMatterLevel = 0;
+
     protected final ContainerData dataAccess = new ContainerData() {
         public int get(int slot) {
             return switch (slot) {
                 case 0 -> Mth.floor(SequencerBlockEntity.this.sequencingTime);
                 case 1 -> SequencerBlockEntity.this.getTotalSequencingTime();
+                case 2 -> SequencerBlockEntity.this.waterLevel;
+                case 3 -> SequencerBlockEntity.this.boneMatterLevel;
+                case 4 -> SequencerBlockEntity.this.sugarLevel;
+                case 5 -> SequencerBlockEntity.this.plantMatterLevel;
                 default -> 0;
             };
         }
 
         public void set(int slot, int value) {
-            if (slot == 0) {
-                SequencerBlockEntity.this.sequencingTime = value;
+            switch (slot) {
+                case 0 -> SequencerBlockEntity.this.sequencingTime = value;
+                case 2 -> SequencerBlockEntity.this.waterLevel = value;
+                case 3 -> SequencerBlockEntity.this.boneMatterLevel = value;
+                case 4 -> SequencerBlockEntity.this.sugarLevel = value;
+                case 5 -> SequencerBlockEntity.this.plantMatterLevel = value;
             }
-
         }
 
         public int getCount() {
-            return 2;
+            return 6;
         }
     };
 
@@ -173,6 +191,10 @@ public class SequencerBlockEntity extends SyncingContainerBlockEntity implements
             case 0 -> storage;
             case 1 -> dna_input;
             case 2 -> empty_vial_output;
+            case 3 -> water;
+            case 4 -> bone_matter;
+            case 5 -> sugar;
+            case 6 -> plant_matter;
             default -> ItemStack.EMPTY;
         };
     }

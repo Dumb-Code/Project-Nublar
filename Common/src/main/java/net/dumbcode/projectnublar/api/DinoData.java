@@ -17,17 +17,6 @@ public class DinoData {
     private Map<Genes.Gene, Double> genes = new HashMap<>();
     private List<DyeColor> layerColors = List.of(
             DyeColor.GREEN,
-            DyeColor.GREEN,
-            DyeColor.GREEN,
-            DyeColor.GREEN,
-            DyeColor.GREEN,
-            DyeColor.GREEN,
-            DyeColor.GREEN,
-            DyeColor.GREEN,
-            DyeColor.GREEN,
-            DyeColor.GREEN,
-            DyeColor.GREEN,
-            DyeColor.GREEN,
             DyeColor.GREEN
     );
     private ResourceLocation textureLocation = null;

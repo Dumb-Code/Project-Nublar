@@ -1,0 +1,15 @@
+{
+  "colors": {
+    "base": [
+      12563327,
+      2634762
+    ]
+  },
+  "genes": {
+    "defense": 1.5,
+    "health": 0.75,
+    "immunity": 2.25,
+    "speed": 0.5,
+    "underwater_capacity": 2.25
+  }
+}

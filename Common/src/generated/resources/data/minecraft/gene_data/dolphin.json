@@ -1,0 +1,11 @@
+{
+  "colors": {
+    "base": [
+      7566205
+    ]
+  },
+  "genes": {
+    "speed": 1.35,
+    "underwater_capacity": 1.75
+  }
+}

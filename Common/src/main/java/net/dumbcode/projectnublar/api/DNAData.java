@@ -171,4 +171,9 @@ public class DNAData {
                 .collect(Collectors.joining(" "))
                 .trim();
     }
+    public static DNAData fromDrive(ItemStack stack, EntityType<?> entityType){
+
+        return loadFromNBT(stack.getTag().getCompound("DNAData"));
+    }
+
 }
