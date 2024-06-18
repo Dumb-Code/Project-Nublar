@@ -1,0 +1,13 @@
+{
+  "colors": {
+    "base": [
+      11507832,
+      7822153
+    ]
+  },
+  "genes": {
+    "health": 0.5,
+    "size": 0.5,
+    "underwater_capacity": 1.3
+  }
+}

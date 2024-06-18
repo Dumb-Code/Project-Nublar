@@ -1,0 +1,12 @@
+{
+  "colors": {
+    "base": [
+      11834493,
+      11711154
+    ]
+  },
+  "genes": {
+    "herd_size": 1.5,
+    "intelligence": 0.75
+  }
+}

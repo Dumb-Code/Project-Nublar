@@ -1,0 +1,13 @@
+{
+  "colors": {
+    "base": [
+      1255223,
+      5467007
+    ]
+  },
+  "genes": {
+    "health": 0.7,
+    "health_regen": 1.25,
+    "underwater_capacity": 1.5
+  }
+}

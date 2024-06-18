@@ -1,0 +1,12 @@
+{
+  "colors": {
+    "base": [
+      9074278
+    ]
+  },
+  "genes": {
+    "intelligence": 1.25,
+    "speed": 0.8,
+    "strength": 1.25
+  }
+}

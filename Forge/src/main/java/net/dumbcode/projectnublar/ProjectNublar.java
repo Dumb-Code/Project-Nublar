@@ -1,6 +1,7 @@
 package net.dumbcode.projectnublar;
 
 import net.dumbcode.projectnublar.config.FossilsConfig;
+import net.dumbcode.projectnublar.datagen.GeneDataProvider;
 import net.dumbcode.projectnublar.datagen.ModBlockStateProvider;
 import net.dumbcode.projectnublar.datagen.ModItemModelProvider;
 import net.dumbcode.projectnublar.datagen.ModLangProvider;
@@ -44,5 +45,6 @@ public class ProjectNublar {
         generator.addProvider(includeClient, new ModBlockStateProvider(packOutput, existingFileHelper));
         generator.addProvider(includeClient, new ModItemModelProvider(packOutput, existingFileHelper));
         generator.addProvider(includeClient, new ModLangProvider(packOutput));
+        generator.addProvider(includeServer, new GeneDataProvider(packOutput, existingFileHelper));
     }
 }

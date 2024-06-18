@@ -1,0 +1,13 @@
+{
+  "colors": {
+    "base": [
+      5254170
+    ]
+  },
+  "genes": {
+    "fertility": 0.5,
+    "intelligence": 1.2,
+    "speed": 0.8,
+    "tamability": 1.3
+  }
+}
