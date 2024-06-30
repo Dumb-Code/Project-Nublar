@@ -32,7 +32,8 @@ public class ModBlockLootTables extends BlockLootSubProvider {
         this.getBlockStream().filter(this::shouldDropSelf).filter(b -> b instanceof AmberBlock).map(b -> (AmberBlock) b).forEach(this::amberDrops);
         List.of(
                         BlockInit.PROCESSOR,
-                        BlockInit.SEQUENCER
+                        BlockInit.SEQUENCER,
+                        BlockInit.EGG_PRINTER
                 )
                 .stream()
                 .map(RegistryObject::get)

@@ -1,10 +1,10 @@
 package net.dumbcode.projectnublar.datagen;
 
-import net.dumbcode.projectnublar.client.model.fossil.FossilModelLoader;
-import net.dumbcode.projectnublar.client.model.testtube.TestTubeModelLoader;
 import com.google.gson.JsonObject;
 import net.dumbcode.projectnublar.Constants;
 import net.dumbcode.projectnublar.api.FossilCollection;
+import net.dumbcode.projectnublar.client.model.fossil.FossilModelLoader;
+import net.dumbcode.projectnublar.client.model.testtube.TestTubeModelLoader;
 import net.dumbcode.projectnublar.init.BlockInit;
 import net.dumbcode.projectnublar.init.ItemInit;
 import net.minecraft.data.PackOutput;
@@ -43,13 +43,16 @@ public class ModItemModelProvider extends ItemModelProvider {
                         ItemInit.DIAMOND_TANK_UPGRADE,
                         ItemInit.HARD_DRIVE,
                         ItemInit.SSD,
-                ItemInit.SEQUENCER_COMPUTER,
-                ItemInit.SEQUENCER_DOOR,
-                ItemInit.SEQUENCER_SCREEN
+                        ItemInit.SEQUENCER_COMPUTER,
+                        ItemInit.SEQUENCER_DOOR,
+                        ItemInit.SEQUENCER_SCREEN,
+                        ItemInit.CRACKED_ARTIFICIAL_EGG,
+                        ItemInit.ARTIFICIAL_EGG
                 )
                 .map(Supplier::get)
                 .forEach(this::simpleGeneratedModel);
         simpleGeneratedModel(BlockInit.SEQUENCER.get().asItem());
+        simpleGeneratedModel(BlockInit.EGG_PRINTER.get().asItem());
         FossilCollection.COLLECTIONS.forEach((s, fossilCollection) -> {
             fossilCollection.fossilblocks().forEach((block, qualityMap) -> {
                 qualityMap.forEach((quality, fossilPieceRegistryObjectMap) -> {

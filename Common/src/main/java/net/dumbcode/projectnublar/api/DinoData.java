@@ -1,11 +1,16 @@
 package net.dumbcode.projectnublar.api;
 
+import com.mojang.serialization.Codec;
+import com.mojang.serialization.codecs.RecordCodecBuilder;
 import net.dumbcode.projectnublar.Constants;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.nbt.CompoundTag;
+import net.minecraft.network.chat.Component;
+import net.minecraft.network.chat.MutableComponent;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.item.DyeColor;
+import org.jetbrains.annotations.Nullable;
 
 import java.util.HashMap;
 import java.util.List;
@@ -13,8 +18,10 @@ import java.util.Map;
 
 public class DinoData {
     public double basePercentage;
-    private Map<EntityType<?>, Double> entityPercentages = new HashMap<>();
-    private Map<Genes.Gene, Double> genes = new HashMap<>();
+    private EntityType<?> baseDino = null;
+    private Map<EntityInfo,Double> entityPercentages = new HashMap<>();
+    private Map<Genes.Gene, Double> advancedGenes = new HashMap<>();
+    private Map<Genes.Gene, Double> finalGenes = new HashMap<>();
     private List<DyeColor> layerColors = List.of(
             DyeColor.GREEN,
             DyeColor.GREEN
@@ -24,15 +31,19 @@ public class DinoData {
     public DinoData() {
     }
 
+    public Map<EntityInfo, Double> getEntityPercentages() {
+        return entityPercentages;
+    }
+
     public ResourceLocation getTextureLocation() {
         if (textureLocation == null) {
             String colorString = layerColors.stream().map(DyeColor::getName).reduce((s1, s2) -> s1 + "_" + s2).orElse("green");
-            textureLocation = new ResourceLocation(Constants.MODID, "textures/entity/dinosaur/" + colorString + ".png");
+            textureLocation = Constants.modLoc("textures/entity/dinosaur/" + colorString + ".png");
         }
         return textureLocation;
     }
 
-    public void addEntity(EntityType<?> type, double percentage) {
+    public void addEntity(EntityInfo type, double percentage) {
         entityPercentages.put(type, percentage);
     }
 
@@ -45,23 +56,71 @@ public class DinoData {
     }
 
     public void setGeneValue(Genes.Gene gene, double value) {
-        genes.put(gene, value);
+        advancedGenes.put(gene, value);
     }
 
     public double getBasePercentage() {
         return basePercentage;
     }
 
+    public EntityType<?> getBaseDino() {
+        return baseDino;
+    }
+    public double getEntityPercentage(EntityInfo type) {
+        return entityPercentages.getOrDefault(type, 0D);
+    }
+
+    public void createToolTip(List<Component> components) {
+//        components.add(baseDino.getDescription());
+        if (finalGenes.isEmpty()) {
+            finalizeGenes();
+        }
+        finalGenes.forEach((gene, value) -> components.add(gene.getTooltip(value)));
+    }
+
+    public void finalizeGenes() {
+        finalGenes.clear();
+        for (Genes.Gene gene : Genes.GENE_STORAGE) {
+            double value = getFinalGeneValue(gene);
+            if (value != 0) {
+                finalGenes.put(gene, value);
+            }
+        }
+    }
+
+    public void setBaseDino(EntityType<?> baseDino) {
+        this.baseDino = baseDino;
+    }
 
     public double getGeneValue(Genes.Gene gene) {
-        if (genes.containsKey(gene)) {
-            return genes.get(gene);
+        if (advancedGenes.containsKey(gene)) {
+            return advancedGenes.get(gene);
         }
         double value = 0;
-        for (Genes.Gene g : Genes.GENE_STORAGE) {
-            for (Map.Entry<EntityType<?>, Double> entry : entityPercentages.entrySet()) {
-                if (g.entities().containsKey(entry.getKey())) {
-                    value += g.entities().get(entry.getKey()) * (entry.getValue() * 2);
+        for (Map.Entry<EntityInfo, Double> entry : entityPercentages.entrySet()) {
+            if (GeneData.getData(entry.getKey().type) != null) {
+                if (GeneData.getData(entry.getKey().type).genes().containsKey(gene)) {
+                    value += GeneData.getData(entry.getKey().type).genes().get(gene) * (entry.getValue() * 2);
+                }
+            }
+        }
+
+        return value;
+    }
+
+    public double getFinalGeneValue(Genes.Gene gene) {
+        if (finalGenes.containsKey(gene)) {
+            return finalGenes.get(gene);
+        }
+        if (advancedGenes.containsKey(gene)) {
+
+            return finalGenes.put(gene, advancedGenes.get(gene));
+        }
+        double value = 0;
+        for (Map.Entry<EntityInfo, Double> entry : entityPercentages.entrySet()) {
+            if (GeneData.getData(entry.getKey().type) != null) {
+                if (GeneData.getData(entry.getKey().type).genes().containsKey(gene)) {
+                    value += GeneData.getData(entry.getKey().type).genes().get(gene) * (entry.getValue() * 2);
                 }
             }
         }
@@ -72,40 +131,78 @@ public class DinoData {
         CompoundTag tag = new CompoundTag();
         tag.putDouble("basePercentage", basePercentage);
         CompoundTag entityTag = new CompoundTag();
-        for (Map.Entry<EntityType<?>, Double> entry : entityPercentages.entrySet()) {
-            entityTag.putDouble(BuiltInRegistries.ENTITY_TYPE.getKey(entry.getKey()).toString(), entry.getValue());
+        int i = 0;
+        for (Map.Entry<EntityInfo, Double> entry : entityPercentages.entrySet()) {
+            CompoundTag entityInfo = new CompoundTag();
+            entityInfo.putString("type", BuiltInRegistries.ENTITY_TYPE.getKey(entry.getKey().type).toString());
+            if (entry.getKey().variant != null) {
+                entityInfo.putString("variant", entry.getKey().variant);
+            }
+            entityInfo.putDouble("percentage", entry.getValue());
+            entityTag.put("entity_"+i, entityInfo);
+            i++;
         }
         tag.put("entityPercentages", entityTag);
         CompoundTag geneTag = new CompoundTag();
-        for (Map.Entry<Genes.Gene, Double> entry : genes.entrySet()) {
+        for (Map.Entry<Genes.Gene, Double> entry : advancedGenes.entrySet()) {
             geneTag.putDouble(entry.getKey().name(), entry.getValue());
         }
         tag.put("genes", geneTag);
+        tag.putString("baseDino", BuiltInRegistries.ENTITY_TYPE.getKey(baseDino).toString());
         return tag;
     }
 
     public static DinoData fromNBT(CompoundTag tag) {
         double basePercentage = tag.getDouble("basePercentage");
-        Map<EntityType<?>, Double> entityPercentages = new HashMap<>();
+        Map<EntityInfo, Double> entityPercentages = new HashMap<>();
         CompoundTag entityTag = tag.getCompound("entityPercentages");
         for (String key : entityTag.getAllKeys()) {
-            entityPercentages.put(EntityType.byString(key).get(), entityTag.getDouble(key));
+            CompoundTag entityInfo = entityTag.getCompound(key);
+            EntityType<?> type = EntityType.byString(entityInfo.getString("type")).get();
+            String variant = entityInfo.contains("variant") ? entityInfo.getString("variant") : null;
+            double percentage = entityInfo.getDouble("percentage");
+            entityPercentages.put(new EntityInfo(type, variant), percentage);
         }
         DinoData data = new DinoData();
         CompoundTag geneTag = tag.getCompound("genes");
         for (String key : geneTag.getAllKeys()) {
-            data.genes.put(Genes.byName(key), geneTag.getDouble(key));
+            data.advancedGenes.put(Genes.byName(key), geneTag.getDouble(key));
         }
         data.basePercentage = basePercentage;
         data.entityPercentages = entityPercentages;
+        if (tag.contains("baseDino"))
+            data.baseDino = EntityType.byString(tag.getString("baseDino")).get();
         return data;
     }
 
     public DinoData copy() {
         DinoData data = new DinoData();
-        data.genes = new HashMap<>(genes);
+        data.advancedGenes = new HashMap<>(advancedGenes);
         data.entityPercentages = new HashMap<>(entityPercentages);
         data.basePercentage = basePercentage;
         return data;
+    }
+
+    public String getNameSpace() {
+        if (baseDino == null) return null;
+        return BuiltInRegistries.ENTITY_TYPE.getKey(baseDino).getNamespace();
+    }
+
+    public String getPath() {
+        if (baseDino == null) return null;
+        return BuiltInRegistries.ENTITY_TYPE.getKey(baseDino).getPath();
+    }
+
+    public MutableComponent getFormattedType() {
+        return MutableComponent.create(baseDino.getDescription().getContents());
+    }
+    public record EntityInfo(EntityType<?> type, @Nullable String variant){
+        public static Codec<EntityInfo> CODEC = RecordCodecBuilder.create(
+                instance -> instance.group(
+                        BuiltInRegistries.ENTITY_TYPE.byNameCodec().fieldOf("type").forGetter(EntityInfo::type),
+                        Codec.STRING.optionalFieldOf("variant", null).forGetter(EntityInfo::variant)
+                ).apply(instance, EntityInfo::new)
+        );
+
     }
 }

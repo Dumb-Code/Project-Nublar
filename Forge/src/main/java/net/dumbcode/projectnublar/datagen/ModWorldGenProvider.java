@@ -37,7 +37,7 @@ public class ModWorldGenProvider extends DatapackBuiltinEntriesProvider {
             .add(ForgeRegistries.Keys.BIOME_MODIFIERS, ModWorldGenProvider::biomeModifiers)
             .add(Registries.CONFIGURED_FEATURE, ModWorldGenProvider::configuredFeature)
             .add(Registries.PLACED_FEATURE, ModWorldGenProvider::placedFeatures);
-    private static final ResourceKey<BiomeModifier> FOSSIL = ResourceKey.create(ForgeRegistries.Keys.BIOME_MODIFIERS, new ResourceLocation(Constants.MODID, "fossil"));
+    private static final ResourceKey<BiomeModifier> FOSSIL = ResourceKey.create(ForgeRegistries.Keys.BIOME_MODIFIERS, Constants.modLoc( "fossil"));
 
     public ModWorldGenProvider(PackOutput output, CompletableFuture<HolderLookup.Provider> registries) {
         super(output, registries, BUILDER, Set.of(Constants.MODID));

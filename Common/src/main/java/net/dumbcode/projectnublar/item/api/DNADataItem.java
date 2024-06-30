@@ -1,6 +1,7 @@
 package net.dumbcode.projectnublar.item.api;
 
 import net.dumbcode.projectnublar.api.DNAData;
+import net.dumbcode.projectnublar.api.DinoData;
 import net.minecraft.network.chat.Component;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
@@ -20,7 +21,11 @@ public class DNADataItem extends Item {
     public void appendHoverText(ItemStack stack, @Nullable Level level, List<Component> tooltips, TooltipFlag flag) {
         super.appendHoverText(stack, level, tooltips, flag);
         if (stack.hasTag()) {
-            DNAData.createTooltip(stack, tooltips);
+            if(stack.getTag().contains("DNAData")) {
+                DNAData.createTooltip(stack, tooltips);
+            } else if(stack.getTag().contains("DinoData")) {
+                DinoData.fromNBT(stack.getTag().getCompound("DinoData")).createToolTip(tooltips);
+            }
         }
     }
 }

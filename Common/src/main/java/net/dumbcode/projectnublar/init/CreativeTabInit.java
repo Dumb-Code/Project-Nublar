@@ -94,6 +94,10 @@ public class CreativeTabInit {
                     (itemDisplayParameters, output) -> {
                         output.accept(BlockInit.PROCESSOR.get());
                         output.accept(BlockInit.SEQUENCER.get());
+                        output.accept(ItemInit.SEQUENCER_COMPUTER.get());
+                        output.accept(ItemInit.SEQUENCER_DOOR.get());
+                        output.accept(ItemInit.SEQUENCER_SCREEN.get());
+                        output.accept(BlockInit.EGG_PRINTER.get());
                     })
             .build());
     public static final RegistryObject<CreativeModeTab> MISC_TAB = CREATIVE_MODE_TABS.register(Constants.MODID + "_misc", () -> CreativeModeTab.builder(CreativeModeTab.Row.TOP, 0)

@@ -1,6 +1,9 @@
 package net.dumbcode.projectnublar.api;
 
 import com.mojang.serialization.Codec;
+import net.dumbcode.projectnublar.CommonClass;
+import net.minecraft.ChatFormatting;
+import net.minecraft.network.chat.Component;
 import net.minecraft.world.entity.EntityType;
 
 import java.util.ArrayList;
@@ -57,6 +60,11 @@ public class Genes {
     public record Gene(String name, Map<EntityType<?>,Double> entities) {
         public void addEntityType(EntityType<?> type, double value) {
             entities.put(type, value);
+        }
+
+        public Component getTooltip(Double value) {
+
+            return Component.literal(CommonClass.checkReplace(name())).append(Component.literal(": ")).append(Component.literal(String.valueOf(value.intValue())).withStyle(value > 0 ? ChatFormatting.GREEN : ChatFormatting.RED).append(Component.literal("%")));
         }
     }
 }

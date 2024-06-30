@@ -73,7 +73,9 @@ public class ModLangProvider extends LanguageProvider {
                 ItemInit.DIAMOND_TANK_UPGRADE,
                 ItemInit.HARD_DRIVE,
                 ItemInit.SSD,
-                ItemInit.SYRINGE
+                ItemInit.SYRINGE,
+                ItemInit.ARTIFICIAL_EGG,
+                ItemInit.CRACKED_ARTIFICIAL_EGG
         ).forEach(this::itemLang);
     }
 

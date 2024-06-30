@@ -1,5 +1,6 @@
 package net.dumbcode.projectnublar.api;
 
+import net.dumbcode.projectnublar.CommonClass;
 import net.dumbcode.projectnublar.Constants;
 import net.dumbcode.projectnublar.config.FossilsConfig;
 import net.minecraft.core.registries.BuiltInRegistries;
@@ -85,8 +86,9 @@ public class DNAData {
         return BuiltInRegistries.ENTITY_TYPE.getKey(entityType).getPath();
     }
 
+
     public String getStorageName() {
-        return BuiltInRegistries.ENTITY_TYPE.getKey(entityType) + (variant != null ? "" : "_" + variant);
+        return BuiltInRegistries.ENTITY_TYPE.getKey(entityType) + (variant == null ? "" : "_" + variant);
     }
     public static void createTooltip(ItemStack stack, List<Component> tooltip) {
         if (stack.hasTag()) {
@@ -98,7 +100,7 @@ public class DNAData {
                 tooltip.add(Component.translatable("quality." + Constants.MODID +"." + dnaData.getQuality().getName()));
             }
             if(dnaData.variant!=null){
-                tooltip.add(Component.literal(checkReplace(dnaData.variant)));
+                tooltip.add(Component.literal(CommonClass.checkReplace(dnaData.variant)));
             }
         }
     }
@@ -121,9 +123,9 @@ public class DNAData {
         String localVariant = "";
         if (getVariant() != null) {
             if (entityType.getDescription().getString().toLowerCase().contains("parrot"))
-                localVariant = checkReplace(variant);
+                localVariant = CommonClass.checkReplace(variant);
             else if (entityType.getDescription().getString().toLowerCase().contains("cat"))
-                localVariant = checkReplace(new ResourceLocation(variant).getPath());
+                localVariant = CommonClass.checkReplace(new ResourceLocation(variant).getPath());
         }
         return Component.literal(localVariant + getEntityType().getDescription().getString());
     }
@@ -164,16 +166,15 @@ public class DNAData {
         return dnaData;
     }
 
-    public static String checkReplace(String registryObject) {
-        return Arrays.stream(registryObject.split("_"))
-                .map(StringUtils::capitalize)
-                .filter(s -> !s.isBlank())
-                .collect(Collectors.joining(" "))
-                .trim();
-    }
     public static DNAData fromDrive(ItemStack stack, EntityType<?> entityType){
 
         return loadFromNBT(stack.getTag().getCompound("DNAData"));
     }
+    public static String createStorageKey(EntityType<?> entityType, String variant) {
+        return BuiltInRegistries.ENTITY_TYPE.getKey(entityType) + (variant == null ? "" : "_" + variant);
+    }
 
+    public DinoData.EntityInfo getEntityInfo() {
+        return new DinoData.EntityInfo(entityType, variant);
+    }
 }

@@ -1,11 +1,17 @@
 package net.dumbcode.projectnublar.menutypes;
 
+import commonnetwork.api.Network;
+import net.dumbcode.projectnublar.api.DinoData;
+import net.dumbcode.projectnublar.block.entity.SequencerBlockEntity;
 import net.dumbcode.projectnublar.container.CloneDisplaySlot;
 import net.dumbcode.projectnublar.container.ToggleSlot;
 import net.dumbcode.projectnublar.init.MenuTypeInit;
 import net.dumbcode.projectnublar.item.DiskStorageItem;
 import net.dumbcode.projectnublar.item.SyringeItem;
 import net.dumbcode.projectnublar.item.TestTubeItem;
+import net.dumbcode.projectnublar.network.c2s.UpdateEditInfoPacket;
+import net.minecraft.core.BlockPos;
+import net.minecraft.network.FriendlyByteBuf;
 import net.minecraft.tags.ItemTags;
 import net.minecraft.world.Container;
 import net.minecraft.world.SimpleContainer;
@@ -41,18 +47,22 @@ public class SequencerMenu extends AbstractContainerMenu {
     public CloneDisplaySlot plantMatterInputDisplaySlot;
     public CloneDisplaySlot emptyVialInputDisplaySlot;
     public CloneDisplaySlot dnaTestTubeOutputDisplaySlot;
+    public Container container;
 
 
     public List<ToggleSlot> inventorySlots = new ArrayList<>();
+    public BlockPos pos;
+
 
     public SequencerMenu(int containerId, Inventory playerInventory) {
-        this(containerId, playerInventory, ContainerLevelAccess.NULL, new SimpleContainer(9), new SimpleContainerData(6));
+        this(containerId, playerInventory, ContainerLevelAccess.NULL, new SimpleContainer(9), new SimpleContainerData(7));
     }
 
     public SequencerMenu(int containerId, Inventory playerInventory, ContainerLevelAccess access, Container container, ContainerData data) {
         super(MenuTypeInit.SEQUENCER.get(), containerId);
         checkContainerSize(container, 3);
         checkContainerDataCount(data, 0);
+        this.container = container;
         this.addDataSlots(data);
         this.data = data;
         this.addSlot(this.storageSlot = new ToggleSlot(container, 0, 167, 61, (stack) -> stack.getItem() instanceof DiskStorageItem));
@@ -97,10 +107,27 @@ public class SequencerMenu extends AbstractContainerMenu {
 
     }
 
+    public BlockPos getPos() {
+        return pos;
+    }
+
+    public SequencerMenu(int i, Inventory inventory, FriendlyByteBuf buf) {
+        this(i, inventory);
+        this.pos = buf.readBlockPos();
+    }
+
     public int getDataSlot(int slot) {
         return data.get(slot);
     }
 
+    @Override
+    public boolean clickMenuButton(Player pPlayer, int pId) {
+        if(pId == 99){
+            ((SequencerBlockEntity)container).toggleSynth();
+            return true;
+        }
+        return false;
+    }
 
     @Override
     public ItemStack quickMoveStack(Player player, int i) {
@@ -110,5 +137,9 @@ public class SequencerMenu extends AbstractContainerMenu {
     @Override
     public boolean stillValid(Player player) {
         return true;
+    }
+
+    public void sendUpdate(DinoData data){
+        Network.getNetworkHandler().sendToServer(new UpdateEditInfoPacket(data, pos));
     }
 }
