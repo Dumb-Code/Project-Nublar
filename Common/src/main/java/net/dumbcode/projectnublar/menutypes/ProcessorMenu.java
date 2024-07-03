@@ -5,6 +5,7 @@ import net.dumbcode.projectnublar.init.MenuTypeInit;
 import net.dumbcode.projectnublar.item.ComputerChipItem;
 import net.dumbcode.projectnublar.item.FilterItem;
 import net.dumbcode.projectnublar.item.TankItem;
+import net.minecraft.network.FriendlyByteBuf;
 import net.minecraft.world.Container;
 import net.minecraft.world.SimpleContainer;
 import net.minecraft.world.entity.player.Inventory;
@@ -19,6 +20,7 @@ import net.minecraft.world.item.Items;
 
 public class ProcessorMenu extends AbstractContainerMenu {
     ContainerData data;
+
     public ProcessorMenu(int containerId, Inventory playerInventory) {
         this(containerId,playerInventory, ContainerLevelAccess.NULL, new SimpleContainer(15), new SimpleContainerData(4));
     }
@@ -82,6 +84,8 @@ public class ProcessorMenu extends AbstractContainerMenu {
             this.addSlot(new Slot(playerInventory, i1, 8 + i1 * 18, 198));
         }
     }
+
+
     public int getDataSlot(int slot) {
         return data.get(slot);
     }

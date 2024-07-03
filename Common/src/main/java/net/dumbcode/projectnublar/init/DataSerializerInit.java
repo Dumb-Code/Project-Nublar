@@ -9,7 +9,7 @@ import net.minecraft.resources.ResourceLocation;
 
 public class DataSerializerInit {
 
-    public static EntityDataSerializer<DinoData> DINO_DATA = EntityDataSerializerHelper.INSTANCE.register(new ResourceLocation(Constants.MODID,"npc_data"),new EntityDataSerializer<DinoData>() {
+    public static EntityDataSerializer<DinoData> DINO_DATA = EntityDataSerializerHelper.INSTANCE.register(Constants.modLoc("npc_data"),new EntityDataSerializer<DinoData>() {
         @Override
         public void write(FriendlyByteBuf buf, DinoData dinoData) {
             buf.writeNbt(dinoData.toNBT());

@@ -1,11 +1,20 @@
 package net.dumbcode.projectnublar.platform.services;
 
+import net.dumbcode.projectnublar.menutypes.SequencerMenu;
 import net.minecraft.client.renderer.entity.EntityRenderer;
+import net.minecraft.network.FriendlyByteBuf;
+import net.minecraft.server.level.ServerPlayer;
+import net.minecraft.world.MenuProvider;
 import net.minecraft.world.entity.EntityType;
+import net.minecraft.world.entity.player.Inventory;
+import net.minecraft.world.inventory.AbstractContainerMenu;
+import net.minecraft.world.inventory.MenuType;
+import org.apache.logging.log4j.util.TriConsumer;
 
+import java.util.function.Consumer;
 import java.util.function.Supplier;
 
-public interface IPlatformHelper {
+public interface IPlatformHelper<T extends AbstractContainerMenu> {
 
     /**
      * Gets the name of the current platform
@@ -38,4 +47,9 @@ public interface IPlatformHelper {
 
         return isDevelopmentEnvironment() ? "development" : "production";
     }
+
+
+     MenuType<SequencerMenu> registerSequenceMenu();
+
+    void openMenu(ServerPlayer player, MenuProvider provider, Consumer<FriendlyByteBuf> buf);
 }

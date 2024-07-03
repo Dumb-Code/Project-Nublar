@@ -36,6 +36,7 @@ dependencies {
     implementation "net.tslat.smartbrainlib:SmartBrainLib-common-${project.minecraft_version}:${project.sbl_version}"
     compileOnly "software.bernie.geckolib:geckolib-neoforge-${minecraft_version}:${geckolib_version}"
     implementation "com.nyfaria.nyfsguilib:nyfsguilib-common-${minecraft_version}:${ngl_version}"
+    implementation 'mysticdrew:common-networking-common:1.0.3-1.20.1'
 }
 sourceSets.main.resources.srcDir './src/generated/resources'
 processResources {

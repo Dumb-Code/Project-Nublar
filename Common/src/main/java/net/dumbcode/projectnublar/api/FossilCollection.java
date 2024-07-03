@@ -21,7 +21,7 @@ public record FossilCollection(Map<Block,Map<Quality,Map<FossilPiece,RegistryObj
 
     //overload for PN Entities
     public static FossilCollection create(String fossilName) {
-        return create(new ResourceLocation(Constants.MODID,fossilName));
+        return create(Constants.modLoc(fossilName));
     }
     //register a fossil collection based off an EntityType
     public static FossilCollection create(ResourceLocation entityType) {
@@ -41,12 +41,12 @@ public record FossilCollection(Map<Block,Map<Quality,Map<FossilPiece,RegistryObj
                 String qualityName = quality == Quality.NONE ? "" : quality.getName().toLowerCase() + "_";
                 Map<FossilPiece,RegistryObject<Block>> stoneMap2 = new HashMap<>();
                 for (FossilPiece piece : FossilPieces.getPieces()) {
-                    stoneMap2.put(piece, BlockInit.registerBlock(qualityName + stoneName + "_" + entityType.getPath() + "_" + piece.name().toLowerCase() +"_fossil", () -> new FossilBlock(BlockBehaviour.Properties.copy(stone), entityType, piece, quality,stone)));
+                    stoneMap2.put(piece, BlockInit.registerBlock(qualityName + stoneName + "_" + entityType.getPath() + "_" + piece.name().toLowerCase() +"_fossil", () -> new FossilBlock(BlockBehaviour.Properties.copy(stone).noOcclusion(), entityType, piece, quality,stone)));
                 }
                 qualityMap2.put(quality,stoneMap2);
             }
             fullFossilMap.put(stone,qualityMap2);
-            fullAmberMap.put(stone,BlockInit.registerBlock(stoneName + "_" + entityType.getPath() + "_amber", () -> new AmberBlock(BlockBehaviour.Properties.copy(stone), entityType,stone)));
+            fullAmberMap.put(stone,BlockInit.registerBlock(stoneName + "_" + entityType.getPath() + "_amber", () -> new AmberBlock(BlockBehaviour.Properties.copy(stone).noOcclusion(), entityType,stone)));
         }
         return COLLECTIONS.put(entityType.toString(),new FossilCollection(fullFossilMap, fullAmberMap));
     }

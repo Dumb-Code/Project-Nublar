@@ -22,5 +22,4 @@ public record GeneData(Map<Genes.Gene, Double> genes, Map<String,List<Integer>> 
     public static GeneData getData(EntityType<?> entityType){
         return GENE_DATA.get(entityType);
     }
-    record VariantHolder(Object variant){}
 }

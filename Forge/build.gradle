@@ -89,7 +89,11 @@ dependencies {
     implementation fg.deobf("net.tslat.smartbrainlib:SmartBrainLib-neoforge-${minecraft_version}:${project.sbl_version}")
     implementation(jarJar(fg.deobf("com.nyfaria.nyfsguilib:nyfsguilib-forge-${minecraft_version}:${ngl_version}")) {
         jarJar.ranged(it, "[${ngl_version},)")
-    });
+    })
+    implementation jarJar(fg.deobf('mysticdrew:common-networking-forge:1.0.3-1.20.1')){
+        jarJar.ranged(it, "[1.0.3-1.20.1,)")
+    }
+
 }
 
 tasks.withType(JavaCompile) {
