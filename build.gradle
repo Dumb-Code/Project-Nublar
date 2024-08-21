@@ -1,5 +1,6 @@
 plugins {
     id 'com.matyrobbrt.mc.registrationutils' version "$regutils_version" // The plugin is located at the Gradle plugin portal
+    id 'dev._100media.gradleutils' version '1.+'
 }
 registrationUtils {
     group "net.dumbcode.${mod_id}.registration"
@@ -45,7 +46,6 @@ subprojects {
 
     repositories {
 
-        mavenLocal()
         mavenCentral()
         maven { url 'https://jitpack.io' }
         maven {
@@ -69,6 +69,7 @@ subprojects {
         maven {
             url = "https://jm.gserv.me/repository/maven-public/"
         }
+        maven hundredMedia.get100MediaPublicMaven()
     }
 
     tasks.withType(JavaCompile).configureEach {
