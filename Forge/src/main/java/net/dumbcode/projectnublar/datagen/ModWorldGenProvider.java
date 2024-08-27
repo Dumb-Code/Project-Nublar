@@ -14,6 +14,7 @@ import net.minecraft.resources.ResourceLocation;
 import net.minecraft.tags.BiomeTags;
 import net.minecraft.util.valueproviders.ConstantInt;
 import net.minecraft.util.valueproviders.UniformInt;
+import net.minecraft.world.level.dimension.DimensionType;
 import net.minecraft.world.level.levelgen.GenerationStep;
 import net.minecraft.world.level.levelgen.VerticalAnchor;
 import net.minecraft.world.level.levelgen.feature.ConfiguredFeature;
@@ -51,6 +52,9 @@ public class ModWorldGenProvider extends DatapackBuiltinEntriesProvider {
         );
     }
 
+    public static void dimension(BootstapContext<DimensionType> context) {
+
+    }
     public static void configuredFeature(BootstapContext<ConfiguredFeature<?, ?>> context) {
         context.register(Constants.FOSSIL, new ConfiguredFeature<>(
                         FeatureInit.FOSSIL_FEATURE.get(),
@@ -70,6 +74,7 @@ public class ModWorldGenProvider extends DatapackBuiltinEntriesProvider {
         );
 
     }
+
 
     public static void placedFeatures(BootstapContext<PlacedFeature> context) {
         context.register(Constants.FOSSIL_PLACED, new PlacedFeature(context.lookup(Registries.CONFIGURED_FEATURE).get(Constants.FOSSIL).get(),

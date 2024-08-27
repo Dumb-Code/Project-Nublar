@@ -18,9 +18,11 @@ import net.minecraft.world.SimpleContainer;
 import net.minecraft.world.entity.player.Inventory;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.inventory.AbstractContainerMenu;
+import net.minecraft.world.inventory.ClickType;
 import net.minecraft.world.inventory.ContainerData;
 import net.minecraft.world.inventory.ContainerLevelAccess;
 import net.minecraft.world.inventory.SimpleContainerData;
+import net.minecraft.world.inventory.Slot;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
 
@@ -55,7 +57,7 @@ public class SequencerMenu extends AbstractContainerMenu {
 
 
     public SequencerMenu(int containerId, Inventory playerInventory) {
-        this(containerId, playerInventory, ContainerLevelAccess.NULL, new SimpleContainer(9), new SimpleContainerData(7));
+        this(containerId, playerInventory, ContainerLevelAccess.NULL, new SimpleContainer(9), new SimpleContainerData(10));
     }
 
     public SequencerMenu(int containerId, Inventory playerInventory, ContainerLevelAccess access, Container container, ContainerData data) {
@@ -66,7 +68,7 @@ public class SequencerMenu extends AbstractContainerMenu {
         this.addDataSlots(data);
         this.data = data;
         this.addSlot(this.storageSlot = new ToggleSlot(container, 0, 167, 61, (stack) -> stack.getItem() instanceof DiskStorageItem));
-        this.addSlot(this.dnaInputSlot = new ToggleSlot(container, 1, 167, 61, (stack) -> stack.getItem() instanceof TestTubeItem || stack.getItem() instanceof SyringeItem));
+        this.addSlot(this.dnaInputSlot = new ToggleSlot(container, 1, 167, 61, (stack) -> (stack.getItem() instanceof TestTubeItem || stack.getItem() instanceof SyringeItem) && stack.hasTag()));
         this.addSlot(this.emptyVialOutputSlot = new ToggleSlot(container, 2, 167, 61) {
             @Override
             public boolean mayPlace(ItemStack stack) {
@@ -126,13 +128,87 @@ public class SequencerMenu extends AbstractContainerMenu {
             ((SequencerBlockEntity)container).toggleSynth();
             return true;
         }
+        if(pId == 100){
+            enableSequencerScreen();
+            disableSynthScreen();
+            return true;
+        }
+        if(pId == 101){
+            disableSynthScreen();
+            disableSequencerScreen();
+            return true;
+        }
+        if (pId == 102) {
+            enableSynthScreen();
+            disableSequencerScreen();
+            return true;
+        }
         return false;
+    }
+    public void enableSequencerScreen(){
+        dnaInputSlot.setActive(true);
+        emptyVialOutputSlot.setActive(true);
+        storageSlot.setActive(true);
+    }
+    public void disableSequencerScreen(){
+        dnaInputSlot.setActive(false);
+        emptyVialOutputSlot.setActive(false);
+        storageSlot.setActive(false);
+    }
+    public void enableSynthScreen(){
+        waterInputSlot.setActive(true);
+        boneMatterInputSlot.setActive(true);
+        sugarInputSlot.setActive(true);
+        plantMatterInputSlot.setActive(true);
+        emptyVialInputSlot.setActive(true);
+        dnaTestTubeOutputSlot.setActive(true);
+    }
+    public void disableSynthScreen(){
+        waterInputSlot.setActive(false);
+        boneMatterInputSlot.setActive(false);
+        sugarInputSlot.setActive(false);
+        plantMatterInputSlot.setActive(false);
+        emptyVialInputSlot.setActive(false);
+        dnaTestTubeOutputSlot.setActive(false);
     }
 
     @Override
-    public ItemStack quickMoveStack(Player player, int i) {
-        return ItemStack.EMPTY;
+    public ItemStack quickMoveStack(Player pPlayer, int pIndex) {
+        ItemStack itemstack = ItemStack.EMPTY;
+        Slot slot = this.slots.get(pIndex);
+        if (slot != null && slot.hasItem()) {
+            ItemStack itemstack1 = slot.getItem();
+            itemstack = itemstack1.copy();
+
+            if (pIndex >= 9) {
+                for(int i = 0; i < 9; i++){
+                    if(this.inventorySlots.get(i).mayPlace(itemstack1)){
+                        if (this.moveItemStackTo(itemstack1, i, i + 1, false)) {
+                            break;
+                        }
+                    }
+                }
+            } else if (!this.moveItemStackTo(itemstack1, 18, 54, false)) {
+                return ItemStack.EMPTY;
+            }
+
+            if (itemstack1.isEmpty()) {
+                slot.setByPlayer(ItemStack.EMPTY);
+            } else {
+                slot.setChanged();
+            }
+
+            if (itemstack1.getCount() == itemstack.getCount()) {
+                return ItemStack.EMPTY;
+            }
+
+            slot.onTake(pPlayer, itemstack1);
+        }
+
+        return itemstack;
     }
+
+
 
     @Override
     public boolean stillValid(Player player) {
@@ -140,6 +216,6 @@ public class SequencerMenu extends AbstractContainerMenu {
     }
 
     public void sendUpdate(DinoData data){
-        Network.getNetworkHandler().sendToServer(new UpdateEditInfoPacket(data, pos));
+        Network.getNetworkHandler().sendToServer(new UpdateEditInfoPacket(data, pos),true);
     }
 }

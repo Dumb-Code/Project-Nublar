@@ -72,6 +72,9 @@ public abstract class MultiEntityBlock extends BaseEntityBlock implements MultiB
                     Containers.dropContents(pLevel, pPos, (Container) blockentity);
                     pLevel.updateNeighbourForOutputSignal(pPos, this);
                 }
+                if(blockentity instanceof IMachineParts){
+                    Containers.dropContents(pLevel, pPos, ((IMachineParts) blockentity).getMachineParts());
+                }
 
             }
         }

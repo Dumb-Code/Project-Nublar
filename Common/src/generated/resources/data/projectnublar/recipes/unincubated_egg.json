@@ -1,0 +1,15 @@
+{
+  "type": "projectnublar:unincubated_egg",
+  "category": "misc",
+  "ingredients": [
+    {
+      "item": "projectnublar:artificial_egg"
+    },
+    {
+      "item": "projectnublar:test_tube"
+    }
+  ],
+  "result": {
+    "item": "projectnublar:unincubated_egg"
+  }
+}

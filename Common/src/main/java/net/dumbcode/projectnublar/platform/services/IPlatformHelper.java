@@ -1,5 +1,6 @@
 package net.dumbcode.projectnublar.platform.services;
 
+import net.dumbcode.projectnublar.menutypes.IncubatorMenu;
 import net.dumbcode.projectnublar.menutypes.SequencerMenu;
 import net.minecraft.client.renderer.entity.EntityRenderer;
 import net.minecraft.network.FriendlyByteBuf;
@@ -49,7 +50,7 @@ public interface IPlatformHelper<T extends AbstractContainerMenu> {
     }
 
 
-     MenuType<SequencerMenu> registerSequenceMenu();
-
+    MenuType<SequencerMenu> registerSequenceMenu();
+    MenuType<IncubatorMenu> registerIncubatorMenu();
     void openMenu(ServerPlayer player, MenuProvider provider, Consumer<FriendlyByteBuf> buf);
 }

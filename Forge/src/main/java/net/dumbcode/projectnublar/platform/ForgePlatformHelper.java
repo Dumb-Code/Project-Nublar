@@ -1,6 +1,7 @@
 package net.dumbcode.projectnublar.platform;
 
 import com.ibm.icu.impl.Trie;
+import net.dumbcode.projectnublar.menutypes.IncubatorMenu;
 import net.dumbcode.projectnublar.menutypes.SequencerMenu;
 import net.dumbcode.projectnublar.platform.services.IPlatformHelper;
 import net.minecraft.network.FriendlyByteBuf;
@@ -41,6 +42,10 @@ public class ForgePlatformHelper<T extends AbstractContainerMenu> implements IPl
     @Override
     public MenuType<SequencerMenu> registerSequenceMenu() {
         return IForgeMenuType.create(SequencerMenu::new);
+    }
+    @Override
+    public MenuType<IncubatorMenu> registerIncubatorMenu() {
+        return IForgeMenuType.create(IncubatorMenu::new);
     }
 
     @Override

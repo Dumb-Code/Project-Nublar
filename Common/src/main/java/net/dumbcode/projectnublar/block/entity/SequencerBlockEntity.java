@@ -2,14 +2,18 @@ package net.dumbcode.projectnublar.block.entity;
 
 import net.dumbcode.projectnublar.api.DNAData;
 import net.dumbcode.projectnublar.api.DinoData;
+import net.dumbcode.projectnublar.block.api.IMachineParts;
 import net.dumbcode.projectnublar.block.api.SyncingContainerBlockEntity;
 import net.dumbcode.projectnublar.init.BlockInit;
 import net.dumbcode.projectnublar.init.ItemInit;
 import net.dumbcode.projectnublar.init.TagInit;
+import net.dumbcode.projectnublar.item.ComputerChipItem;
 import net.dumbcode.projectnublar.item.DiskStorageItem;
+import net.dumbcode.projectnublar.item.TankItem;
 import net.dumbcode.projectnublar.menutypes.SequencerMenu;
 import net.minecraft.ChatFormatting;
 import net.minecraft.core.BlockPos;
+import net.minecraft.core.NonNullList;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.chat.Component;
 import net.minecraft.util.Mth;
@@ -26,7 +30,9 @@ import software.bernie.geckolib.core.animatable.instance.AnimatableInstanceCache
 import software.bernie.geckolib.core.animation.AnimatableManager;
 import software.bernie.geckolib.util.GeckoLibUtil;
 
-public class SequencerBlockEntity extends SyncingContainerBlockEntity implements GeoBlockEntity {
+import java.util.List;
+
+public class SequencerBlockEntity extends SyncingContainerBlockEntity implements GeoBlockEntity, IMachineParts {
     private final AnimatableInstanceCache cache = GeckoLibUtil.createInstanceCache(this);
     private ItemStack storage = ItemStack.EMPTY;
     private ItemStack dna_input = ItemStack.EMPTY;
@@ -37,6 +43,8 @@ public class SequencerBlockEntity extends SyncingContainerBlockEntity implements
     private ItemStack plant_matter = ItemStack.EMPTY;
     private ItemStack empty_tube_input = ItemStack.EMPTY;
     private ItemStack dna_test_tube_output = ItemStack.EMPTY;
+    private ItemStack computer_chip = ItemStack.EMPTY;
+    private ItemStack tank = ItemStack.EMPTY;
     private float sequencingTime = 0;
     private boolean hasComputer = false;
     private boolean hasDoor = false;
@@ -59,6 +67,9 @@ public class SequencerBlockEntity extends SyncingContainerBlockEntity implements
                 case 4 -> SequencerBlockEntity.this.sugarLevel;
                 case 5 -> SequencerBlockEntity.this.plantMatterLevel;
                 case 6 -> SequencerBlockEntity.this.synthTime;
+                case 7 -> SequencerBlockEntity.this.getMaxPlantMatterLevel();
+                case 8 -> SequencerBlockEntity.this.getMaxWaterLevel();
+                case 9 -> SequencerBlockEntity.this.getMaxSynthTime();
                 default -> 0;
             };
         }
@@ -75,7 +86,7 @@ public class SequencerBlockEntity extends SyncingContainerBlockEntity implements
         }
 
         public int getCount() {
-            return 7;
+            return 10;
         }
     };
 
@@ -86,6 +97,15 @@ public class SequencerBlockEntity extends SyncingContainerBlockEntity implements
     public void setDinoData(DinoData dinoData) {
         this.dinoData = dinoData;
         updateBlock();
+    }
+    public int getMaxSynthTime(){
+        return computer_chip.isEmpty() ? 10 * 20 * 60 : ((ComputerChipItem)computer_chip.getItem()).getMaxSynthTime();
+    }
+    public int getMaxWaterLevel(){
+        return tank.isEmpty() ? 1000 : ((TankItem)tank.getItem()).getSynthFluid();
+    }
+    public int getMaxPlantMatterLevel(){
+        return tank.isEmpty() ? 16 : ((TankItem)tank.getItem()).getSynthPlant();
     }
 
     private int getTotalSequencingTime() {
@@ -130,7 +150,7 @@ public class SequencerBlockEntity extends SyncingContainerBlockEntity implements
     public void tick(Level world, BlockPos pos, BlockState pState, SequencerBlockEntity be) {
         if (!world.isClientSide) {
             boolean shouldUpdate = false;
-            if (!storage.isEmpty() && !dna_input.isEmpty() && ((empty_vial_output.isEmpty() || empty_vial_output.is(dna_input.getItem())) || empty_vial_output.getCount() < 64)) {
+            if (!storage.isEmpty() && !dna_input.isEmpty() && dna_input.hasTag() && ((empty_vial_output.isEmpty() || empty_vial_output.is(dna_input.getItem())) || empty_vial_output.getCount() < 64)) {
                 double currentPercent = 0;
                 DNAData dnaData = DNAData.loadFromNBT(dna_input.getTag().getCompound("DNAData"));
                 String storageName = dnaData.getStorageName();
@@ -163,36 +183,36 @@ public class SequencerBlockEntity extends SyncingContainerBlockEntity implements
                 sequencingTime = 0;
                 shouldUpdate = true;
             }
-            if(water.is(Items.WATER_BUCKET) && waterLevel == 0) {
-                waterLevel = 2;
+            if(water.is(Items.WATER_BUCKET) && waterLevel <= getMaxWaterLevel() - 1000) {
+                waterLevel+=1000;
                 water = new ItemStack(Items.BUCKET);
                 shouldUpdate = true;
             }
-            if(bone_matter.is(TagInit.BONE_MATTER) && boneMatterLevel < 48) {
+            if(bone_matter.is(TagInit.BONE_MATTER) && boneMatterLevel < getMaxPlantMatterLevel()) {
                 boneMatterLevel++;
                 bone_matter.shrink(1);
                 shouldUpdate = true;
             }
-            if(sugar.is(TagInit.SUGAR) && sugarLevel < 16) {
+            if(sugar.is(TagInit.SUGAR) && sugarLevel < getMaxPlantMatterLevel()) {
                 sugarLevel++;
                 sugar.shrink(1);
                 shouldUpdate = true;
             }
-            if(plant_matter.is(TagInit.PLANT_MATTER) && plantMatterLevel < 4) {
+            if(plant_matter.is(TagInit.PLANT_MATTER) && plantMatterLevel < getMaxPlantMatterLevel()) {
                 plantMatterLevel++;
                 plant_matter.shrink(1);
                 shouldUpdate = true;
             }
             if(isSynthesizing && canSynth()){
                 synthTime++;
-                if(synthTime > 400){
+                if(synthTime > getMaxSynthTime()){
                     synthTime = 0;
                     dna_test_tube_output = new ItemStack(ItemInit.TEST_TUBE_ITEM.get());
                     dna_test_tube_output.getOrCreateTag().put("DinoData", dinoData.toNBT());
-                    waterLevel -= 1;
-                    boneMatterLevel -= 32;
+                    waterLevel -= 500;
+                    boneMatterLevel -= 8;
                     sugarLevel -= 8;
-                    plantMatterLevel -= 2;
+                    plantMatterLevel -= 8;
                     empty_tube_input.shrink(1);
                     isSynthesizing = false;
                 }
@@ -223,9 +243,11 @@ public class SequencerBlockEntity extends SyncingContainerBlockEntity implements
         tag.putInt("boneMatterLevel", boneMatterLevel);
         tag.putInt("sugarLevel", sugarLevel);
         tag.putInt("plantMatterLevel", plantMatterLevel);
-        tag.put("dinoData", dinoData.toNBT());
+        tag.put("DinoData", dinoData.toNBT());
         tag.putBoolean("isSynthesizing", isSynthesizing);
         tag.putInt("synthTime", synthTime);
+        tag.put("computer_chip", computer_chip.save(new CompoundTag()));
+        tag.put("tank", tank.save(new CompoundTag()));
     }
 
     @Override
@@ -247,9 +269,11 @@ public class SequencerBlockEntity extends SyncingContainerBlockEntity implements
         boneMatterLevel = tag.getInt("boneMatterLevel");
         sugarLevel = tag.getInt("sugarLevel");
         plantMatterLevel = tag.getInt("plantMatterLevel");
-        dinoData = DinoData.fromNBT(tag.getCompound("dinoData"));
+        dinoData = DinoData.fromNBT(tag.getCompound("DinoData"));
         isSynthesizing = tag.getBoolean("isSynthesizing");
         synthTime = tag.getInt("synthTime");
+        computer_chip = ItemStack.of(tag.getCompound("computer_chip"));
+        tank = ItemStack.of(tag.getCompound("tank"));
     }
 
     @Override
@@ -481,7 +505,7 @@ public class SequencerBlockEntity extends SyncingContainerBlockEntity implements
         return cache;
     }
     public boolean canSynth(){
-        return !empty_tube_input.isEmpty() && plantMatterLevel >= 2 && sugarLevel >= 8 && boneMatterLevel >= 32 && waterLevel >= 1;
+        return !empty_tube_input.isEmpty() && plantMatterLevel >= 8 && sugarLevel >= 8 && boneMatterLevel >= 8 && waterLevel >= 500;
     }
     public void toggleSynth() {
         if(canSynth()) {
@@ -490,6 +514,29 @@ public class SequencerBlockEntity extends SyncingContainerBlockEntity implements
             isSynthesizing = false;
             synthTime = 0;
         }
+        updateBlock();
+    }
+
+    @Override
+    public NonNullList<ItemStack> getMachineParts() {
+        NonNullList<ItemStack> parts = NonNullList.of(ItemStack.EMPTY, ItemStack.EMPTY, ItemStack.EMPTY, ItemStack.EMPTY, computer_chip, tank);
+        if(hasComputer)
+            parts.set(0, new ItemStack(ItemInit.SEQUENCER_COMPUTER.get()));
+        if(hasDoor)
+            parts.set(1, new ItemStack(ItemInit.SEQUENCER_DOOR.get()));
+        if(hasScreen)
+            parts.set(2, new ItemStack(ItemInit.SEQUENCER_SCREEN.get()));
+        return parts;
+
+    }
+
+    public void setChip(ItemStack chipItem) {
+        computer_chip = chipItem;
+        updateBlock();
+    }
+
+    public void setTank(ItemStack mainHandItem) {
+        tank = mainHandItem;
         updateBlock();
     }
 }

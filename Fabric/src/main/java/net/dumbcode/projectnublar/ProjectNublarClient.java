@@ -2,6 +2,7 @@ package net.dumbcode.projectnublar;
 
 import net.dumbcode.projectnublar.client.ClientRegistrationHolder;
 import net.dumbcode.projectnublar.init.BlockInit;
+import net.dumbcode.projectnublar.network.NetworkInit;
 import net.fabricmc.api.ClientModInitializer;
 import net.fabricmc.fabric.api.blockrenderlayer.v1.BlockRenderLayerMap;
 import net.fabricmc.fabric.api.client.event.lifecycle.v1.ClientLifecycleEvents;
@@ -28,5 +29,6 @@ public class ProjectNublarClient implements ClientModInitializer {
             BlockEntityRendererRegistryImpl.register(supplier.get(), blockEntityRendererProvider);
         });
         ClientRegistrationHolder.registerItemProperties();
+        NetworkInit.registerPackets();
     }
 }

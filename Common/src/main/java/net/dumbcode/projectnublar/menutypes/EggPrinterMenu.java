@@ -65,7 +65,38 @@ public class EggPrinterMenu extends AbstractContainerMenu {
     }
     @Override
     public ItemStack quickMoveStack(Player pPlayer, int pIndex) {
-        return null;
+        ItemStack itemstack = ItemStack.EMPTY;
+        Slot slot = this.slots.get(pIndex);
+        if (slot != null && slot.hasItem()) {
+            ItemStack itemstack1 = slot.getItem();
+            itemstack = itemstack1.copy();
+
+            if (pIndex >= 4) {
+                for(int i = 0; i < 4; i++){
+                    if(this.slots.get(i).mayPlace(itemstack1)){
+                        if (this.moveItemStackTo(itemstack1, i, i + 1, false)) {
+                            break;
+                        }
+                    }
+                }
+            } else if (!this.moveItemStackTo(itemstack1, 4, 40, false)) {
+                return ItemStack.EMPTY;
+            }
+
+            if (itemstack1.isEmpty()) {
+                slot.setByPlayer(ItemStack.EMPTY);
+            } else {
+                slot.setChanged();
+            }
+
+            if (itemstack1.getCount() == itemstack.getCount()) {
+                return ItemStack.EMPTY;
+            }
+
+            slot.onTake(pPlayer, itemstack1);
+        }
+
+        return itemstack;
     }
 
     @Override
