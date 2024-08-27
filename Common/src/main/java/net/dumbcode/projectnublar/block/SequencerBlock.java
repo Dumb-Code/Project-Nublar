@@ -5,6 +5,8 @@ import net.dumbcode.projectnublar.block.api.MultiEntityBlock;
 import net.dumbcode.projectnublar.block.entity.SequencerBlockEntity;
 import net.dumbcode.projectnublar.init.BlockInit;
 import net.dumbcode.projectnublar.init.ItemInit;
+import net.dumbcode.projectnublar.item.ComputerChipItem;
+import net.dumbcode.projectnublar.item.TankItem;
 import net.dumbcode.projectnublar.platform.Services;
 import net.minecraft.core.BlockPos;
 import net.minecraft.network.FriendlyByteBuf;
@@ -32,12 +34,12 @@ public class SequencerBlock extends MultiEntityBlock {
     protected void openContainer(Level pLevel, BlockPos pPos, Player pPlayer) {
         BlockEntity blockentity = pLevel.getBlockEntity(pPos);
         if (blockentity instanceof SequencerBlockEntity) {
-            Services.PLATFORM.openMenu((ServerPlayer) pPlayer, (MenuProvider) blockentity, buf->{
-                ((FriendlyByteBuf)buf).writeBlockPos(pPos);
-            });
-
-            //todo: add stat
+                Services.PLATFORM.openMenu((ServerPlayer) pPlayer, (MenuProvider) blockentity, buf -> {
+                    ((FriendlyByteBuf) buf).writeBlockPos(pPos);
+                });
+                //todo: add stat
 //            pPlayer.awardStat(getOpenState());
+
         }
     }
 
@@ -62,6 +64,16 @@ public class SequencerBlock extends MultiEntityBlock {
                     pPlayer.getItemInHand(pHand).shrink(1);
                     return InteractionResult.CONSUME;
 
+                }
+                if(pPlayer.getMainHandItem().getItem() instanceof ComputerChipItem item && item.getMaxSynthTime() > 0) {
+                    sbe.setChip(pPlayer.getMainHandItem().copy());
+                    pPlayer.getMainHandItem().shrink(1);
+                    return InteractionResult.CONSUME;
+                }
+                if(pPlayer.getMainHandItem().getItem() instanceof TankItem){
+                    sbe.setTank(pPlayer.getMainHandItem().copy());
+                    pPlayer.getMainHandItem().shrink(1);
+                    return InteractionResult.CONSUME;
                 }
             }
             return super.use(pState, pLevel, pPos, pPlayer, pHand, pHit);

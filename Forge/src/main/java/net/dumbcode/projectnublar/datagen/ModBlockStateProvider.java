@@ -45,6 +45,9 @@ public class ModBlockStateProvider extends BlockStateProvider {
             });
         });
         simpleBlock(BlockInit.PROCESSOR.get(), models().getBuilder("block/processor").texture("particle", modLoc("block/processor")));
+        simpleBlock(BlockInit.SEQUENCER.get(), models().getBuilder("block/sequencer").texture("particle", modLoc("block/sequencer")));
+        simpleBlock(BlockInit.EGG_PRINTER.get(), models().getBuilder("block/egg_printer").texture("particle", modLoc("block/egg_printer")));
+        simpleBlock(BlockInit.INCUBATOR.get(), models().getBuilder("block/incubator").texture("particle", modLoc("block/incubator")));
     }
 
     protected void simpleCubeBottomTopBlockState(Block block) {

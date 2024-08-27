@@ -25,7 +25,9 @@ import java.util.stream.Stream;
 public class ModLangProvider extends LanguageProvider {
     protected static final Map<String, String> REPLACE_LIST = ImmutableMap.of(
             "tnt", "TNT",
-            "sus", ""
+            "sus", "",
+            "incubator", "Incubator Base",
+            "sequencer", "Sequencer Base"
     );
 
     public ModLangProvider(PackOutput gen) {
@@ -42,7 +44,9 @@ public class ModLangProvider extends LanguageProvider {
         add("itemGroup." + Constants.MODID +".machines", "Project Nublar: Machines");
         add("itemGroup." + Constants.MODID +".misc", "Project Nublar: Misc");
         add("itemGroup." + Constants.MODID +".dna", "Project Nublar: DNA");
+        add("itemGroup." + Constants.MODID +".egg", "Project Nublar: Eggs");
         add("item." + Constants.MODID + ".fossil", "%1$s %2$s Fossil");
+        add("item." + Constants.MODID + ".incubated_egg", "Incubated %1$s Egg");
         add("quality." + Constants.MODID + ".fragmented", "Fragmented");
         add("quality." + Constants.MODID + ".poor", "Poor");
         add("quality." + Constants.MODID + ".common", "Common");
@@ -75,7 +79,22 @@ public class ModLangProvider extends LanguageProvider {
                 ItemInit.SSD,
                 ItemInit.SYRINGE,
                 ItemInit.ARTIFICIAL_EGG,
-                ItemInit.CRACKED_ARTIFICIAL_EGG
+                ItemInit.CRACKED_ARTIFICIAL_EGG,
+                ItemInit.UNINCUBATED_EGG,
+                ItemInit.SMALL_CONTAINER_UPGRADE,
+                ItemInit.LARGE_CONTAINER_UPGRADE,
+                ItemInit.WARM_BULB,
+                ItemInit.WARMER_BULB,
+                ItemInit.HOT_BULB,
+                ItemInit.IRON_PLANT_TANK,
+                ItemInit.GOLD_PLANT_TANK,
+                ItemInit.INCUBATOR_ARM_BASE,
+                ItemInit.INCUBATOR_ARM,
+                ItemInit.INCUBATOR_LID,
+                ItemInit.INCUBATOR_NEST,
+                ItemInit.SEQUENCER_COMPUTER,
+                ItemInit.SEQUENCER_DOOR,
+                ItemInit.SEQUENCER_SCREEN
         ).forEach(this::itemLang);
     }
 

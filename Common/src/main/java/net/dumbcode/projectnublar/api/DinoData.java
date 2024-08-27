@@ -8,8 +8,13 @@ import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.chat.MutableComponent;
 import net.minecraft.resources.ResourceLocation;
+import net.minecraft.util.StringUtil;
+import net.minecraft.world.effect.MobEffectUtil;
 import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.item.DyeColor;
+import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.item.enchantment.Enchantment;
+import net.minecraft.world.item.enchantment.EnchantmentHelper;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.HashMap;
@@ -18,6 +23,8 @@ import java.util.Map;
 
 public class DinoData {
     public double basePercentage;
+    public double incubationProgress = -1;
+    public int incubationTimeLeft = -1;
     private EntityType<?> baseDino = null;
     private Map<EntityInfo,Double> entityPercentages = new HashMap<>();
     private Map<Genes.Gene, Double> advancedGenes = new HashMap<>();
@@ -29,6 +36,10 @@ public class DinoData {
     private ResourceLocation textureLocation = null;
 
     public DinoData() {
+    }
+
+    public static DinoData fromStack(ItemStack stack) {
+        return fromNBT(stack.getTag().getCompound("DinoData"));
     }
 
     public Map<EntityInfo, Double> getEntityPercentages() {
@@ -72,6 +83,12 @@ public class DinoData {
 
     public void createToolTip(List<Component> components) {
 //        components.add(baseDino.getDescription());
+        if(incubationProgress != -1){
+            components.add(Component.literal(("Incubation Progress: " + (int)NublarMath.round(incubationProgress * 100,0)) + "%"));
+        }
+        if(incubationTimeLeft != -1){
+            components.add(Component.literal(StringUtil.formatTickDuration(incubationTimeLeft)));
+        }
         if (finalGenes.isEmpty()) {
             finalizeGenes();
         }
@@ -149,6 +166,8 @@ public class DinoData {
         }
         tag.put("genes", geneTag);
         tag.putString("baseDino", BuiltInRegistries.ENTITY_TYPE.getKey(baseDino).toString());
+        tag.putDouble("incubationProgress", incubationProgress);
+        tag.putInt("incubationTimeLeft", incubationTimeLeft);
         return tag;
     }
 
@@ -172,6 +191,10 @@ public class DinoData {
         data.entityPercentages = entityPercentages;
         if (tag.contains("baseDino"))
             data.baseDino = EntityType.byString(tag.getString("baseDino")).get();
+        if (tag.contains("incubationProgress"))
+            data.incubationProgress = tag.getDouble("incubationProgress");
+        if(tag.contains("incubationTimeLeft"))
+            data.incubationTimeLeft = tag.getInt("incubationTimeLeft");
         return data;
     }
 
@@ -196,6 +219,24 @@ public class DinoData {
     public MutableComponent getFormattedType() {
         return MutableComponent.create(baseDino.getDescription().getContents());
     }
+
+    public void setIncubationProgress(double i) {
+        incubationProgress = i;
+    }
+
+    public void toStack(ItemStack stack) {
+        stack.getOrCreateTag().put("DinoData", toNBT());
+
+    }
+
+    public double getIncubationProgress() {
+        return incubationProgress;
+    }
+
+    public void setIncubationTimeLeft(int v) {
+        incubationTimeLeft = v;
+    }
+
     public record EntityInfo(EntityType<?> type, @Nullable String variant){
         public static Codec<EntityInfo> CODEC = RecordCodecBuilder.create(
                 instance -> instance.group(

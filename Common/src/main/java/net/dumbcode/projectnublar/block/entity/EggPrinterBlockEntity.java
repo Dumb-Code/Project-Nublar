@@ -1,10 +1,13 @@
 package net.dumbcode.projectnublar.block.entity;
 
+import net.dumbcode.projectnublar.block.api.IMachineParts;
 import net.dumbcode.projectnublar.block.api.SyncingContainerBlockEntity;
 import net.dumbcode.projectnublar.init.BlockInit;
 import net.dumbcode.projectnublar.init.ItemInit;
+import net.dumbcode.projectnublar.item.ComputerChipItem;
 import net.dumbcode.projectnublar.menutypes.EggPrinterMenu;
 import net.minecraft.core.BlockPos;
+import net.minecraft.core.NonNullList;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.chat.Component;
 import net.minecraft.world.entity.player.Inventory;
@@ -19,7 +22,7 @@ import software.bernie.geckolib.core.animatable.instance.AnimatableInstanceCache
 import software.bernie.geckolib.core.animation.AnimatableManager;
 import software.bernie.geckolib.util.GeckoLibUtil;
 
-public class EggPrinterBlockEntity extends SyncingContainerBlockEntity implements GeoBlockEntity {
+public class EggPrinterBlockEntity extends SyncingContainerBlockEntity implements GeoBlockEntity, IMachineParts {
     private AnimatableInstanceCache cache = GeckoLibUtil.createInstanceCache(this);
     private ItemStack embryoInput = ItemStack.EMPTY;
     private ItemStack bonemealInput = ItemStack.EMPTY;
@@ -70,11 +73,19 @@ public class EggPrinterBlockEntity extends SyncingContainerBlockEntity implement
             return 4;
         }
     };
+    private ItemStack sensor = ItemStack.EMPTY;
+    private ItemStack chip = ItemStack.EMPTY;
 
     public EggPrinterBlockEntity(BlockPos pos, BlockState state) {
         super(BlockInit.EGG_PRINTER_BLOCK_ENTITY.get(), pos, state);
     }
 
+    public float getBreakChance() {
+        return sensor.isEmpty() ? 0 : -1;
+    }
+    public int getMaxProgress(){
+        return chip.isEmpty() ? maxProgress : ((ComputerChipItem)chip.getItem()).getMaxPrintTime();
+    }
     public void tick(Level world, BlockPos pos, BlockState pState, EggPrinterBlockEntity be) {
         boolean shouldUpdate = false;
         if(bonemealAmount < bonemealMax && !bonemealInput.isEmpty()){
@@ -82,14 +93,14 @@ public class EggPrinterBlockEntity extends SyncingContainerBlockEntity implement
             bonemealInput.shrink(1);
             shouldUpdate = true;
         }
-        isPrinting = !embryoInput.isEmpty() && bonemealAmount >= 16 && eggOutput.getItem() != ItemInit.CRACKED_ARTIFICIAL_EGG.get();
+        isPrinting = !embryoInput.isEmpty() && bonemealAmount >= 16 && eggOutput.isEmpty();
         if(isPrinting){
             progress += 1;
-            if(progress >= maxProgress){
+            if(progress >= getMaxProgress()){
                 progress = 0;
                 bonemealAmount-=16;
                 isPrinting = false;
-                eggOutput = new ItemStack(level.random.nextInt(10) == 0 ? ItemInit.CRACKED_ARTIFICIAL_EGG.get() : ItemInit.ARTIFICIAL_EGG.get());
+                eggOutput = new ItemStack(level.random.nextInt(10) == getBreakChance() ? ItemInit.CRACKED_ARTIFICIAL_EGG.get() : ItemInit.ARTIFICIAL_EGG.get());
                 embryoInput = ItemStack.EMPTY;
                 if(syringeOutput.isEmpty()) {
                     syringeOutput = new ItemStack(ItemInit.SYRINGE.get());
@@ -279,5 +290,18 @@ public class EggPrinterBlockEntity extends SyncingContainerBlockEntity implement
     @Override
     public AnimatableInstanceCache getAnimatableInstanceCache() {
         return cache;
+    }
+
+    public void setSensor(ItemStack copy) {
+        this.sensor = copy;
+    }
+
+    public void setChip(ItemStack copy) {
+        this.chip = copy;
+    }
+
+    @Override
+    public NonNullList<ItemStack> getMachineParts() {
+        return NonNullList.of(ItemStack.EMPTY, sensor, chip);
     }
 }

@@ -9,6 +9,7 @@ import net.dumbcode.projectnublar.init.FeatureInit;
 import net.dumbcode.projectnublar.init.ItemInit;
 import net.dumbcode.projectnublar.init.LootFunctionInit;
 import net.dumbcode.projectnublar.init.MenuTypeInit;
+import net.dumbcode.projectnublar.init.RecipeInit;
 import net.dumbcode.projectnublar.network.NetworkInit;
 import net.minecraft.util.random.SimpleWeightedRandomList;
 import org.apache.commons.lang3.StringUtils;
@@ -33,6 +34,7 @@ public class CommonClass {
         CreativeTabInit.loadClass();
         DataSerializerInit.loadClass();
         NetworkInit.registerPackets();
+        RecipeInit.loadClass();
     }
     public static String checkReplace(String registryObject) {
         return Arrays.stream(registryObject.split("_"))

@@ -23,7 +23,7 @@ minecraft {
 
     runs {
         client {
-            workingDirectory project.file('client')
+            workingDirectory project.file('clientRun')
             jvmArg("-XX:+AllowEnhancedClassRedefinition")
             ideaModule "${rootProject.name}.${project.name}.main"
             taskName 'Client'
@@ -38,7 +38,7 @@ minecraft {
         }
 
         server {
-            workingDirectory project.file('server')
+            workingDirectory project.file('serverRun')
             ideaModule "${rootProject.name}.${project.name}.main"
             taskName 'Server'
             property 'mixin.env.remapRefMap', 'true'
@@ -52,7 +52,7 @@ minecraft {
         }
 
         data {
-            workingDirectory project.file('run')
+            workingDirectory project.file('dataRun')
             ideaModule "${rootProject.name}.${project.name}.main"
             args '--mod', mod_id, '--all', '--output', file('../Common/src/generated/resources/'), '--existing', file('../Common/src/main/resources/')
             taskName 'Data'
@@ -133,7 +133,12 @@ processResources {
         }
     }
 }
-
+afterEvaluate {
+    jar.finalizedBy reobfJar
+    tasks.jarJar.finalizedBy reobfJarJar
+    reobfJar.dependsOn 'addMixinsToJar'
+    reobfJarJar.dependsOn 'addMixinsToJarJar'
+}
 
 jar.finalizedBy('reobfJar')
 publishing {
@@ -150,6 +155,9 @@ publishing {
             url "file://" + System.getenv("local_maven")
         }
     }
+}
+tasks.jarJar {
+    destinationDirectory.set(project(":Common").file("build/libs"))
 }
 reg.configureJarTask(tasks.jarJar)
 publishMods {

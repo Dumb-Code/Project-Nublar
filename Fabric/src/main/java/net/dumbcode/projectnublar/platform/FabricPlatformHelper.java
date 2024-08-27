@@ -1,5 +1,6 @@
 package net.dumbcode.projectnublar.platform;
 
+import net.dumbcode.projectnublar.menutypes.IncubatorMenu;
 import net.dumbcode.projectnublar.menutypes.SequencerMenu;
 import net.dumbcode.projectnublar.platform.services.IPlatformHelper;
 import net.fabricmc.fabric.api.screenhandler.v1.ExtendedScreenHandlerFactory;
@@ -40,6 +41,10 @@ public class FabricPlatformHelper<T extends AbstractContainerMenu> implements IP
     @Override
     public MenuType<SequencerMenu> registerSequenceMenu() {
         return new ExtendedScreenHandlerType<>(SequencerMenu::new);
+    }
+    @Override
+    public MenuType<IncubatorMenu> registerIncubatorMenu() {
+        return new ExtendedScreenHandlerType<>(IncubatorMenu::new);
     }
 
     @Override

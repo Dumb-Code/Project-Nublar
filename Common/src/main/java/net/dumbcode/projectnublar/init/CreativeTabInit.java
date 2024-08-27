@@ -2,6 +2,7 @@ package net.dumbcode.projectnublar.init;
 
 import net.dumbcode.projectnublar.Constants;
 import net.dumbcode.projectnublar.api.DNAData;
+import net.dumbcode.projectnublar.api.DinoData;
 import net.dumbcode.projectnublar.api.FossilCollection;
 import net.dumbcode.projectnublar.api.FossilPieces;
 import net.dumbcode.projectnublar.api.Quality;
@@ -22,7 +23,7 @@ import net.minecraft.world.level.block.Blocks;
 
 public class CreativeTabInit {
     public static final RegistrationProvider<CreativeModeTab> CREATIVE_MODE_TABS = RegistrationProvider.get(Registries.CREATIVE_MODE_TAB, Constants.MODID);
-    public static final RegistryObject<CreativeModeTab> FOSSIL_ITEMS_TAB = CREATIVE_MODE_TABS.register(Constants.MODID +"_fossil_items", () -> CreativeModeTab.builder(CreativeModeTab.Row.TOP, 0)
+    public static final RegistryObject<CreativeModeTab> FOSSIL_ITEMS_TAB = CREATIVE_MODE_TABS.register(Constants.MODID + "_fossil_items", () -> CreativeModeTab.builder(CreativeModeTab.Row.TOP, 0)
             .title(Component.translatable("itemGroup." + Constants.MODID + ".fossil_items"))
             .icon(() -> {
                 ItemStack stack = new ItemStack(ItemInit.FOSSIL_ITEM.get());
@@ -98,6 +99,11 @@ public class CreativeTabInit {
                         output.accept(ItemInit.SEQUENCER_DOOR.get());
                         output.accept(ItemInit.SEQUENCER_SCREEN.get());
                         output.accept(BlockInit.EGG_PRINTER.get());
+                        output.accept(BlockInit.INCUBATOR.get());
+                        output.accept(ItemInit.INCUBATOR_ARM.get());
+                        output.accept(ItemInit.INCUBATOR_ARM_BASE.get());
+                        output.accept(ItemInit.INCUBATOR_LID.get());
+                        output.accept(ItemInit.INCUBATOR_NEST.get());
                     })
             .build());
     public static final RegistryObject<CreativeModeTab> MISC_TAB = CREATIVE_MODE_TABS.register(Constants.MODID + "_misc", () -> CreativeModeTab.builder(CreativeModeTab.Row.TOP, 0)
@@ -116,6 +122,14 @@ public class CreativeTabInit {
                         output.accept(ItemInit.DIAMOND_COMPUTER_CHIP.get());
                         output.accept(ItemInit.HARD_DRIVE.get());
                         output.accept(ItemInit.SSD.get());
+                        output.accept(ItemInit.SMALL_CONTAINER_UPGRADE.get());
+                        output.accept(ItemInit.LARGE_CONTAINER_UPGRADE.get());
+                        output.accept(ItemInit.WARM_BULB.get());
+                        output.accept(ItemInit.WARMER_BULB.get());
+                        output.accept(ItemInit.HOT_BULB.get());
+                        output.accept(ItemInit.IRON_PLANT_TANK.get());
+                        output.accept(ItemInit.GOLD_PLANT_TANK.get());
+
                     })
             .build());
 
@@ -143,8 +157,8 @@ public class CreativeTabInit {
                     (itemDisplayParameters, output) -> {
                         output.accept(ItemInit.SYRINGE.get());
                         for (ResourceLocation entry : BuiltInRegistries.ENTITY_TYPE.keySet()) {
-                            if(entry.getPath().contains("parrot")){
-                                for(Parrot.Variant variant : Parrot.Variant.values()){
+                            if (entry.getPath().contains("parrot")) {
+                                for (Parrot.Variant variant : Parrot.Variant.values()) {
                                     ItemStack stack = new ItemStack(ItemInit.SYRINGE.get());
                                     DNAData dnaData = new DNAData();
                                     dnaData.setEntityType(BuiltInRegistries.ENTITY_TYPE.get(entry));
@@ -153,7 +167,7 @@ public class CreativeTabInit {
                                     stack.getOrCreateTag().put("DNAData", dnaData.saveToNBT(new CompoundTag()));
                                     output.accept(stack);
                                 }
-                            } else if(entry.getPath().contains("cat")){
+                            } else if (entry.getPath().contains("cat")) {
                                 BuiltInRegistries.CAT_VARIANT.keySet().forEach((catVariant) -> {
                                     ItemStack stack = new ItemStack(ItemInit.SYRINGE.get());
                                     DNAData dnaData = new DNAData();
@@ -174,6 +188,24 @@ public class CreativeTabInit {
                         }
                     })
             .build());
+    public static final RegistryObject<CreativeModeTab> EGG_TAB = CREATIVE_MODE_TABS.register(Constants.MODID + "_egg", () -> CreativeModeTab.builder(CreativeModeTab.Row.TOP, 0)
+            .title(Component.translatable("itemGroup." + Constants.MODID + ".egg"))
+            .icon(() -> new ItemStack(ItemInit.ARTIFICIAL_EGG.get()))
+            .displayItems(
+                    (itemDisplayParameters, output) -> {
+                        output.accept(ItemInit.ARTIFICIAL_EGG.get());
+                        ItemStack stack = new ItemStack(ItemInit.INCUBATED_EGG.get());
+                        ItemStack stack2 = new ItemStack(ItemInit.UNINCUBATED_EGG.get());
+                        DinoData dnaData = new DinoData();
+                        dnaData.setBaseDino(EntityInit.TYRANNOSAURUS_REX.get());
+                        dnaData.setBasePercentage(100);
+                        dnaData.toStack(stack);
+                        dnaData.copy().toStack(stack2);
+                        output.accept(stack);
+                        output.accept(stack2);
+                    })
+            .build());
 
-    public static void loadClass() {}
+    public static void loadClass() {
+    }
 }

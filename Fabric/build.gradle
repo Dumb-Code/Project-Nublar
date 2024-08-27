@@ -3,6 +3,7 @@ plugins {
     id 'maven-publish'
     id 'idea'
     id "me.modmuss50.mod-publish-plugin" version "0.3.3"
+    id 'dev._100media.gradleutils' version '1.+'
 }
 
 archivesBaseName = "${mod_id}-fabric-${minecraft_version}"
@@ -25,7 +26,7 @@ dependencies {
     modImplementation "software.bernie.geckolib:geckolib-fabric-${minecraft_version}:${geckolib_version}"
     modImplementation "com.nyfaria.nyfsguilib:nyfsguilib-fabric-${minecraft_version}:${ngl_version}"
     include("com.nyfaria.nyfsguilib:nyfsguilib-fabric-${minecraft_version}:${ngl_version}")
-    modImplementation include('mysticdrew:common-networking-fabric:1.0.3-1.20.1')
+    modImplementation include('mysticdrew:common-networking-fabric:1.0.5-1.20.1')
 }
 
 loom {
@@ -39,14 +40,14 @@ loom {
             vmArgs("-XX:+AllowEnhancedClassRedefinition")
             setConfigName("Fabric Client")
             ideConfigGenerated(true)
-            runDir("client")
+            runDir("clientRun")
         }
         server {
             server()
             vmArgs("-XX:+AllowEnhancedClassRedefinition")
             setConfigName("Fabric Server")
             ideConfigGenerated(true)
-            runDir("server")
+            runDir("serverRun")
         }
     }
     mixin {
@@ -111,6 +112,10 @@ publishing {
             url "file://" + System.getenv("local_maven")
         }
     }
+}
+
+remapJar {
+    destinationDirectory.set(project(":Common").file("build/libs"))
 }
 publishMods {
     if(publishFabric) {
