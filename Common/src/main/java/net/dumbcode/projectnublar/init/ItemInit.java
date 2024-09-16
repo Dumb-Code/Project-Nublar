@@ -58,6 +58,7 @@ public class ItemInit {
     public static final RegistryObject<Item> WARM_BULB = ITEMS.register("warm_bulb", () -> new BulbItem(getItemProperties(), 15*20));
     public static final RegistryObject<Item> WARMER_BULB = ITEMS.register("warmer_bulb", () -> new BulbItem(getItemProperties(), 12*20));
     public static final RegistryObject<Item> HOT_BULB = ITEMS.register("hot_bulb", () -> new BulbItem(getItemProperties(),9*20));
+    public static final RegistryObject<Item> DEV_BULB = ITEMS.register("dev_bulb", () -> new BulbItem(getItemProperties(),2));
     public static final RegistryObject<Item> IRON_PLANT_TANK = ITEMS.register("iron_plant_tank_ugprade", () -> new PlantTankItem(getItemProperties(),128));
     public static final RegistryObject<Item> GOLD_PLANT_TANK = ITEMS.register("gold_plant_tank_upgrade", () -> new PlantTankItem(getItemProperties(), 192));
     public static final RegistryObject<Item> INCUBATOR_NEST = ITEMS.register("incubator_nest", () -> new Item(getItemProperties()));

@@ -31,7 +31,7 @@ public class EggPrinterBlockEntity extends SyncingContainerBlockEntity implement
     private int bonemealAmount = 0;
     private int bonemealMax = 30;
     private int progress = 0;
-    private int maxProgress = 20 * 20;
+    private int maxProgress = 20 * 60 * 10;
     private boolean isPrinting = false;
     private ContainerData dataAccess = new ContainerData() {
         @Override
@@ -44,7 +44,7 @@ public class EggPrinterBlockEntity extends SyncingContainerBlockEntity implement
                 case 2:
                     return progress;
                 case 3:
-                    return maxProgress;
+                    return getMaxProgress();
                 default:
                     return 0;
             }

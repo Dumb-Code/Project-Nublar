@@ -3,12 +3,14 @@ package net.dumbcode.projectnublar.block;
 import net.dumbcode.projectnublar.block.api.MultiBlock;
 import net.dumbcode.projectnublar.block.api.MultiEntityBlock;
 import net.dumbcode.projectnublar.block.entity.SequencerBlockEntity;
+import net.dumbcode.projectnublar.client.ModShapes;
 import net.dumbcode.projectnublar.init.BlockInit;
 import net.dumbcode.projectnublar.init.ItemInit;
 import net.dumbcode.projectnublar.item.ComputerChipItem;
 import net.dumbcode.projectnublar.item.TankItem;
 import net.dumbcode.projectnublar.platform.Services;
 import net.minecraft.core.BlockPos;
+import net.minecraft.core.Direction;
 import net.minecraft.network.FriendlyByteBuf;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.InteractionHand;
@@ -22,14 +24,15 @@ import net.minecraft.world.level.block.entity.BlockEntityTicker;
 import net.minecraft.world.level.block.entity.BlockEntityType;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.phys.BlockHitResult;
+import net.minecraft.world.phys.shapes.Shapes;
+import net.minecraft.world.phys.shapes.VoxelShape;
 import org.jetbrains.annotations.Nullable;
 
 public class SequencerBlock extends MultiEntityBlock {
 
-    public SequencerBlock(Properties properties) {
-        super(properties);
+    public SequencerBlock(Properties properties, int rows, int columns, int depth) {
+        super(properties, rows, columns, depth);
     }
-
     @Override
     protected void openContainer(Level pLevel, BlockPos pPos, Player pPlayer) {
         BlockEntity blockentity = pLevel.getBlockEntity(pPos);
@@ -41,6 +44,16 @@ public class SequencerBlock extends MultiEntityBlock {
 //            pPlayer.awardStat(getOpenState());
 
         }
+    }
+
+    @Override
+    public VoxelShape getShapeForDirection(Direction direction) {
+        return switch (direction) {
+            case SOUTH -> ModShapes.SEQUENCER_SOUTH;
+            case EAST -> ModShapes.SEQUENCER_EAST;
+            case WEST -> ModShapes.SEQUENCER_WEST;
+            default -> ModShapes.SEQUENCER_NORTH;
+        };
     }
 
     @Override

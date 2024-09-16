@@ -3,6 +3,7 @@ package net.dumbcode.projectnublar.item.api;
 import net.dumbcode.projectnublar.block.api.MultiBlock;
 import net.minecraft.core.Direction;
 import net.minecraft.world.item.BlockItem;
+import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.context.BlockPlaceContext;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.HorizontalDirectionalBlock;
@@ -21,7 +22,14 @@ public class MultiBlockItem extends BlockItem {
     }
 
     @Override
+    public int getBarWidth(ItemStack pStack) {
+        return super.getBarWidth(pStack);
+    }
+
+    @Override
     protected boolean placeBlock(BlockPlaceContext context, BlockState state) {
+        if(context.getClickedFace()!= Direction.UP)
+            return false;
         Direction direction = state.getValue(HorizontalDirectionalBlock.FACING);
         for (int i = 0; i < rows; i++) {
             for (int j = 0; j < columns; j++) {
