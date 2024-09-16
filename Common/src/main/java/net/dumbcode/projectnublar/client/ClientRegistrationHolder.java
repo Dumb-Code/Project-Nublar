@@ -4,6 +4,7 @@ import com.mojang.blaze3d.vertex.PoseStack;
 import com.mojang.blaze3d.vertex.VertexConsumer;
 import net.dumbcode.projectnublar.Constants;
 import net.dumbcode.projectnublar.block.entity.IncubatorBlockEntity;
+import net.dumbcode.projectnublar.client.renderer.DinosaurRenderer;
 import net.dumbcode.projectnublar.client.renderer.SequencerRenderer;
 import net.dumbcode.projectnublar.client.screen.EggPrinterScreen;
 import net.dumbcode.projectnublar.client.screen.IncubatorScreen;
@@ -41,7 +42,7 @@ public class ClientRegistrationHolder {
 
     public static Object2ObjectMap<Supplier<? extends EntityType>, EntityRendererProvider> entityRenderers(){
         Object2ObjectMap<Supplier<? extends EntityType>, EntityRendererProvider> map = new Object2ObjectOpenHashMap<>();
-        map.put(EntityInit.TYRANNOSAURUS_REX, (context)->new GeoEntityRenderer(context, new DefaultedEntityGeoModel(Constants.modLoc("tyrannosaurus_rex"))));
+        map.put(EntityInit.TYRANNOSAURUS_REX, (context)->new DinosaurRenderer(context, new DefaultedEntityGeoModel(Constants.modLoc("tyrannosaurus_rex"))));
         return map;
     }
     public static void menuScreens(){

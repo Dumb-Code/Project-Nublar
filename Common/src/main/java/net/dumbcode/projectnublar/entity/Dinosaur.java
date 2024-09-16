@@ -40,7 +40,9 @@ public class Dinosaur extends PathfinderMob implements FossilRevived, GeoEntity 
     public void registerControllers(AnimatableManager.ControllerRegistrar controllers) {
         controllers.add(new AnimationController<>(this, "controller", 20, this::predicate));
     }
-
+    public DinoData getDinoData() {
+        return this.entityData.get(DINO_DATA);
+    }
     @Override
     public void push(Entity pEntity) {
         super.push(pEntity);

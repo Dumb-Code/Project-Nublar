@@ -470,8 +470,10 @@ public class SequencerBlockEntity extends SyncingContainerBlockEntity implements
                 sequencingTime = 0;
             }
             case 1 -> {
+                if(!ItemStack.isSameItemSameTags(dna_input, itemStack)) {
+                    sequencingTime = 0;
+                }
                 dna_input = itemStack;
-                sequencingTime = 0;
             }
             case 2 -> empty_vial_output = itemStack;
             case 3 -> water = itemStack;
