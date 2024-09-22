@@ -670,6 +670,7 @@
   "button.projectnublar.regular": "Regular",
   "container.projectnublar.processor": "Fossil Processor",
   "container.projectnublar.sequencer": "Sequencer",
+  "debug.toggled_joint_debug.message": "Toggled Leg Debug",
   "dna_percentage.projectnublar": "DNA Percentage: %1$s",
   "entity.projectnublar.tyrannosaurus_rex": "Tyrannosaurus Rex",
   "gui_tab.projectnublar.edit": "Edit",

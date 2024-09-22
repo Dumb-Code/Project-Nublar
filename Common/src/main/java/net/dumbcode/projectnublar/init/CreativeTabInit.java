@@ -1,11 +1,7 @@
 package net.dumbcode.projectnublar.init;
 
 import net.dumbcode.projectnublar.Constants;
-import net.dumbcode.projectnublar.api.DNAData;
-import net.dumbcode.projectnublar.api.DinoData;
-import net.dumbcode.projectnublar.api.FossilCollection;
-import net.dumbcode.projectnublar.api.FossilPieces;
-import net.dumbcode.projectnublar.api.Quality;
+import net.dumbcode.projectnublar.api.*;
 import net.dumbcode.projectnublar.config.FossilsConfig;
 import net.dumbcode.projectnublar.registration.RegistrationProvider;
 import net.dumbcode.projectnublar.registration.RegistryObject;

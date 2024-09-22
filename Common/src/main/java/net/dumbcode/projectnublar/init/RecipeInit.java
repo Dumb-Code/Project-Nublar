@@ -6,7 +6,6 @@ import net.dumbcode.projectnublar.registration.RegistrationProvider;
 import net.dumbcode.projectnublar.registration.RegistryObject;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.world.item.crafting.RecipeSerializer;
-import net.minecraft.world.item.crafting.RecipeType;
 
 public class RecipeInit {
     public static RegistrationProvider<RecipeSerializer<?>> RECIPE_TYPE = RegistrationProvider.get(BuiltInRegistries.RECIPE_SERIALIZER, Constants.MODID);

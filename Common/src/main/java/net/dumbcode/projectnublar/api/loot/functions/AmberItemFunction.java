@@ -1,13 +1,13 @@
 package net.dumbcode.projectnublar.api.loot.functions;
 
+import com.google.gson.JsonDeserializationContext;
+import com.google.gson.JsonObject;
+import com.google.gson.JsonSerializationContext;
 import net.dumbcode.projectnublar.api.DNAData;
 import net.dumbcode.projectnublar.api.NublarMath;
 import net.dumbcode.projectnublar.block.AmberBlock;
 import net.dumbcode.projectnublar.init.ItemInit;
 import net.dumbcode.projectnublar.init.LootFunctionInit;
-import com.google.gson.JsonDeserializationContext;
-import com.google.gson.JsonObject;
-import com.google.gson.JsonSerializationContext;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.resources.ResourceLocation;

@@ -1,7 +1,7 @@
 package net.dumbcode.projectnublar.block.entity;
 
-import net.dumbcode.projectnublar.api.NublarMath;
 import net.dumbcode.projectnublar.api.DNAData;
+import net.dumbcode.projectnublar.api.NublarMath;
 import net.dumbcode.projectnublar.block.api.SyncingContainerBlockEntity;
 import net.dumbcode.projectnublar.init.BlockInit;
 import net.dumbcode.projectnublar.init.ItemInit;

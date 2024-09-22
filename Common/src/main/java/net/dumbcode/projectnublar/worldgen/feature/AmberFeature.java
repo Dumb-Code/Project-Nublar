@@ -1,8 +1,8 @@
 package net.dumbcode.projectnublar.worldgen.feature;
 
+import com.mojang.serialization.Codec;
 import net.dumbcode.projectnublar.CommonClass;
 import net.dumbcode.projectnublar.api.FossilCollection;
-import com.mojang.serialization.Codec;
 import net.dumbcode.projectnublar.config.FossilsConfig;
 import net.dumbcode.projectnublar.registration.RegistryObject;
 import net.minecraft.core.BlockPos;

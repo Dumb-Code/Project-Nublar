@@ -10,7 +10,6 @@ import net.minecraft.network.chat.Component;
 import net.minecraft.network.chat.MutableComponent;
 
 import javax.annotation.Nullable;
-import java.util.function.Consumer;
 import java.util.function.Function;
 import java.util.function.Supplier;
 
