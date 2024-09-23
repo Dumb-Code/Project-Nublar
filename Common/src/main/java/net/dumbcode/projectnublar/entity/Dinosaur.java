@@ -52,8 +52,8 @@ public class Dinosaur extends PathfinderMob implements FossilRevived, GeoEntity,
                         .standStillCounter(40)
                         .stepInFront(1.5)
                         .movementSpeed(0.4).build(),
-                List.of(new ServerLimb(-0.7, 0, 0.8),
-                        new ServerLimb(0.7, 0, 0.8)),
+                List.of(new ServerLimb(-0.7, 0, 0.4),
+                        new ServerLimb(0.7, 0, 0.4)),
                 new AngleConstraintIKChain(new Segment.Builder().length(1).angleSize(50).build(), new Segment.Builder().length(1.4).angleOffset(70).build(), new Segment.Builder().length(0.94).angleOffset(-100).build()),
                 new AngleConstraintIKChain(new Segment.Builder().length(1).angleSize(50).build(), new Segment.Builder().length(1.4).angleOffset(70).build(), new Segment.Builder().length(0.94).angleOffset(-100).build())));
     }
