@@ -216,7 +216,8 @@ public class ProcessorBlockEntity extends SyncingContainerBlockEntity implements
     public double getFilterEfficiency() {
         if(filter.isEmpty()) return 0;
         float damage = (filter.getMaxDamage() - filter.getDamageValue())/ (float)filter.getMaxDamage();
-        float effPercent = (0.75f * damage) + 0.25f;
+        float damageReduction = 0.75f * damage;
+        float effPercent = 1 - damageReduction;
         return filter.isEmpty() ? 0 : ((FilterItem)filter.getItem()).getEfficiency() * effPercent;
     }
     public int getMaxFluidLevel() {

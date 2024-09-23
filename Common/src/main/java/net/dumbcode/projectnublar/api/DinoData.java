@@ -67,14 +67,6 @@ public class DinoData {
         advancedGenes.put(gene, value);
     }
 
-    public void addGeneValue(Genes.Gene gene, double value) {
-        if(!advancedGenes.containsKey(gene)){
-            advancedGenes.put(gene, value);
-        } else {
-            advancedGenes.put(gene, advancedGenes.get(gene) + value);
-        }
-    }
-
     public double getBasePercentage() {
         return basePercentage;
     }
@@ -135,8 +127,8 @@ public class DinoData {
             return finalGenes.get(gene);
         }
         if (advancedGenes.containsKey(gene)) {
-            finalGenes.put(gene, advancedGenes.get(gene));
-            return finalGenes.get(gene);
+
+            return finalGenes.put(gene, advancedGenes.get(gene));
         }
         double value = 0;
         for (Map.Entry<EntityInfo, Double> entry : entityPercentages.entrySet()) {
