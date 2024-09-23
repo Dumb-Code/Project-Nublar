@@ -2,14 +2,10 @@ package net.dumbcode.projectnublar.client;
 
 import com.mojang.blaze3d.vertex.PoseStack;
 import com.mojang.blaze3d.vertex.VertexConsumer;
-import it.unimi.dsi.fastutil.objects.Object2ObjectMap;
-import it.unimi.dsi.fastutil.objects.Object2ObjectOpenHashMap;
 import net.dumbcode.projectnublar.Constants;
 import net.dumbcode.projectnublar.block.entity.IncubatorBlockEntity;
-import net.dumbcode.projectnublar.client.model.DinosaurGeoModel;
-import net.dumbcode.projectnublar.client.renderer.block.ProcessorRenderer;
-import net.dumbcode.projectnublar.client.renderer.block.SequencerRenderer;
-import net.dumbcode.projectnublar.client.renderer.entity.DinosaurGeoEntityRenderer;
+import net.dumbcode.projectnublar.client.renderer.DinosaurRenderer;
+import net.dumbcode.projectnublar.client.renderer.SequencerRenderer;
 import net.dumbcode.projectnublar.client.screen.EggPrinterScreen;
 import net.dumbcode.projectnublar.client.screen.IncubatorScreen;
 import net.dumbcode.projectnublar.client.screen.ProcessorScreen;
@@ -18,6 +14,9 @@ import net.dumbcode.projectnublar.init.BlockInit;
 import net.dumbcode.projectnublar.init.EntityInit;
 import net.dumbcode.projectnublar.init.ItemInit;
 import net.dumbcode.projectnublar.init.MenuTypeInit;
+import net.dumbcode.projectnublar.client.renderer.ProcessorRenderer;
+import it.unimi.dsi.fastutil.objects.Object2ObjectMap;
+import it.unimi.dsi.fastutil.objects.Object2ObjectOpenHashMap;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.screens.MenuScreens;
 import net.minecraft.client.renderer.MultiBufferSource;
@@ -27,22 +26,23 @@ import net.minecraft.client.renderer.entity.EntityRendererProvider;
 import net.minecraft.client.renderer.item.ItemProperties;
 import net.minecraft.client.renderer.texture.AbstractTexture;
 import net.minecraft.resources.ResourceLocation;
-import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.EntityType;
-import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.entity.BlockEntityType;
 import org.jetbrains.annotations.Nullable;
 import software.bernie.geckolib.cache.object.GeoBone;
+import software.bernie.geckolib.core.animatable.GeoAnimatable;
 import software.bernie.geckolib.model.DefaultedBlockGeoModel;
+import software.bernie.geckolib.model.DefaultedEntityGeoModel;
 import software.bernie.geckolib.renderer.GeoBlockRenderer;
+import software.bernie.geckolib.renderer.GeoEntityRenderer;
 
 import java.util.function.Supplier;
 
 public class ClientRegistrationHolder {
 
-    public static Object2ObjectMap<Supplier<? extends EntityType<? extends Entity>>, EntityRendererProvider> entityRenderers(){
-        Object2ObjectMap<Supplier<? extends EntityType<? extends Entity>>, EntityRendererProvider> map = new Object2ObjectOpenHashMap<>();
-        map.put(EntityInit.TYRANNOSAURUS_REX, (context)->new DinosaurGeoEntityRenderer(context, new DinosaurGeoModel(Constants.modLoc("tyrannosaurus_rex"))));
+    public static Object2ObjectMap<Supplier<? extends EntityType>, EntityRendererProvider> entityRenderers(){
+        Object2ObjectMap<Supplier<? extends EntityType>, EntityRendererProvider> map = new Object2ObjectOpenHashMap<>();
+        map.put(EntityInit.TYRANNOSAURUS_REX, (context)->new DinosaurRenderer(context, new DefaultedEntityGeoModel(Constants.modLoc("tyrannosaurus_rex"))));
         return map;
     }
     public static void menuScreens(){
@@ -52,8 +52,8 @@ public class ClientRegistrationHolder {
         MenuScreens.register(MenuTypeInit.INCUBATOR.get(), IncubatorScreen::new);
         Minecraft.getInstance().getTextureManager().register(Constants.modLoc( "textures/entity/tyrannosaurus_rex.png"), createTexture());
     }
-    public static Object2ObjectMap<Supplier<? extends BlockEntityType<? extends BlockEntity>>, BlockEntityRendererProvider> getBlockEntityRenderers(){
-        Object2ObjectMap<Supplier<? extends BlockEntityType<? extends BlockEntity>>, BlockEntityRendererProvider> map = new Object2ObjectOpenHashMap<>();
+    public static Object2ObjectMap<Supplier<? extends BlockEntityType>, BlockEntityRendererProvider> getBlockEntityRenderers(){
+        Object2ObjectMap<Supplier<? extends BlockEntityType>, BlockEntityRendererProvider> map = new Object2ObjectOpenHashMap<>();
         map.put(BlockInit.PROCESSOR_BLOCK_ENTITY, (context)->new ProcessorRenderer());
         map.put(BlockInit.SEQUENCER_BLOCK_ENTITY, (context)->new SequencerRenderer());
         map.put(BlockInit.EGG_PRINTER_BLOCK_ENTITY, (context)->new GeoBlockRenderer<>(new DefaultedBlockGeoModel<>(new ResourceLocation(Constants.MODID, "egg_printer"))));

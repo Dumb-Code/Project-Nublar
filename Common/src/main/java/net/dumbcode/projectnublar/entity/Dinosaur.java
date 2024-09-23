@@ -62,6 +62,13 @@ public class Dinosaur extends PathfinderMob implements FossilRevived, GeoEntity,
     public void registerControllers(AnimatableManager.ControllerRegistrar controllers) {
         controllers.add(new AnimationController<>(this, "controller", 20, this::predicate));
     }
+    public DinoData getDinoData() {
+        return this.entityData.get(DINO_DATA);
+    }
+    @Override
+    public void push(Entity pEntity) {
+        super.push(pEntity);
+    }
 
     public ResourceLocation getTextureLocation(){
         if(true){
@@ -77,14 +84,14 @@ public class Dinosaur extends PathfinderMob implements FossilRevived, GeoEntity,
     }
 
     @Override
-    public void addAdditionalSaveData(@NotNull CompoundTag tag) {
+    public void addAdditionalSaveData(CompoundTag tag) {
         super.addAdditionalSaveData(tag);
         tag.put("dino_data", entityData.get(DINO_DATA).toNBT());
 
     }
 
     @Override
-    public void readAdditionalSaveData(@NotNull CompoundTag $$0) {
+    public void readAdditionalSaveData(CompoundTag $$0) {
         super.readAdditionalSaveData($$0);
         entityData.set(DINO_DATA, DinoData.fromNBT($$0.getCompound("dino_data")));
     }
