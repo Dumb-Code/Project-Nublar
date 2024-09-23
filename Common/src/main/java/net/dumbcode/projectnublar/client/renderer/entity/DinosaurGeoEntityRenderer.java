@@ -1,5 +1,6 @@
 package net.dumbcode.projectnublar.client.renderer.entity;
 
+import net.dumbcode.projectnublar.Constants;
 import net.dumbcode.projectnublar.client.model.DinosaurGeoModel;
 import net.dumbcode.projectnublar.client.renderer.entity.layer.IKDebugRenderLayer;
 import net.dumbcode.projectnublar.entity.Dinosaur;

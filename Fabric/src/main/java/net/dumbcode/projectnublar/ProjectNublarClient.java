@@ -1,14 +1,19 @@
 package net.dumbcode.projectnublar;
 
 import net.dumbcode.projectnublar.client.ClientRegistrationHolder;
+import net.dumbcode.projectnublar.entity.ik.parts.Segment;
+import net.dumbcode.projectnublar.entity.ik.util.MathUtil;
 import net.dumbcode.projectnublar.init.BlockInit;
 import net.dumbcode.projectnublar.network.NetworkInit;
 import net.fabricmc.api.ClientModInitializer;
 import net.fabricmc.fabric.api.blockrenderlayer.v1.BlockRenderLayerMap;
 import net.fabricmc.fabric.api.client.event.lifecycle.v1.ClientLifecycleEvents;
+import net.fabricmc.fabric.api.client.event.lifecycle.v1.ClientTickEvents;
 import net.fabricmc.fabric.api.client.rendering.v1.EntityRendererRegistry;
 import net.minecraft.client.renderer.RenderType;
 import net.minecraft.client.renderer.blockentity.BlockEntityRenderers;
+import net.minecraft.core.particles.ParticleTypes;
+import net.minecraft.world.phys.Vec3;
 
 import static net.dumbcode.projectnublar.client.renderer.entity.layer.IKDebugRenderLayer.getArgb;
 
