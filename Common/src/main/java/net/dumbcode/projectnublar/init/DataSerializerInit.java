@@ -5,6 +5,7 @@ import net.dumbcode.projectnublar.api.DinoData;
 import net.dumbcode.projectnublar.registration.EntityDataSerializerHelper;
 import net.minecraft.network.FriendlyByteBuf;
 import net.minecraft.network.syncher.EntityDataSerializer;
+import net.minecraft.resources.ResourceLocation;
 
 public class DataSerializerInit {
 

@@ -11,7 +11,6 @@ import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.entity.MobSpawnType;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.context.UseOnContext;
-import org.jetbrains.annotations.NotNull;
 
 public class IncubatedEggItem extends DNADataItem {
     public IncubatedEggItem(Properties properties) {
@@ -19,29 +18,26 @@ public class IncubatedEggItem extends DNADataItem {
     }
 
     @Override
-    public @NotNull InteractionResult useOn(UseOnContext pContext) {
+    public InteractionResult useOn(UseOnContext pContext) {
         if (pContext.getLevel().isClientSide()) {
             return InteractionResult.sidedSuccess(true);
         }
         if(pContext.getHand() == InteractionHand.OFF_HAND){
             return InteractionResult.FAIL;
         }
-
         DinoData dinoData = DinoData.fromStack(pContext.getItemInHand());
-        EntityType<?> entityType = dinoData.getBaseDino();
-        Dinosaur dinosaur = (Dinosaur) entityType.spawn((ServerLevel) pContext.getLevel(), pContext.getClickedPos().above(), MobSpawnType.EVENT);
-
-        if (dinosaur == null) {
-            return InteractionResult.FAIL;
+        if (dinoData != null) {
+            EntityType<?> entityType = dinoData.getBaseDino();
+            Dinosaur dinosaur = (Dinosaur) entityType.spawn((ServerLevel) pContext.getLevel(), pContext.getClickedPos().above(), MobSpawnType.EVENT);
+            dinosaur.setDinoData(dinoData);
+            pContext.getItemInHand().shrink(1);
+            return InteractionResult.CONSUME;
         }
-
-        dinosaur.setDinoData(dinoData);
-        pContext.getItemInHand().shrink(1);
-        return InteractionResult.CONSUME;
+        return super.useOn(pContext);
     }
 
     @Override
-    public @NotNull Component getName(@NotNull ItemStack pStack) {
+    public Component getName(ItemStack pStack) {
         return Component.translatable(this.getDescriptionId(), DinoData.fromStack(pStack).getFormattedType());
     }
 }

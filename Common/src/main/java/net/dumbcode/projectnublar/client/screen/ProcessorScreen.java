@@ -1,8 +1,8 @@
 package net.dumbcode.projectnublar.client.screen;
 
-import com.nyfaria.nyfsguilib.client.widgets.FluidRenderWidget;
 import net.dumbcode.projectnublar.Constants;
 import net.dumbcode.projectnublar.menutypes.ProcessorMenu;
+import com.nyfaria.nyfsguilib.client.widgets.FluidRenderWidget;
 import net.minecraft.ChatFormatting;
 import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.gui.components.Tooltip;

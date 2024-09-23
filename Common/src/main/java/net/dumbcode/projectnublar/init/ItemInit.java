@@ -1,7 +1,18 @@
 package net.dumbcode.projectnublar.init;
 
 import net.dumbcode.projectnublar.Constants;
-import net.dumbcode.projectnublar.item.*;
+import net.dumbcode.projectnublar.item.AmberItem;
+import net.dumbcode.projectnublar.item.BulbItem;
+import net.dumbcode.projectnublar.item.FossilItem;
+import net.dumbcode.projectnublar.item.IncubatedEggItem;
+import net.dumbcode.projectnublar.item.PlantTankItem;
+import net.dumbcode.projectnublar.item.TankItem;
+import net.dumbcode.projectnublar.item.TestTubeItem;
+import net.dumbcode.projectnublar.item.ComputerChipItem;
+import net.dumbcode.projectnublar.item.DiskStorageItem;
+import net.dumbcode.projectnublar.item.FilterItem;
+import net.dumbcode.projectnublar.item.SyringeItem;
+import net.dumbcode.projectnublar.item.UnincubatedEggItem;
 import net.dumbcode.projectnublar.registration.RegistrationProvider;
 import net.dumbcode.projectnublar.registration.RegistryObject;
 import net.minecraft.core.registries.Registries;

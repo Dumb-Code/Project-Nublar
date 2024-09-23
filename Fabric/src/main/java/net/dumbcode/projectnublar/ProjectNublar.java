@@ -9,7 +9,6 @@ import net.fabricmc.api.ModInitializer;
 import net.fabricmc.fabric.api.biome.v1.BiomeModifications;
 import net.fabricmc.fabric.api.biome.v1.BiomeSelectors;
 import net.fabricmc.fabric.api.object.builder.v1.entity.FabricDefaultAttributeRegistry;
-import net.fabricmc.loader.api.FabricLoader;
 import net.minecraft.util.random.SimpleWeightedRandomList;
 import net.minecraft.world.level.levelgen.GenerationStep;
 import net.minecraftforge.fml.config.ModConfig;
@@ -21,12 +20,6 @@ public class ProjectNublar implements ModInitializer {
 
     @Override
     public void onInitialize() {
-        if (FabricLoader.getInstance().isDevelopmentEnvironment()) {
-            Constants.isDevEnv = true;
-            Constants.shouldRenderDebugLegs = true;
-            Constants.LOG.info("Started in a development environment. Debug renderers will be activated by default.");
-        }
-
         ForgeConfigRegistry.INSTANCE.register(Constants.MODID, ModConfig.Type.COMMON, FossilsConfig.CONFIG_SPEC);
         CommonClass.init();
         EntityInit.attributeSuppliers.forEach(

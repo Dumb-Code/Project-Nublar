@@ -1,8 +1,10 @@
 package net.dumbcode.projectnublar.data;
 
+import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import com.google.gson.JsonElement;
 import com.mojang.serialization.JsonOps;
+import net.dumbcode.projectnublar.Constants;
 import net.dumbcode.projectnublar.api.GeneData;
 import net.dumbcode.projectnublar.api.Genes;
 import net.minecraft.resources.ResourceLocation;

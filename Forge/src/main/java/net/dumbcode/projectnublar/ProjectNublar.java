@@ -18,7 +18,6 @@ import net.minecraftforge.eventbus.api.SubscribeEvent;
 import net.minecraftforge.fml.ModLoadingContext;
 import net.minecraftforge.fml.common.Mod;
 import net.minecraftforge.fml.config.ModConfig;
-import net.minecraftforge.fml.loading.FMLEnvironment;
 
 @Mod(Constants.MODID)
 @Mod.EventBusSubscriber(bus = Mod.EventBusSubscriber.Bus.MOD)
@@ -26,12 +25,6 @@ public class ProjectNublar {
     
     public ProjectNublar() {
         Constants.LOG.info("Hello Forge world!");
-        if (!FMLEnvironment.production) {
-            Constants.isDevEnv = true;
-            Constants.shouldRenderDebugLegs = true;
-            Constants.LOG.info("Started in a development environment. Debug renderers will be activated by default.");
-        }
-
         CommonClass.init();
         ModLoadingContext.get().registerConfig(ModConfig.Type.COMMON, FossilsConfig.CONFIG_SPEC,"projectnublar-fossils.toml");
     }

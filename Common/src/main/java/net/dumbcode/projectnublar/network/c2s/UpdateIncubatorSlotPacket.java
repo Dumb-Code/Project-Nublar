@@ -2,10 +2,15 @@ package net.dumbcode.projectnublar.network.c2s;
 
 import commonnetwork.networking.data.PacketContext;
 import net.dumbcode.projectnublar.Constants;
+import net.dumbcode.projectnublar.api.DinoData;
 import net.dumbcode.projectnublar.block.entity.IncubatorBlockEntity;
+import net.dumbcode.projectnublar.block.entity.SequencerBlockEntity;
 import net.minecraft.core.BlockPos;
 import net.minecraft.network.FriendlyByteBuf;
 import net.minecraft.resources.ResourceLocation;
+import net.minecraft.world.inventory.Slot;
+
+import java.util.List;
 
 public record UpdateIncubatorSlotPacket(BlockPos pos, int index, int x, int y) {
     public static ResourceLocation ID = Constants.modLoc("update_incubator_slot");

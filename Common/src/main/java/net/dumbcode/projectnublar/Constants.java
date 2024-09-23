@@ -20,13 +20,9 @@ public class Constants {
 	public static final ResourceKey<PlacedFeature> AMBER_PLACED = PlacementUtils.createKey(Constants.MODID + ":amber");
 	public static final int BORDER_COLOR = 0xFF577694;
 
-	public static boolean isDevEnv = false;
-	public static boolean shouldRenderDebugLegs = false;
-
 	public static ResourceLocation modLoc(String path) {
 		return new ResourceLocation(MODID, path);
 	}
-
 	public static ResourceLocation mcLoc(String path) {
 		return new ResourceLocation(path);
 	}

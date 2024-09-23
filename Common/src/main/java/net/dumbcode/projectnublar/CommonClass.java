@@ -1,7 +1,15 @@
 package net.dumbcode.projectnublar;
 
 import net.dumbcode.projectnublar.api.FossilPiece;
-import net.dumbcode.projectnublar.init.*;
+import net.dumbcode.projectnublar.init.BlockInit;
+import net.dumbcode.projectnublar.init.CreativeTabInit;
+import net.dumbcode.projectnublar.init.DataSerializerInit;
+import net.dumbcode.projectnublar.init.EntityInit;
+import net.dumbcode.projectnublar.init.FeatureInit;
+import net.dumbcode.projectnublar.init.ItemInit;
+import net.dumbcode.projectnublar.init.LootFunctionInit;
+import net.dumbcode.projectnublar.init.MenuTypeInit;
+import net.dumbcode.projectnublar.init.RecipeInit;
 import net.dumbcode.projectnublar.network.NetworkInit;
 import net.minecraft.util.random.SimpleWeightedRandomList;
 import org.apache.commons.lang3.StringUtils;

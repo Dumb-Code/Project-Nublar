@@ -25,7 +25,7 @@ import java.util.stream.Stream;
 public class ModLangProvider extends LanguageProvider {
     protected static final Map<String, String> REPLACE_LIST = ImmutableMap.of(
             "tnt", "TNT",
-            "sus", "", //Why Nyf? Why?
+            "sus", "",
             "incubator", "Incubator Base",
             "sequencer", "Sequencer Base"
     );
@@ -39,7 +39,6 @@ public class ModLangProvider extends LanguageProvider {
 //        ItemInit.ITEMS.getEntries().forEach(this::itemLang);
         EntityInit.ENTITIES.getEntries().forEach(this::entityLang);
         BlockInit.BLOCKS.getEntries().forEach(this::blockLang);
-        add("debug.toggled_joint_debug.message", "Toggled Leg Debug");
         add("itemGroup." + Constants.MODID +".fossil_items", "Project Nublar: Fossil Items");
         add("itemGroup." + Constants.MODID +".fossil_ores", "Project Nublar: Fossil Ores");
         add("itemGroup." + Constants.MODID +".machines", "Project Nublar: Machines");
