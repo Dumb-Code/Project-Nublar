@@ -1,7 +1,8 @@
-package net.dumbcode.projectnublar.client.renderer;
+package net.dumbcode.projectnublar.client.renderer.entity;
 
 import com.mojang.blaze3d.vertex.PoseStack;
 import net.dumbcode.projectnublar.api.Genes;
+import net.dumbcode.projectnublar.client.renderer.entity.layer.IKDebugRenderLayer;
 import net.dumbcode.projectnublar.entity.Dinosaur;
 import net.minecraft.client.renderer.entity.EntityRendererProvider;
 import software.bernie.geckolib.cache.object.BakedGeoModel;
@@ -11,6 +12,7 @@ import software.bernie.geckolib.renderer.GeoEntityRenderer;
 public class DinosaurRenderer extends GeoEntityRenderer<Dinosaur> {
     public DinosaurRenderer(EntityRendererProvider.Context renderManager, GeoModel<Dinosaur> model) {
         super(renderManager, model);
+        this.addRenderLayer(new IKDebugRenderLayer<>(this));
     }
 
     @Override

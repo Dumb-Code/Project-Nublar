@@ -203,7 +203,6 @@ public class IKChain {
 
         DebugRenderer.renderFilledBox(poseStack, bufferSource, AABB.unitCubeFromLowerCorner(chain.getFirst().position).contract(0.8, 0.8, 0.8).move(-offsetEntityPos.x, -offsetEntityPos.y, -offsetEntityPos.z), 1.0F, 1.0F, 0.0F, 0.5F);
 
-
         for (int i = 0; i < chain.getJoints().size() - 1; i++) {
             Vec3 currentJoint = chain.getJoints().get(i);
             Vec3 nextJoint = chain.getJoints().get(i + 1);

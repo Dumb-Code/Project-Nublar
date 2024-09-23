@@ -13,12 +13,12 @@ import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.syncher.EntityDataAccessor;
 import net.minecraft.network.syncher.SynchedEntityData;
 import net.minecraft.resources.ResourceLocation;
+import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.entity.PathfinderMob;
 import net.minecraft.world.entity.ai.goal.RandomStrollGoal;
 import net.minecraft.world.entity.ai.goal.WaterAvoidingRandomStrollGoal;
 import net.minecraft.world.level.Level;
-import org.jetbrains.annotations.NotNull;
 import software.bernie.geckolib.animatable.GeoEntity;
 import software.bernie.geckolib.core.animatable.GeoAnimatable;
 import software.bernie.geckolib.core.animatable.instance.AnimatableInstanceCache;
@@ -35,7 +35,6 @@ import java.util.Objects;
 
 public class Dinosaur extends PathfinderMob implements FossilRevived, GeoEntity, IKAnimatable<Dinosaur> {
     public List<IKModelComponent<Dinosaur>> components = new ArrayList<>();
-
 
     public static EntityDataAccessor<DinoData> DINO_DATA = SynchedEntityData.defineId(Dinosaur.class, DataSerializerInit.DINO_DATA);
     public final AnimatableInstanceCache cache = GeckoLibUtil.createInstanceCache(this);
@@ -65,6 +64,7 @@ public class Dinosaur extends PathfinderMob implements FossilRevived, GeoEntity,
     public DinoData getDinoData() {
         return this.entityData.get(DINO_DATA);
     }
+
     @Override
     public void push(Entity pEntity) {
         super.push(pEntity);
