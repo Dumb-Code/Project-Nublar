@@ -19,15 +19,15 @@ public class Rope {
     }
 
     public void tick(Vec3 base) {
-        this.getFirst().position = base;
+        this.getFirst().move(base);
 
         for (int i = 0; i < this.segments.size() - 1; i++) {
             Segment currentSegment = this.segments.get(i);
             Segment nextSegment = this.segments.get(i + 1);
 
-            nextSegment.position = IKChain.moveSegment(nextSegment.position, currentSegment.position, currentSegment.length);
+            nextSegment.move(IKChain.moveSegment(nextSegment.getPosition(), currentSegment.getPosition(), currentSegment.length));
         }
-        this.endJoint = IKChain.moveSegment(this.endJoint, this.getLast().position, this.getLast().length);
+        this.endJoint = IKChain.moveSegment(this.endJoint, this.getLast().getPosition(), this.getLast().length);
     }
 
     public double maxLength() {
@@ -41,7 +41,7 @@ public class Rope {
     public List<Vec3> getJoints() {
         List<Vec3> joints = new ArrayList<>();
         for (Segment segment : this.segments) {
-            joints.add(segment.position);
+            joints.add(segment.getPosition());
         }
         joints.add(this.endJoint);
         return joints;

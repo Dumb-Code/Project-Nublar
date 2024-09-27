@@ -5,7 +5,7 @@ import net.minecraft.resources.ResourceLocation;
 import software.bernie.geckolib.core.animation.AnimationState;
 import software.bernie.geckolib.model.DefaultedEntityGeoModel;
 
-public class DinosaurGeoModel<E extends Dinosaur> extends DefaultedEntityGeoModel<E> {
+public class DinosaurGeoModel extends DefaultedEntityGeoModel<net.dumbcode.projectnublar.entity.Dinosaur> {
 
 
     public DinosaurGeoModel(ResourceLocation assetSubpath) {
@@ -13,12 +13,12 @@ public class DinosaurGeoModel<E extends Dinosaur> extends DefaultedEntityGeoMode
     }
 
     @Override
-    public ResourceLocation getTextureResource(E animatable) {
+    public ResourceLocation getTextureResource(Dinosaur animatable) {
         return super.getTextureResource(animatable);
     }
 
     @Override
-    public void setCustomAnimations(E animatable, long instanceId, AnimationState<E> animationState) {
+    public void setCustomAnimations(Dinosaur animatable, long instanceId, AnimationState<Dinosaur> animationState) {
         super.setCustomAnimations(animatable, instanceId, animationState);
 
         animatable.tickComponentsClient(animatable, instanceId, animationState, this);

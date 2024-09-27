@@ -10,10 +10,9 @@ import software.bernie.geckolib.core.animation.AnimationState;
 import software.bernie.geckolib.model.DefaultedEntityGeoModel;
 
 public interface IKModelComponent<E extends GeoAnimatable> {
-
-    <M extends DefaultedEntityGeoModel<? extends GeoAnimatable>>void tickClient(E animatable, long instanceId, AnimationState<E> animationState, M model);
-
     void tickServer(E animatable);
+
+    <M extends DefaultedEntityGeoModel<E>>void tickClient(E animatable, long instanceId, AnimationState<E> animationState, M model);
 
     void renderDebug(PoseStack poseStack, E animatable, BakedGeoModel bakedModel, RenderType renderType, MultiBufferSource bufferSource, VertexConsumer buffer, float partialTick, int packedLight, int packedOverlay);
 }

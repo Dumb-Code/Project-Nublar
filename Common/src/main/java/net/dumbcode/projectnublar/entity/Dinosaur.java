@@ -6,7 +6,7 @@ import net.dumbcode.projectnublar.entity.ik.components.IKAnimatable;
 import net.dumbcode.projectnublar.entity.ik.components.IKLegComponent;
 import net.dumbcode.projectnublar.entity.ik.components.IKModelComponent;
 import net.dumbcode.projectnublar.entity.ik.parts.Segment;
-import net.dumbcode.projectnublar.entity.ik.parts.ik_chains.AngleConstraintIKChain;
+import net.dumbcode.projectnublar.entity.ik.parts.ik_chains.EntityLeg;
 import net.dumbcode.projectnublar.entity.ik.parts.sever_limbs.ServerLimb;
 import net.dumbcode.projectnublar.init.DataSerializerInit;
 import net.minecraft.nbt.CompoundTag;
@@ -53,8 +53,8 @@ public class Dinosaur extends PathfinderMob implements FossilRevived, GeoEntity,
                         .movementSpeed(0.4).build(),
                 List.of(new ServerLimb(-0.7, 0, 0.4),
                         new ServerLimb(0.7, 0, 0.4)),
-                new AngleConstraintIKChain(new Segment.Builder().length(1).angleSize(50).build(), new Segment.Builder().length(1.4).angleOffset(70).build(), new Segment.Builder().length(0.94).angleOffset(-100).build()),
-                new AngleConstraintIKChain(new Segment.Builder().length(1).angleSize(50).build(), new Segment.Builder().length(1.4).angleOffset(70).build(), new Segment.Builder().length(0.94).angleOffset(-100).build())));
+                new EntityLeg(new Segment.Builder().length(1).angleSize(40).build(), new Segment.Builder().length(1.4).angleOffset(80).build(), new Segment.Builder().length(0.94).angleOffset(-130).angleSize(40).build()),
+                new EntityLeg(new Segment.Builder().length(1).angleSize(40).build(), new Segment.Builder().length(1.4).angleOffset(80).build(), new Segment.Builder().length(0.94).angleOffset(-130).angleSize(40).build())));
     }
 
     @Override

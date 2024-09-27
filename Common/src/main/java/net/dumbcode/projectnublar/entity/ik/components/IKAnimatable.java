@@ -14,7 +14,11 @@ import java.util.List;
 public interface IKAnimatable<E extends GeoAnimatable> {
     List<IKModelComponent<E>> getComponents();
 
-    default List<? extends IKModelComponent> getComponent(Class type) {
+    default boolean containsComponent(Class type) {
+        return !this.getComponents().stream().filter(eikModelComponent -> eikModelComponent.getClass() == type).toList().isEmpty();
+    }
+
+    default List<? extends IKModelComponent<E>> getComponentOfType(Class type) {
         return this.getComponents().stream().filter(eikModelComponent -> eikModelComponent.getClass() == type).toList();
     }
 
@@ -22,7 +26,7 @@ public interface IKAnimatable<E extends GeoAnimatable> {
         this.getComponents().add(component);
     }
 
-    default<M extends DefaultedEntityGeoModel<? extends GeoAnimatable>> void tickComponentsClient(E animatable, long instanceId, AnimationState animationState, M model) {
+    default<M extends DefaultedEntityGeoModel<E>> void tickComponentsClient(E animatable, long instanceId, AnimationState<E> animationState, M model) {
         this.getComponents().forEach(ikModelComponent -> ikModelComponent.tickClient(animatable, instanceId, animationState, model));
     }
 

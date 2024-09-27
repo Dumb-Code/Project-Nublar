@@ -4,7 +4,9 @@ import com.mojang.blaze3d.vertex.PoseStack;
 import com.mojang.blaze3d.vertex.VertexConsumer;
 import net.dumbcode.projectnublar.Constants;
 import net.dumbcode.projectnublar.entity.Dinosaur;
-import net.dumbcode.projectnublar.entity.ik.parts.ik_chains.AngleConstraintIKChain;
+import net.dumbcode.projectnublar.entity.ik.components.debug_renderers.LegDebugRenderer;
+import net.dumbcode.projectnublar.entity.ik.parts.ik_chains.EntityLeg;
+import net.dumbcode.projectnublar.entity.ik.parts.ik_chains.IKChain;
 import net.dumbcode.projectnublar.entity.ik.parts.sever_limbs.ServerLimb;
 import net.dumbcode.projectnublar.entity.ik.util.GeoModelUtil;
 import net.dumbcode.projectnublar.entity.ik.util.MathUtil;
@@ -25,12 +27,12 @@ import software.bernie.geckolib.model.DefaultedEntityGeoModel;
 import java.util.ArrayList;
 import java.util.List;
 
-public class IKLegComponent<E extends GeoAnimatable, C extends AngleConstraintIKChain> implements IKModelComponent<E> {
+public class IKLegComponent<E extends GeoAnimatable & IKAnimatable<E>, C extends EntityLeg> implements IKModelComponent<E> {
     ///summon projectnublar:tyrannosaurus_rex ~ ~ ~ {NoAI:1b}
 
-    public List<C> limbs = new ArrayList<>();
-    public List<ServerLimb> endpoints;
-    public LegSetting settings;
+    private List<C> limbs = new ArrayList<>();
+    private List<ServerLimb> endpoints;
+    private LegSetting settings;
     private int stillStandCounter = 0;
 
     @SafeVarargs
@@ -41,28 +43,31 @@ public class IKLegComponent<E extends GeoAnimatable, C extends AngleConstraintIK
     }
 
     @Override
-    public <M extends DefaultedEntityGeoModel<? extends GeoAnimatable>> void tickClient(E animatable, long instanceId, AnimationState<E> animationState, M model) {
+    public <M extends DefaultedEntityGeoModel<E>> void tickClient(E animatable, long instanceId, AnimationState<E> animationState, M model) {
         if (!(animatable instanceof Dinosaur entity)) {
             return;
         }
 
         Vec3 pos = entity.position();
 
-        int leg = 1;
         for (int i = 0; i < this.limbs.size(); i++) {
-            GeoBone basePos = GeoModelUtil.getBoneOrNull(model, "base_" + "leg" + leg);
+            GeoBone basePos = GeoModelUtil.getBoneOrNull(model, "base_" + "leg" + (i + 1));
 
-            Vec3 transformVec3dWorldSpace = GeoModelUtil.modelTransformToVec3d(basePos).yRot((float) -Math.toRadians(entity.getYRot()));
-            transformVec3dWorldSpace = transformVec3dWorldSpace.add(pos);
+            Vec3 basePosWorldSpace = GeoModelUtil.modelTransformToVec3d(basePos).yRot((float) -Math.toRadians(entity.getYRot()));
+            basePosWorldSpace = basePosWorldSpace.add(pos);
 
-            C limb = this.setLimb(i, transformVec3dWorldSpace, entity);
+            if ((this.limbs.get(i).endJoint.distanceTo(this.endpoints.get(i).pos) < IKChain.TOLERANCE) && (this.limbs.get(i).getFirst().getPosition().distanceTo(basePosWorldSpace) < IKChain.TOLERANCE)) {
+                continue;
+            }
+
+            C limb = this.setLimb(i, basePosWorldSpace, entity);
 
             for (int k = 0; k < limb.getJoints().size() - 1; k++) {
                 Vec3 modelPosWorldSpace = limb.getJoints().get(k);
                 Vec3 targetVecWorldSpace = limb.getJoints().get(k + 1);
 
                 //Position
-                GeoBone legSegment = GeoModelUtil.getBoneOrNull(model, "seg" + (k + 1) + "_leg" + leg);
+                GeoBone legSegment = GeoModelUtil.getBoneOrNull(model, "seg" + (k + 1) + "_leg" + (i + 1));
 
                 if (Constants.shouldRenderDebugLegs) {
                     GeoModelUtil.setBonePosFromWorldPos(legSegment, modelPosWorldSpace.subtract(0, 200, 0), entity);
@@ -85,8 +90,6 @@ public class IKLegComponent<E extends GeoAnimatable, C extends AngleConstraintIK
 
                 GeoModelUtil.setAngles(legSegment, xRot, -rotation.x + Math.toRadians(entity.getYRot() + 90), rotation.z);
             }
-
-            leg++;
         }
     }
 
@@ -158,9 +161,23 @@ public class IKLegComponent<E extends GeoAnimatable, C extends AngleConstraintIK
 
     @Override
     public void renderDebug(PoseStack poseStack, E animatable, BakedGeoModel bakedModel, RenderType renderType, MultiBufferSource bufferSource, VertexConsumer buffer, float partialTick, int packedLight, int packedOverlay) {
-        for (C limb : this.limbs) {
-            limb.renderDebug(poseStack, animatable, this.endpoints, this.settings, this.stillStandCounter , bakedModel, renderType, bufferSource, buffer, partialTick, packedLight, packedOverlay);
-        }
+        new LegDebugRenderer<E>().renderDebug(this, animatable, poseStack, bakedModel, renderType, bufferSource, buffer, partialTick, packedLight, packedOverlay);
+    }
+
+    public List<C> getLimbs() {
+        return this.limbs;
+    }
+
+    public List<ServerLimb> getEndpoints() {
+        return this.endpoints;
+    }
+
+    public LegSetting getSettings() {
+        return this.settings;
+    }
+
+    public int getStillStandCounter() {
+        return this.stillStandCounter;
     }
 
     private C setLimb(int index, Vec3 base, PathfinderMob entity) {

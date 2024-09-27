@@ -2,12 +2,14 @@ package net.dumbcode.projectnublar.client;
 
 import com.mojang.blaze3d.vertex.PoseStack;
 import com.mojang.blaze3d.vertex.VertexConsumer;
+import it.unimi.dsi.fastutil.objects.Object2ObjectMap;
+import it.unimi.dsi.fastutil.objects.Object2ObjectOpenHashMap;
 import net.dumbcode.projectnublar.Constants;
 import net.dumbcode.projectnublar.block.entity.IncubatorBlockEntity;
 import net.dumbcode.projectnublar.client.model.DinosaurGeoModel;
-import net.dumbcode.projectnublar.client.renderer.entity.DinosaurRenderer;
 import net.dumbcode.projectnublar.client.renderer.block.ProcessorRenderer;
 import net.dumbcode.projectnublar.client.renderer.block.SequencerRenderer;
+import net.dumbcode.projectnublar.client.renderer.entity.DinosaurRenderer;
 import net.dumbcode.projectnublar.client.screen.EggPrinterScreen;
 import net.dumbcode.projectnublar.client.screen.IncubatorScreen;
 import net.dumbcode.projectnublar.client.screen.ProcessorScreen;
@@ -16,8 +18,6 @@ import net.dumbcode.projectnublar.init.BlockInit;
 import net.dumbcode.projectnublar.init.EntityInit;
 import net.dumbcode.projectnublar.init.ItemInit;
 import net.dumbcode.projectnublar.init.MenuTypeInit;
-import it.unimi.dsi.fastutil.objects.Object2ObjectMap;
-import it.unimi.dsi.fastutil.objects.Object2ObjectOpenHashMap;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.screens.MenuScreens;
 import net.minecraft.client.renderer.MultiBufferSource;
@@ -40,7 +40,7 @@ public class ClientRegistrationHolder {
 
     public static Object2ObjectMap<Supplier<? extends EntityType>, EntityRendererProvider> entityRenderers(){
         Object2ObjectMap<Supplier<? extends EntityType>, EntityRendererProvider> map = new Object2ObjectOpenHashMap<>();
-        map.put(EntityInit.TYRANNOSAURUS_REX, (context)->new DinosaurRenderer(context, new DinosaurGeoModel<>(Constants.modLoc("tyrannosaurus_rex"))));
+        map.put(EntityInit.TYRANNOSAURUS_REX, (context)->new DinosaurRenderer(context, new DinosaurGeoModel(Constants.modLoc("tyrannosaurus_rex"))));
         return map;
     }
     public static void menuScreens(){
