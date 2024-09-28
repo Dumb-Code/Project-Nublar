@@ -16,11 +16,19 @@ public class WorldCollidingSegment extends Segment {
         this.level = level;
     }
 
+    public Level getLevel() {
+        return this.level;
+    }
+
     /**
      * You need to call {@link #setLevel(Level)} before calling this method!!
      */
     @Override
     public void move(Vec3 position) {
+        this.move(position, true);
+    }
+
+    public void move(Vec3 position, boolean checkCollision) {
         if (this.level == null) {
             throw new IllegalStateException("WorldCollidingSegment has not been setup with a level");
         }
@@ -29,14 +37,16 @@ public class WorldCollidingSegment extends Segment {
 
         super.move(position);
 
-        Vec3 collisionPoint = this.level.clip(new ClipContext(
-                oldPosition,
-                this.getPosition(),
-                ClipContext.Block.COLLIDER,
-                ClipContext.Fluid.NONE,
-                new Arrow(this.level, this.getPosition().x(), this.getPosition().y(), this.getPosition().z())
-        )).getLocation();
+        if (checkCollision) {
+            Vec3 collisionPoint = this.level.clip(new ClipContext(
+                    oldPosition.add(0, 0.05, 0),
+                    this.getPosition(),
+                    ClipContext.Block.COLLIDER,
+                    ClipContext.Fluid.NONE,
+                    new Arrow(this.level, this.getPosition().x(), this.getPosition().y(), this.getPosition().z())
+            )).getLocation();
 
-        super.move(collisionPoint);
+            super.move(collisionPoint);
+        }
     }
 }

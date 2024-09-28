@@ -9,7 +9,7 @@ import software.bernie.geckolib.core.animatable.GeoAnimatable;
 import software.bernie.geckolib.core.animation.AnimationState;
 import software.bernie.geckolib.model.DefaultedEntityGeoModel;
 
-public interface IKModelComponent<E extends GeoAnimatable> {
+public interface IKGeoModelComponent<E extends GeoAnimatable> {
     void tickServer(E animatable);
 
     <M extends DefaultedEntityGeoModel<E>>void tickClient(E animatable, long instanceId, AnimationState<E> animationState, M model);

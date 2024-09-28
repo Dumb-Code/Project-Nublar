@@ -48,13 +48,13 @@ public abstract class AngleConstraintIKChain extends StretchingIKChain {
         double angleDelta = clampedAngle - angle;
 
         Vec3 normal = MathUtil.getNormalClosestTo(this.segments.get(1).getPosition(), this.getFirst().getPosition(), this.segments.get(2).getPosition(), this.getReferencePoint());
-        return MathUtil.rotatePointOnAPlainAround(this.segments.get(1).getPosition(), this.getFirst().getPosition(), angleDelta, normal);
+        return MathUtil.rotatePointOnAPlaneAround(this.segments.get(1).getPosition(), this.getFirst().getPosition(), angleDelta, normal);
     }
 
     public Vec3 getConstrainedPositions(Vec3 reference, Segment middle, Vec3 endpoint) {
         Vec3 normal = MathUtil.getNormalClosestTo(endpoint, middle.getPosition(), reference, this.getReferencePoint());
 
-        Vec3 referencePoint = MathUtil.rotatePointOnAPlainAround(reference, middle.getPosition(), middle.angleOffset, normal);
+        Vec3 referencePoint = MathUtil.rotatePointOnAPlaneAround(reference, middle.getPosition(), middle.angleOffset, normal);
 
         double angle = Math.toDegrees(MathUtil.calculateAngle(middle.getPosition(), endpoint, referencePoint));
         double clampedAngle = Math.min(middle.angleSize, angle);
@@ -63,6 +63,6 @@ public abstract class AngleConstraintIKChain extends StretchingIKChain {
 
         double angleDelta = clampedAngle - angle;
 
-        return MathUtil.rotatePointOnAPlainAround(endpoint, middle.getPosition(), angleDelta, normal);
+        return MathUtil.rotatePointOnAPlaneAround(endpoint, middle.getPosition(), angleDelta, normal);
     }
 }

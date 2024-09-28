@@ -2,11 +2,12 @@ package net.dumbcode.projectnublar.entity;
 
 import net.dumbcode.projectnublar.api.DinoData;
 import net.dumbcode.projectnublar.entity.api.FossilRevived;
-import net.dumbcode.projectnublar.entity.ik.components.IKAnimatable;
-import net.dumbcode.projectnublar.entity.ik.components.IKLegComponent;
-import net.dumbcode.projectnublar.entity.ik.components.IKModelComponent;
+import net.dumbcode.projectnublar.entity.ik.components.IKGeoAnimatable;
+import net.dumbcode.projectnublar.entity.ik.components.IKGeoLegComponent;
+import net.dumbcode.projectnublar.entity.ik.components.IKGeoModelComponent;
 import net.dumbcode.projectnublar.entity.ik.parts.Segment;
-import net.dumbcode.projectnublar.entity.ik.parts.ik_chains.EntityLeg;
+import net.dumbcode.projectnublar.entity.ik.parts.WorldCollidingSegment;
+import net.dumbcode.projectnublar.entity.ik.parts.ik_chains.EntityLegWithFoot;
 import net.dumbcode.projectnublar.entity.ik.parts.sever_limbs.ServerLimb;
 import net.dumbcode.projectnublar.init.DataSerializerInit;
 import net.minecraft.nbt.CompoundTag;
@@ -33,8 +34,8 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
 
-public class Dinosaur extends PathfinderMob implements FossilRevived, GeoEntity, IKAnimatable<Dinosaur> {
-    public List<IKModelComponent<Dinosaur>> components = new ArrayList<>();
+public class Dinosaur extends PathfinderMob implements FossilRevived, GeoEntity, IKGeoAnimatable<Dinosaur> {
+    public List<IKGeoModelComponent<Dinosaur>> components = new ArrayList<>();
 
     public static EntityDataAccessor<DinoData> DINO_DATA = SynchedEntityData.defineId(Dinosaur.class, DataSerializerInit.DINO_DATA);
     public final AnimatableInstanceCache cache = GeckoLibUtil.createInstanceCache(this);
@@ -45,16 +46,16 @@ public class Dinosaur extends PathfinderMob implements FossilRevived, GeoEntity,
     }
 
     protected void setUpLimbs() {
-        this.addComponent(new IKLegComponent<>(
-                new IKLegComponent.LegSetting.Builder()
+        this.addComponent(new IKGeoLegComponent<>(
+                new IKGeoLegComponent.LegSetting.Builder()
                         .maxDistance(2)
                         .standStillCounter(40)
                         .stepInFront(1.5)
                         .movementSpeed(0.4).build(),
                 List.of(new ServerLimb(-0.7, 0, 0.4),
                         new ServerLimb(0.7, 0, 0.4)),
-                new EntityLeg(new Segment.Builder().length(1).angleSize(40).build(), new Segment.Builder().length(1.4).angleOffset(80).build(), new Segment.Builder().length(0.94).angleOffset(-130).angleSize(40).build()),
-                new EntityLeg(new Segment.Builder().length(1).angleSize(40).build(), new Segment.Builder().length(1.4).angleOffset(80).build(), new Segment.Builder().length(0.94).angleOffset(-130).angleSize(40).build())));
+                new EntityLegWithFoot(new WorldCollidingSegment(new Segment.Builder().length(0.5625).angleOffset(70).angleSize(40)), new Segment.Builder().length(1).angleSize(40).angleOffset(110).build(), new Segment.Builder().length(1.4).angleOffset(80).build(), new Segment.Builder().length(0.94).angleOffset(-130).angleSize(40).build()),
+                new EntityLegWithFoot(new WorldCollidingSegment(new Segment.Builder().length(0.5625).angleOffset(70).angleSize(40)), new Segment.Builder().length(1).angleSize(40).angleOffset(110).build(), new Segment.Builder().length(1.4).angleOffset(80).build(), new Segment.Builder().length(0.94).angleOffset(-130).angleSize(40).build())));
     }
 
     @Override
@@ -133,7 +134,7 @@ public class Dinosaur extends PathfinderMob implements FossilRevived, GeoEntity,
     }
 
     @Override
-    public List<IKModelComponent<Dinosaur>> getComponents() {
+    public List<IKGeoModelComponent<Dinosaur>> getComponents() {
         return this.components;
     }
 }

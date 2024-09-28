@@ -3,11 +3,12 @@ package net.dumbcode.projectnublar.entity.ik.components.debug_renderers;
 import com.mojang.blaze3d.vertex.PoseStack;
 import com.mojang.blaze3d.vertex.VertexConsumer;
 import net.dumbcode.projectnublar.entity.Dinosaur;
-import net.dumbcode.projectnublar.entity.ik.components.IKAnimatable;
-import net.dumbcode.projectnublar.entity.ik.components.IKLegComponent;
+import net.dumbcode.projectnublar.entity.ik.components.IKGeoAnimatable;
+import net.dumbcode.projectnublar.entity.ik.components.IKGeoLegComponent;
 import net.dumbcode.projectnublar.entity.ik.parts.Segment;
 import net.dumbcode.projectnublar.entity.ik.parts.ik_chains.AngleConstraintIKChain;
 import net.dumbcode.projectnublar.entity.ik.parts.ik_chains.EntityLeg;
+import net.dumbcode.projectnublar.entity.ik.parts.ik_chains.EntityLegWithFoot;
 import net.dumbcode.projectnublar.entity.ik.parts.ik_chains.IKChain;
 import net.dumbcode.projectnublar.entity.ik.parts.sever_limbs.ServerLimb;
 import net.dumbcode.projectnublar.entity.ik.util.MathUtil;
@@ -23,12 +24,12 @@ import software.bernie.geckolib.core.animatable.GeoAnimatable;
 
 import java.util.List;
 
-public class LegDebugRenderer<E extends GeoAnimatable & IKAnimatable<E>> implements IKDebugRenderer<E, IKLegComponent<E, ? extends IKChain>> {
+public class LegDebugRenderer<E extends GeoAnimatable & IKGeoAnimatable<E>> implements IKDebugRenderer<E, IKGeoLegComponent<E, ? extends IKChain>> {
 
 
 
     @Override
-    public void renderDebug(IKLegComponent<E, ? extends IKChain> component, E animatable, PoseStack poseStack, BakedGeoModel bakedModel, RenderType renderType, MultiBufferSource bufferSource, VertexConsumer buffer, float partialTick, int packedLight, int packedOverlay) {
+    public void renderDebug(IKGeoLegComponent<E, ? extends IKChain> component, E animatable, PoseStack poseStack, BakedGeoModel bakedModel, RenderType renderType, MultiBufferSource bufferSource, VertexConsumer buffer, float partialTick, int packedLight, int packedOverlay) {
         for (Object limb : component.getLimbs()) {
             if (!(animatable instanceof Dinosaur dinosaur) || !(limb instanceof EntityLeg entityLeg)) {
                 return;
@@ -54,7 +55,7 @@ public class LegDebugRenderer<E extends GeoAnimatable & IKAnimatable<E>> impleme
 
                 Vec3 rotatedLimbOffset = limbOffset.add(dinosaur.position());
 
-                BlockHitResult rayCastResult = IKLegComponent.rayCastToGround(rotatedLimbOffset, dinosaur, ClipContext.Fluid.NONE);
+                BlockHitResult rayCastResult = IKGeoLegComponent.rayCastToGround(rotatedLimbOffset, dinosaur, ClipContext.Fluid.NONE);
 
                 Vec3 rayCastHitPos = rayCastResult.getLocation();
 
@@ -103,6 +104,20 @@ public class LegDebugRenderer<E extends GeoAnimatable & IKAnimatable<E>> impleme
 
             drawLineToBox(poseStack, bufferSource, entityPos, currentJoint, nextJoint, ORANGE, entity, 1.0F, 1.0F, 0.0F);
         }
+
+        if (chain instanceof EntityLegWithFoot entityLegWithFoot) {
+            Vec3 footPos = entityLegWithFoot.foot.getPosition();
+            drawLineToBox(poseStack, bufferSource, entityPos, chain.endJoint, footPos, ORANGE, entity, 1.0F, 1.0F, 0.0F);
+
+            Vec3 angleConstraint = entityLegWithFoot.getFootPosition(entityLegWithFoot.foot.angleSize);
+            Vec3 angleConstraint1 = entityLegWithFoot.getFootPosition(-entityLegWithFoot.foot.angleSize);
+
+            Vec3 referencePoint = entityLegWithFoot.getFootPosition(0);
+
+            drawLine(poseStack, bufferSource, entityPos, chain.endJoint, angleConstraint, RED);
+            drawLine(poseStack, bufferSource, entityPos, chain.endJoint, referencePoint, GREEN);
+            //drawLine(poseStack, bufferSource, entityPos, chain.endJoint, angleConstraint1, GREEN);
+        }
     }
 
     private static void drawLineToBox(PoseStack matrices, MultiBufferSource vertexConsumers, Vec3 camera, Vec3 startPos, Vec3 targetPos, int color, Dinosaur entity, float pRed, float pGreen, float pBlue) {
@@ -134,14 +149,14 @@ public class LegDebugRenderer<E extends GeoAnimatable & IKAnimatable<E>> impleme
     private static List<Vec3> getConstrainedPositions(Vec3 reference, Segment middle, Vec3 endpoint, Dinosaur entity) {
         Vec3 normal = MathUtil.getClosestNormalRelativeToEntity(endpoint, middle.getPosition(), reference, entity);
 
-        Vec3 referencePoint = MathUtil.rotatePointOnAPlainAround(reference, middle.getPosition(), middle.angleOffset, normal);
+        Vec3 referencePoint = MathUtil.rotatePointOnAPlaneAround(reference, middle.getPosition(), middle.angleOffset, normal);
 
         double angle = Math.toDegrees(MathUtil.calculateAngle(middle.getPosition(), endpoint, referencePoint));
         double angleDelta = middle.angleSize - angle;
 
-        Vec3 newPos = MathUtil.rotatePointOnAPlainAround(endpoint, middle.getPosition(), angleDelta, normal);
-        Vec3 otherNewPos = MathUtil.rotatePointOnAPlainAround(endpoint, middle.getPosition(), (angleDelta - (middle.angleSize * 2)), normal);
-        Vec3 middlePos = MathUtil.rotatePointOnAPlainAround(endpoint, middle.getPosition(), (angleDelta - middle.angleSize), normal);
+        Vec3 newPos = MathUtil.rotatePointOnAPlaneAround(endpoint, middle.getPosition(), angleDelta, normal);
+        Vec3 otherNewPos = MathUtil.rotatePointOnAPlaneAround(endpoint, middle.getPosition(), (angleDelta - (middle.angleSize * 2)), normal);
+        Vec3 middlePos = MathUtil.rotatePointOnAPlaneAround(endpoint, middle.getPosition(), (angleDelta - middle.angleSize), normal);
 
         return List.of(newPos, middlePos, otherNewPos);
     }
@@ -155,9 +170,9 @@ public class LegDebugRenderer<E extends GeoAnimatable & IKAnimatable<E>> impleme
         double angleDelta = chain.getFirst().angleSize - angle;
 
         Vec3 normal = MathUtil.getClosestNormalRelativeToEntity(chain.segments.get(1).getPosition(), chain.getFirst().getPosition(), chain.segments.get(2).getPosition(), entity);
-        Vec3 newPos = MathUtil.rotatePointOnAPlainAround(chain.segments.get(1).getPosition(), chain.getFirst().getPosition(), angleDelta, normal);
-        Vec3 otherNewPos = MathUtil.rotatePointOnAPlainAround(chain.segments.get(1).getPosition(), chain.getFirst().getPosition(), (angleDelta - (chain.getFirst().angleSize * 2)), normal);
-        Vec3 middlePos = MathUtil.rotatePointOnAPlainAround(chain.segments.get(1).getPosition(), chain.getFirst().getPosition(), (angleDelta - chain.getFirst().angleSize), normal);
+        Vec3 newPos = MathUtil.rotatePointOnAPlaneAround(chain.segments.get(1).getPosition(), chain.getFirst().getPosition(), angleDelta, normal);
+        Vec3 otherNewPos = MathUtil.rotatePointOnAPlaneAround(chain.segments.get(1).getPosition(), chain.getFirst().getPosition(), (angleDelta - (chain.getFirst().angleSize * 2)), normal);
+        Vec3 middlePos = MathUtil.rotatePointOnAPlaneAround(chain.segments.get(1).getPosition(), chain.getFirst().getPosition(), (angleDelta - chain.getFirst().angleSize), normal);
 
         drawLine(matrices, vertexConsumers, entityPos, currentSegment.getPosition(), newPos, RED);
         drawLine(matrices, vertexConsumers, entityPos, currentSegment.getPosition(), middlePos, GREY);

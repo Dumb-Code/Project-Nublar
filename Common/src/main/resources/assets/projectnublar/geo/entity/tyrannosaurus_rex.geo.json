@@ -3,7 +3,7 @@
 	"minecraft:geometry": [
 		{
 			"description": {
-				"identifier": "geometry.Model",
+				"identifier": "geometry.tyrannosaurus_rex",
 				"texture_width": 256,
 				"texture_height": 256,
 				"visible_bounds_width": 14,
@@ -34,15 +34,6 @@
 					]
 				},
 				{
-					"name": "footLeft",
-					"parent": "seg3_leg1",
-					"pivot": [-3.17549, 1.91465, 3.26693],
-					"rotation": [43.86902, -3.47, -1.53],
-					"cubes": [
-						{"origin": [-8.17549, -0.08535, -5.73307], "size": [8, 4, 14], "inflate": -0.03333, "uv": [106, 20]}
-					]
-				},
-				{
 					"name": "seg1_leg2",
 					"pivot": [-4.5, 16, 7],
 					"cubes": [
@@ -65,12 +56,17 @@
 					]
 				},
 				{
-					"name": "footLeft2",
-					"parent": "seg3_leg2",
-					"pivot": [-3.17549, 1.91465, 3.26693],
-					"rotation": [43.86902, -3.47, -1.53],
+					"name": "foot_leg1",
+					"pivot": [-4, 1, 13],
 					"cubes": [
-						{"origin": [-8.17549, -0.08535, -5.73307], "size": [8, 4, 14], "inflate": -0.03333, "uv": [106, 20]}
+						{"origin": [-8, 0, 0], "size": [8, 4, 14], "inflate": -0.03333, "uv": [106, 20]}
+					]
+				},
+				{
+					"name": "foot_leg2",
+					"pivot": [-4, 1, 13],
+					"cubes": [
+						{"origin": [-8, 0, 0], "size": [8, 4, 14], "inflate": -0.03333, "uv": [106, 20]}
 					]
 				},
 				{

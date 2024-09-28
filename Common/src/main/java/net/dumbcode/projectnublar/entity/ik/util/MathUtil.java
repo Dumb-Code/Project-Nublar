@@ -87,7 +87,7 @@ public class MathUtil {
     /**
      * @param A Point you want the angle of
      * @param B the other point
-     * @param C the other point
+     * @param C the 0 Point
      * @return the angle of A in radiant [0 - 180]
      **/
     public static double calculateAngle(Vec3 A, Vec3 B, Vec3 C) {
@@ -146,10 +146,10 @@ public class MathUtil {
 
         Vec3 axis = getUpDirection(RotatedPoint, stationaryPoint, stationaryPoint2);
 
-        return rotatePointOnAPlainAround(RotatedPoint, stationaryPoint, angle, axis);
+        return rotatePointOnAPlaneAround(RotatedPoint, stationaryPoint, angle, axis);
     }
 
-    public static Vec3 rotatePointOnAPlainAround(Vec3 RotatedPoint, Vec3 stationaryPoint, double angle, Vec3 rotationAxis) {
+    public static Vec3 rotatePointOnAPlaneAround(Vec3 RotatedPoint, Vec3 stationaryPoint, double angle, Vec3 rotationAxis) {
         Vector3d A = new Vector3d(stationaryPoint.x(), stationaryPoint.y(), stationaryPoint.z()); // Point A
         //rotated vector
         Vector3d C = new Vector3d(RotatedPoint.x(), RotatedPoint.y(), RotatedPoint.z()); // Point C

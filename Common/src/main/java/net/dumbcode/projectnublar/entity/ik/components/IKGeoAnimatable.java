@@ -11,18 +11,18 @@ import software.bernie.geckolib.model.DefaultedEntityGeoModel;
 
 import java.util.List;
 
-public interface IKAnimatable<E extends GeoAnimatable> {
-    List<IKModelComponent<E>> getComponents();
+public interface IKGeoAnimatable<E extends GeoAnimatable> {
+    List<IKGeoModelComponent<E>> getComponents();
 
     default boolean containsComponent(Class type) {
         return !this.getComponents().stream().filter(eikModelComponent -> eikModelComponent.getClass() == type).toList().isEmpty();
     }
 
-    default List<? extends IKModelComponent<E>> getComponentOfType(Class type) {
+    default List<? extends IKGeoModelComponent<E>> getComponentOfType(Class type) {
         return this.getComponents().stream().filter(eikModelComponent -> eikModelComponent.getClass() == type).toList();
     }
 
-    default void addComponent(IKModelComponent<E> component) {
+    default void addComponent(IKGeoModelComponent<E> component) {
         this.getComponents().add(component);
     }
 
