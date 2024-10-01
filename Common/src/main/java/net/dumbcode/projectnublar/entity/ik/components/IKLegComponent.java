@@ -2,18 +2,10 @@ package net.dumbcode.projectnublar.entity.ik.components;
 
 import com.mojang.blaze3d.vertex.PoseStack;
 import com.mojang.blaze3d.vertex.VertexConsumer;
-import net.dumbcode.projectnublar.Constants;
-import net.dumbcode.projectnublar.entity.Dinosaur;
 import net.dumbcode.projectnublar.entity.ik.components.debug_renderers.LegDebugRenderer;
-import net.dumbcode.projectnublar.entity.ik.model.BoneAccessor;
-import net.dumbcode.projectnublar.entity.ik.model.ModelAccessor;
 import net.dumbcode.projectnublar.entity.ik.parts.ik_chains.EntityLeg;
-import net.dumbcode.projectnublar.entity.ik.parts.ik_chains.EntityLegWithFoot;
 import net.dumbcode.projectnublar.entity.ik.parts.ik_chains.IKChain;
 import net.dumbcode.projectnublar.entity.ik.parts.sever_limbs.ServerLimb;
-import net.dumbcode.projectnublar.entity.ik.util.GeoModelUtil;
-import net.dumbcode.projectnublar.entity.ik.util.MathUtil;
-import net.dumbcode.projectnublar.entity.ik.model.GeckoLib.MowzieGeoBone;
 import net.minecraft.client.renderer.MultiBufferSource;
 import net.minecraft.client.renderer.RenderType;
 import net.minecraft.core.Direction;
@@ -22,17 +14,14 @@ import net.minecraft.world.level.ClipContext;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.phys.BlockHitResult;
 import net.minecraft.world.phys.Vec3;
-import software.bernie.geckolib.cache.object.GeoBone;
 
-import java.util.ArrayList;
 import java.util.List;
 
-public class IKLegComponent<C extends EntityLeg> implements IKModelComponent {
+public class IKLegComponent<C extends IKChain, E extends IKAnimatable<E>> extends IKChainComponent<C, E> {
     ///summon projectnublar:tyrannosaurus_rex ~ ~ ~ {NoAI:1b}
 
-    private List<C> limbs = new ArrayList<>();
     private List<ServerLimb> endpoints;
-    private LegSetting settings;
+    private final LegSetting settings;
     private int stillStandCounter = 0;
 
     @SafeVarargs
@@ -43,56 +32,16 @@ public class IKLegComponent<C extends EntityLeg> implements IKModelComponent {
     }
 
     @Override
-    public void tickClient(IKAnimatable animatable, ModelAccessor model) {
-        if (!(animatable instanceof Dinosaur entity)) {
-            return;
-        }
-
-        Vec3 pos = entity.position();
-
-        for (int i = 0; i < this.limbs.size(); i++) {
-            BoneAccessor baseAccessor = model.getBone("base_" + "leg" + (i + 1));
-            //GeoBone basePos = GeoModelUtil.getBoneOrNull(model, "base_" + "leg" + (i + 1));
-
-            Vec3 basePosWorldSpace = baseAccessor.getPivotPointOffset(entity);
-            basePosWorldSpace = basePosWorldSpace.add(pos);
-
-            if ((this.limbs.get(i).endJoint.distanceTo(this.endpoints.get(i).pos) < IKChain.TOLERANCE) && (this.limbs.get(i).getFirst().getPosition().distanceTo(basePosWorldSpace) < IKChain.TOLERANCE)) {
-                //continue;
-            }
-
-            C limb = this.setLimb(i, basePosWorldSpace, entity);
-
-            for (int k = 0; k < limb.getJoints().size() - 1; k++) {
-                Vec3 modelPosWorldSpace = limb.getJoints().get(k);
-                Vec3 targetVecWorldSpace = limb.getJoints().get(k + 1);
-
-                //Position
-                BoneAccessor legSegmentAccessor = model.getBone("seg" + (k + 1) + "_leg" + (i + 1));
-
-
-                if (Constants.shouldRenderDebugLegs) {
-                    modelPosWorldSpace = modelPosWorldSpace.subtract(0, 200, 0);
-                    targetVecWorldSpace = targetVecWorldSpace.subtract(0, 200, 0);
-                }
-
-                legSegmentAccessor.moveTo(modelPosWorldSpace, targetVecWorldSpace, entity);
-
-                if (limb instanceof EntityLegWithFoot entityLegWithFoot) {
-                    BoneAccessor footSegmentAccessor = model.getBone("foot_leg" + (i + 1));
-
-                    footSegmentAccessor.moveTo(Constants.shouldRenderDebugLegs ? limb.endJoint.subtract(0, 200, 0) : limb.endJoint, entityLegWithFoot.getFootPosition(), entity);
-                }
-            }
-        }
-    }
-
-    @Override
-    public void tickServer(IKAnimatable animatable) {
+    public void tickServer(E animatable) {
         this.updateEndPoints(animatable);
     }
 
-    public void updateEndPoints(IKAnimatable animatable) {
+    @Override
+    public void renderDebug(PoseStack poseStack, E animatable, RenderType renderType, MultiBufferSource bufferSource, VertexConsumer buffer, float partialTick, int packedLight, int packedOverlay) {
+        new LegDebugRenderer<E, C>().renderDebug(this, animatable, poseStack, renderType, bufferSource, buffer, partialTick, packedLight, packedOverlay);
+    }
+
+    public void updateEndPoints(E animatable) {
         if (!(animatable instanceof PathfinderMob entity)) {
             return;
         }
@@ -106,7 +55,7 @@ public class IKLegComponent<C extends EntityLeg> implements IKModelComponent {
 
             Vec3 limbOffset = limb.baseOffset;
 
-            if (!hasNotMovedOverLastTick(entity)) {
+            if (hasMovedOverLastTick(entity)) {
                 limbOffset = limbOffset.add(0, 0, this.settings.stepInFront());
             }
 
@@ -130,7 +79,7 @@ public class IKLegComponent<C extends EntityLeg> implements IKModelComponent {
     }
 
     private double getMaxLegFormTargetDistance(PathfinderMob entity) {
-        if (this.stillStandCounter >= this.settings.standStillCounter() && !hasNotMovedOverLastTick(entity)) {
+        if (this.stillStandCounter >= this.settings.standStillCounter() && hasMovedOverLastTick(entity)) {
             this.stillStandCounter = 0;
         } else if (this.stillStandCounter < this.settings.standStillCounter()) {
             this.stillStandCounter += 1;
@@ -143,20 +92,14 @@ public class IKLegComponent<C extends EntityLeg> implements IKModelComponent {
         }
     }
 
-    private static boolean hasNotMovedOverLastTick(PathfinderMob entity) {
+    private static boolean hasMovedOverLastTick(PathfinderMob entity) {
         Vec3 oldPos = new Vec3(entity.xo, entity.yo, entity.zo);
-        return entity.position().equals(oldPos);
+        return !entity.position().equals(oldPos);
     }
 
     public static BlockHitResult rayCastToGround(Vec3 rotatedLimbOffset, PathfinderMob entity, ClipContext.Fluid fluid) {
         Level world = entity.level();
         return world.clip(new ClipContext(rotatedLimbOffset.relative(Direction.UP, 3), rotatedLimbOffset.relative(Direction.DOWN, 10), ClipContext.Block.COLLIDER, fluid, entity));
-    }
-
-
-    @Override
-    public void renderDebug(PoseStack poseStack, IKAnimatable animatable, RenderType renderType, MultiBufferSource bufferSource, VertexConsumer buffer, float partialTick, int packedLight, int packedOverlay) {
-        new LegDebugRenderer<IKAnimatable, C>().renderDebug(this, animatable, poseStack, renderType, bufferSource, buffer, partialTick, packedLight, packedOverlay);
     }
 
     public List<C> getLimbs() {
@@ -175,10 +118,13 @@ public class IKLegComponent<C extends EntityLeg> implements IKModelComponent {
         return this.stillStandCounter;
     }
 
-    private C setLimb(int index, Vec3 base, PathfinderMob entity) {
+    @Override
+    public C setLimb(int index, Vec3 base, PathfinderMob entity) {
         C limb = this.limbs.get(index);
 
-        limb.entity = entity;
+        if (limb instanceof EntityLeg entityLeg) {
+            entityLeg.entity = entity;
+        }
 
         limb.solve(this.endpoints.get(index).pos, base);
 
@@ -289,4 +235,4 @@ public class IKLegComponent<C extends EntityLeg> implements IKModelComponent {
             }
         }
     }
-    }
+}

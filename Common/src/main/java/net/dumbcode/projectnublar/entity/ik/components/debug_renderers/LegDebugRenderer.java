@@ -22,9 +22,9 @@ import net.minecraft.world.phys.Vec3;
 
 import java.util.List;
 
-public class LegDebugRenderer<E extends IKAnimatable, C extends EntityLeg> implements IKDebugRenderer<E, IKLegComponent<C>> {
+public class LegDebugRenderer<E extends IKAnimatable<E>, C extends IKChain> implements IKDebugRenderer<E, IKLegComponent<C, E>> {
     @Override
-    public void renderDebug(IKLegComponent<C> component, E animatable, PoseStack poseStack, RenderType renderType, MultiBufferSource bufferSource, VertexConsumer buffer, float partialTick, int packedLight, int packedOverlay) {
+    public void renderDebug(IKLegComponent<C, E> component, E animatable, PoseStack poseStack, RenderType renderType, MultiBufferSource bufferSource, VertexConsumer buffer, float partialTick, int packedLight, int packedOverlay) {
         for (Object limb : component.getLimbs()) {
             if (!(animatable instanceof Dinosaur dinosaur) || !(limb instanceof EntityLeg entityLeg)) {
                 return;
@@ -33,10 +33,7 @@ public class LegDebugRenderer<E extends IKAnimatable, C extends EntityLeg> imple
             Vec3 entityPos = dinosaur.position();
             Vec3 offsetEntityPos = dinosaur.position().add(0.1, 0.1, 0.1);
 
-
             renderLeg(poseStack, bufferSource, entityLeg, dinosaur);
-
-            //DebugRenderer.renderFilledBox(poseStack, bufferSource, AABB.unitCubeFromLowerCorner(this.getFirst().position.add(0, -1, 0)).contract(0.8, 0.8, 0.8).move(-offsetEntityPos.x, -offsetEntityPos.y, -offsetEntityPos.z), 1, 1, 1, 0.5F);
 
             for (ServerLimb endPoint : component.getEndpoints()) {
 
@@ -59,27 +56,13 @@ public class LegDebugRenderer<E extends IKAnimatable, C extends EntityLeg> imple
                 if (distance < 0.1) distance = 0;
 
                 if (distance != 0) {
-                    //Vec3d middlePos = getAveragePos(endPoint.target, endPoint.pos);
-
-                    //Vec3d localizedMiddlePos = middlePos.subtract(cameraPos);
-
-                    //DebugRenderer.drawString(matrices, vertexConsumers, "Distance: " + distance, cameraPos.add(localizedMiddlePos).getX(), cameraPos.add(localizedMiddlePos).getY(), cameraPos.add(localizedMiddlePos).getZ(), RED);
-                    drawLine(poseStack, bufferSource, entityPos, endPoint.getPos(), endPoint.target, PINK);
+                    IKDebugRenderer.drawLine(poseStack, bufferSource, entityPos, endPoint.getPos(), endPoint.target, 255, 100, 255, 127);
                 }
+
                 DebugRenderer.renderFilledBox(poseStack, bufferSource, AABB.unitCubeFromLowerCorner(endPoint.getPos()).contract(0.8, 0.8, 0.8).move(-offsetEntityPos.x, -offsetEntityPos.y, -offsetEntityPos.z), endPoint.isGrounded() ? 0.0F : 1.0F, endPoint.isGrounded() ? 1.0F : 0, 0.0F, 0.5F);
                 DebugRenderer.renderFilledBox(poseStack, bufferSource, AABB.unitCubeFromLowerCorner(rayCastHitPos).contract(0.8, 0.8, 0.8).move(-offsetEntityPos.x, -offsetEntityPos.y, -offsetEntityPos.z), 0.0F, 0.0F, 1.0F, 0.5F);
             }
         }
-    }
-
-    private static final int GREEN = getArgb(255, 0, 255, 0);
-    private static final int GREY = getArgb(255, 180, 180, 180);
-    private static final int RED = getArgb(255, 255, 0, 0);
-    private static final int ORANGE = getArgb(255, 255, 165, 0);
-    private static final int PINK = getArgb(255, 255, 100, 255);
-
-    public static int getArgb(int alpha, int red, int green, int blue) {
-        return alpha << 24 | red << 16 | green << 8 | blue;
     }
 
     private static <C extends IKChain> void renderLeg(PoseStack poseStack, MultiBufferSource bufferSource, C chain, Dinosaur entity) {
@@ -97,35 +80,20 @@ public class LegDebugRenderer<E extends IKAnimatable, C extends EntityLeg> imple
                 drawAngleConstraints(i, angleChain, entity, poseStack, bufferSource);
             }
 
-            drawLineToBox(poseStack, bufferSource, entityPos, currentJoint, nextJoint, ORANGE, entity, 1.0F, 1.0F, 0.0F);
+            IKDebugRenderer.drawLineToBox(poseStack, bufferSource, entityPos, currentJoint, nextJoint, entity, 255, 165, 0, 127);
         }
 
         if (chain instanceof EntityLegWithFoot entityLegWithFoot) {
             Vec3 footPos = entityLegWithFoot.foot.getPosition();
-            drawLineToBox(poseStack, bufferSource, entityPos, chain.endJoint, footPos, ORANGE, entity, 1.0F, 1.0F, 0.0F);
+            IKDebugRenderer.drawLineToBox(poseStack, bufferSource, entityPos, chain.endJoint, footPos, entity, 255, 165, 0, 127);
 
             Vec3 angleConstraint = entityLegWithFoot.getFootPosition(entityLegWithFoot.foot.angleSize);
-            Vec3 angleConstraint1 = entityLegWithFoot.getFootPosition(-entityLegWithFoot.foot.angleSize);
 
             Vec3 referencePoint = entityLegWithFoot.getFootPosition(0);
 
-            drawLine(poseStack, bufferSource, entityPos, chain.endJoint, angleConstraint, RED);
-            drawLine(poseStack, bufferSource, entityPos, chain.endJoint, referencePoint, GREEN);
-            //drawLine(poseStack, bufferSource, entityPos, chain.endJoint, angleConstraint1, GREEN);
+            IKDebugRenderer.drawLine(poseStack, bufferSource, entityPos, chain.endJoint, angleConstraint, 255, 165, 0, 127);
+            IKDebugRenderer.drawLine(poseStack, bufferSource, entityPos, chain.endJoint, referencePoint, 255, 165, 0, 127);
         }
-    }
-
-    private static void drawLineToBox(PoseStack matrices, MultiBufferSource vertexConsumers, Vec3 camera, Vec3 startPos, Vec3 targetPos, int color, Dinosaur entity, float pRed, float pGreen, float pBlue) {
-        Vec3 offsetEntityPos = entity.position().add(0.1, 0.1, 0.1);
-
-        DebugRenderer.renderFilledBox(matrices, vertexConsumers, AABB.unitCubeFromLowerCorner(targetPos).contract(0.8, 0.8, 0.8).move(-offsetEntityPos.x, -offsetEntityPos.y, -offsetEntityPos.z), pRed, pGreen, pBlue, 0.5F);
-        drawLine(matrices, vertexConsumers, camera, startPos, targetPos, color);
-    }
-
-    private static void drawLine(PoseStack matrices, MultiBufferSource vertexConsumers, Vec3 camera, Vec3 startPos, Vec3 targetPos, int color) {
-        VertexConsumer vertexConsumer = vertexConsumers.getBuffer(RenderType.debugLineStrip(1.0));
-        vertexConsumer.vertex(matrices.last().pose(), (float) (startPos.x - camera.x), (float) (startPos.y - camera.y), (float) (startPos.z - camera.z)).color(color).endVertex();
-        vertexConsumer.vertex(matrices.last().pose(), (float) (targetPos.x - camera.x), (float) (targetPos.y - camera.y), (float) (targetPos.z - camera.z)).color(color).endVertex();
     }
 
     private static <C extends AngleConstraintIKChain> void drawAngleConstraints(int i, C chain, Dinosaur entity, PoseStack matrices, MultiBufferSource vertexConsumers) {
@@ -135,11 +103,10 @@ public class LegDebugRenderer<E extends IKAnimatable, C extends EntityLeg> imple
 
         List<Vec3> positions = getConstrainedPositions(chain.get(i - 1).getPosition(), currentSegment, chain.getJoints().get(i + 1), entity);
 
-        drawLine(matrices, vertexConsumers, entityPos, currentSegment.getPosition(), positions.get(0), RED);
-        drawLine(matrices, vertexConsumers, entityPos, currentSegment.getPosition(), positions.get(1), GREY);
-        drawLine(matrices, vertexConsumers, entityPos, currentSegment.getPosition(), positions.get(2), GREEN);
+        IKDebugRenderer.drawLine(matrices, vertexConsumers, entityPos, currentSegment.getPosition(), positions.get(0), 255, 0, 0, 127);
+        IKDebugRenderer.drawLine(matrices, vertexConsumers, entityPos, currentSegment.getPosition(), positions.get(1), 180, 180, 180, 127);
+        IKDebugRenderer.drawLine(matrices, vertexConsumers, entityPos, currentSegment.getPosition(), positions.get(2), 0, 255, 0, 127);
     }
-
 
     private static List<Vec3> getConstrainedPositions(Vec3 reference, Segment middle, Vec3 endpoint, Dinosaur entity) {
         Vec3 normal = MathUtil.getClosestNormalRelativeToEntity(endpoint, middle.getPosition(), reference, entity);
@@ -169,8 +136,8 @@ public class LegDebugRenderer<E extends IKAnimatable, C extends EntityLeg> imple
         Vec3 otherNewPos = MathUtil.rotatePointOnAPlaneAround(chain.segments.get(1).getPosition(), chain.getFirst().getPosition(), (angleDelta - (chain.getFirst().angleSize * 2)), normal);
         Vec3 middlePos = MathUtil.rotatePointOnAPlaneAround(chain.segments.get(1).getPosition(), chain.getFirst().getPosition(), (angleDelta - chain.getFirst().angleSize), normal);
 
-        drawLine(matrices, vertexConsumers, entityPos, currentSegment.getPosition(), newPos, RED);
-        drawLine(matrices, vertexConsumers, entityPos, currentSegment.getPosition(), middlePos, GREY);
-        drawLine(matrices, vertexConsumers, entityPos, currentSegment.getPosition(), otherNewPos, GREEN);
+        IKDebugRenderer.drawLine(matrices, vertexConsumers, entityPos, currentSegment.getPosition(), newPos, 255, 0, 0, 127);
+        IKDebugRenderer.drawLine(matrices, vertexConsumers, entityPos, currentSegment.getPosition(), middlePos, 180, 180, 180, 127);
+        IKDebugRenderer.drawLine(matrices, vertexConsumers, entityPos, currentSegment.getPosition(), otherNewPos, 0, 255, 0, 127);
     }
 }

@@ -18,7 +18,7 @@ import software.bernie.geckolib.util.RenderUtils;
 import java.util.List;
 
 /**
- *  Obviously copied of Bob Mowzie from <a href="https://github.com/BobMowzie/MowziesMobs">Mowzie's Mobs</a>
+ *  Provided by Bob Mowzie from <a href="https://www.curseforge.com/minecraft/mc-mods/mowzies-mobs">Mowzie's Mobs</a>
  */
 public class MowzieModelFactory implements BakedModelFactory {
 

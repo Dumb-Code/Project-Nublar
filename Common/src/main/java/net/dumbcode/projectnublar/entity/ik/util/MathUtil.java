@@ -35,15 +35,6 @@ public class MathUtil {
     }
 
     public static Vec3 getRotation(Vec3 base, Vec3 target) {
-        /*
-        double $$3 = target.x - base.x;
-        double $$4 = target.y - base.y;
-        double $$5 = target.z - base.z;
-        double $$6 = Math.sqrt($$3 * $$3 + $$5 * $$5);
-        float xRot = Mth.wrapDegrees((float)(-(Mth.atan2($$4, $$6) * 57.2957763671875)));
-        float yRot = Mth.wrapDegrees((float)(Mth.atan2($$5, $$3) * 57.2957763671875) - 90.0F);
-        return new Vec2(xRot, yRot);
-         */
         float dz = (float) (target.z - base.z);
         float dx = (float) (target.x - base.x);
         float dy = (float) (target.y - base.y);
@@ -110,55 +101,6 @@ public class MathUtil {
         return Math.acos(cosA);
     }
 
-    /**
-     * @param A Point you want the angle of
-     * @param B the other point
-     * @param C the other point
-     * @return the angle of A in radiant [0 - 360]
-     **/
-    public static double calculate360Angle(Vec3 A, Vec3 B, Vec3 C, Vec3 upVec) {
-        // Create vectors AB and BC
-        Vec3 AB = B.subtract(A);
-        Vec3 BC = C.subtract(B);
-
-        // Cross product of AB and BC
-        Vec3 crossProduct = AB.cross(BC);
-
-        // Dot product of AB and BC
-        double dotProduct = AB.dot(BC);
-
-        // Angle in radians using atan2 (magnitude of the cross product gives the sine of the angle)
-        double theta = Math.atan2(crossProduct.length(), dotProduct);
-
-        // Convert to degrees
-        double thetaDegrees = Math.toDegrees(theta);
-
-        // Calculate normal vector to determine direction of angle
-        Vec3 normal = crossProduct.normalize(); // This is the Z-axis of the plane
-
-        // Determine if the angle should be negative or positive
-        double direction = upVec.dot(normal);
-        if (direction < 0) {
-            thetaDegrees = 360 - thetaDegrees;
-        }
-
-        return thetaDegrees;
-    }
-
-    /**
-     * @param RotatedPoint point which gets rotated
-     * @param stationaryPoint reference point
-     * @param stationaryPoint2 reference point
-     * @param angle in degrees
-     * @return returns the rotated position
-     */
-    public static Vec3 rotatePointOnAPlain(Vec3 RotatedPoint, Vec3 stationaryPoint, Vec3 stationaryPoint2, double angle) {
-
-        Vec3 axis = getUpDirection(RotatedPoint, stationaryPoint, stationaryPoint2);
-
-        return rotatePointOnAPlaneAround(RotatedPoint, stationaryPoint, angle, axis);
-    }
-
     public static Vec3 rotatePointOnAPlaneAround(Vec3 RotatedPoint, Vec3 stationaryPoint, double angle, Vec3 rotationAxis) {
         Vector3d A = new Vector3d(stationaryPoint.x(), stationaryPoint.y(), stationaryPoint.z()); // Point A
         //rotated vector
@@ -206,11 +148,7 @@ public class MathUtil {
     }
 
     public static Vec3 lerpVector3d(int step, Vector3d OldPos, Vector3d newPos) {
-        double d = 1.0 / (double)step;
-        double newX = Mth.lerp(d, OldPos.x(), newPos.x());
-        double newY = Mth.lerp(d, OldPos.y(), newPos.y());
-        double newZ = Mth.lerp(d, OldPos.z(), newPos.z());
-        return new Vec3(newX, newY, newZ);
+        return lerpVec3(step, toVec3(OldPos), toVec3(newPos));
     }
 
     public static Vec3 convertToFlatVector(Vec3 v1) {

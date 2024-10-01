@@ -4,7 +4,6 @@ import com.mojang.blaze3d.vertex.PoseStack;
 import com.mojang.blaze3d.vertex.VertexConsumer;
 import net.dumbcode.projectnublar.Constants;
 import net.dumbcode.projectnublar.entity.Dinosaur;
-import net.dumbcode.projectnublar.entity.ik.components.IKAnimatable;
 import net.minecraft.client.renderer.MultiBufferSource;
 import net.minecraft.client.renderer.RenderType;
 import software.bernie.geckolib.cache.object.BakedGeoModel;

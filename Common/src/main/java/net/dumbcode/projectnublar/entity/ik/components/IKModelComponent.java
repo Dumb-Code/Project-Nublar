@@ -5,12 +5,11 @@ import com.mojang.blaze3d.vertex.VertexConsumer;
 import net.dumbcode.projectnublar.entity.ik.model.ModelAccessor;
 import net.minecraft.client.renderer.MultiBufferSource;
 import net.minecraft.client.renderer.RenderType;
-import software.bernie.geckolib.core.animation.AnimationState;
 
-public interface IKModelComponent {
-    void tickServer(IKAnimatable animatable);
+public interface IKModelComponent<E extends IKAnimatable<E>> {
+    void tickServer(E animatable);
 
-    void tickClient(IKAnimatable animatable, ModelAccessor model);
+    void tickClient(E animatable, ModelAccessor model);
 
-    void renderDebug(PoseStack poseStack, IKAnimatable animatable, RenderType renderType, MultiBufferSource bufferSource, VertexConsumer buffer, float partialTick, int packedLight, int packedOverlay);
+    void renderDebug(PoseStack poseStack, E animatable, RenderType renderType, MultiBufferSource bufferSource, VertexConsumer buffer, float partialTick, int packedLight, int packedOverlay);
 }

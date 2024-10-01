@@ -15,9 +15,9 @@ import software.bernie.geckolib.cache.object.GeoBone;
 import javax.annotation.Nullable;
 
 /**
- *  Obviously based on Bob Mowzie from <a href="https://github.com/BobMowzie/MowziesMobs">Mowzie's Mobs</a>
+ *  Provided by Bob Mowzie from <a href="https://www.curseforge.com/minecraft/mc-mods/mowzies-mobs">Mowzie's Mobs</a>
  */
-public class MowzieGeoBone extends GeoBone implements BoneAccessor {
+public class MowzieGeoBone extends GeoBone implements BoneAccessor /* only the interface is mine but the code in this class is entirely provided by Bob Mowzie */ {
 
     public Matrix4f rotationOverride;
     public boolean inheritRotation = true;
@@ -220,7 +220,6 @@ public class MowzieGeoBone extends GeoBone implements BoneAccessor {
         return isDynamicJoint;
     }
 
-    // My own code. The rest was Bob Mowzie's
     @Override
     public Vec3 getPivotPointOffset(Entity entity) {
         return new Vec3(this.getPivotX() / 18, this.getPivotY() / 18, -this.getPivotZ() / 18).yRot((float) -Math.toRadians(entity.getYRot()));
@@ -232,8 +231,8 @@ public class MowzieGeoBone extends GeoBone implements BoneAccessor {
 
         Matrix4f xformOverride = new Matrix4f();
 
-        Vec3 newModelPosWorldSpace = MathUtil.rotatePointOnAPlaneAround(to, entity.position(), -180 - entity.getYRot(), new Vec3(0, 1, 0));
-        Vec3 newTargetVecWorldSpace = MathUtil.rotatePointOnAPlaneAround(facing, entity.position(), -180 - entity.getYRot(), new Vec3(0, 1, 0));
+        Vec3 newModelPosWorldSpace = MathUtil.rotatePointOnAPlaneAround(to, entity.position(), -180 + entity.getYRot(), new Vec3(0, 1, 0));
+        Vec3 newTargetVecWorldSpace = MathUtil.rotatePointOnAPlaneAround(facing, entity.position(), -180 + entity.getYRot(), new Vec3(0, 1, 0));
         // Translation
         xformOverride = xformOverride.translate((float) newModelPosWorldSpace.x, (float) newModelPosWorldSpace.y, (float) newModelPosWorldSpace.z);
 

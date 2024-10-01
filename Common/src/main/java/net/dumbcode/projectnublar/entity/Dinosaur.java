@@ -34,8 +34,8 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
 
-public class Dinosaur extends PathfinderMob implements FossilRevived, GeoEntity, IKAnimatable {
-    public List<IKModelComponent> components = new ArrayList<>();
+public class Dinosaur extends PathfinderMob implements FossilRevived, GeoEntity, IKAnimatable<Dinosaur> {
+    public List<IKModelComponent<Dinosaur>> components = new ArrayList<>();
 
     public static EntityDataAccessor<DinoData> DINO_DATA = SynchedEntityData.defineId(Dinosaur.class, DataSerializerInit.DINO_DATA);
     public final AnimatableInstanceCache cache = GeckoLibUtil.createInstanceCache(this);
@@ -52,8 +52,8 @@ public class Dinosaur extends PathfinderMob implements FossilRevived, GeoEntity,
                         .standStillCounter(40)
                         .stepInFront(1.5)
                         .movementSpeed(0.4).build(),
-                List.of(new ServerLimb(-0.7, 0, 0.4),
-                        new ServerLimb(0.7, 0, 0.4)),
+                List.of(new ServerLimb(-0.7, 0, 0.3),
+                        new ServerLimb(0.7, 0, 0.3)),
                 new EntityLegWithFoot(new WorldCollidingSegment(new Segment.Builder().length(0.5625).angleOffset(70).angleSize(40)), new Segment.Builder().length(1).angleSize(40).angleOffset(110).build(), new Segment.Builder().length(1.3).angleOffset(80).build(), new Segment.Builder().length(0.94).angleOffset(-130).angleSize(40).build()),
                 new EntityLegWithFoot(new WorldCollidingSegment(new Segment.Builder().length(0.5625).angleOffset(70).angleSize(40)), new Segment.Builder().length(1).angleSize(40).angleOffset(110).build(), new Segment.Builder().length(1.3).angleOffset(80).build(), new Segment.Builder().length(0.94).angleOffset(-130).angleSize(40).build())));
     }
@@ -72,7 +72,7 @@ public class Dinosaur extends PathfinderMob implements FossilRevived, GeoEntity,
     }
 
     public ResourceLocation getTextureLocation(){
-        if(true){
+        if(true){ //What the fuck?
             return new ResourceLocation("projectnublar:textures/entity/tyrannosaurus_rex.png");
         }
         return this.entityData.get(DINO_DATA).getTextureLocation();
@@ -134,7 +134,7 @@ public class Dinosaur extends PathfinderMob implements FossilRevived, GeoEntity,
     }
 
     @Override
-    public List<IKModelComponent> getComponents() {
+    public List<IKModelComponent<Dinosaur>> getComponents() {
         return this.components;
     }
 }
