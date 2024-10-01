@@ -44,9 +44,6 @@ public class EntityLegWithFoot extends EntityLeg {
         Vec3 newFootPosition = this.getFootPosition(clampedAngle);
 
         this.foot.move(newFootPosition,false);
-
-        System.out.println("Foot Angle: " + this.footAngel);
-        System.out.println("Clamped Foot Angle: " + clampedAngle);
     }
 
     public Vec3 getFootPosition() {

@@ -4,6 +4,7 @@ import net.minecraft.util.Mth;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.phys.Vec3;
 import org.joml.Quaterniond;
+import org.joml.Quaternionf;
 import org.joml.Vector3d;
 
 public class MathUtil {
@@ -71,6 +72,15 @@ public class MathUtil {
 
     public static Vec3 dividePos(Vec3 v1, double divide) {
         return new Vec3(v1.x() / divide, v1.y() / divide, v1.z() / divide);
+    }
+
+    public static Quaternionf quatFromRotationXYZ(float x, float y, float z, boolean degrees) {
+        if (degrees) {
+            x *= ((float)Math.PI / 180F);
+            y *= ((float)Math.PI / 180F);
+            z *= ((float)Math.PI / 180F);
+        }
+        return (new Quaternionf()).rotationXYZ(x, y, z);
     }
 
     public static Vec3 getAverage(Vec3... points) {

@@ -3,8 +3,8 @@ package net.dumbcode.projectnublar.entity.ik.components.debug_renderers;
 import com.mojang.blaze3d.vertex.PoseStack;
 import com.mojang.blaze3d.vertex.VertexConsumer;
 import net.dumbcode.projectnublar.entity.Dinosaur;
-import net.dumbcode.projectnublar.entity.ik.components.IKGeoAnimatable;
-import net.dumbcode.projectnublar.entity.ik.components.IKGeoLegComponent;
+import net.dumbcode.projectnublar.entity.ik.components.IKAnimatable;
+import net.dumbcode.projectnublar.entity.ik.components.IKLegComponent;
 import net.dumbcode.projectnublar.entity.ik.parts.Segment;
 import net.dumbcode.projectnublar.entity.ik.parts.ik_chains.AngleConstraintIKChain;
 import net.dumbcode.projectnublar.entity.ik.parts.ik_chains.EntityLeg;
@@ -19,17 +19,12 @@ import net.minecraft.world.level.ClipContext;
 import net.minecraft.world.phys.AABB;
 import net.minecraft.world.phys.BlockHitResult;
 import net.minecraft.world.phys.Vec3;
-import software.bernie.geckolib.cache.object.BakedGeoModel;
-import software.bernie.geckolib.core.animatable.GeoAnimatable;
 
 import java.util.List;
 
-public class LegDebugRenderer<E extends GeoAnimatable & IKGeoAnimatable<E>> implements IKDebugRenderer<E, IKGeoLegComponent<E, ? extends IKChain>> {
-
-
-
+public class LegDebugRenderer<E extends IKAnimatable, C extends EntityLeg> implements IKDebugRenderer<E, IKLegComponent<C>> {
     @Override
-    public void renderDebug(IKGeoLegComponent<E, ? extends IKChain> component, E animatable, PoseStack poseStack, BakedGeoModel bakedModel, RenderType renderType, MultiBufferSource bufferSource, VertexConsumer buffer, float partialTick, int packedLight, int packedOverlay) {
+    public void renderDebug(IKLegComponent<C> component, E animatable, PoseStack poseStack, RenderType renderType, MultiBufferSource bufferSource, VertexConsumer buffer, float partialTick, int packedLight, int packedOverlay) {
         for (Object limb : component.getLimbs()) {
             if (!(animatable instanceof Dinosaur dinosaur) || !(limb instanceof EntityLeg entityLeg)) {
                 return;
@@ -55,7 +50,7 @@ public class LegDebugRenderer<E extends GeoAnimatable & IKGeoAnimatable<E>> impl
 
                 Vec3 rotatedLimbOffset = limbOffset.add(dinosaur.position());
 
-                BlockHitResult rayCastResult = IKGeoLegComponent.rayCastToGround(rotatedLimbOffset, dinosaur, ClipContext.Fluid.NONE);
+                BlockHitResult rayCastResult = IKLegComponent.rayCastToGround(rotatedLimbOffset, dinosaur, ClipContext.Fluid.NONE);
 
                 Vec3 rayCastHitPos = rayCastResult.getLocation();
 

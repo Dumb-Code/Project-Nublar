@@ -25,7 +25,7 @@ public class GeoModelUtil {
     }
 
     public static Vec3 modelTransformToVec3d(GeoBone modelTransform) {
-        return new Vec3(modelTransform.getPivotX() / 18, modelTransform.getPivotY() / 18, modelTransform.getPivotZ() / 18);
+        return new Vec3(modelTransform.getPivotX() / 18, modelTransform.getPivotY() / 18, -modelTransform.getPivotZ() / 18);
     }
 
     //public static void setTransformForModelPart(GeoBone modelPart, Vec3 pos, double yaw, double pitch) {

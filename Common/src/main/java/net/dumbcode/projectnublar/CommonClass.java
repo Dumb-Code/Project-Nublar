@@ -1,10 +1,13 @@
 package net.dumbcode.projectnublar;
 
 import net.dumbcode.projectnublar.api.FossilPiece;
+import net.dumbcode.projectnublar.entity.ik.model.GeckoLib.MowzieModelFactory;
 import net.dumbcode.projectnublar.init.*;
 import net.dumbcode.projectnublar.network.NetworkInit;
 import net.minecraft.util.random.SimpleWeightedRandomList;
 import org.apache.commons.lang3.StringUtils;
+import software.bernie.geckolib.GeckoLib;
+import software.bernie.geckolib.util.GeckoLibUtil;
 
 import java.util.Arrays;
 import java.util.HashMap;
@@ -16,6 +19,11 @@ public class CommonClass {
     public static Map<String, SimpleWeightedRandomList<FossilPiece>> WEIGHTED_FOSSIL_BLOCKS_MAP = new HashMap<>();
 
     public static void init() {
+        // Thanks Bob Mowzie
+        GeckoLibUtil.addCustomBakedModelFactory(Constants.MODID, new MowzieModelFactory());
+        GeckoLib.initialize();
+
+
 
         ItemInit.loadClass();
         BlockInit.loadClass();

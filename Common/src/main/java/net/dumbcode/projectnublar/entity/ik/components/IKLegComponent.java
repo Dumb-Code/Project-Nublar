@@ -5,12 +5,15 @@ import com.mojang.blaze3d.vertex.VertexConsumer;
 import net.dumbcode.projectnublar.Constants;
 import net.dumbcode.projectnublar.entity.Dinosaur;
 import net.dumbcode.projectnublar.entity.ik.components.debug_renderers.LegDebugRenderer;
+import net.dumbcode.projectnublar.entity.ik.model.BoneAccessor;
+import net.dumbcode.projectnublar.entity.ik.model.ModelAccessor;
 import net.dumbcode.projectnublar.entity.ik.parts.ik_chains.EntityLeg;
 import net.dumbcode.projectnublar.entity.ik.parts.ik_chains.EntityLegWithFoot;
 import net.dumbcode.projectnublar.entity.ik.parts.ik_chains.IKChain;
 import net.dumbcode.projectnublar.entity.ik.parts.sever_limbs.ServerLimb;
 import net.dumbcode.projectnublar.entity.ik.util.GeoModelUtil;
 import net.dumbcode.projectnublar.entity.ik.util.MathUtil;
+import net.dumbcode.projectnublar.entity.ik.model.GeckoLib.MowzieGeoBone;
 import net.minecraft.client.renderer.MultiBufferSource;
 import net.minecraft.client.renderer.RenderType;
 import net.minecraft.core.Direction;
@@ -19,16 +22,12 @@ import net.minecraft.world.level.ClipContext;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.phys.BlockHitResult;
 import net.minecraft.world.phys.Vec3;
-import software.bernie.geckolib.cache.object.BakedGeoModel;
 import software.bernie.geckolib.cache.object.GeoBone;
-import software.bernie.geckolib.core.animatable.GeoAnimatable;
-import software.bernie.geckolib.core.animation.AnimationState;
-import software.bernie.geckolib.model.DefaultedEntityGeoModel;
 
 import java.util.ArrayList;
 import java.util.List;
 
-public class IKGeoLegComponent<E extends GeoAnimatable & IKGeoAnimatable<E>, C extends EntityLeg> implements IKGeoModelComponent<E> {
+public class IKLegComponent<C extends EntityLeg> implements IKModelComponent {
     ///summon projectnublar:tyrannosaurus_rex ~ ~ ~ {NoAI:1b}
 
     private List<C> limbs = new ArrayList<>();
@@ -37,14 +36,14 @@ public class IKGeoLegComponent<E extends GeoAnimatable & IKGeoAnimatable<E>, C e
     private int stillStandCounter = 0;
 
     @SafeVarargs
-    public IKGeoLegComponent(LegSetting settings, List<ServerLimb> endpoints , C... limbs) {
+    public IKLegComponent(LegSetting settings, List<ServerLimb> endpoints , C... limbs) {
         this.limbs.addAll(List.of(limbs));
         this.settings = settings;
         this.endpoints = endpoints;
     }
 
     @Override
-    public <M extends DefaultedEntityGeoModel<E>> void tickClient(E animatable, long instanceId, AnimationState<E> animationState, M model) {
+    public void tickClient(IKAnimatable animatable, ModelAccessor model) {
         if (!(animatable instanceof Dinosaur entity)) {
             return;
         }
@@ -52,9 +51,10 @@ public class IKGeoLegComponent<E extends GeoAnimatable & IKGeoAnimatable<E>, C e
         Vec3 pos = entity.position();
 
         for (int i = 0; i < this.limbs.size(); i++) {
-            GeoBone basePos = GeoModelUtil.getBoneOrNull(model, "base_" + "leg" + (i + 1));
+            BoneAccessor baseAccessor = model.getBone("base_" + "leg" + (i + 1));
+            //GeoBone basePos = GeoModelUtil.getBoneOrNull(model, "base_" + "leg" + (i + 1));
 
-            Vec3 basePosWorldSpace = GeoModelUtil.modelTransformToVec3d(basePos).yRot((float) -Math.toRadians(entity.getYRot()));
+            Vec3 basePosWorldSpace = baseAccessor.getPivotPointOffset(entity);
             basePosWorldSpace = basePosWorldSpace.add(pos);
 
             if ((this.limbs.get(i).endJoint.distanceTo(this.endpoints.get(i).pos) < IKChain.TOLERANCE) && (this.limbs.get(i).getFirst().getPosition().distanceTo(basePosWorldSpace) < IKChain.TOLERANCE)) {
@@ -68,53 +68,31 @@ public class IKGeoLegComponent<E extends GeoAnimatable & IKGeoAnimatable<E>, C e
                 Vec3 targetVecWorldSpace = limb.getJoints().get(k + 1);
 
                 //Position
-                GeoBone legSegment = GeoModelUtil.getBoneOrNull(model, "seg" + (k + 1) + "_leg" + (i + 1));
+                BoneAccessor legSegmentAccessor = model.getBone("seg" + (k + 1) + "_leg" + (i + 1));
+
 
                 if (Constants.shouldRenderDebugLegs) {
-                    GeoModelUtil.setBonePosFromWorldPos(legSegment, modelPosWorldSpace.subtract(0, 200, 0), entity);
-                } else {
-                    GeoModelUtil.setBonePosFromWorldPos(legSegment, modelPosWorldSpace, entity);
+                    modelPosWorldSpace = modelPosWorldSpace.subtract(0, 200, 0);
+                    targetVecWorldSpace = targetVecWorldSpace.subtract(0, 200, 0);
                 }
 
-                //Rotation
-                Vec3 rotation = MathUtil.getRotation(modelPosWorldSpace, targetVecWorldSpace);
-
-                double xRot = -(rotation.y - Math.toRadians(180));
-
-                if (k == 0) {
-                    xRot -= Math.toRadians(20);
-                }
-
-                if (k == 1) {
-                    xRot -= Math.toRadians(20);
-                }
-
-                GeoModelUtil.setAngles(legSegment, xRot, -rotation.x + Math.toRadians(entity.getYRot() + 90), rotation.z);
-
+                legSegmentAccessor.moveTo(modelPosWorldSpace, targetVecWorldSpace, entity);
 
                 if (limb instanceof EntityLegWithFoot entityLegWithFoot) {
-                    GeoBone foot = GeoModelUtil.getBoneOrNull(model, "foot_leg" + (i + 1));
+                    BoneAccessor footSegmentAccessor = model.getBone("foot_leg" + (i + 1));
 
-                    if (Constants.shouldRenderDebugLegs) {
-                        GeoModelUtil.setBonePosFromWorldPos(foot, limb.endJoint.subtract(0, 200, 0), entity);
-                    } else {
-                        GeoModelUtil.setBonePosFromWorldPos(foot, limb.endJoint, entity);
-                    }
-
-                    Vec3 footRotation = MathUtil.getRotation(limb.getLast().getPosition(), entityLegWithFoot.getFootPosition());
-
-                    GeoModelUtil.setAngles(foot, Math.toRadians(entityLegWithFoot.getFootAngel() + (entityLegWithFoot.foot.angleOffset - 90)), -footRotation.x + Math.toRadians(entity.getYRot() + 90), footRotation.z);
+                    footSegmentAccessor.moveTo(Constants.shouldRenderDebugLegs ? limb.endJoint.subtract(0, 200, 0) : limb.endJoint, entityLegWithFoot.getFootPosition(), entity);
                 }
             }
         }
     }
 
     @Override
-    public void tickServer(E animatable) {
+    public void tickServer(IKAnimatable animatable) {
         this.updateEndPoints(animatable);
     }
 
-    public void updateEndPoints(E animatable) {
+    public void updateEndPoints(IKAnimatable animatable) {
         if (!(animatable instanceof PathfinderMob entity)) {
             return;
         }
@@ -175,9 +153,10 @@ public class IKGeoLegComponent<E extends GeoAnimatable & IKGeoAnimatable<E>, C e
         return world.clip(new ClipContext(rotatedLimbOffset.relative(Direction.UP, 3), rotatedLimbOffset.relative(Direction.DOWN, 10), ClipContext.Block.COLLIDER, fluid, entity));
     }
 
+
     @Override
-    public void renderDebug(PoseStack poseStack, E animatable, BakedGeoModel bakedModel, RenderType renderType, MultiBufferSource bufferSource, VertexConsumer buffer, float partialTick, int packedLight, int packedOverlay) {
-        new LegDebugRenderer<E>().renderDebug(this, animatable, poseStack, bakedModel, renderType, bufferSource, buffer, partialTick, packedLight, packedOverlay);
+    public void renderDebug(PoseStack poseStack, IKAnimatable animatable, RenderType renderType, MultiBufferSource bufferSource, VertexConsumer buffer, float partialTick, int packedLight, int packedOverlay) {
+        new LegDebugRenderer<IKAnimatable, C>().renderDebug(this, animatable, poseStack, renderType, bufferSource, buffer, partialTick, packedLight, packedOverlay);
     }
 
     public List<C> getLimbs() {
@@ -310,4 +289,4 @@ public class IKGeoLegComponent<E extends GeoAnimatable & IKGeoAnimatable<E>, C e
             }
         }
     }
-}
+    }
