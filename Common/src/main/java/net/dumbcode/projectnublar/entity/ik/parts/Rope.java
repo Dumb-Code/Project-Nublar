@@ -1,6 +1,5 @@
 package net.dumbcode.projectnublar.entity.ik.parts;
 
-import net.dumbcode.projectnublar.entity.ik.parts.ik_chains.IKChain;
 import net.dumbcode.projectnublar.entity.ik.util.ArrayUtil;
 import net.minecraft.world.phys.Vec3;
 
@@ -25,9 +24,14 @@ public class Rope {
             Segment currentSegment = this.segments.get(i);
             Segment nextSegment = this.segments.get(i + 1);
 
-            nextSegment.move(IKChain.moveSegment(nextSegment.getPosition(), currentSegment.getPosition(), currentSegment.length));
+            nextSegment.move(moveSegment(nextSegment.getPosition(), currentSegment.getPosition(), currentSegment.length));
         }
-        this.endJoint = IKChain.moveSegment(this.endJoint, this.getLast().getPosition(), this.getLast().length);
+        this.endJoint = moveSegment(this.endJoint, this.getLast().getPosition(), this.getLast().length);
+    }
+
+    public Vec3 moveSegment(Vec3 point, Vec3 pullTowards, double length) {
+        Vec3 direction = pullTowards.subtract(point).normalize();
+        return pullTowards.subtract(direction.scale(length));
     }
 
     public double maxLength() {

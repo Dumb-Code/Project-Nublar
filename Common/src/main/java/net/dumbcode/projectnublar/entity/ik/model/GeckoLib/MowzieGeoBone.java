@@ -1,15 +1,12 @@
 package net.dumbcode.projectnublar.entity.ik.model.GeckoLib;
 
-import com.mojang.blaze3d.vertex.PoseStack;
 import net.dumbcode.projectnublar.entity.ik.model.BoneAccessor;
 import net.dumbcode.projectnublar.entity.ik.util.MathUtil;
-import net.minecraft.util.Mth;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.phys.Vec3;
 import org.joml.Matrix4f;
 import org.joml.Quaternionf;
 import org.joml.Vector3d;
-import org.joml.Vector4f;
 import software.bernie.geckolib.cache.object.GeoBone;
 
 import javax.annotation.Nullable;
@@ -191,27 +188,6 @@ public class MowzieGeoBone extends GeoBone implements BoneAccessor /* only the i
         rotationOverride = mat;
     }
 
-    public void setWorldPos(Entity entity, Vec3 worldPos, float delta) {
-        PoseStack matrixStack = new PoseStack();
-        float dx = (float) (entity.xOld + (entity.getX() - entity.xOld) * delta);
-        float dy = (float) (entity.yOld + (entity.getY() - entity.yOld) * delta);
-        float dz = (float) (entity.zOld + (entity.getZ() - entity.zOld) * delta);
-        matrixStack.translate(dx, dy, dz);
-        float dYaw = Mth.rotLerp(delta, entity.yRotO, entity.getYRot());
-        matrixStack.mulPose(MathUtil.quatFromRotationXYZ(0, -dYaw + 180, 0, true));
-        matrixStack.scale(-1, -1, 1);
-        matrixStack.translate(0, -1.5f, 0);
-        PoseStack.Pose matrixEntry = matrixStack.last();
-        Matrix4f matrix4f = matrixEntry.pose();
-        matrix4f.invert();
-
-        Vector4f vec = new Vector4f((float) worldPos.x(), (float) worldPos.y(), (float) worldPos.z(), 1);
-        vec.mul(matrix4f);
-        setPosX(vec.x() * 16);
-        setPosY(vec.y() * 16);
-        setPosZ(vec.z() * 16);
-    }
-
     public void setDynamicJoint(boolean dynamicJoint) {
         isDynamicJoint = dynamicJoint;
     }
@@ -221,37 +197,39 @@ public class MowzieGeoBone extends GeoBone implements BoneAccessor /* only the i
     }
 
     @Override
-    public Vec3 getPivotPointOffset(Entity entity) {
-        return new Vec3(this.getPivotX() / 18, this.getPivotY() / 18, -this.getPivotZ() / 18).yRot((float) -Math.toRadians(entity.getYRot()));
+    public Vec3 getPosition(Entity entity) {
+        return MathUtil.toVec3(this.getWorldPosition());
     }
 
     @Override
-    public void moveTo(Vec3 to, Vec3 facing, Entity entity) {
+    public void moveTo(Vec3 to, @Nullable Vec3 facing, Entity entity) {
         this.setForceMatrixTransform(true);
 
         Matrix4f xformOverride = new Matrix4f();
 
         Vec3 newModelPosWorldSpace = MathUtil.rotatePointOnAPlaneAround(to, entity.position(), -180 + entity.getYRot(), new Vec3(0, 1, 0));
-        Vec3 newTargetVecWorldSpace = MathUtil.rotatePointOnAPlaneAround(facing, entity.position(), -180 + entity.getYRot(), new Vec3(0, 1, 0));
         // Translation
         xformOverride = xformOverride.translate((float) newModelPosWorldSpace.x, (float) newModelPosWorldSpace.y, (float) newModelPosWorldSpace.z);
 
-        Quaternionf q;
-        Vector3d p1 =  MathUtil.toVector3d(newModelPosWorldSpace);
-        Vector3d p2 =  MathUtil.toVector3d(newTargetVecWorldSpace);
-        Vector3d desiredDir = p2.sub(p1, new Vector3d()).normalize();
+        if (facing != null) {
+            Vec3 newTargetVecWorldSpace = MathUtil.rotatePointOnAPlaneAround(facing, entity.position(), -180 + entity.getYRot(), new Vec3(0, 1, 0));
+            
+            Quaternionf q;
+            Vector3d p1 = MathUtil.toVector3d(newModelPosWorldSpace);
+            Vector3d p2 = MathUtil.toVector3d(newTargetVecWorldSpace);
+            Vector3d desiredDir = p2.sub(p1, new Vector3d()).normalize();
 
-        Vector3d startingDir = new Vector3d(0, -1, 0);
-        double dot = desiredDir.dot(startingDir);
-        if (dot > 0.9999999) {
-            q = new Quaternionf();
+            Vector3d startingDir = new Vector3d(0, -1, 0);
+            double dot = desiredDir.dot(startingDir);
+            if (dot > 0.9999999) {
+                q = new Quaternionf();
+            } else {
+                Vector3d cross = startingDir.cross(desiredDir);
+                double w = Math.sqrt(desiredDir.lengthSquared() * startingDir.lengthSquared()) + dot;
+                q = new Quaternionf(cross.x, cross.y, cross.z, w).normalize();
+            }
+            xformOverride.rotate(q);
         }
-        else {
-            Vector3d cross = startingDir.cross(desiredDir);
-            double w = Math.sqrt(desiredDir.lengthSquared() * startingDir.lengthSquared()) + dot;
-            q = new Quaternionf(cross.x, cross.y, cross.z, w).normalize();
-        }
-        xformOverride.rotate(q);
 
         this.setWorldSpaceMatrix(xformOverride);
     }

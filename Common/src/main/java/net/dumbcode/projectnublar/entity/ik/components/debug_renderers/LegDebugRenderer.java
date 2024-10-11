@@ -6,7 +6,6 @@ import net.dumbcode.projectnublar.entity.Dinosaur;
 import net.dumbcode.projectnublar.entity.ik.components.IKAnimatable;
 import net.dumbcode.projectnublar.entity.ik.components.IKLegComponent;
 import net.dumbcode.projectnublar.entity.ik.parts.Segment;
-import net.dumbcode.projectnublar.entity.ik.parts.ik_chains.AngleConstraintIKChain;
 import net.dumbcode.projectnublar.entity.ik.parts.ik_chains.EntityLeg;
 import net.dumbcode.projectnublar.entity.ik.parts.ik_chains.EntityLegWithFoot;
 import net.dumbcode.projectnublar.entity.ik.parts.ik_chains.IKChain;
@@ -14,40 +13,39 @@ import net.dumbcode.projectnublar.entity.ik.parts.sever_limbs.ServerLimb;
 import net.dumbcode.projectnublar.entity.ik.util.MathUtil;
 import net.minecraft.client.renderer.MultiBufferSource;
 import net.minecraft.client.renderer.RenderType;
-import net.minecraft.client.renderer.debug.DebugRenderer;
 import net.minecraft.world.level.ClipContext;
-import net.minecraft.world.phys.AABB;
 import net.minecraft.world.phys.BlockHitResult;
 import net.minecraft.world.phys.Vec3;
 
 import java.util.List;
 
-public class LegDebugRenderer<E extends IKAnimatable<E>, C extends IKChain> implements IKDebugRenderer<E, IKLegComponent<C, E>> {
+public class LegDebugRenderer<E extends IKAnimatable<E>, C extends EntityLeg> extends IKChainDebugRenderer<E, IKLegComponent<C, E>> {
     @Override
     public void renderDebug(IKLegComponent<C, E> component, E animatable, PoseStack poseStack, RenderType renderType, MultiBufferSource bufferSource, VertexConsumer buffer, float partialTick, int packedLight, int packedOverlay) {
-        for (Object limb : component.getLimbs()) {
-            if (!(animatable instanceof Dinosaur dinosaur) || !(limb instanceof EntityLeg entityLeg)) {
+        super.renderDebug(component, animatable, poseStack, renderType, bufferSource, buffer, partialTick, packedLight, packedOverlay);
+
+        for (C limb : component.getLimbs()) {
+            if (!(animatable instanceof Dinosaur entity)) {
                 return;
             }
 
-            Vec3 entityPos = dinosaur.position();
-            Vec3 offsetEntityPos = dinosaur.position().add(0.1, 0.1, 0.1);
+            Vec3 entityPos = entity.position();
 
-            renderLeg(poseStack, bufferSource, entityLeg, dinosaur);
+            renderLeg(poseStack, bufferSource, limb, entity);
 
-            for (ServerLimb endPoint : component.getEndpoints()) {
+            for (ServerLimb endPoint : component.getEndPoints()) {
 
-                Vec3 limbOffset = endPoint.baseOffset;
+                Vec3 limbOffset = endPoint.baseOffset.scale(component.getScale());
 
                 if (component.getStillStandCounter() != component.getSettings().standStillCounter()) {
-                    limbOffset = limbOffset.add(0, 0, component.getSettings().stepInFront());
+                    limbOffset = limbOffset.add(0, 0, component.getSettings().stepInFront() * component.getScale());
                 }
 
-                limbOffset = limbOffset.yRot((float) Math.toRadians(-dinosaur.getYRot()));
+                limbOffset = limbOffset.yRot((float) Math.toRadians(-entity.getYRot()));
 
-                Vec3 rotatedLimbOffset = limbOffset.add(dinosaur.position());
+                Vec3 rotatedLimbOffset = limbOffset.add(entity.position());
 
-                BlockHitResult rayCastResult = IKLegComponent.rayCastToGround(rotatedLimbOffset, dinosaur, ClipContext.Fluid.NONE);
+                BlockHitResult rayCastResult = IKLegComponent.rayCastToGround(rotatedLimbOffset, entity, ClipContext.Fluid.NONE);
 
                 Vec3 rayCastHitPos = rayCastResult.getLocation();
 
@@ -59,28 +57,21 @@ public class LegDebugRenderer<E extends IKAnimatable<E>, C extends IKChain> impl
                     IKDebugRenderer.drawLine(poseStack, bufferSource, entityPos, endPoint.getPos(), endPoint.target, 255, 100, 255, 127);
                 }
 
-                DebugRenderer.renderFilledBox(poseStack, bufferSource, AABB.unitCubeFromLowerCorner(endPoint.getPos()).contract(0.8, 0.8, 0.8).move(-offsetEntityPos.x, -offsetEntityPos.y, -offsetEntityPos.z), endPoint.isGrounded() ? 0.0F : 1.0F, endPoint.isGrounded() ? 1.0F : 0, 0.0F, 0.5F);
-                DebugRenderer.renderFilledBox(poseStack, bufferSource, AABB.unitCubeFromLowerCorner(rayCastHitPos).contract(0.8, 0.8, 0.8).move(-offsetEntityPos.x, -offsetEntityPos.y, -offsetEntityPos.z), 0.0F, 0.0F, 1.0F, 0.5F);
+                IKDebugRenderer.drawBox(poseStack, bufferSource, endPoint.getPos(), entity, endPoint.isGrounded() ? 0 : 255, endPoint.isGrounded() ? 255 : 0, 0,127);
+                IKDebugRenderer.drawBox(poseStack, bufferSource, endPoint.oldTarget, entity, 0,255,255,127);
+                IKDebugRenderer.drawBox(poseStack, bufferSource, rayCastHitPos, entity, 0, 0, 255, 127);
             }
         }
     }
 
-    private static <C extends IKChain> void renderLeg(PoseStack poseStack, MultiBufferSource bufferSource, C chain, Dinosaur entity) {
+    private void renderLeg(PoseStack poseStack, MultiBufferSource bufferSource, C chain, Dinosaur entity) {
         Vec3 entityPos = entity.position();
-        Vec3 offsetEntityPos = entity.position().add(0.1, 0.1, 0.1);
-
-        DebugRenderer.renderFilledBox(poseStack, bufferSource, AABB.unitCubeFromLowerCorner(chain.getFirst().getPosition()).contract(0.8, 0.8, 0.8).move(-offsetEntityPos.x, -offsetEntityPos.y, -offsetEntityPos.z), 1.0F, 1.0F, 0.0F, 0.5F);
 
         drawAngleConstraintsForBase(chain.getFirst(), chain, entity, poseStack, bufferSource);
         for (int i = 0; i < chain.getJoints().size() - 1; i++) {
-            Vec3 currentJoint = chain.getJoints().get(i);
-            Vec3 nextJoint = chain.getJoints().get(i + 1);
-
-            if (chain instanceof AngleConstraintIKChain angleChain && i > 0) {
-                drawAngleConstraints(i, angleChain, entity, poseStack, bufferSource);
+            if (i > 0) {
+                this.drawAngleConstraints(i, chain, entity, poseStack, bufferSource);
             }
-
-            IKDebugRenderer.drawLineToBox(poseStack, bufferSource, entityPos, currentJoint, nextJoint, entity, 255, 165, 0, 127);
         }
 
         if (chain instanceof EntityLegWithFoot entityLegWithFoot) {
@@ -91,25 +82,27 @@ public class LegDebugRenderer<E extends IKAnimatable<E>, C extends IKChain> impl
 
             Vec3 referencePoint = entityLegWithFoot.getFootPosition(0);
 
-            IKDebugRenderer.drawLine(poseStack, bufferSource, entityPos, chain.endJoint, angleConstraint, 255, 165, 0, 127);
-            IKDebugRenderer.drawLine(poseStack, bufferSource, entityPos, chain.endJoint, referencePoint, 255, 165, 0, 127);
+            IKDebugRenderer.drawLine(poseStack, bufferSource, entityPos, chain.endJoint, angleConstraint, 255, 0, 0, 127);
+            IKDebugRenderer.drawLine(poseStack, bufferSource, entityPos, chain.endJoint, referencePoint, 0, 255, 0, 127);
         }
     }
 
-    private static <C extends AngleConstraintIKChain> void drawAngleConstraints(int i, C chain, Dinosaur entity, PoseStack matrices, MultiBufferSource vertexConsumers) {
+    private void drawAngleConstraints(int i, C chain, Dinosaur entity, PoseStack matrices, MultiBufferSource vertexConsumers) {
         Vec3 entityPos = entity.position();
 
         Segment currentSegment = chain.get(i);
 
-        List<Vec3> positions = getConstrainedPositions(chain.get(i - 1).getPosition(), currentSegment, chain.getJoints().get(i + 1), entity);
+        List<Vec3> positions = this.getConstrainedPositions(chain.get(i - 1).getPosition(), currentSegment, chain.getJoints().get(i + 1), chain);
 
         IKDebugRenderer.drawLine(matrices, vertexConsumers, entityPos, currentSegment.getPosition(), positions.get(0), 255, 0, 0, 127);
         IKDebugRenderer.drawLine(matrices, vertexConsumers, entityPos, currentSegment.getPosition(), positions.get(1), 180, 180, 180, 127);
         IKDebugRenderer.drawLine(matrices, vertexConsumers, entityPos, currentSegment.getPosition(), positions.get(2), 0, 255, 0, 127);
     }
 
-    private static List<Vec3> getConstrainedPositions(Vec3 reference, Segment middle, Vec3 endpoint, Dinosaur entity) {
-        Vec3 normal = MathUtil.getClosestNormalRelativeToEntity(endpoint, middle.getPosition(), reference, entity);
+    private List<Vec3> getConstrainedPositions(Vec3 reference, Segment middle, Vec3 endpoint, C chain) {
+        //Vec3 normal = MathUtil.getClosestNormalRelativeToEntity(endpoint, middle.getPosition(), reference, entity);
+
+        Vec3 normal = chain.getLegPlane();
 
         Vec3 referencePoint = MathUtil.rotatePointOnAPlaneAround(reference, middle.getPosition(), middle.angleOffset, normal);
 

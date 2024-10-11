@@ -35,6 +35,7 @@ public class CommonClass {
         NetworkInit.registerPackets();
         RecipeInit.loadClass();
     }
+
     public static String checkReplace(String registryObject) {
         return Arrays.stream(registryObject.split("_"))
                 .map(StringUtils::capitalize)

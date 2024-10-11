@@ -13,6 +13,8 @@ public class IKChain {
     public static final int MAX_ITERATIONS = 10;
     public static final double TOLERANCE = 0.01;
 
+    public double scale = 1;
+
     public IKChain(double... lengths) {
         for (double length : lengths) {
             this.segments.add(new Segment.Builder().length(length).build());
@@ -53,9 +55,9 @@ public class IKChain {
             Segment prevSegment = this.segments.get(i - 1);
             Segment currentSegment = this.segments.get(i);
 
-            currentSegment.move(prevSegment.getPosition().add(directionOfTarget.scale(prevSegment.length)));
+            currentSegment.move(prevSegment.getPosition().add(directionOfTarget.scale(prevSegment.length * this.getScale())));
         }
-        this.endJoint = this.getLast().getPosition().add(directionOfTarget.scale(this.getLast().length));
+        this.endJoint = this.getLast().getPosition().add(directionOfTarget.scale(this.getLast().length * this.getScale()));
     }
 
     protected boolean isTargetToFar(Vec3 target) {
@@ -69,12 +71,12 @@ public class IKChain {
     public void reachForwards(Vec3 target) {
         this.endJoint = target;
 
-        this.getLast().move(moveSegment(this.getLast().getPosition(), this.endJoint, this.getLast().length));
+        this.getLast().move(this.moveSegment(this.getLast().getPosition(), this.endJoint, this.getLast().length));
         for (int i = this.segments.size() - 1; i > 0; i--) {
             Segment currentSegment = this.segments.get(i);
             Segment nextSegment = this.segments.get(i - 1);
 
-            nextSegment.move(moveSegment(nextSegment.getPosition(), currentSegment.getPosition(), nextSegment.length));
+            nextSegment.move(this.moveSegment(nextSegment.getPosition(), currentSegment.getPosition(), nextSegment.length));
         }
     }
 
@@ -85,9 +87,17 @@ public class IKChain {
             Segment currentSegment = this.segments.get(i);
             Segment nextSegment = this.segments.get(i + 1);
 
-            nextSegment.move(moveSegment(nextSegment.getPosition(), currentSegment.getPosition(), currentSegment.length));
+            nextSegment.move(this.moveSegment(nextSegment.getPosition(), currentSegment.getPosition(), currentSegment.length));
         }
-        this.endJoint = moveSegment(this.endJoint, this.getLast().getPosition(), this.getLast().length);
+        this.endJoint = this.moveSegment(this.endJoint, this.getLast().getPosition(), this.getLast().length);
+    }
+
+    public void setScale(double scale) {
+        this.scale = scale;
+    }
+
+    public double getScale() {
+        return this.scale;
     }
 
     public void setSegmentsTo(List<Vec3> joints) {
@@ -97,15 +107,15 @@ public class IKChain {
         this.endJoint = ArrayUtil.getLast(joints);
     }
 
-    public static Vec3 moveSegment(Vec3 point, Vec3 pullTowards, double length) {
+    public Vec3 moveSegment(Vec3 point, Vec3 pullTowards, double length) {
         Vec3 direction = pullTowards.subtract(point).normalize();
-        return pullTowards.subtract(direction.scale(length));
+        return pullTowards.subtract(direction.scale(length  * this.getScale()));
     }
 
     public double maxLength() {
         double totalLength = 0;
         for (Segment segment : this.segments) {
-            totalLength += segment.length;
+            totalLength += segment.length * this.getScale();
         }
         return totalLength;
     }

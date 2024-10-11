@@ -6,9 +6,9 @@
 				"identifier": "geometry.tyrannosaurus_rex",
 				"texture_width": 256,
 				"texture_height": 256,
-				"visible_bounds_width": 14,
-				"visible_bounds_height": 7,
-				"visible_bounds_offset": [0, 2.5, 0]
+				"visible_bounds_width": 17,
+				"visible_bounds_height": 9,
+				"visible_bounds_offset": [0, 1.5, 0]
 			},
 			"bones": [
 				{
@@ -27,10 +27,10 @@
 				},
 				{
 					"name": "seg3_leg1",
-					"pivot": [-3, 16.75, 6],
+					"pivot": [-3, 14, 3],
 					"rotation": [0, 0, 0],
 					"cubes": [
-						{"origin": [-6, 0, 0], "size": [6, 17, 6], "pivot": [-3, 16.5, 6], "rotation": [17.5, 0, 0], "uv": [81, 15]}
+						{"origin": [-6, -0.90212, 0.13885], "size": [6, 17, 6], "uv": [81, 15]}
 					]
 				},
 				{
@@ -49,10 +49,10 @@
 				},
 				{
 					"name": "seg3_leg2",
-					"pivot": [-3, 16.75, 6],
+					"pivot": [-3, 14, 3],
 					"rotation": [0, 0, 0],
 					"cubes": [
-						{"origin": [-6, 0, 0], "size": [6, 17, 6], "pivot": [-3, 16.5, 6], "rotation": [17.5, 0, 0], "uv": [81, 15]}
+						{"origin": [-6, -0.90212, 0.13885], "size": [6, 17, 6], "uv": [81, 15]}
 					]
 				},
 				{
@@ -70,7 +70,41 @@
 					]
 				},
 				{
+					"name": "tail1_seg3",
+					"pivot": [0, 50.63036, 78.58074],
+					"rotation": [-6.62, 0, 0],
+					"cubes": [
+						{"origin": [-2.5, 48.38857, 74.63119], "size": [5, 4, 24], "inflate": 0.03333, "pivot": [0, 50.6304, 78.5807], "rotation": [-90, 0, 0], "uv": [12, 105]}
+					]
+				},
+				{
+					"name": "tail1_seg2",
+					"pivot": [0, 50.92776, 49.4835],
+					"rotation": [3.06, 0, 0],
+					"cubes": [
+						{"origin": [-3.5, 44.66837, 45.91126], "size": [7, 9, 33], "inflate": 0.01667, "pivot": [0, 50.92774, 51.48345], "rotation": [-90, 0, 0], "uv": [1, 134]}
+					]
+				},
+				{
+					"name": "tail1_seg1",
+					"pivot": [0, 49.83946, 27.87699],
+					"rotation": [10.92, 0, 0],
+					"cubes": [
+						{"origin": [-4.5, 40.51781, 24.63192], "size": [9, 13, 28], "pivot": [0, 49.83949, 30.87702], "rotation": [-90, 0, 0], "uv": [4, 177]}
+					]
+				},
+				{
+					"name": "entity_base",
+					"pivot": [0, 0, 0]
+				},
+				{
+					"name": "center_of_mass",
+					"parent": "entity_base",
+					"pivot": [0, 56, 0]
+				},
+				{
 					"name": "root",
+					"parent": "entity_base",
 					"pivot": [0, 40, 0]
 				},
 				{
@@ -772,31 +806,9 @@
 					]
 				},
 				{
-					"name": "tail2",
+					"name": "tail1_base",
 					"parent": "tail1",
-					"pivot": [0, 50.40777, 30.82267],
-					"rotation": [10.92, 0, 0],
-					"cubes": [
-						{"origin": [-4.5, 41.08613, 24.5776], "size": [9, 13, 28], "uv": [4, 177]}
-					]
-				},
-				{
-					"name": "tail3",
-					"parent": "tail2",
-					"pivot": [0, 51.03452, 51.48065],
-					"rotation": [3.06, 0, 0],
-					"cubes": [
-						{"origin": [-3.5, 44.77514, 45.90841], "size": [7, 9, 33], "inflate": 0.01667, "uv": [1, 134]}
-					]
-				},
-				{
-					"name": "tail4",
-					"parent": "tail3",
-					"pivot": [0, 50.63036, 78.58074],
-					"rotation": [-6.62, 0, 0],
-					"cubes": [
-						{"origin": [-2.5, 48.38857, 74.63119], "size": [5, 4, 24], "inflate": 0.03333, "uv": [12, 105]}
-					]
+					"pivot": [0, 46.55777, 24.47518]
 				},
 				{
 					"name": "bases",

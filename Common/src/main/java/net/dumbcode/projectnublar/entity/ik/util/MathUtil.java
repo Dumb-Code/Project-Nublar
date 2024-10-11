@@ -7,6 +7,9 @@ import org.joml.Quaterniond;
 import org.joml.Quaternionf;
 import org.joml.Vector3d;
 
+import java.util.Arrays;
+import java.util.List;
+
 public class MathUtil {
     public static Vec3 toVec3(Vector3d vector3d) {
         return new Vec3(vector3d.x(), vector3d.y(), vector3d.z());
@@ -74,15 +77,18 @@ public class MathUtil {
         return (new Quaternionf()).rotationXYZ(x, y, z);
     }
 
-    public static Vec3 getAverage(Vec3... points) {
-
+    public static Vec3 getAverage(List<Vec3> points) {
         Vec3 sum = Vec3.ZERO;
 
         for (Vec3 point : points) {
             sum.add(point);
         }
 
-        return dividePos(sum, points.length);
+        return dividePos(sum, points.size());
+    }
+    
+    public static Vec3 getAverage(Vec3... points) {
+        return getAverage(Arrays.stream(points).toList());
     }
 
     /**

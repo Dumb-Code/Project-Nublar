@@ -2,13 +2,13 @@ package net.dumbcode.projectnublar.entity.ik.parts.ik_chains;
 
 import net.dumbcode.projectnublar.entity.ik.parts.Segment;
 import net.dumbcode.projectnublar.entity.ik.util.MathUtil;
-import net.minecraft.world.entity.PathfinderMob;
+import net.minecraft.world.entity.Entity;
 import net.minecraft.world.phys.Vec3;
 
 import static net.dumbcode.projectnublar.entity.ik.util.MathUtil.getFlatRotationVector;
 
 public class EntityLeg extends AngleConstraintIKChain {
-    public PathfinderMob entity;
+    public Entity entity;
 
     public EntityLeg(double... lengths) {
         super(lengths);
@@ -25,12 +25,25 @@ public class EntityLeg extends AngleConstraintIKChain {
     }
 
     @Override
-    public void stretch(Vec3 target, Vec3 base) {
-        Vec3 rotatedTarget = MathUtil.rotatePointOnAPlaneAround(target, base, 90, MathUtil.getClosestNormalRelativeToEntity(target, base, base.add(MathUtil.getFlatRotationVector(this.entity)), this.entity));
+    public Vec3 getStretchingPos(Vec3 target, Vec3 base) {
+        return base.add(MathUtil.getFlatRotationVector(this.entity).scale(this.maxLength() * 2));
+    }
 
-        Vec3 direction = rotatedTarget.subtract(base);
-        Vec3 flatDirection = new Vec3(direction.x, 0, direction.z).normalize();
+    public Vec3 getDownNormalOnLegPlane() {
+        Vec3 baseRotated = this.getFirst().getPosition().yRot(-this.entity.getYRot());
+        Vec3 targetRotated = this.endJoint.yRot(-this.entity.getYRot());
 
-        this.extendFully(base.add(flatDirection.scale(this.maxLength() * 2)), base);
+        Vec3 flatRotatedBase = new Vec3(baseRotated.x(), baseRotated.y(), 0);
+        Vec3 flatRotatedTarget = new Vec3(targetRotated.x(), targetRotated.y(), 0);
+
+        Vec3 flatBase = flatRotatedBase.yRot(this.entity.getYRot());
+        Vec3 flatTarget = flatRotatedTarget.yRot(this.entity.getYRot());
+
+        return flatTarget.subtract(flatBase).normalize();
+    }
+
+    @Override
+    public Vec3 getConstrainedPosForRootSegment() {
+        return this.getConstrainedPosForRootSegment(this.getDownNormalOnLegPlane());
     }
 }

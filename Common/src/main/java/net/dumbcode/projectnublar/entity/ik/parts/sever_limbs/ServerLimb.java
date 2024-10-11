@@ -1,7 +1,7 @@
 package net.dumbcode.projectnublar.entity.ik.parts.sever_limbs;
 
+import net.dumbcode.projectnublar.entity.ik.components.IKLegComponent;
 import net.dumbcode.projectnublar.entity.ik.util.ArrayUtil;
-import net.minecraft.world.entity.PathfinderMob;
 import net.minecraft.world.phys.Vec3;
 
 import java.util.ArrayList;
@@ -41,13 +41,13 @@ public class ServerLimb {
         this.hasToBeSet = false;
     }
 
-    public void tick(List<ServerLimb> iKBase, PathfinderMob entity, int i, double movementSpeed) {
+    public void tick(IKLegComponent legComponent, int i, double movementSpeed) {
         if (this.pos.distanceTo(this.target) > 5) {
             this.pos = this.target;
             this.oldTarget = this.target;
         }
 
-        if (!adjacentEndPointGrounded(iKBase, i)) {
+        if (!adjacentEndPointGrounded(legComponent.getEndPoints(), i)) {
             return;
         }
 
@@ -67,11 +67,11 @@ public class ServerLimb {
         }
     }
 
-    private boolean adjacentEndPointGrounded(List<ServerLimb> entity, int index) {
+    private boolean adjacentEndPointGrounded(List<ServerLimb> limbs, int index) {
         boolean areAllGrounded = true;
 
         for (int legIndex : adjacent(index)) {
-            ServerLimb leg = ArrayUtil.getOrNull(entity, legIndex);
+            ServerLimb leg = ArrayUtil.getOrNull(limbs, legIndex);
             if (leg == null) continue;
 
             if (leg.isGrounded()) continue;

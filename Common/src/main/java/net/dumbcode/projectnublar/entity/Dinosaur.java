@@ -1,13 +1,16 @@
 package net.dumbcode.projectnublar.entity;
 
 import net.dumbcode.projectnublar.api.DinoData;
+import net.dumbcode.projectnublar.api.Genes;
 import net.dumbcode.projectnublar.entity.api.FossilRevived;
 import net.dumbcode.projectnublar.entity.ik.components.IKAnimatable;
 import net.dumbcode.projectnublar.entity.ik.components.IKLegComponent;
 import net.dumbcode.projectnublar.entity.ik.components.IKModelComponent;
+import net.dumbcode.projectnublar.entity.ik.components.IKTailComponent;
 import net.dumbcode.projectnublar.entity.ik.parts.Segment;
 import net.dumbcode.projectnublar.entity.ik.parts.WorldCollidingSegment;
 import net.dumbcode.projectnublar.entity.ik.parts.ik_chains.EntityLegWithFoot;
+import net.dumbcode.projectnublar.entity.ik.parts.ik_chains.StretchingIKChain;
 import net.dumbcode.projectnublar.entity.ik.parts.sever_limbs.ServerLimb;
 import net.dumbcode.projectnublar.init.DataSerializerInit;
 import net.minecraft.nbt.CompoundTag;
@@ -20,6 +23,7 @@ import net.minecraft.world.entity.PathfinderMob;
 import net.minecraft.world.entity.ai.goal.RandomStrollGoal;
 import net.minecraft.world.entity.ai.goal.WaterAvoidingRandomStrollGoal;
 import net.minecraft.world.level.Level;
+import net.minecraft.world.phys.Vec3;
 import software.bernie.geckolib.animatable.GeoEntity;
 import software.bernie.geckolib.core.animatable.GeoAnimatable;
 import software.bernie.geckolib.core.animatable.instance.AnimatableInstanceCache;
@@ -48,14 +52,21 @@ public class Dinosaur extends PathfinderMob implements FossilRevived, GeoEntity,
     protected void setUpLimbs() {
         this.addComponent(new IKLegComponent<>(
                 new IKLegComponent.LegSetting.Builder()
-                        .maxDistance(2)
+                        .maxDistance(1.5)
                         .standStillCounter(40)
-                        .stepInFront(1.5)
+                        .stepInFront(1)
                         .movementSpeed(0.4).build(),
-                List.of(new ServerLimb(-0.7, 0, 0.3),
-                        new ServerLimb(0.7, 0, 0.3)),
+                List.of(new ServerLimb(0.7, 0, 0.3),
+                        new ServerLimb(-0.7, 0, 0.3)),
                 new EntityLegWithFoot(new WorldCollidingSegment(new Segment.Builder().length(0.5625).angleOffset(70).angleSize(40)), new Segment.Builder().length(1).angleSize(40).angleOffset(110).build(), new Segment.Builder().length(1.3).angleOffset(80).build(), new Segment.Builder().length(0.94).angleOffset(-130).angleSize(40).build()),
                 new EntityLegWithFoot(new WorldCollidingSegment(new Segment.Builder().length(0.5625).angleOffset(70).angleSize(40)), new Segment.Builder().length(1).angleSize(40).angleOffset(110).build(), new Segment.Builder().length(1.3).angleOffset(80).build(), new Segment.Builder().length(0.94).angleOffset(-130).angleSize(40).build())));
+
+        this.addComponent(new IKTailComponent<>(new StretchingIKChain(new WorldCollidingSegment(new Segment.Builder().length(1.4)), new WorldCollidingSegment(new Segment.Builder().length(1.7)), new WorldCollidingSegment(new Segment.Builder().length(1.3))) {
+            @Override
+            public Vec3 getStretchingPos(Vec3 target, Vec3 base) {
+                return StretchingIKChain.stretchToTargetPos(target, this);
+            }
+        }));
     }
 
     @Override
@@ -99,8 +110,6 @@ public class Dinosaur extends PathfinderMob implements FossilRevived, GeoEntity,
 
     @Override
     protected void registerGoals() {
-        this.goalSelector.addGoal(0, new WaterAvoidingRandomStrollGoal(this, 1.0D));
-        this.goalSelector.addGoal(1, new RandomStrollGoal(this, 1.0D));
     }
 
     protected PlayState predicate(AnimationState<GeoAnimatable> state) {
@@ -136,5 +145,10 @@ public class Dinosaur extends PathfinderMob implements FossilRevived, GeoEntity,
     @Override
     public List<IKModelComponent<Dinosaur>> getComponents() {
         return this.components;
+    }
+
+    @Override
+    public double getSize() {
+        return (this.getDinoData().getGeneValue(Genes.SIZE) / 100) + 1.0;
     }
 }

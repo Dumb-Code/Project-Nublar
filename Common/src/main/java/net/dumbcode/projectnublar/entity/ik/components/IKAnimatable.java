@@ -11,6 +11,8 @@ import java.util.List;
 public interface IKAnimatable<E extends IKAnimatable<E>> {
     List<IKModelComponent<E>> getComponents();
 
+    double getSize();
+
     default boolean containsComponent(Class type) {
         return !this.getComponents().stream().filter(eikModelComponent -> eikModelComponent.getClass() == type).toList().isEmpty();
     }
