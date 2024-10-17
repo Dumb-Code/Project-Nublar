@@ -13,7 +13,7 @@ public interface BoneAccessor {
     Vec3 getPosition(Entity entity);
 
     /**
-     * @param to the point to move to
+     * @param to     the point to move to
      * @param facing at wha the bone should face, if null, the bone will not rotate
      * @param entity the entity the model of the bone belongs to
      */

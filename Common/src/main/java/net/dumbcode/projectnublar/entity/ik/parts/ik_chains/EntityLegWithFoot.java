@@ -30,11 +30,11 @@ public class EntityLegWithFoot extends EntityLeg {
         if (this.foot.getLevel() == null) {
             this.foot.setLevel(this.entity.level());
         }
-        
+
 
         Vec3 referencePoint = MathUtil.rotatePointOnAPlaneAround(this.endJoint.add(this.getDownNormalOnLegPlane()), this.endJoint, this.foot.angleOffset, this.getLegPlane());
         this.footAngel = Math.toDegrees(MathUtil.calculateAngle(this.endJoint, this.foot.getPosition(), referencePoint));
-        
+
         if (this.footAngel > 2) {
             this.foot.move(this.getFootPosition().subtract(0, 0.05, 0), true, 0.05);
         }
@@ -47,7 +47,7 @@ public class EntityLegWithFoot extends EntityLeg {
 
         Vec3 newFootPosition = this.getFootPosition(clampedAngle);
 
-        this.foot.move(newFootPosition,false);
+        this.foot.move(newFootPosition, false);
 
         if (Double.isNaN(this.footAngel)) {
             this.footAngel = 0;

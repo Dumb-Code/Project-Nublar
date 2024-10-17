@@ -14,6 +14,11 @@ public abstract class StretchingIKChain extends IKChain {
         super(segments);
     }
 
+    public static Vec3 stretchToTargetPos(Vec3 target, StretchingIKChain chain) {
+        Vec3 direction = target.subtract(chain.getFirst().getPosition());
+        return chain.getFirst().getPosition().add(direction.scale(chain.getMaxLength() * 2));
+    }
+
     @Override
     public void solve(Vec3 target, Vec3 base) {
         this.stretch(this.getStretchingPos(target, base), base);
@@ -24,10 +29,5 @@ public abstract class StretchingIKChain extends IKChain {
 
     public void stretch(Vec3 target, Vec3 base) {
         this.extendFully(target, base);
-    }
-
-    public static Vec3 stretchToTargetPos(Vec3 target, StretchingIKChain chain) {
-        Vec3 direction = target.subtract(chain.getFirst().getPosition());
-        return chain.getFirst().getPosition().add(direction.scale(chain.getMaxLength() * 2));
     }
 }

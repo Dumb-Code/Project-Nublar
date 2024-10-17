@@ -12,7 +12,7 @@ import software.bernie.geckolib.cache.object.GeoBone;
 import javax.annotation.Nullable;
 
 /**
- *  Provided by Bob Mowzie from <a href="https://www.curseforge.com/minecraft/mc-mods/mowzies-mobs">Mowzie's Mobs</a>
+ * Provided by Bob Mowzie from <a href="https://www.curseforge.com/minecraft/mc-mods/mowzies-mobs">Mowzie's Mobs</a>
  */
 public class MowzieGeoBone extends GeoBone implements BoneAccessor /* only the interface is mine but the code in this class is entirely provided by Bob Mowzie */ {
 
@@ -42,6 +42,12 @@ public class MowzieGeoBone extends GeoBone implements BoneAccessor /* only the i
         this.getChildBones().addAll(geoBone.getChildBones());
     }
 
+    public static void removeMatrixTranslation(Matrix4f matrix) {
+        matrix.m30(0);
+        matrix.m31(0);
+        matrix.m32(0);
+    }
+
     public MowzieGeoBone getParent() {
         return (MowzieGeoBone) super.getParent();
     }
@@ -69,10 +75,6 @@ public class MowzieGeoBone extends GeoBone implements BoneAccessor /* only the i
         setPosZ(getPosZ() + z);
     }
 
-    public void setPos(Vec3 vec) {
-        setPos((float) vec.x(), (float) vec.y(), (float) vec.z());
-    }
-
     public void setPos(float x, float y, float z) {
         setPosX(x);
         setPosY(y);
@@ -81,6 +83,10 @@ public class MowzieGeoBone extends GeoBone implements BoneAccessor /* only the i
 
     public Vec3 getPos() {
         return new Vec3(getPosX(), getPosY(), getPosZ());
+    }
+
+    public void setPos(Vec3 vec) {
+        setPos((float) vec.x(), (float) vec.y(), (float) vec.z());
     }
 
     // Rotation utils
@@ -106,14 +112,6 @@ public class MowzieGeoBone extends GeoBone implements BoneAccessor /* only the i
         setRotZ(getRotZ() + z);
     }
 
-    public void setRot(Vector3d vec) {
-        setRot((float) vec.x(), (float) vec.y(), (float) vec.z());
-    }
-
-    public void setRot(Vec3 vec) {
-        setRot((float) vec.x(), (float) vec.y(), (float) vec.z());
-    }
-
     public void setRot(float x, float y, float z) {
         setRotX(x);
         setRotY(y);
@@ -122,6 +120,14 @@ public class MowzieGeoBone extends GeoBone implements BoneAccessor /* only the i
 
     public Vector3d getRot() {
         return new Vector3d(getRotX(), getRotY(), getRotZ());
+    }
+
+    public void setRot(Vector3d vec) {
+        setRot((float) vec.x(), (float) vec.y(), (float) vec.z());
+    }
+
+    public void setRot(Vec3 vec) {
+        setRot((float) vec.x(), (float) vec.y(), (float) vec.z());
     }
 
     // Scale utils
@@ -135,6 +141,16 @@ public class MowzieGeoBone extends GeoBone implements BoneAccessor /* only the i
         setScaleZ(getScaleZ() * z);
     }
 
+    public void setScale(float x, float y, float z) {
+        setScaleX(x);
+        setScaleY(y);
+        setScaleZ(z);
+    }
+
+    public Vector3d getScale() {
+        return new Vector3d(getScaleX(), getScaleY(), getScaleZ());
+    }
+
     public void setScale(Vec3 vec) {
         setScale((float) vec.x(), (float) vec.y(), (float) vec.z());
     }
@@ -143,18 +159,8 @@ public class MowzieGeoBone extends GeoBone implements BoneAccessor /* only the i
         setScale((float) vec.x(), (float) vec.y(), (float) vec.z());
     }
 
-    public void setScale(float x, float y, float z) {
-        setScaleX(x);
-        setScaleY(y);
-        setScaleZ(z);
-    }
-
     public void setScale(float scale) {
         setScale(scale, scale, scale);
-    }
-
-    public Vector3d getScale() {
-        return new Vector3d(getScaleX(), getScaleY(), getScaleZ());
     }
 
     public void addRotationOffsetFromBone(MowzieGeoBone source) {
@@ -163,14 +169,13 @@ public class MowzieGeoBone extends GeoBone implements BoneAccessor /* only the i
         setRotZ(getRotZ() + source.getRotZ() - source.getInitialSnapshot().getRotZ());
     }
 
-    public void setForceMatrixTransform(boolean forceMatrixTransform) {
-        this.forceMatrixTransform = forceMatrixTransform;
-    }
-
     public boolean isForceMatrixTransform() {
         return forceMatrixTransform;
     }
 
+    public void setForceMatrixTransform(boolean forceMatrixTransform) {
+        this.forceMatrixTransform = forceMatrixTransform;
+    }
 
     public Matrix4f getModelRotationMat() {
         Matrix4f matrix = new Matrix4f(getModelSpaceMatrix());
@@ -178,22 +183,16 @@ public class MowzieGeoBone extends GeoBone implements BoneAccessor /* only the i
         return matrix;
     }
 
-    public static void removeMatrixTranslation(Matrix4f matrix) {
-        matrix.m30(0);
-        matrix.m31(0);
-        matrix.m32(0);
-    }
-
     public void setModelXformOverride(Matrix4f mat) {
         rotationOverride = mat;
     }
 
-    public void setDynamicJoint(boolean dynamicJoint) {
-        isDynamicJoint = dynamicJoint;
-    }
-
     public boolean isDynamicJoint() {
         return isDynamicJoint;
+    }
+
+    public void setDynamicJoint(boolean dynamicJoint) {
+        isDynamicJoint = dynamicJoint;
     }
 
     @Override
@@ -213,7 +212,7 @@ public class MowzieGeoBone extends GeoBone implements BoneAccessor /* only the i
 
         if (facing != null) {
             Vec3 newTargetVecWorldSpace = MathUtil.rotatePointOnAPlaneAround(facing, entity.position(), -180 + entity.getYRot(), new Vec3(0, 1, 0));
-            
+
             Quaternionf q;
             Vector3d p1 = MathUtil.toVector3d(newModelPosWorldSpace);
             Vector3d p2 = MathUtil.toVector3d(newTargetVecWorldSpace);

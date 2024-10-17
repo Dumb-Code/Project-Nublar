@@ -36,7 +36,7 @@ public class Rope {
 
     public double maxLength() {
         double totalLength = 0;
-        for (Segment segment: this.segments) {
+        for (Segment segment : this.segments) {
             totalLength += segment.length;
         }
         return totalLength;

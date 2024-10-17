@@ -3,12 +3,20 @@ package net.dumbcode.projectnublar.entity.ik.parts;
 import net.minecraft.world.phys.Vec3;
 
 public class Segment {
-    private Vec3 position = Vec3.ZERO;
     public double length;
     public StretchDirection stretchDirection;
     public boolean hasAngleConstraints;
     public double angleOffset;
     public double angleSize;
+    private Vec3 position = Vec3.ZERO;
+
+    protected Segment(Builder builder) {
+        this.length = builder.length;
+        this.stretchDirection = builder.stretchDirection;
+        this.angleSize = builder.angleSize;
+        this.angleOffset = builder.angleOffset;
+        this.hasAngleConstraints = builder.hasAngleConstraints;
+    }
 
     public Vec3 getPosition() {
         return this.position;
@@ -18,12 +26,12 @@ public class Segment {
         this.position = position;
     }
 
-    protected Segment(Builder builder) {
-        this.length = builder.length;
-        this.stretchDirection = builder.stretchDirection;
-        this.angleSize = builder.angleSize;
-        this.angleOffset = builder.angleOffset;
-        this.hasAngleConstraints = builder.hasAngleConstraints;
+    public enum StretchDirection {
+        FORWARDS,
+        BACKWARDS,
+        DOWN,
+        TARGET,
+        NONE
     }
 
     public static class Builder {
@@ -61,13 +69,5 @@ public class Segment {
         public Segment build() {
             return new Segment(this);
         }
-    }
-
-    public enum StretchDirection {
-        FORWARDS,
-        BACKWARDS,
-        DOWN,
-        TARGET,
-        NONE
     }
 }

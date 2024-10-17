@@ -9,13 +9,12 @@ import java.util.Arrays;
 import java.util.List;
 
 public class IKChain {
-    public List<Segment> segments = new ArrayList<>();
-    public Vec3 endJoint = Vec3.ZERO;
-    private double maxLength = 0;
     public static final int MAX_ITERATIONS = 10;
     public static final double TOLERANCE = 0.01;
-
+    public List<Segment> segments = new ArrayList<>();
+    public Vec3 endJoint = Vec3.ZERO;
     public double scale = 1;
+    private double maxLength = 0;
 
     public IKChain(double... lengths) {
         for (double length : lengths) {
@@ -96,12 +95,12 @@ public class IKChain {
         this.endJoint = this.moveSegment(this.endJoint, this.getLast().getPosition(), this.getLast().length);
     }
 
-    public void setScale(double scale) {
-        this.scale = scale;
-    }
-
     public double getScale() {
         return this.scale;
+    }
+
+    public void setScale(double scale) {
+        this.scale = scale;
     }
 
     public void setSegmentsTo(List<Vec3> joints) {
@@ -113,7 +112,7 @@ public class IKChain {
 
     public Vec3 moveSegment(Vec3 point, Vec3 pullTowards, double length) {
         Vec3 direction = pullTowards.subtract(point).normalize();
-        return pullTowards.subtract(direction.scale(length  * this.getScale()));
+        return pullTowards.subtract(direction.scale(length * this.getScale()));
     }
 
     public double getMaxLength() {

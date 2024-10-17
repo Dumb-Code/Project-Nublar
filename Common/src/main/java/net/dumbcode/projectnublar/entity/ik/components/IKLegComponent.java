@@ -23,17 +23,27 @@ import net.minecraft.world.phys.Vec3;
 import java.util.List;
 
 public class IKLegComponent<C extends EntityLeg, E extends IKAnimatable<E>> extends IKChainComponent<C, E> {
-    ///summon projectnublar:tyrannosaurus_rex ~ ~ ~ {NoAI:1b}
+    /// summon projectnublar:tyrannosaurus_rex ~ ~ ~ {NoAI:1b}
     private final List<ServerLimb> endPoints;
     private final LegSetting settings;
-    private int stillStandCounter = 0;
     public double scale = 1;
+    private int stillStandCounter = 0;
 
     @SafeVarargs
-    public IKLegComponent(LegSetting settings, List<ServerLimb> endpoints , C... limbs) {
+    public IKLegComponent(LegSetting settings, List<ServerLimb> endpoints, C... limbs) {
         this.limbs.addAll(List.of(limbs));
         this.settings = settings;
         this.endPoints = endpoints;
+    }
+
+    private static boolean hasMovedOverLastTick(PathfinderMob entity) {
+        Vec3 oldPos = new Vec3(entity.xo, entity.yo, entity.zo);
+        return !entity.position().equals(oldPos);
+    }
+
+    public static BlockHitResult rayCastToGround(Vec3 rotatedLimbOffset, PathfinderMob entity, ClipContext.Fluid fluid) {
+        Level world = entity.level();
+        return world.clip(new ClipContext(rotatedLimbOffset.relative(Direction.UP, 3), rotatedLimbOffset.relative(Direction.DOWN, 10), ClipContext.Block.COLLIDER, fluid, entity));
     }
 
     @Override
@@ -55,7 +65,7 @@ public class IKLegComponent<C extends EntityLeg, E extends IKAnimatable<E>> exte
         double newY = average;//Mth.lerp(2, entityBase.getPosition(entity).y(), average);
 
         //entityBase.moveTo(new Vec3(entity.position().x(), newY, entity.position().z()), null, entity);
-        
+
         for (int i = 0; i < this.limbs.size(); i++) {
             BoneAccessor baseAccessor = model.getBone("base_" + "leg" + (i + 1));
 
@@ -83,7 +93,7 @@ public class IKLegComponent<C extends EntityLeg, E extends IKAnimatable<E>> exte
 
                     double yOffset = shortenedEndPoint.subtract(limb.endJoint).y;
 
-                    footSegmentAccessor.moveTo(Constants.shouldRenderDebugLegs ? shortenedEndPoint.subtract(0, 200, 0) : shortenedEndPoint, entityLegWithFoot.getFootPosition().add(0, yOffset,0), entity);
+                    footSegmentAccessor.moveTo(Constants.shouldRenderDebugLegs ? shortenedEndPoint.subtract(0, 200, 0) : shortenedEndPoint, entityLegWithFoot.getFootPosition().add(0, yOffset, 0), entity);
                 }
             }
         }
@@ -148,16 +158,6 @@ public class IKLegComponent<C extends EntityLeg, E extends IKAnimatable<E>> exte
         }
     }
 
-    private static boolean hasMovedOverLastTick(PathfinderMob entity) {
-        Vec3 oldPos = new Vec3(entity.xo, entity.yo, entity.zo);
-        return !entity.position().equals(oldPos);
-    }
-
-    public static BlockHitResult rayCastToGround(Vec3 rotatedLimbOffset, PathfinderMob entity, ClipContext.Fluid fluid) {
-        Level world = entity.level();
-        return world.clip(new ClipContext(rotatedLimbOffset.relative(Direction.UP, 3), rotatedLimbOffset.relative(Direction.DOWN, 10), ClipContext.Block.COLLIDER, fluid, entity));
-    }
-
     public List<C> getLimbs() {
         return this.limbs;
     }
@@ -188,12 +188,12 @@ public class IKLegComponent<C extends EntityLeg, E extends IKAnimatable<E>> exte
         return limb;
     }
 
-    public void setScale(double scale) {
-        this.scale = scale;
-    }
-
     public double getScale() {
         return this.scale;
+    }
+
+    public void setScale(double scale) {
+        this.scale = scale;
     }
 
     public static class LegSetting {
@@ -270,6 +270,7 @@ public class IKLegComponent<C extends EntityLeg, E extends IKAnimatable<E>> exte
                 this.fluid = fluid;
                 return this;
             }
+
             public LegSetting.Builder maxStandingStillDistance(double maxStandingStillDistance) {
                 this.maxStandingStillDistance = maxStandingStillDistance;
                 return this;

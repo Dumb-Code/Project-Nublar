@@ -20,8 +20,6 @@ import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.entity.PathfinderMob;
-import net.minecraft.world.entity.ai.goal.RandomStrollGoal;
-import net.minecraft.world.entity.ai.goal.WaterAvoidingRandomStrollGoal;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.phys.Vec3;
 import software.bernie.geckolib.animatable.GeoEntity;
@@ -39,16 +37,16 @@ import java.util.List;
 import java.util.Objects;
 
 public class Dinosaur extends PathfinderMob implements FossilRevived, GeoEntity, IKAnimatable<Dinosaur> {
-    public List<IKModelComponent<Dinosaur>> components = new ArrayList<>();
-
     public static EntityDataAccessor<DinoData> DINO_DATA = SynchedEntityData.defineId(Dinosaur.class, DataSerializerInit.DINO_DATA);
     public final AnimatableInstanceCache cache = GeckoLibUtil.createInstanceCache(this);
-    private final List<String> idleAnimations = List.of("sniffingair", "sniffground", "speak1", "lookleft", "lookright", "scratching","shakehead","shakebody");
+    private final List<String> idleAnimations = List.of("sniffingair", "sniffground", "speak1", "lookleft", "lookright", "scratching", "shakehead", "shakebody");
+    public List<IKModelComponent<Dinosaur>> components = new ArrayList<>();
+
     public Dinosaur(EntityType<? extends PathfinderMob> entityType, Level world) {
         super(entityType, world);
         this.setUpLimbs();
     }
-    
+
     protected void setUpLimbs() {
         this.addComponent(new IKLegComponent<>(
                 new IKLegComponent.LegSetting.Builder()
@@ -68,14 +66,18 @@ public class Dinosaur extends PathfinderMob implements FossilRevived, GeoEntity,
             }
         }));
     }
-    
+
     @Override
     public void registerControllers(AnimatableManager.ControllerRegistrar controllers) {
         controllers.add(new AnimationController<>(this, "controller", 20, this::predicate));
     }
-    
+
     public DinoData getDinoData() {
         return this.entityData.get(DINO_DATA);
+    }
+
+    public void setDinoData(DinoData dinoData) {
+        this.entityData.set(DINO_DATA, dinoData);
     }
 
     @Override
@@ -83,8 +85,8 @@ public class Dinosaur extends PathfinderMob implements FossilRevived, GeoEntity,
         super.push(pEntity);
     }
 
-    public ResourceLocation getTextureLocation(){
-        if(true){ //What the fuck?
+    public ResourceLocation getTextureLocation() {
+        if (true) { //What the fuck?
             return new ResourceLocation("projectnublar:textures/entity/tyrannosaurus_rex.png");
         }
         return this.entityData.get(DINO_DATA).getTextureLocation();
@@ -115,26 +117,23 @@ public class Dinosaur extends PathfinderMob implements FossilRevived, GeoEntity,
 
     protected PlayState predicate(AnimationState<GeoAnimatable> state) {
         AnimationController<?> controller = state.getController();
-        if(isMoving()){
+        if (isMoving()) {
             controller.setAnimation(RawAnimation.begin().thenLoop("walk"));
         } else {
-            if(controller.hasAnimationFinished() || (controller.getCurrentAnimation()!=null && Objects.equals(controller.getCurrentAnimation().animation().name(), "walk"))){
+            if (controller.hasAnimationFinished() || (controller.getCurrentAnimation() != null && Objects.equals(controller.getCurrentAnimation().animation().name(), "walk"))) {
                 controller.setAnimation(RawAnimation.begin().thenLoop(idleAnimations.get(this.random.nextInt(idleAnimations.size()))));
             }
         }
         return PlayState.CONTINUE;
     }
 
-    public boolean isMoving(){
+    public boolean isMoving() {
         return this.xo != this.getX() || this.zo != this.getZ();
     }
+
     @Override
     public AnimatableInstanceCache getAnimatableInstanceCache() {
         return cache;
-    }
-
-    public void setDinoData(DinoData dinoData) {
-        this.entityData.set(DINO_DATA, dinoData);
     }
 
     @Override

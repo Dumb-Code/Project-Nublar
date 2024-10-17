@@ -3,6 +3,7 @@ package net.dumbcode.projectnublar.entity.ik.parts;
 import net.minecraft.world.phys.Vec3;
 
 public class Spring3d {
+    public final double GRAVITY = -0.2;
     public Vec3 start;
     public Vec3 startVelocity;
     public Vec3 end;
@@ -10,9 +11,7 @@ public class Spring3d {
     public double length;
     public double stiffness;
     public double damping;
-    
-    public final double GRAVITY = -0.2;
-    
+
     public Spring3d(double length, double stiffness, double damping) {
         this.length = length;
         this.stiffness = stiffness;
@@ -22,14 +21,14 @@ public class Spring3d {
         this.end = Vec3.ZERO;
         this.endVelocity = Vec3.ZERO;
     }
-    
+
     public void setUp(Vec3 start) {
         this.start = start;
         this.end = start.add(0, -this.length, 0);
         this.endVelocity = Vec3.ZERO;
         this.startVelocity = Vec3.ZERO;
     }
-    
+
     public void tick() {
         double dx = this.end.x - this.start.x;
         double dy = this.end.y - this.start.y;

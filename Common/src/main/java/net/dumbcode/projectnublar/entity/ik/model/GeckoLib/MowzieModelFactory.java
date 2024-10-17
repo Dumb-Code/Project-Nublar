@@ -18,7 +18,7 @@ import software.bernie.geckolib.util.RenderUtils;
 import java.util.List;
 
 /**
- *  Provided by Bob Mowzie from <a href="https://www.curseforge.com/minecraft/mc-mods/mowzies-mobs">Mowzie's Mobs</a>
+ * Provided by Bob Mowzie from <a href="https://www.curseforge.com/minecraft/mc-mods/mowzies-mobs">Mowzie's Mobs</a>
  */
 public class MowzieModelFactory implements BakedModelFactory {
 
@@ -40,8 +40,8 @@ public class MowzieModelFactory implements BakedModelFactory {
         Vec3 rotation = RenderUtils.arrayToVec(bone.rotation());
         Vec3 pivot = RenderUtils.arrayToVec(bone.pivot());
 
-        newBone.updateRotation((float)Math.toRadians(-rotation.x), (float)Math.toRadians(-rotation.y), (float)Math.toRadians(rotation.z));
-        newBone.updatePivot((float)-pivot.x, (float)pivot.y, (float)pivot.z);
+        newBone.updateRotation((float) Math.toRadians(-rotation.x), (float) Math.toRadians(-rotation.y), (float) Math.toRadians(rotation.z));
+        newBone.updatePivot((float) -pivot.x, (float) pivot.y, (float) pivot.z);
 
         for (Cube cube : bone.cubes()) {
             newBone.getCubes().add(constructCube(cube, properties, newBone));
@@ -67,7 +67,7 @@ public class MowzieModelFactory implements BakedModelFactory {
 
         pivot = pivot.multiply(-1, 1, 1);
         rotation = new Vec3(Math.toRadians(-rotation.x), Math.toRadians(-rotation.y), Math.toRadians(rotation.z));
-        GeoQuad[] quads = buildQuads(cube.uv(), new VertexSet(origin, vertexSize, inflate), cube, (float)properties.textureWidth(), (float)properties.textureHeight(), mirror);
+        GeoQuad[] quads = buildQuads(cube.uv(), new VertexSet(origin, vertexSize, inflate), cube, (float) properties.textureWidth(), (float) properties.textureHeight(), mirror);
 
         return new GeoCube(quads, pivot, rotation, size, inflate, mirror);
     }

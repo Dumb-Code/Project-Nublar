@@ -22,71 +22,6 @@ public class ServerLimb {
         this.baseOffset = new Vec3(x, y, z);
     }
 
-    public void setPos(Vec3 pos) {
-        this.pos = pos;
-    }
-
-    public Vec3 getPos() {
-        return this.pos;
-    }
-
-    public void setTarget(Vec3 target) {
-        this.target = target;
-    }
-
-    public void set(Vec3 newPos) {
-        this.pos = newPos;
-        this.oldTarget = newPos;
-        this.target = newPos;
-        this.hasToBeSet = false;
-    }
-
-    public void tick(IKLegComponent legComponent, int i, double movementSpeed) {
-        if (!this.pos.closerThan(this.target, 5 * legComponent.scale)) {
-            this.pos = this.target;
-            this.oldTarget = this.target;
-        }
-
-        if (!adjacentEndPointGrounded(legComponent.getEndPoints(), i)) {
-            return;
-        }
-
-        Vec3 flatTarget = new Vec3(this.target.x(), 0, this.target.z());
-        Vec3 flatPos = new Vec3(this.pos.x(), 0, this.pos.z());
-
-        double flatDistanceToEndPos = flatTarget.distanceTo(flatPos);
-        Vec3 raisedTarget = this.target.add(0, flatDistanceToEndPos, 0);
-
-        Vec3 targetDirection = raisedTarget.subtract(this.pos).normalize();
-
-        this.pos = this.pos.add(targetDirection.scale((this.target.distanceTo(this.pos)) * movementSpeed));
-
-        if (this.pos.closerThan(this.target,0.3)) {
-            this.pos = this.target;
-            this.oldTarget = this.target;
-        }
-    }
-
-    private boolean adjacentEndPointGrounded(List<ServerLimb> limbs, int index) {
-        boolean areAllGrounded = true;
-
-        for (int legIndex : adjacent(index)) {
-            ServerLimb leg = ArrayUtil.getOrNull(limbs, legIndex);
-            if (leg == null) continue;
-
-            if (leg.isGrounded()) continue;
-
-            areAllGrounded = false;
-            break;
-        }
-
-        return areAllGrounded;
-    }
-
-    public boolean isGrounded() {
-        return this.pos == this.oldTarget;
-    }
-
     /**
      * THIS CODE IS NOT MINE!!!! <p>
      * It was politely stolen form Cymaera, with their consent, on <a href="https://github.com/TheCymaera/minecraft-spider/blob/main/src/main/java/com/heledron/spideranimation/spider/LegLookUp.kt">GitHub</a> and then translated!
@@ -147,5 +82,70 @@ public class ServerLimb {
 
     public static List<Integer> adjacent(int leg) {
         return List.of(front(leg), back(leg), horizontal(leg));
+    }
+
+    public Vec3 getPos() {
+        return this.pos;
+    }
+
+    public void setPos(Vec3 pos) {
+        this.pos = pos;
+    }
+
+    public void setTarget(Vec3 target) {
+        this.target = target;
+    }
+
+    public void set(Vec3 newPos) {
+        this.pos = newPos;
+        this.oldTarget = newPos;
+        this.target = newPos;
+        this.hasToBeSet = false;
+    }
+
+    public void tick(IKLegComponent legComponent, int i, double movementSpeed) {
+        if (!this.pos.closerThan(this.target, 5 * legComponent.scale)) {
+            this.pos = this.target;
+            this.oldTarget = this.target;
+        }
+
+        if (!adjacentEndPointGrounded(legComponent.getEndPoints(), i)) {
+            return;
+        }
+
+        Vec3 flatTarget = new Vec3(this.target.x(), 0, this.target.z());
+        Vec3 flatPos = new Vec3(this.pos.x(), 0, this.pos.z());
+
+        double flatDistanceToEndPos = flatTarget.distanceTo(flatPos);
+        Vec3 raisedTarget = this.target.add(0, flatDistanceToEndPos, 0);
+
+        Vec3 targetDirection = raisedTarget.subtract(this.pos).normalize();
+
+        this.pos = this.pos.add(targetDirection.scale((this.target.distanceTo(this.pos)) * movementSpeed));
+
+        if (this.pos.closerThan(this.target, 0.3)) {
+            this.pos = this.target;
+            this.oldTarget = this.target;
+        }
+    }
+
+    private boolean adjacentEndPointGrounded(List<ServerLimb> limbs, int index) {
+        boolean areAllGrounded = true;
+
+        for (int legIndex : adjacent(index)) {
+            ServerLimb leg = ArrayUtil.getOrNull(limbs, legIndex);
+            if (leg == null) continue;
+
+            if (leg.isGrounded()) continue;
+
+            areAllGrounded = false;
+            break;
+        }
+
+        return areAllGrounded;
+    }
+
+    public boolean isGrounded() {
+        return this.pos == this.oldTarget;
     }
 }

@@ -12,8 +12,6 @@ import net.minecraft.world.phys.AABB;
 import net.minecraft.world.phys.Vec3;
 
 public interface IKDebugRenderer<E extends IKAnimatable<E>, C extends IKModelComponent<E>> {
-    void renderDebug(C component, E animatable, PoseStack poseStack, RenderType renderType, MultiBufferSource bufferSource, VertexConsumer buffer, float partialTick, int packedLight, int packedOverlay);
-
     static void drawLineToBox(PoseStack matrices, MultiBufferSource vertexConsumers, Vec3 camera, Vec3 startPos, Vec3 targetPos, Entity entity, int red, int green, int blue, int alpha) {
         drawBox(matrices, vertexConsumers, targetPos, entity, red, green, blue, alpha);
         drawLine(matrices, vertexConsumers, camera, startPos, targetPos, red, green, blue, alpha);
@@ -34,4 +32,6 @@ public interface IKDebugRenderer<E extends IKAnimatable<E>, C extends IKModelCom
     static int getArgb(int alpha, int red, int green, int blue) {
         return alpha << 24 | red << 16 | green << 8 | blue;
     }
+
+    void renderDebug(C component, E animatable, PoseStack poseStack, RenderType renderType, MultiBufferSource bufferSource, VertexConsumer buffer, float partialTick, int packedLight, int packedOverlay);
 }

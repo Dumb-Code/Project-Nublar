@@ -49,11 +49,11 @@ public class IKTailComponent<C extends IKChain, E extends IKAnimatable<E>> exten
         if (!(animatable instanceof Entity entity)) {
             return;
         }
-        
+
         if (Objects.equals(this.tailTarget, new Vec3(0, 0, 0))) {
             this.tailTarget = model.getBone("tail1_base").getPosition(entity);
         }
-        
+
         Vec3 headPos = model.getBone("head").getPosition(entity);
 
         Vec3 centerDirection = model.getBone("center_of_mass").getPosition(entity).subtract(headPos).normalize();
@@ -79,7 +79,7 @@ public class IKTailComponent<C extends IKChain, E extends IKAnimatable<E>> exten
             bone.moveTo(currentSegment.getPosition(), endPos, entity);
         }
     }
-    
+
     private Vec3 getMovedTailPos(Vec3 newPos, Entity entity) {
         Vec3 collisionPoint = entity.level().clip(new ClipContext(
                 this.tailTarget,
@@ -98,7 +98,7 @@ public class IKTailComponent<C extends IKChain, E extends IKAnimatable<E>> exten
     private C getLimb() {
         return this.limbs.get(0);
     }
-    
+
     @Override
     public void renderDebug(PoseStack poseStack, E animatable, RenderType renderType, MultiBufferSource bufferSource, VertexConsumer buffer, float partialTick, int packedLight, int packedOverlay) {
         new IKTailDebugRenderer<E>().renderDebug(this, animatable, poseStack, renderType, bufferSource, buffer, partialTick, packedLight, packedOverlay);

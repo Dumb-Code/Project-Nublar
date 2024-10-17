@@ -12,12 +12,12 @@ public class WorldCollidingSegment extends Segment {
         super(builder);
     }
 
-    public void setLevel(Level level) {
-        this.level = level;
-    }
-
     public Level getLevel() {
         return this.level;
+    }
+
+    public void setLevel(Level level) {
+        this.level = level;
     }
 
     /**

@@ -61,7 +61,7 @@ public class MathUtil {
         while (z > Math.PI) z -= 2 * Math.PI;
         while (z < -Math.PI) z += 2 * Math.PI;
 
-        return new Vec3(x,y,z);
+        return new Vec3(x, y, z);
     }
 
     public static Vec3 dividePos(Vec3 v1, double divide) {
@@ -70,9 +70,9 @@ public class MathUtil {
 
     public static Quaternionf quatFromRotationXYZ(float x, float y, float z, boolean degrees) {
         if (degrees) {
-            x *= ((float)Math.PI / 180F);
-            y *= ((float)Math.PI / 180F);
-            z *= ((float)Math.PI / 180F);
+            x *= ((float) Math.PI / 180F);
+            y *= ((float) Math.PI / 180F);
+            z *= ((float) Math.PI / 180F);
         }
         return (new Quaternionf()).rotationXYZ(x, y, z);
     }
@@ -86,7 +86,7 @@ public class MathUtil {
 
         return dividePos(sum, points.size());
     }
-    
+
     public static Vec3 getAverage(Vec3... points) {
         return getAverage(Arrays.stream(points).toList());
     }
@@ -146,7 +146,7 @@ public class MathUtil {
     }
 
     public static Vec3 lerpVec3(int step, Vec3 OldPos, Vec3 newPos) {
-        double d = 1.0 / (double)step;
+        double d = 1.0 / (double) step;
         double newX = Mth.lerp(d, OldPos.x(), newPos.x());
         double newY = Mth.lerp(d, OldPos.y(), newPos.y());
         double newZ = Mth.lerp(d, OldPos.z(), newPos.z());
