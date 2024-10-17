@@ -42,7 +42,7 @@ public class ServerLimb {
     }
 
     public void tick(IKLegComponent legComponent, int i, double movementSpeed) {
-        if (this.pos.distanceTo(this.target) > 5) {
+        if (!this.pos.closerThan(this.target, 5 * legComponent.scale)) {
             this.pos = this.target;
             this.oldTarget = this.target;
         }
@@ -61,7 +61,7 @@ public class ServerLimb {
 
         this.pos = this.pos.add(targetDirection.scale((this.target.distanceTo(this.pos)) * movementSpeed));
 
-        if (this.pos.distanceTo(this.target) < 0.3) {
+        if (this.pos.closerThan(this.target,0.3)) {
             this.pos = this.target;
             this.oldTarget = this.target;
         }

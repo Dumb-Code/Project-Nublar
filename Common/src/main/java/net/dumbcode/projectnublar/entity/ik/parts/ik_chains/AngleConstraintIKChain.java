@@ -40,17 +40,12 @@ public abstract class AngleConstraintIKChain extends StretchingIKChain {
     public void reachForwards(Vec3 target) {
         this.endJoint = target;
 
-        this.getLast().move(moveSegment(this.getLast().getPosition(), this.endJoint, this.getLast().length));
-        this.getLast().move(this.getConstrainedPositions(this.get(this.segments.size() - 3).getPosition(), this.get(this.segments.size() - 2), this.getLast().getPosition()));
-
+        this.getLast().move(this.moveSegment(this.getLast().getPosition(), this.endJoint, this.getLast().length));
         for (int i = this.segments.size() - 1; i > 0; i--) {
             Segment currentSegment = this.segments.get(i);
             Segment nextSegment = this.segments.get(i - 1);
 
-            nextSegment.move(moveSegment(nextSegment.getPosition(), currentSegment.getPosition(), nextSegment.length));
-            if (i > 2) {
-                nextSegment.move(this.getConstrainedPositions(this.segments.get(i - 3).getPosition(), this.segments.get(i - 2), nextSegment.getPosition()));
-            }
+            nextSegment.move(this.moveSegment(nextSegment.getPosition(), currentSegment.getPosition(), nextSegment.length));
         }
     }
     */

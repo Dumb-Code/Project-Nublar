@@ -5,11 +5,13 @@ import net.dumbcode.projectnublar.entity.ik.util.ArrayUtil;
 import net.minecraft.world.phys.Vec3;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 
 public class IKChain {
     public List<Segment> segments = new ArrayList<>();
     public Vec3 endJoint = Vec3.ZERO;
+    private double maxLength = 0;
     public static final int MAX_ITERATIONS = 10;
     public static final double TOLERANCE = 0.01;
 
@@ -19,9 +21,11 @@ public class IKChain {
         for (double length : lengths) {
             this.segments.add(new Segment.Builder().length(length).build());
         }
+        this.maxLength = Arrays.stream(lengths).sum();
     }
 
     public IKChain(Segment... segments) {
+        Arrays.stream(segments).forEach(segment -> this.maxLength += segment.length);
         this.segments.addAll(List.of(segments));
     }
 
@@ -61,11 +65,11 @@ public class IKChain {
     }
 
     protected boolean isTargetToFar(Vec3 target) {
-        return target.distanceTo(this.getFirst().getPosition()) > this.maxLength();
+        return !target.closerThan(this.getFirst().getPosition(), this.getMaxLength());
     }
 
     protected boolean areStoppingConditionsMeet(Vec3 target) {
-        return this.endJoint.distanceTo(target) < TOLERANCE;
+        return this.endJoint.closerThan(target, TOLERANCE);
     }
 
     public void reachForwards(Vec3 target) {
@@ -112,12 +116,8 @@ public class IKChain {
         return pullTowards.subtract(direction.scale(length  * this.getScale()));
     }
 
-    public double maxLength() {
-        double totalLength = 0;
-        for (Segment segment : this.segments) {
-            totalLength += segment.length * this.getScale();
-        }
-        return totalLength;
+    public double getMaxLength() {
+        return this.maxLength;
     }
 
     public List<Vec3> getJoints() {

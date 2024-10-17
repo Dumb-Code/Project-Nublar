@@ -48,7 +48,7 @@ public class Dinosaur extends PathfinderMob implements FossilRevived, GeoEntity,
         super(entityType, world);
         this.setUpLimbs();
     }
-
+    
     protected void setUpLimbs() {
         this.addComponent(new IKLegComponent<>(
                 new IKLegComponent.LegSetting.Builder()
@@ -68,11 +68,12 @@ public class Dinosaur extends PathfinderMob implements FossilRevived, GeoEntity,
             }
         }));
     }
-
+    
     @Override
     public void registerControllers(AnimatableManager.ControllerRegistrar controllers) {
         controllers.add(new AnimationController<>(this, "controller", 20, this::predicate));
     }
+    
     public DinoData getDinoData() {
         return this.entityData.get(DINO_DATA);
     }

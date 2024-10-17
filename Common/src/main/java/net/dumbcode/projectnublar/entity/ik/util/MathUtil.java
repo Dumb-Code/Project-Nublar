@@ -81,7 +81,7 @@ public class MathUtil {
         Vec3 sum = Vec3.ZERO;
 
         for (Vec3 point : points) {
-            sum.add(point);
+            sum = sum.add(point);
         }
 
         return dividePos(sum, points.size());
@@ -142,7 +142,7 @@ public class MathUtil {
         Vec3 normal = getUpDirection(basePoint, v2, v3);
         Vec3 oppositeNormal = normal.reverse();
 
-        return basePoint.add(normal).distanceTo(orientationPoint) < basePoint.add(oppositeNormal).distanceTo(orientationPoint) ? normal : oppositeNormal;
+        return basePoint.add(normal).distanceToSqr(orientationPoint) < basePoint.add(oppositeNormal).distanceToSqr(orientationPoint) ? normal : oppositeNormal;
     }
 
     public static Vec3 lerpVec3(int step, Vec3 OldPos, Vec3 newPos) {

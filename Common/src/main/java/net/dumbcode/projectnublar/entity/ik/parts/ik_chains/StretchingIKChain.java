@@ -28,6 +28,6 @@ public abstract class StretchingIKChain extends IKChain {
 
     public static Vec3 stretchToTargetPos(Vec3 target, StretchingIKChain chain) {
         Vec3 direction = target.subtract(chain.getFirst().getPosition());
-        return chain.getFirst().getPosition().add(direction.scale(chain.maxLength() * 2));
+        return chain.getFirst().getPosition().add(direction.scale(chain.getMaxLength() * 2));
     }
 }

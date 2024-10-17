@@ -3,6 +3,7 @@ package net.dumbcode.projectnublar.entity.ik.parts.ik_chains;
 import net.dumbcode.projectnublar.entity.ik.parts.Segment;
 import net.dumbcode.projectnublar.entity.ik.parts.WorldCollidingSegment;
 import net.dumbcode.projectnublar.entity.ik.util.MathUtil;
+import net.dumbcode.projectnublar.entity.ik.util.PrAnCommonClass;
 import net.minecraft.world.phys.Vec3;
 
 public class EntityLegWithFoot extends EntityLeg {
@@ -29,12 +30,15 @@ public class EntityLegWithFoot extends EntityLeg {
         if (this.foot.getLevel() == null) {
             this.foot.setLevel(this.entity.level());
         }
-
-        //Vec3 normal = MathUtil.getNormalClosestTo(this.endJoint, this.getLast().getPosition(), this.get(this.segments.size() - 2).getPosition(), this.getReferencePoint());
-
-        this.foot.move(this.getFootPosition().subtract(0,0.01,0));
+        
 
         Vec3 referencePoint = MathUtil.rotatePointOnAPlaneAround(this.endJoint.add(this.getDownNormalOnLegPlane()), this.endJoint, this.foot.angleOffset, this.getLegPlane());
+        this.footAngel = Math.toDegrees(MathUtil.calculateAngle(this.endJoint, this.foot.getPosition(), referencePoint));
+        
+        if (this.footAngel > 2) {
+            this.foot.move(this.getFootPosition().subtract(0, 0.05, 0), true, 0.05);
+        }
+
         this.footAngel = Math.toDegrees(MathUtil.calculateAngle(this.endJoint, this.foot.getPosition(), referencePoint));
 
         double clampedAngle = Math.max(Math.min(this.foot.angleSize, this.footAngel), 0);
@@ -44,6 +48,11 @@ public class EntityLegWithFoot extends EntityLeg {
         Vec3 newFootPosition = this.getFootPosition(clampedAngle);
 
         this.foot.move(newFootPosition,false);
+
+        if (Double.isNaN(this.footAngel)) {
+            this.footAngel = 0;
+            PrAnCommonClass.LOGGER.warning("Foot has dropped to NaN, resetting to 0");
+        }
     }
 
     public Vec3 getFootPosition() {

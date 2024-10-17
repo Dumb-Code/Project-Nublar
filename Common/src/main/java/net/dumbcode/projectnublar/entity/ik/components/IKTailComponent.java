@@ -60,7 +60,7 @@ public class IKTailComponent<C extends IKChain, E extends IKAnimatable<E>> exten
 
         Vec3 tailStart = model.getBone("tail1_base").getPosition(entity);
 
-        this.tailTarget = this.getMovedTailPos(tailStart.add(centerDirection.scale(this.getLimb().maxLength())), entity);
+        this.tailTarget = this.getMovedTailPos(tailStart.add(centerDirection.scale(this.getLimb().getMaxLength())), entity);
 
         this.setLimb(0, tailStart, entity);
 
@@ -76,7 +76,7 @@ public class IKTailComponent<C extends IKChain, E extends IKAnimatable<E>> exten
                 continue;
             }
 
-            bone.moveTo(currentSegment.getPosition().subtract(0, 200, 0), endPos, entity);
+            bone.moveTo(currentSegment.getPosition(), endPos, entity);
         }
     }
     

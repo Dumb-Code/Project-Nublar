@@ -43,16 +43,12 @@ public class WorldCollidingSegment extends Segment {
 
         if (checkCollision) {
             Vec3 collisionPoint = this.level.clip(new ClipContext(
-                    oldPosition,
+                    oldPosition.add(0, risingAmount, 0),
                     this.getPosition(),
                     ClipContext.Block.COLLIDER,
                     ClipContext.Fluid.NONE,
                     new Arrow(this.level, this.getPosition().x(), this.getPosition().y(), this.getPosition().z())
             )).getLocation();
-
-            if (collisionPoint != position) {
-                collisionPoint = oldPosition.add(0, risingAmount, 0);
-            }
 
             super.move(collisionPoint);
         }

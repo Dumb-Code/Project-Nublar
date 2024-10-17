@@ -54,7 +54,7 @@ public class IKLegComponent<C extends EntityLeg, E extends IKAnimatable<E>> exte
 
         double newY = average;//Mth.lerp(2, entityBase.getPosition(entity).y(), average);
 
-        entityBase.moveTo(new Vec3(entity.position().x(), newY, entity.position().z()), null, entity);
+        //entityBase.moveTo(new Vec3(entity.position().x(), newY, entity.position().z()), null, entity);
         
         for (int i = 0; i < this.limbs.size(); i++) {
             BoneAccessor baseAccessor = model.getBone("base_" + "leg" + (i + 1));
@@ -123,7 +123,7 @@ public class IKLegComponent<C extends EntityLeg, E extends IKAnimatable<E>> exte
                 limb.hasToBeSet = false;
             }
 
-            if (rayCastHitPos.distanceTo(limb.target) > this.getMaxLegFormTargetDistance(entity)) {
+            if (!rayCastHitPos.closerThan(limb.target, this.getMaxLegFormTargetDistance(entity))) {
                 limb.setTarget(rayCastHitPos);
             }
         }
