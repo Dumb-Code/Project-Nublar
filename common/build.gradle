@@ -23,7 +23,7 @@ dependencies {
     implementation 'com.moandjiezana.toml:toml4j:0.7.2'
     implementation "net.tslat.smartbrainlib:SmartBrainLib-common-${project.minecraft_version}:${project.sbl_version}"
     compileOnly "software.bernie.geckolib:geckolib-forge-${minecraft_version}:${geckolib_version}"
-    implementation ("com.nyfaria.nyfsguilib:nyfsguilib-common-${minecraft_version}:${ngl_version}") {transitive = false}
+  //  implementation ("com.nyfaria.nyfsguilib:nyfsguilib-common-${minecraft_version}:${ngl_version}") {transitive = false}
     implementation 'mysticdrew:common-networking-common:1.0.3-1.20.1'
     implementation "earth.terrarium.botarium:botarium-forge-1.20.1:2.3.4"
    // modImplementation "dev.architectury:architectury:$rootProject.architectury_api_version"

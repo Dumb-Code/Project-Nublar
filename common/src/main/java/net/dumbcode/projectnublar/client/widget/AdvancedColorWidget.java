@@ -1,10 +1,9 @@
 package net.dumbcode.projectnublar.client.widget;
 
 
-import com.nyfaria.nyfsguilib.client.widgets.ColorPickerWidget;
-import com.nyfaria.nyfsguilib.client.widgets.ColorWheelWidget;
-import com.nyfaria.nyfsguilib.client.widgets.FilteredSelectionWidget;
-import com.nyfaria.nyfsguilib.client.widgets.api.ParentWidget;
+
+
+
 import net.dumbcode.projectnublar.api.DinoData;
 import net.dumbcode.projectnublar.api.Genes;
 import net.dumbcode.projectnublar.client.CommonClientClass;

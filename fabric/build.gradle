@@ -18,18 +18,18 @@ dependencies {
     include(implementation 'com.moandjiezana.toml:toml4j:0.7.2')
     modImplementation "net.tslat.smartbrainlib:SmartBrainLib-fabric-${project.minecraft_version}:${project.sbl_version}"
     modImplementation "software.bernie.geckolib:geckolib-fabric-${minecraft_version}:${geckolib_version}"
-    modImplementation "com.nyfaria.nyfsguilib:nyfsguilib-fabric-${minecraft_version}:${ngl_version}"
-    include("com.nyfaria.nyfsguilib:nyfsguilib-fabric-${minecraft_version}:${ngl_version}")
+ //   modImplementation "com.nyfaria.nyfsguilib:nyfsguilib-fabric-${minecraft_version}:${ngl_version}"
+ //   include("com.nyfaria.nyfsguilib:nyfsguilib-fabric-${minecraft_version}:${ngl_version}")
     modImplementation include('mysticdrew:common-networking-fabric:1.0.5-1.20.1')
     modImplementation include("earth.terrarium.botarium:botarium-fabric-1.20.1:2.3.4")
     modImplementation "dev.architectury:architectury-fabric:$rootProject.architectury_api_version"
 }
 
 loom {
-  //  if (project(":common").file("src/main/resources/${mod_id}.accesswidener").exists()) {
-   //     accessWidenerPath.set(project(":common").file("src/main/resources/${mod_id}.accesswidener"))
-  //  }
-    accessWidenerPath = file("src/main/resources/projectnublar.accesswidener")
+   if (project(":common").file("src/main/resources/${mod_id}.accesswidener").exists()) {
+        accessWidenerPath.set(project(":common").file("src/main/resources/${mod_id}.accesswidener"))
+   }
+    // accessWidenerPath = file("src/main/resources/projectnublar.accesswidener")
     mixin {
         defaultRefmapName.set("${mod_id}.refmap.json")
     }

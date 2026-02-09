@@ -1,10 +1,8 @@
 package net.dumbcode.projectnublar.client.widget;
 
-import com.nyfaria.nyfsguilib.client.widgets.ColorWheelWidget;
-import com.nyfaria.nyfsguilib.client.widgets.VanillaColorPickerWidget;
-import com.nyfaria.nyfsguilib.client.widgets.VerticalGradientBarWidget;
-import com.nyfaria.nyfsguilib.client.widgets.api.ParentWidget;
-import com.nyfaria.nyfsguilib.Constants;
+
+
+import net.dumbcode.projectnublar.Constants;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.Font;
 import net.minecraft.client.gui.GuiGraphics;

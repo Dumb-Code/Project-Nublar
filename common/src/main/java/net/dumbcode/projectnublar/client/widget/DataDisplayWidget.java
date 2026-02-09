@@ -1,7 +1,6 @@
 package net.dumbcode.projectnublar.client.widget;
 
-import com.nyfaria.nyfsguilib.client.widgets.ScrollingButtonListWidget;
-import com.nyfaria.nyfsguilib.client.widgets.api.ParentWidget;
+
 import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.gui.components.AbstractWidget;
 import net.minecraft.network.chat.Component;

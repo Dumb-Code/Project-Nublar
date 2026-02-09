@@ -1,6 +1,6 @@
 package net.dumbcode.projectnublar.client.widget;
 
-import com.nyfaria.nyfsguilib.client.widgets.NGLSlider;
+
 import net.dumbcode.projectnublar.Constants;
 import net.dumbcode.projectnublar.api.DNAData;
 import net.dumbcode.projectnublar.client.screen.SequencerScreen;
