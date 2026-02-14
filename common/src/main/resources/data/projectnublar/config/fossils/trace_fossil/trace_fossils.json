@@ -1,0 +1,19 @@
+{
+  "config_id": "trace_fossils",
+
+  "trace_fossil":{
+
+    "trace_shell": {
+      "weight": 1,
+      "periods": ["jurassic","cretaceous"],
+      "biomes": ["minecraft:ocean","minecraft:beach"]
+    },
+
+    "trace_footprint": {
+      "weight": 1,
+      "periods": ["cretaceous"],
+      "biomes": ["minecraft:mountain","minecraft:desert"]
+    }
+
+  }
+}

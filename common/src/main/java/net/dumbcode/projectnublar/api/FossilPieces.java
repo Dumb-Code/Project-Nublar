@@ -1,5 +1,7 @@
 package net.dumbcode.projectnublar.api;
 
+import net.minecraft.resources.ResourceLocation;
+
 import java.util.ArrayList;
 import java.util.List;
 //pseudo-registry of fossil pieces.
@@ -7,8 +9,6 @@ public class FossilPieces {
 
 
     private static List<FossilPiece> PIECES = new ArrayList<>();
-    private static List<FossilPiece> TYRANNOSAUR_PIECES = new ArrayList<>();
-    private static List<FossilPiece> TRICERATOPS_PIECES = new ArrayList<>();
 
     public static FossilPiece RIBCAGE = registerPiece("ribcage");
     public static FossilPiece NECK = registerPiece("neck");
@@ -22,10 +22,10 @@ public class FossilPieces {
     public static FossilPiece REX_SKULL = registerPiece("rex_skull", "tyrannosaurus_rex");
     public static FossilPiece TRICERATOPS_SKULL = registerPiece("triceratops_skull", "triceratops");
 
-    public static List<FossilPiece> getPieces() {
-        return PIECES;
-    }
+
+
     public static List<FossilPiece> getTyrannosaurPieces() {
+        List<FossilPiece> TYRANNOSAUR_PIECES = new ArrayList<>();
 
         TYRANNOSAUR_PIECES.add(REX_SKULL);
         TYRANNOSAUR_PIECES.add(RIBCAGE);
@@ -38,7 +38,14 @@ public class FossilPieces {
 
         return TYRANNOSAUR_PIECES;
     }
+
+    public static List<FossilPiece> getPieces() {
+        return PIECES;
+    }
+
     public static List<FossilPiece> getTriceratopsPieces() {
+        List<FossilPiece> TRICERATOPS_PIECES = new ArrayList<>();
+
         TRICERATOPS_PIECES.add(TRICERATOPS_SKULL);
         TRICERATOPS_PIECES.add(RIBCAGE);
         TRICERATOPS_PIECES.add(ARM);
@@ -51,6 +58,15 @@ public class FossilPieces {
         return TRICERATOPS_PIECES;
     }
     //overload to register common piece
+    public static List<FossilPiece> getPiecesByEntityType(ResourceLocation pType) {
+        if (pType.getPath().equals("tyrannosaurus_rex")) {
+            return getTyrannosaurPieces();
+        }
+        else if (pType.getPath().equals("triceratops"))
+            return getTriceratopsPieces();
+
+        else return new ArrayList<>();
+    }
 
     public static FossilPiece registerPiece(String name) {
         return registerPiece(name, "common");

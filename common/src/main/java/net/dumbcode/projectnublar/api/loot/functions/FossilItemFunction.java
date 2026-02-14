@@ -1,11 +1,11 @@
 package net.dumbcode.projectnublar.api.loot.functions;
 
 import net.dumbcode.projectnublar.api.DNAData;
+
 import net.dumbcode.projectnublar.api.FossilCollection;
 import net.dumbcode.projectnublar.api.FossilPiece;
 import net.dumbcode.projectnublar.api.Quality;
 import net.dumbcode.projectnublar.block.FossilBlock;
-import net.dumbcode.projectnublar.config.FossilsConfig;
 import net.dumbcode.projectnublar.init.ItemInit;
 import net.dumbcode.projectnublar.init.LootFunctionInit;
 import com.google.gson.JsonDeserializationContext;
@@ -24,6 +24,7 @@ import net.minecraft.world.level.storage.loot.functions.LootItemConditionalFunct
 import net.minecraft.world.level.storage.loot.functions.LootItemFunctionType;
 import net.minecraft.world.level.storage.loot.parameters.LootContextParams;
 import net.minecraft.world.level.storage.loot.predicates.LootItemCondition;
+
 
 public class FossilItemFunction extends LootItemConditionalFunction {
 
@@ -51,10 +52,10 @@ public class FossilItemFunction extends LootItemConditionalFunction {
                 quality = Quality.FRAGMENTED;
                 for (int j = 0; j <= i; ++j) {
                     SimpleWeightedRandomList.Builder<Quality> builder = new SimpleWeightedRandomList.Builder<>();
-                    builder.add(Quality.FRAGMENTED, FossilsConfig.INSTANCE.fragmented.weight().get());
-                    builder.add(Quality.POOR, FossilsConfig.INSTANCE.poor.weight().get());
-                    builder.add(Quality.COMMON, FossilsConfig.INSTANCE.common.weight().get());
-                    builder.add(Quality.PRISTINE, FossilsConfig.INSTANCE.pristine.weight().get());
+                 //   builder.add(Quality.FRAGMENTED, FossilsConfig.INSTANCE.fragmented.weight().get());
+                 //   builder.add(Quality.POOR, FossilsConfig.INSTANCE.poor.weight().get());
+                 //   builder.add(Quality.COMMON, FossilsConfig.INSTANCE.common.weight().get());
+                 //   builder.add(Quality.PRISTINE, FossilsConfig.INSTANCE.pristine.weight().get());
                     SimpleWeightedRandomList<Quality> weightedrandomlist = builder.build();
                     Quality newQuality = weightedrandomlist.getRandomValue(lootContext.getRandom()).get();
                     if (newQuality.getValue() > quality.getValue()) {
@@ -95,3 +96,5 @@ public class FossilItemFunction extends LootItemConditionalFunction {
         }
     }
 }
+
+

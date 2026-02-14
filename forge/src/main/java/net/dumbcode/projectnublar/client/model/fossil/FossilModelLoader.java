@@ -18,6 +18,7 @@ import net.minecraftforge.client.model.geometry.IUnbakedGeometry;
 import java.util.function.Function;
 
 public class FossilModelLoader implements IGeometryLoader<FossilModelLoader.FossilModelGeometry> {
+
     public static final ResourceLocation GENERATOR = Constants.modLoc( "fossil");
 
     @Override
@@ -33,4 +34,6 @@ public class FossilModelLoader implements IGeometryLoader<FossilModelLoader.Foss
             return new FossilItemModel();
         }
     }
+
+
 }

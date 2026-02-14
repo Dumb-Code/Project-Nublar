@@ -3,8 +3,8 @@ package net.dumbcode.projectnublar.init;
 import dev.architectury.registry.registries.DeferredRegister;
 import dev.architectury.registry.registries.DeferredSupplier;
 import net.dumbcode.projectnublar.Constants;
-import net.dumbcode.projectnublar.block.LowSecurityElectricFencePostBlock;
 import net.dumbcode.projectnublar.api.FossilCollection;
+import net.dumbcode.projectnublar.block.LowSecurityElectricFencePostBlock;
 import net.dumbcode.projectnublar.block.*;
 import net.dumbcode.projectnublar.block.api.EnumConnectionType;
 import net.dumbcode.projectnublar.block.entity.BlockEntityElectricFence;
@@ -14,10 +14,13 @@ import net.dumbcode.projectnublar.block.entity.GeneratorBlockEntity;
 import net.dumbcode.projectnublar.block.entity.IncubatorBlockEntity;
 import net.dumbcode.projectnublar.block.entity.ProcessorBlockEntity;
 import net.dumbcode.projectnublar.block.entity.SequencerBlockEntity;
+import net.dumbcode.projectnublar.client.widget.VanillaColorPickerWidget;
 import net.dumbcode.projectnublar.item.GeoMultiBlockItem;
 import net.minecraft.core.registries.Registries;
+import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.item.BlockItem;
 import net.minecraft.world.level.block.Block;
+import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.level.block.entity.BlockEntityType;
 import net.minecraft.world.level.block.state.BlockBehaviour;
 
@@ -28,8 +31,12 @@ public class BlockInit {
     public static final DeferredRegister<Block> BLOCKS = DeferredRegister.create(Constants.MODID, Registries.BLOCK);
     public static final DeferredRegister<BlockEntityType<?>> BLOCK_ENTITIES = DeferredRegister.create(Constants.MODID, Registries.BLOCK_ENTITY_TYPE);
 
-    public static FossilCollection FOSSIL = FossilCollection.create("tyrannosaurus_rex");
-    public static FossilCollection FOSSIL_2 = FossilCollection.create("triceratops");
+
+
+
+     public static FossilCollection TYRANNOSAURUS_REX_FOSSILS = FossilCollection.create(EntityInit.TYRANNOSAURUS_REX.getId());
+     public static FossilCollection TRICERATOPS_FOSSILS = FossilCollection.create(EntityInit.TRICERATOPS.getId());
+
     public static DeferredSupplier<Block> PROCESSOR = registerBlock("processor", () -> new ProcessorBlock(BlockBehaviour.Properties.of().noOcclusion(),3,2, 2), block->()-> new GeoMultiBlockItem(block.get(),ItemInit.getItemProperties(),3,2, 2));
     public static DeferredSupplier<Block> SEQUENCER = registerBlock("sequencer", () -> new SequencerBlock(BlockBehaviour.Properties.of().noOcclusion(),2,2, 2), block->()-> new GeoMultiBlockItem(block.get(),ItemInit.getItemProperties(),2,2, 2));
     public static DeferredSupplier<Block> EGG_PRINTER = registerBlock("egg_printer", () -> new EggPrinterBlock(BlockBehaviour.Properties.of().noOcclusion(),1,2, 1), block->()-> new GeoMultiBlockItem(block.get(),ItemInit.getItemProperties(),1,2, 1));

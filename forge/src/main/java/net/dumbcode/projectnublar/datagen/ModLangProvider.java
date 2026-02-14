@@ -3,8 +3,6 @@ package net.dumbcode.projectnublar.datagen;
 import com.google.common.collect.ImmutableMap;
 import dev.architectury.registry.registries.DeferredSupplier;
 import net.dumbcode.projectnublar.Constants;
-import net.dumbcode.projectnublar.api.FossilPiece;
-import net.dumbcode.projectnublar.api.FossilPieces;
 import net.dumbcode.projectnublar.init.BlockInit;
 import net.dumbcode.projectnublar.init.EntityInit;
 import net.dumbcode.projectnublar.init.ItemInit;
@@ -51,9 +49,6 @@ public class ModLangProvider extends LanguageProvider {
         add("quality." + Constants.MODID + ".poor", "Poor");
         add("quality." + Constants.MODID + ".common", "Common");
         add("quality." + Constants.MODID + ".pristine", "Pristine");
-        for (FossilPiece piece : FossilPieces.getPieces()) {
-            add("piece." + Constants.MODID + "." + piece.name().toLowerCase(), checkReplace(piece));
-        }
         add("item." + Constants.MODID + ".amber", "%1$s Amber");
         add("dna_percentage." + Constants.MODID, "DNA Percentage: %1$s");
         add("container." + Constants.MODID + ".processor", "Fossil Processor");
@@ -115,13 +110,6 @@ public class ModLangProvider extends LanguageProvider {
 
     protected String checkReplace(DeferredSupplier<?> DeferredSupplier) {
         return Arrays.stream(DeferredSupplier.getId().getPath().split("_"))
-                .map(this::checkReplace)
-                .filter(s -> !s.isBlank())
-                .collect(Collectors.joining(" "))
-                .trim();
-    }
-    protected String checkReplace(FossilPiece DeferredSupplier) {
-        return Arrays.stream(DeferredSupplier.name().split("_"))
                 .map(this::checkReplace)
                 .filter(s -> !s.isBlank())
                 .collect(Collectors.joining(" "))

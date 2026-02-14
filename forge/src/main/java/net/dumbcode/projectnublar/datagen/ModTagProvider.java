@@ -1,14 +1,11 @@
 package net.dumbcode.projectnublar.datagen;
 
 import net.dumbcode.projectnublar.Constants;
-import net.dumbcode.projectnublar.api.FossilCollection;
 import net.dumbcode.projectnublar.init.TagInit;
 import net.minecraft.core.HolderLookup;
 import net.minecraft.core.registries.Registries;
 import net.minecraft.data.PackOutput;
 import net.minecraft.data.tags.TagsProvider;
-import net.minecraft.tags.BiomeTags;
-import net.minecraft.tags.BlockTags;
 import net.minecraft.tags.ItemTags;
 import net.minecraft.tags.TagKey;
 import net.minecraft.world.entity.EntityType;
@@ -57,18 +54,7 @@ public class ModTagProvider {
 
         @Override
         protected void addTags(HolderLookup.Provider pProvider) {
-            FossilCollection.COLLECTIONS.forEach((name, collection) -> {
-                collection.amberBlocks().forEach((block, map)->{
-                    tag(BlockTags.MINEABLE_WITH_PICKAXE).add(ForgeRegistries.BLOCKS.getResourceKey(map.get()).get());
-                });
-                collection.fossilblocks().forEach((block, qualityMap) -> {
-                    qualityMap.forEach((quality, fossilPieceRegistryObjectMap) -> {
-                        fossilPieceRegistryObjectMap.forEach((fossilPiece, registryObject) -> {
-                            tag(BlockTags.MINEABLE_WITH_PICKAXE).add(ForgeRegistries.BLOCKS.getResourceKey(registryObject.get()).get());
-                        });
-                    });
-                });
-            });
+
         }
         public  <T extends Block>void populateTag(TagKey<Block> tag, Supplier<?>... items){
             for (Supplier<?> item : items) {

@@ -1,0 +1,11 @@
+{
+  "config_id": "fossils",
+
+    "species": "projectnublar:tyrannosaurus_rex",
+    "pieces": "biped",
+    "special_pieces": [],
+    "weight": 1,
+    "periods": ["cretaceous"],
+    "biomes": ["minecraft:desert", "minecraft:forest"]
+
+}

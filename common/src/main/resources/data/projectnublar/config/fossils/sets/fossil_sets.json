@@ -1,0 +1,26 @@
+{
+  "config_id": "fossil_sets",
+
+    "biped": [
+      {"piece": "ribs", "weight": 1},
+      {"piece": "foot", "weight": 1},
+      {"piece": "arm", "weight": 1},
+      {"piece": "leg_biped", "weight": 1},
+      {"piece": "tail", "weight": 1},
+      {"piece": "spine", "weight": 1}
+    ],
+
+    "quadruped": [
+      {"piece": "ribs", "weight": 1},
+      {"piece": "foot", "weight": 1},
+      {"piece": "leg_quadruped", "weight": 4},
+      {"piece": "tail", "weight": 1},
+      {"piece": "spine", "weight": 1}
+    ],
+
+    "fern": [
+      {"piece": "leaf", "weight": 1}
+    ]
+
+
+}

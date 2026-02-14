@@ -21,9 +21,9 @@ import net.minecraft.world.item.Item;
 public class ItemInit {
     public static final DeferredRegister<Item> ITEMS = DeferredRegister.create(Constants.MODID, Registries.ITEM);
 
-
     public static final DeferredSupplier<Item> FOSSIL_ITEM = ITEMS.register("fossil", () -> new FossilItem(getItemProperties()));
     public static final DeferredSupplier<Item> AMBER_ITEM = ITEMS.register("amber", () -> new AmberItem(getItemProperties()));
+
 
     public static final DeferredSupplier<Item> TEST_TUBE_ITEM = ITEMS.register("test_tube", () -> new TestTubeItem(getItemProperties()));
 

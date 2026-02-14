@@ -50,21 +50,6 @@ public class ModBlockLootTables extends BlockLootSubProvider {
         return this.getBlockStream().filter(this::shouldGenerateLoot).toList();
     }
 
-    protected void fossilDrops(FossilBlock block) {
-        ItemLike pItem = block.asItem();
-        this.add(block, LootTable.lootTable().withPool(
-                this.applyExplosionCondition(pItem, LootPool.lootPool()
-                        .apply(FossilItemFunction.fossilItem())
-                        .setRolls(ConstantValue.exactly(1.0F)).add(LootItem.lootTableItem(pItem)))));
-    }
-
-    protected void amberDrops(AmberBlock block) {
-        ItemLike pItem = block.asItem();
-        this.add(block, LootTable.lootTable().withPool(
-                this.applyExplosionCondition(pItem, LootPool.lootPool()
-                        .apply(AmberItemFunction.amberItem())
-                        .setRolls(ConstantValue.exactly(1.0F)).add(LootItem.lootTableItem(pItem)))));
-    }
 
     protected Stream<Block> getBlockStream() {
         return BuiltInRegistries.BLOCK.stream().filter(block -> BuiltInRegistries.BLOCK.getKey(block).getNamespace().equals(Constants.MODID));
@@ -74,6 +59,20 @@ public class ModBlockLootTables extends BlockLootSubProvider {
         return shouldGenerateLoot(block);
     }
 
+    protected void fossilDrops(FossilBlock block) {
+        ItemLike pItem = block.asItem();
+        this.add(block, LootTable.lootTable().withPool(
+                this.applyExplosionCondition(pItem, LootPool.lootPool()
+                        .apply(FossilItemFunction.fossilItem())
+                        .setRolls(ConstantValue.exactly(1.0F)).add(LootItem.lootTableItem(pItem)))));
+    }
+    protected void amberDrops(AmberBlock block) {
+        ItemLike pItem = block.asItem();
+        this.add(block, LootTable.lootTable().withPool(
+                this.applyExplosionCondition(pItem, LootPool.lootPool()
+                        .apply(AmberItemFunction.amberItem())
+                        .setRolls(ConstantValue.exactly(1.0F)).add(LootItem.lootTableItem(pItem)))));
+    }
     protected boolean shouldGenerateLoot(Block block) {
         return block.asItem() != Items.AIR;
     }

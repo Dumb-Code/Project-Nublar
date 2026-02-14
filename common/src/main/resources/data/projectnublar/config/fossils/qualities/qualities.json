@@ -1,0 +1,23 @@
+{
+  "config_id": "qualities",
+
+    "fragmented": {
+      "weight": 2,
+      "dna_yield": 0.05
+    },
+
+    "poor": {
+      "weight": 2,
+      "dna_yield": 0.1
+    },
+
+    "common": {
+      "weight": 2,
+      "dna_yield": 0.4
+    },
+    "pristine": {
+      "weight": 2,
+      "dna_yield": 1.0
+    }
+
+}

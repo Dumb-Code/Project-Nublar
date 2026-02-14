@@ -5,6 +5,7 @@ import net.dumbcode.projectnublar.block.api.ConnectableBlockEntity;
 import net.dumbcode.projectnublar.block.api.Connection;
 import net.dumbcode.projectnublar.data.BehaviourDataReloadListener;
 import net.dumbcode.projectnublar.data.DietReloadListener;
+import net.dumbcode.projectnublar.data.FossilConfigReloadListener;
 import net.dumbcode.projectnublar.data.GeneDataReloadListener;
 import net.dumbcode.projectnublar.entity.DeathMessageHandler;
 import net.dumbcode.projectnublar.entity.Dinosaur;
@@ -27,6 +28,7 @@ public class CommonForgeEvents {
         event.addListener(new GeneDataReloadListener());
         event.addListener(new BehaviourDataReloadListener());
         event.addListener(new DietReloadListener());
+        event.addListener(new FossilConfigReloadListener());
     }
     @SubscribeEvent
     public static void onLivingDeath(LivingDeathEvent event){

@@ -1,0 +1,21 @@
+{
+  "config_id": "time_periods",
+
+  "periods": [
+    {"period":"carboniferous",
+      "min_y": 15,
+      "max_y": 40,
+      "rarity_modifier": 1
+    },
+    {"period":"jurassic",
+      "min_y": 40,
+      "max_y": 55,
+      "rarity_modifier": 2.8
+    },
+    {"period":"cretaceous",
+      "min_y": 55,
+      "max_y": 75,
+      "rarity_modifier": 2.95
+    }
+  ]
+}

@@ -5,7 +5,6 @@ import net.dumbcode.projectnublar.init.MenuTypeInit;
 import net.dumbcode.projectnublar.item.ComputerChipItem;
 import net.dumbcode.projectnublar.item.FilterItem;
 import net.dumbcode.projectnublar.item.TankItem;
-import net.minecraft.network.FriendlyByteBuf;
 import net.minecraft.world.Container;
 import net.minecraft.world.SimpleContainer;
 import net.minecraft.world.entity.player.Inventory;
@@ -36,12 +35,15 @@ public class ProcessorMenu extends AbstractContainerMenu {
                 return stack.is(Items.WATER_BUCKET);
             }
         });
+
         this.addSlot(new Slot(container, 1, 80, 18){
             @Override
             public boolean mayPlace(ItemStack stack) {
                 return stack.is(ItemInit.FOSSIL_ITEM.get()) || (stack.is(ItemInit.AMBER_ITEM.get()) && stack.hasTag() && stack.getTag().contains("dna_percentage"));
             }
         });
+
+
         this.addSlot(new Slot(container, 12, 22, 19){
             @Override
             public boolean mayPlace(ItemStack stack) {
@@ -99,11 +101,14 @@ public class ProcessorMenu extends AbstractContainerMenu {
                     return ItemStack.EMPTY;
                 }
             } else {
+
                 if (itemstack1.is(ItemInit.FOSSIL_ITEM.get()) || (itemstack1.is(ItemInit.AMBER_ITEM.get()) && itemstack1.hasTag() && itemstack1.getTag().contains("dna_percentage"))) {
                     if (!this.moveItemStackTo(itemstack1, 1, 2, false)) {
                         return ItemStack.EMPTY;
                     }
-                } else if (itemstack1.is(Items.WATER_BUCKET)) {
+
+                }
+            } if (itemstack1.is(Items.WATER_BUCKET)) {
                     if (!this.moveItemStackTo(itemstack1, 0, 1, false)) {
                         return ItemStack.EMPTY;
                     }
@@ -126,7 +131,7 @@ public class ProcessorMenu extends AbstractContainerMenu {
                 }
                 slot.onTake(player, itemstack1);
             }
-        }
+
         return ItemStack.EMPTY;
     }
 

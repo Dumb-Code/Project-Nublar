@@ -1,7 +1,7 @@
 package net.dumbcode.projectnublar;
 
 import dev.architectury.platform.forge.EventBuses;
-import net.dumbcode.projectnublar.config.FossilsConfig;
+
 import net.dumbcode.projectnublar.datagen.GeneDataProvider;
 import net.dumbcode.projectnublar.datagen.ModBlockStateProvider;
 import net.dumbcode.projectnublar.datagen.ModItemModelProvider;
@@ -17,9 +17,7 @@ import net.minecraft.data.PackOutput;
 import net.minecraftforge.common.data.ExistingFileHelper;
 import net.minecraftforge.data.event.GatherDataEvent;
 import net.minecraftforge.eventbus.api.IEventBus;
-import net.minecraftforge.fml.ModLoadingContext;
 import net.minecraftforge.fml.common.Mod;
-import net.minecraftforge.fml.config.ModConfig;
 import net.minecraftforge.fml.javafmlmod.FMLJavaModLoadingContext;
 
 @Mod(Constants.MODID)
@@ -31,7 +29,7 @@ public class ProjectNublarForge {
         EventBuses.registerModEventBus(Constants.MODID,bus);
         ProjectNublar.init();
         SensorTypesInit.init();
-        ModLoadingContext.get().registerConfig(ModConfig.Type.COMMON, FossilsConfig.CONFIG_SPEC,"projectnublar-fossils.toml");
+      //  ModLoadingContext.get().registerConfig(ModConfig.Type.COMMON, FossilsConfig.CONFIG_SPEC,"projectnublar-fossils.toml");
     }
 
 

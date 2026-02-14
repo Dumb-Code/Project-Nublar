@@ -20,16 +20,6 @@ public class ModBlockStateProvider extends BlockStateProvider {
     @Override
     protected void registerStatesAndModels() {
 
-        // Stream.of(
-        //
-        //         )
-        //         .map(Supplier::get)
-        //         .forEach(this::simpleCubeBottomTopBlockState);
-        //
-        // Stream.of(
-        //
-        // ).map(Supplier::get)
-        //         .forEach(this::simpleBlock);
         FossilCollection.COLLECTIONS.forEach((s, fossilCollection) -> {
             fossilCollection.fossilblocks().forEach((block, qualityMap) -> {
                 qualityMap.forEach((quality, fossilPieceRegistryObjectMap) -> {
@@ -41,7 +31,7 @@ public class ModBlockStateProvider extends BlockStateProvider {
         });
         FossilCollection.COLLECTIONS.forEach((s, fossilCollection) -> {
             fossilCollection.amberBlocks().forEach((block, blockRegistryObject) -> {
-                    amberBlock(block, (AmberBlock) blockRegistryObject.get());
+                amberBlock(block, (AmberBlock) blockRegistryObject.get());
             });
         });
         simpleBlock(BlockInit.PROCESSOR.get(), models().getBuilder("block/processor").texture("particle", modLoc("block/processor")));
@@ -58,7 +48,6 @@ public class ModBlockStateProvider extends BlockStateProvider {
         String name = getName(block);
         return models().cubeBottomTop(name, modLoc("block/" + name + "_side"), modLoc("block/" + name + "_bottom"), modLoc("block/" + name + "_top"));
     }
-
     protected void fossilBlock(Block base, FossilBlock block) {
         try {
             simpleBlock(block, models()
@@ -81,7 +70,6 @@ public class ModBlockStateProvider extends BlockStateProvider {
         } catch (Exception ignored) {
         }
     }
-
     protected String getName(Block item) {
         return ForgeRegistries.BLOCKS.getKey(item).getPath();
     }

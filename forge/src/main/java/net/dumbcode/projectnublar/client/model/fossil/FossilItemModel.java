@@ -16,7 +16,6 @@ import net.minecraft.client.resources.model.BakedModel;
 import net.minecraft.client.resources.model.ModelResourceLocation;
 import net.minecraft.client.resources.model.ModelState;
 import net.minecraft.core.Direction;
-import net.minecraft.resources.ResourceLocation;
 import net.minecraft.util.RandomSource;
 import net.minecraft.world.inventory.InventoryMenu;
 import net.minecraft.world.item.ItemStack;
@@ -33,6 +32,7 @@ import org.joml.Vector3f;
 import java.util.List;
 
 public class FossilItemModel implements IDynamicBakedModel, IStackSensitive {
+
     private ItemStack stack;
     private BakedModel model;
 
@@ -48,20 +48,7 @@ public class FossilItemModel implements IDynamicBakedModel, IStackSensitive {
         FossilPiece piece = data.getFossilPiece();
         TextureAtlasSprite sprite = getTexture("block/fossil_overlay/" + piece.folder() + "/"+piece.name());
         List<BlockElement> unbaked = UnbakedGeometryHelper.createUnbakedItemElements(0,sprite.contents());
-//        unbaked.forEach(e ->
-//        {
-//            for(Direction d : Direction.values())
-//            {
-//                if(d != side)
-//                {
-//                    e.faces.remove(d);
-//                }
-//            }
-//
-//            float z = (e.from.z() + e.to.z()) * 0.5F;
-//            e.from.z =(z + 0.5f * 0.1f);
-//            e.to.z = (z + 0.5f * 0.1F);
-//        });
+
         return UnbakedGeometryHelper.bakeElements(unbaked, m->sprite, modelState, Constants.modLoc( "item/fossil"));
     }
     private TextureAtlasSprite getTexture(String path) {
@@ -105,4 +92,5 @@ public class FossilItemModel implements IDynamicBakedModel, IStackSensitive {
     public ItemStack getStack() {
         return this.stack;
     }
+
 }
