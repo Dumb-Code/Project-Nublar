@@ -4,6 +4,7 @@ import dev.architectury.registry.registries.DeferredRegister;
 import dev.architectury.registry.registries.DeferredSupplier;
 import net.dumbcode.projectnublar.Constants;
 import net.dumbcode.projectnublar.api.*;
+import net.dumbcode.projectnublar.api.fossil.Dinosaurs;
 import net.dumbcode.projectnublar.entity.dinosaur.Dinosaur;
 import net.minecraft.client.Minecraft;
 import net.minecraft.core.registries.BuiltInRegistries;
@@ -24,6 +25,7 @@ import java.util.List;
 
 public class CreativeTabInit {
     public static final DeferredRegister<CreativeModeTab> CREATIVE_MODE_TABS = DeferredRegister.create(Constants.MODID, Registries.CREATIVE_MODE_TAB);
+
     public static final DeferredSupplier<CreativeModeTab> FOSSIL_ORES_TAB = CREATIVE_MODE_TABS.register(Constants.MODID + "_fossil_ores", () -> CreativeModeTab.builder(CreativeModeTab.Row.TOP, 0)
             .title(Component.translatable("itemGroup." + Constants.MODID + ".fossil_ores"))
             .icon(() -> {
@@ -37,19 +39,45 @@ public class CreativeTabInit {
                             fossilCollection.fossilblocks().forEach((block, qualityMap) -> {
                                 qualityMap.forEach((quality, stoneMap) -> {
                                     stoneMap.forEach((piece, blockDeferredSupplier) -> {
-
-                                        ///TO-DO: Replace with datapack
-                                     //   FossilsConfig.Fossil fossil = FossilsConfig.getFossils().get(entity);
-                                    //    if (FossilsConfig.getSet(fossil.getPieces().get()).pieces.get().contains(piece.name()) || fossil.getSpecial_pieces().get().contains(piece.name())) {
-                                       //     ItemStack stack = new ItemStack(blockDeferredSupplier.get());
-                                          //  stack.getOrCreateTag().putString("quality", quality.getName());
-                                           // output.accept(stack);
-                                      //  }
+                                        ItemStack stack = new ItemStack(blockDeferredSupplier.get());
+                                        stack.getOrCreateTag().putString("quality", quality.getName());
+                                        output.accept(stack);
                                     });
                                 });
                             });
-                         //   fossilCollection.amberBlocks().forEach((block, blockDeferredSupplier) -> output.accept(blockDeferredSupplier.get()));
+                            fossilCollection.amberBlocks().forEach((block, blockDeferredSupplier) -> output.accept(blockDeferredSupplier.get()));
                         });
+                    })
+            .build());
+    public static final DeferredSupplier<CreativeModeTab> FOSSIL_ITEMS_TAB = CREATIVE_MODE_TABS.register(Constants.MODID + "_fossil_items", () -> CreativeModeTab.builder(CreativeModeTab.Row.TOP, 0)
+            .title(Component.translatable("itemGroup." + Constants.MODID + ".fossil_items"))
+            .icon(() -> {
+                ItemStack stack = new ItemStack(ItemInit.FOSSIL_ITEM.get());
+                DNAData dnaData = new DNAData();
+                dnaData.setEntityType(EntityInit.TYRANNOSAURUS_REX.get());
+                dnaData.setFossilPiece(FossilPieces.REX_SKULL);
+                dnaData.setQuality(Quality.PRISTINE);
+                stack.getOrCreateTag().put("DNAData", dnaData.saveToNBT(new CompoundTag()));
+                return stack;
+            })
+            .displayItems(
+                    (itemDisplayParameters, output) -> {
+                        for(ResourceLocation type : Dinosaurs.DINOSAURS_LIST) {
+                            FossilPieces.getPiecesByEntityType(type).forEach(fossilPiece -> {
+                                for (Quality value : Quality.values()) {
+                                    if (value == Quality.NONE) continue;
+                                    ItemStack stack = new ItemStack(ItemInit.FOSSIL_ITEM.get());
+                                    DNAData dnaData = new DNAData();
+                                    EntityType<?> entityType = Dinosaurs.getEntityType(type);
+                                    dnaData.setEntityType(entityType);
+                                    dnaData.setFossilPiece(fossilPiece);
+                                    dnaData.setQuality(value);
+                                    stack.getOrCreateTag().put("DNAData", dnaData.saveToNBT(new CompoundTag()));
+                                    output.accept(stack);
+                                }
+                            });
+
+                        }
                     })
             .build());
     public static final DeferredSupplier<CreativeModeTab> MACHINES_TAB = CREATIVE_MODE_TABS.register(Constants.MODID + "_machines", () -> CreativeModeTab.builder(CreativeModeTab.Row.TOP, 0)

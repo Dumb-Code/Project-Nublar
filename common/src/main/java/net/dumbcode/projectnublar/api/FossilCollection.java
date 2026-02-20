@@ -18,8 +18,7 @@ import java.util.Map;
 public record FossilCollection(Map<Block,Map<Quality,Map<FossilPiece, DeferredSupplier<Block>>>> fossilblocks, Map<Block,DeferredSupplier<Block>> amberBlocks) {
     //store collections for use
     public static Map<String,FossilCollection> COLLECTIONS = new HashMap<>();
-    public static Map<Block,Map<Quality,Map<FossilPiece,DeferredSupplier<Block>>>> fullFossilMap = new HashMap<>();
-    public static Map<Block,DeferredSupplier<Block>> fullAmberMap = new HashMap<>();
+
     public static List<Block> stonelist = List.of(
             Blocks.STONE,
             Blocks.ANDESITE, Blocks.GRANITE, Blocks.DIORITE, Blocks.SANDSTONE, Blocks.DEEPSLATE,
@@ -33,6 +32,8 @@ public record FossilCollection(Map<Block,Map<Quality,Map<FossilPiece, DeferredSu
    }
     //register a fossil collection based off an EntityType
     public static FossilCollection create(ResourceLocation entityType) {
+        Map<Block,Map<Quality,Map<FossilPiece,DeferredSupplier<Block>>>> fullFossilMap = new HashMap<>();
+        Map<Block,DeferredSupplier<Block>> fullAmberMap = new HashMap<>();
         for (Block stone : stonelist) {
             String stoneName = BuiltInRegistries.BLOCK.getKey(stone).getPath();
             Map<Quality,Map<FossilPiece,DeferredSupplier<Block>>> qualityMap2 = new HashMap<>();
