@@ -1,13 +1,12 @@
 package net.dumbcode.projectnublar.util;
 
-import net.dumbcode.projectnublar.entity.Dinosaur;
+import net.dumbcode.projectnublar.entity.dinosaur.Dinosaur;
 import net.minecraft.network.syncher.EntityDataAccessor;
 import net.minecraft.network.syncher.EntityDataSerializers;
 import net.minecraft.network.syncher.SynchedEntityData;
 import software.bernie.geckolib.core.animation.RawAnimation;
 
 import java.util.HashMap;
-import java.util.Map;
 import java.util.Random;
 
 public class DinoAnimationUtils {
@@ -87,7 +86,7 @@ public class DinoAnimationUtils {
     public static final RawAnimation SNIFF_GROUND_IDLE_ANIM = RawAnimation.begin().thenLoop("sniffground");
     public static final RawAnimation SHAKE_BODY_IDLE_ANIM = RawAnimation.begin().thenLoop("shakebody");
     public static final RawAnimation SHAKE_HEAD_IDLE_ANIM = RawAnimation.begin().thenLoop("shakehead");
-    public static final RawAnimation SCRATCH_IDLE_ANIM = RawAnimation.begin().thenLoop("shakehead");
+    public static final RawAnimation SCRATCH_IDLE_ANIM = RawAnimation.begin().thenLoop("scratch");
 
     //FIGHT
     public static final RawAnimation ATTACK_ANIM = RawAnimation.begin().thenLoop("attack1");

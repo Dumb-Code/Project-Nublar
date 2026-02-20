@@ -1,14 +1,14 @@
 {
   "diet_id": "tyrannosaurus_rex_diet",
   "valid_food_items": {
-    "item.minecraft.cooked_beef": 5.0,
-    "item.minecraft.beef": 2.0,
-    "item.minecraft.cooked_chicken": 3.0,
-    "item.minecraft.chicken": 1.0,
-    "item.minecraft.cooked_porkchop": 3.0,
-    "item.minecraft.porkchop": 2.0,
-    "item.minecraft.cooked_mutton": 5.0,
-    "item.minecraft.mutton": 3.0
+    "item.minecraft.cooked_beef": 10.0,
+    "item.minecraft.beef": 5.0,
+    "item.minecraft.cooked_chicken": 6.0,
+    "item.minecraft.chicken": 3.0,
+    "item.minecraft.cooked_porkchop": 10.0,
+    "item.minecraft.porkchop": 5.0,
+    "item.minecraft.cooked_mutton": 10.0,
+    "item.minecraft.mutton": 5.0
     }
 
 }

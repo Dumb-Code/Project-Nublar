@@ -1,5 +1,6 @@
 package net.dumbcode.projectnublar.entity;
 
+import net.dumbcode.projectnublar.entity.dinosaur.Dinosaur;
 import net.minecraft.network.chat.Component;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.level.ServerLevel;

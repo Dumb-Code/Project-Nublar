@@ -2,12 +2,15 @@ package net.dumbcode.projectnublar.item;
 
 import net.dumbcode.projectnublar.api.DinoBehaviourData;
 import net.dumbcode.projectnublar.api.DinoData;
+import net.dumbcode.projectnublar.client.renderer.layer.DinoLayer;
 import net.dumbcode.projectnublar.data.BehaviourDataReloadListener;
-import net.dumbcode.projectnublar.entity.Dinosaur;
-import net.dumbcode.projectnublar.init.AttributesInit;
+import net.dumbcode.projectnublar.entity.dinosaur.Dinosaur;
+import net.dumbcode.projectnublar.init.GeneInit;
 import net.dumbcode.projectnublar.item.api.DNADataItem;
 import net.dumbcode.projectnublar.util.DinoNeedsUtils;
+import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.network.chat.Component;
+import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.InteractionResult;
@@ -32,14 +35,13 @@ public class IncubatedEggItem extends DNADataItem {
         DinoData dinoData = DinoData.fromStack(pContext.getItemInHand());
         if (dinoData != null) {
             EntityType<?> entityType = dinoData.getBaseDino();
-            Dinosaur dinosaur = (Dinosaur) entityType.spawn((ServerLevel) pContext.getLevel(), pContext.getClickedPos().above(), MobSpawnType.EVENT);
             DinoBehaviourData behaviourData = BehaviourDataReloadListener.getBehaviourInfoForDino(entityType);
-
+            Dinosaur dinosaur = (Dinosaur) entityType.spawn((ServerLevel) pContext.getLevel(), pContext.getClickedPos().above(), MobSpawnType.EVENT);
             dinosaur.setDinoData(dinoData);
             dinosaur.setDinoBehaviour(behaviourData.toNBT(behaviourData));
             DinoNeedsUtils.setDinoBaseNeeds(dinosaur,behaviourData);
-
-            DinoNeedsUtils.setCurrentHunger(dinosaur,0.0F);
+            DinoNeedsUtils.setCurrentHunger(dinosaur,100.0F);
+            DinoNeedsUtils.setCurrentStamina(dinosaur,(float) behaviourData.maxStamina());
 
             pContext.getItemInHand().shrink(1);
             return InteractionResult.CONSUME;

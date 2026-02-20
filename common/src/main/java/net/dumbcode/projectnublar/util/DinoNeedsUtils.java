@@ -1,22 +1,15 @@
 package net.dumbcode.projectnublar.util;
 
 import net.dumbcode.projectnublar.api.DinoBehaviourData;
-import net.dumbcode.projectnublar.entity.CarnivoreDinosaur;
-import net.dumbcode.projectnublar.entity.Dinosaur;
-import net.dumbcode.projectnublar.entity.HerbivoreDinosaur;
-import net.dumbcode.projectnublar.entity.PackEntity;
-import net.dumbcode.projectnublar.init.AttributesInit;
-import net.dumbcode.projectnublar.init.BlockInit;
-import net.dumbcode.projectnublar.init.GeneInit;
-import net.dumbcode.projectnublar.init.MemoryTypesInit;
+import net.dumbcode.projectnublar.entity.dinosaur.CarnivoreDinosaur;
+import net.dumbcode.projectnublar.entity.dinosaur.Dinosaur;
+import net.dumbcode.projectnublar.init.*;
 import net.minecraft.core.BlockPos;
-import net.minecraft.core.Vec3i;
 import net.minecraft.network.syncher.EntityDataAccessor;
 import net.minecraft.network.syncher.EntityDataSerializers;
 import net.minecraft.network.syncher.SynchedEntityData;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.entity.LivingEntity;
-import net.minecraft.world.entity.ai.attributes.Attribute;
 import net.minecraft.world.entity.ai.attributes.AttributeInstance;
 import net.minecraft.world.entity.ai.attributes.Attributes;
 import net.minecraft.world.entity.monster.Monster;
@@ -76,13 +69,8 @@ public class DinoNeedsUtils {
 
         int groupsize = 1;
 
-        if(entity instanceof CarnivoreDinosaur carnivore){
-            if(carnivore.hasPack()){
-                @Nullable PackEntity packEntity = carnivore.getPackEntity();
-                if(packEntity != null) {
-                    groupsize = packEntity.getEntityData().get(PackEntity.DINO_PACK_MEMBERS).size();
-                }
-            }
+        if(entity instanceof Dinosaur dinosaur && dinosaur.hasGroup()){
+            ///TO-DO : Multiply threat by group size
         }
         return (float) ((attack * 2) + (defence * 1.7) + (health * 1.4) + (speed * 0.3) ) * groupsize;
     }
@@ -131,13 +119,13 @@ public class DinoNeedsUtils {
     public static boolean isHungry(Dinosaur dinosaur){
         float currentHunger = dinosaur.getEntityData().get(HUNGER);
         float maxhunger = DinoNeedsUtils.getMaxHunger(dinosaur);
-        float lowRiskThreshold = (float) dinosaur.getDinoBehaviour().lowRisk();
+        float lowRiskThreshold = (float) dinosaur.getDinoBehaviour().happyThreshold();
         float stomachThreshold = maxhunger * lowRiskThreshold;
 
         return currentHunger < stomachThreshold;
     }
-    public static boolean isThirsty(Dinosaur dinosaur){return dinosaur.getEntityData().get(THIRST) < DinoNeedsUtils.getMaxThirst(dinosaur) * dinosaur.getDinoBehaviour().mediumRisk();}
-    public static boolean isTired(Dinosaur dinosaur){return dinosaur.getEntityData().get(STAMINA) < DinoNeedsUtils.getMaxStamina(dinosaur) * dinosaur.getDinoBehaviour().highRisk();}
+    public static boolean isThirsty(Dinosaur dinosaur){return dinosaur.getEntityData().get(THIRST) < DinoNeedsUtils.getMaxThirst(dinosaur) * dinosaur.getDinoBehaviour().uncomfortableThreshold();}
+    public static boolean isTired(Dinosaur dinosaur){return dinosaur.getEntityData().get(STAMINA) < DinoNeedsUtils.getMaxStamina(dinosaur) * dinosaur.getDinoBehaviour().rageThreshold();}
     public static boolean isSociallyLow(Dinosaur dinosaur){return dinosaur.getEntityData().get(SOCIAL) == 0.0F;}
 
     public static boolean allNeedsAtZero(Dinosaur dinosaur){
@@ -161,70 +149,91 @@ public class DinoNeedsUtils {
     public static float getCurrentSocial(Dinosaur dinosaur){return dinosaur.getEntityData().get(SOCIAL);}
     public static float getCurrentStamina(Dinosaur dinosaur){return dinosaur.getEntityData().get(STAMINA);}
 
-    public static void tickHunger(Dinosaur dinosaur){
+    public static void tickHunger(Dinosaur dinosaur, int timeSinceLastMeal, int starvationTime){
         float currentHunger = dinosaur.getEntityData().get(HUNGER);
-        float hungerDecrease = (float) dinosaur.getDinoBehaviour().eatRate();
-        float newCurrentValue = currentHunger - hungerDecrease;
+        double eatRate = dinosaur.getDinoBehaviour().eatRate();
+        double stomachCapacity = 100D;
 
-        if(currentHunger <= 0.0F){
-            dinosaur.hurt(dinosaur.damageSources().starve(),0.5f);
-        } else {
-            if(newCurrentValue <= 0.0F){
-                dinosaur.getEntityData().set(HUNGER, 0.0F);
-            } else {
-                dinosaur.getEntityData().set(HUNGER, newCurrentValue);
+        int days = timeSinceLastMeal;
+        int maxDays = starvationTime;
+
+        if( (days >= maxDays) || (currentHunger <= 0)){
+            if(days >= maxDays){
+                System.err.println("Days without food: " + days);
+                System.err.println("Starvation time exceeds maximum of days!");
             }
+            if(currentHunger <= 0){
+                System.err.println("Hunger reached zero");
+            }
+            dinosaur.die(dinosaur.damageSources().starve());
+            return;
         }
+
+        //get how much hunger can decrease per day
+        double dailyFoodDecrease = (stomachCapacity / maxDays);
+        //get how much hunger is lost per hunger tick
+        double hungerDecrease = dailyFoodDecrease / eatRate;
+        //set new hunger
+        float newCurrentHunger = currentHunger - (float) hungerDecrease;
+
+        if(newCurrentHunger <= 0){
+            newCurrentHunger = 0;
+        }
+
+        dinosaur.getEntityData().set(HUNGER, newCurrentHunger);
+        //Let brain know dinosaur is hungry
+        BrainUtils.setMemory(dinosaur, MemoryModuleTypeInit.IS_HUNGRY.get(), true);
     }
-    public static void tickThirst(Dinosaur dinosaur){
+    public static void tickThirst(Dinosaur dinosaur, int timeSinceLastDrink, int dehydrationTime){
         float currentThirst = dinosaur.getEntityData().get(THIRST);
-        float thirstDecrease = (float) dinosaur.getDinoBehaviour().dehydrationRate();
-        float newCurrentValue = currentThirst - thirstDecrease;
+        double drinkRate = dinosaur.getDinoBehaviour().drinkRate();
+        double stomachCapacity = 100D;
+        int days = timeSinceLastDrink;
+        int maxDays = dehydrationTime;
 
-        if(currentThirst <= 0.0F){
-            dinosaur.hurt(dinosaur.damageSources().dryOut(),0.5f);
-        } else {
-            if(newCurrentValue <= 0.0F){
-                dinosaur.getEntityData().set(THIRST, 0.0F);
-            } else {
-                dinosaur.getEntityData().set(THIRST, newCurrentValue);
-            }
+        if( (days >= maxDays) || (currentThirst <= 0)){
+            dinosaur.die(dinosaur.damageSources().starve());
+            return;
         }
+        double dailyThirstDecrease = (stomachCapacity / maxDays);
+        double thirstDecrease = dailyThirstDecrease / drinkRate;
+        float newCurrentThirst = currentThirst - (float) thirstDecrease;
+        if(newCurrentThirst <= 0){
+            newCurrentThirst = 0;
+        }
+
+        dinosaur.getEntityData().set(THIRST, newCurrentThirst);
+        BrainUtils.setMemory(dinosaur, MemoryModuleTypeInit.IS_THIRSTY.get(), true);
     }
     public static void setDinoBaseNeeds(Dinosaur dinosaur, DinoBehaviourData data){
         dinosaur.getAttribute(Attributes.MAX_HEALTH).setBaseValue(data.maxHealth());
   //      dinosaur.getAttribute(Attributes.MOVEMENT_SPEED).setBaseValue(data.speed());
-        dinosaur.getAttribute(Attributes.ATTACK_DAMAGE).setBaseValue(data.attack());
+        dinosaur.getAttribute(Attributes.ATTACK_DAMAGE).setBaseValue(data.attackDamage());
         dinosaur.getAttribute(Attributes.ARMOR).setBaseValue(data.resistance());
      //   dinosaur.getAttribute(Attributes.FOLLOW_RANGE).setBaseValue(data.visionQuality());
-        dinosaur.getAttribute(AttributesInit.DINO_ENERGY_NEED.get()).setBaseValue(data.energyCapacity());
-        dinosaur.getAttribute(AttributesInit.DINO_THIRST_NEED.get()).setBaseValue(data.thirstCapacity());
-        dinosaur.getAttribute(AttributesInit.DINO_HUNGER_NEED.get()).setBaseValue(data.stomachCapacity());
-        dinosaur.getAttribute(AttributesInit.DINO_SOCIAL_NEED.get()).setBaseValue(data.stomachCapacity());
-        dinosaur.getAttribute(AttributesInit.TRUST_SCORE.get()).setBaseValue(data.tamingScore());
+        dinosaur.getAttribute(AttributesInit.DINO_THIRST_NEED.get()).setBaseValue(100);
+        dinosaur.getAttribute(AttributesInit.DINO_HUNGER_NEED.get()).setBaseValue(100);
+        dinosaur.getAttribute(AttributesInit.DINO_ENERGY_NEED.get()).setBaseValue(data.maxStamina());
+        dinosaur.getAttribute(AttributesInit.DINO_SOCIAL_NEED.get()).setBaseValue(data.socialNeed());
+        dinosaur.getAttribute(AttributesInit.TRUST_SCORE.get()).setBaseValue(data.trustThreshold());
         dinosaur.getAttribute(AttributesInit.DINO_VISION.get()).setBaseValue(data.visionQuality());
-        dinosaur.getAttribute(AttributesInit.DINO_AGGRESSION.get()).setBaseValue(data.aggressionScore());
-        dinosaur.getAttribute(AttributesInit.DINO_INTELLIGENCE.get()).setBaseValue(data.aggressionScore());
+        dinosaur.getAttribute(AttributesInit.DINO_AGGRESSION.get()).setBaseValue(data.aggressionLevel());
+        dinosaur.getAttribute(AttributesInit.DINO_INTELLIGENCE.get()).setBaseValue(data.intelligence());
         dinosaur.getAttribute(AttributesInit.DINO_FERTILITY.get()).setBaseValue(data.fertility());
-        dinosaur.getAttribute(AttributesInit.DINO_IMMUNITY.get()).setBaseValue(data.fertility());
+        dinosaur.getAttribute(AttributesInit.DINO_IMMUNITY.get()).setBaseValue(data.immunity());
         DinoNeedsUtils.setAggressionScoreFromStats(dinosaur);
     }
 
     public static void tickStamina(Dinosaur dinosaur){
         float currentStamina = dinosaur.getEntityData().get(STAMINA);
-        float staminaDecrease = (float) dinosaur.getDinoBehaviour().baseExhaustionRate();
+        float staminaDecrease = (float) dinosaur.getDinoBehaviour().staminaDrain();
         float newCurrentValue;
 
-        if(BrainUtils.hasMemory(dinosaur, MemoryTypesInit.IS_RESTING.get())) {
-            if(!DinoNeedsUtils.isStaminaFull(dinosaur)) {
-                newCurrentValue = currentStamina + 50.0F;
-            } else {
-                newCurrentValue = DinoNeedsUtils.getMaxStamina(dinosaur);
-            }
-        } else {
-            newCurrentValue = currentStamina - staminaDecrease;
+        if(dinosaur.isRunning()){
+            staminaDecrease = staminaDecrease * 2;
         }
 
+        newCurrentValue = currentStamina - staminaDecrease;
         if (newCurrentValue <= 0) {
             dinosaur.getEntityData().set(STAMINA, 0.0F);
         } else {
@@ -236,23 +245,35 @@ public class DinoNeedsUtils {
     public static void tickSocial(){
     }
 
-    public static void feed(Dinosaur dinosaur, ItemStack foodItem){
-
-        //for some reason this produces null pointer, supposed to grab food value.
-        // double pHungerIncrease = this.getDinoDiet().foodMap().get(foodItem.getDescriptionId());
+    public static void feed(Dinosaur dinosaur, String foodItem){
         float currentHunger = dinosaur.getEntityData().get(HUNGER);
-        float maxHunger = DinoNeedsUtils.getMaxHunger(dinosaur);
-        float pCurrentHunger = currentHunger + 50.0F;
+        float maxHunger = 100;
+        double hungerIncrease;
+        System.err.println(foodItem);
+
+        if(dinosaur.getDinoDiet() != null) {
+            hungerIncrease = dinosaur.getDinoDiet().foodMap().get(foodItem);
+        } else hungerIncrease = 20F;
+
+        float pCurrentHunger = currentHunger + (float) hungerIncrease;
+        int eatCount;
+
+        if(pCurrentHunger >= maxHunger) {
+            if (BrainUtils.hasMemory(dinosaur, MemoryModuleTypeInit.MEAL_COUNTER.get())) {
+                eatCount = BrainUtils.getMemory(dinosaur, MemoryModuleTypeInit.MEAL_COUNTER.get());
+                eatCount++;
+            } else eatCount = 1;
+            BrainUtils.setMemory(dinosaur, MemoryModuleTypeInit.MEAL_COUNTER.get(), eatCount);
+        }
+
+        BrainUtils.setMemory(dinosaur, MemoryModuleTypeInit.DAYS_SINCE_LAST_FED.get(), 0);
 
         DinoNeedsUtils.setCurrentHunger(dinosaur, Math.min(pCurrentHunger, maxHunger));
+
     }
 
-    public static void drink(Dinosaur dinosaur, float pThirstIncrease){
-        float currentThirst = dinosaur.getEntityData().get(THIRST);
-        float maxThirst = DinoNeedsUtils.getMaxThirst(dinosaur);
-        float pCurrentThirst = currentThirst + pThirstIncrease;
-
-        DinoNeedsUtils.setCurrentThirst(dinosaur, Math.min(pCurrentThirst, maxThirst));
+    public static void drink(Dinosaur dinosaur){
+        DinoNeedsUtils.setCurrentThirst(dinosaur, getMaxThirst(dinosaur));
     }
 
 }

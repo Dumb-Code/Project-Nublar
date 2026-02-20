@@ -93,6 +93,8 @@ public class ModItemModelProvider extends ItemModelProvider {
                 .texture("layer0", modLoc("item/test_tube"))
                 .customLoader((builder, helper) -> new FossilLoaderBuilder(TestTubeModelLoader.GENERATOR, builder, helper));
 
+        withExistingParent(getName(ItemInit.DEV_STICK.get()), "item/stick");
+
         withExistingParent(getName(ItemInit.SYRINGE.get()), "item/generated")
                 .texture("layer0", modLoc("item/syringe")).override()
                 .predicate(new ResourceLocation("filled"), 0.5f)

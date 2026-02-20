@@ -18,7 +18,7 @@ import java.util.Map;
 
 public class BehaviourDataReloadListener extends SimpleJsonResourceReloadListener {
     private static final Gson GSON = new GsonBuilder().setPrettyPrinting().disableHtmlEscaping().create();
-    private static final String LOCATION = "behaviours";
+    private static final String LOCATION = "config/dinosaurs";
 
     private static Map<EntityType<?>, DinoBehaviourData> behaviourDataMap = Collections.emptyMap();
 
@@ -50,63 +50,50 @@ public class BehaviourDataReloadListener extends SimpleJsonResourceReloadListene
                         .orElseThrow(() -> new JsonSyntaxException("Unknown entity_id" + entityRl + "in DNA extraction file: " + fileID));
 
                 String dietID = GsonHelper.getAsString(jsonObject, "diet_id");
-                String dietType = GsonHelper.getAsString(jsonObject, "diet_type");
 
-                double maxHealth = GsonHelper.getAsDouble(jsonObject,"default_health");
-                double stomachCapacity = GsonHelper.getAsDouble(jsonObject, "default_stomach_capacity");
-                double thirstCapacity = GsonHelper.getAsDouble(jsonObject, "default_thirst_capacity");
-                double energyCapacity = GsonHelper.getAsDouble(jsonObject, "default_energy_capacity");
-                double attack = GsonHelper.getAsDouble(jsonObject, "default_attack_damage");
-                double resistance= GsonHelper.getAsDouble(jsonObject, "default_resistance");
+                double maxHealth = GsonHelper.getAsDouble(jsonObject,"max_health");
+                double energyCapacity = GsonHelper.getAsDouble(jsonObject, "max_stamina");
+                double attack = GsonHelper.getAsDouble(jsonObject, "attack_damage");
+                double speed= GsonHelper.getAsDouble(jsonObject, "speed_multiplier");
+                double size= GsonHelper.getAsDouble(jsonObject, "size_multiplier");
+                double intelligence= GsonHelper.getAsDouble(jsonObject, "intelligence");
+                double immunity = GsonHelper.getAsDouble(jsonObject, "immunity");
+                double resistance= GsonHelper.getAsDouble(jsonObject, "resistance");
+                double healthRegen = GsonHelper.getAsDouble(jsonObject, "health_regen");
+                double growthRate = GsonHelper.getAsDouble(jsonObject, "growth_rate");
+                double fertility = GsonHelper.getAsDouble(jsonObject, "fertility_chance");
+                double gestationTime = GsonHelper.getAsDouble(jsonObject, "gestation_time");
+                double clutchSize = GsonHelper.getAsDouble(jsonObject, "egg_clutch_size");
+                double visionQuality = GsonHelper.getAsDouble(jsonObject, "vision_quality");
 
-                double speed= GsonHelper.getAsDouble(jsonObject, "default_speed");
-                double size= GsonHelper.getAsDouble(jsonObject, "default_size");
-                double intelligence= GsonHelper.getAsDouble(jsonObject, "default_intelligence");
 
-                double social = GsonHelper.getAsDouble(jsonObject, "default_social");
-                double groupSize = GsonHelper.getAsDouble(jsonObject, "default_group_size");
-                double domesticity = GsonHelper.getAsDouble(jsonObject, "default_domesticity");
+                double domesticity = GsonHelper.getAsDouble(jsonObject, "domesticity");
+                double aggressionScore = GsonHelper.getAsDouble(jsonObject, "aggression_level");
+                double tamingScore = GsonHelper.getAsDouble(jsonObject, "taming_trust_threshold");
+                double trustIncrease = GsonHelper.getAsDouble(jsonObject, "trust_increase");
+                double social = GsonHelper.getAsDouble(jsonObject, "max_social_need");
+                double socialDrain = GsonHelper.getAsDouble(jsonObject, "loneliness_drain");
+                int groupSize = GsonHelper.getAsInt(jsonObject, "group_size");
 
-                double fertility = GsonHelper.getAsDouble(jsonObject, "default_fertility");
-                double gestationTime = GsonHelper.getAsDouble(jsonObject, "default_gestation_time");
-                double clutchSize = GsonHelper.getAsDouble(jsonObject, "default_egg_clutch");
 
-                double visionQuality = GsonHelper.getAsDouble(jsonObject, "default_vision");
-                double immunity = GsonHelper.getAsDouble(jsonObject, "default_immunity");
-                double tamingScore = GsonHelper.getAsDouble(jsonObject, "default_tame_score");
+                double eatRate = GsonHelper.getAsDouble(jsonObject, "eat_rate_per_day");
+                int starvationLimit = GsonHelper.getAsInt(jsonObject, "max_days_without_food");
+                int dehydrationLimit = GsonHelper.getAsInt(jsonObject, "max_days_without_water");
+                double dehydrationRate = GsonHelper.getAsDouble(jsonObject, "drink_rate_per_day");
+                double exhaustionRate = GsonHelper.getAsDouble(jsonObject, "stamina_drain_per_second");
 
-                double aggressionScore = GsonHelper.getAsDouble(jsonObject, "default_aggression");
-                double healthRegen = GsonHelper.getAsDouble(jsonObject, "default_health_regen");
-                double growthRate = GsonHelper.getAsDouble(jsonObject, "default_growth_rate");
+                double lowRisk = GsonHelper.getAsDouble(jsonObject, "happy_threshold");
+                double mediumRisk = GsonHelper.getAsDouble(jsonObject, "uncomfortable_threshold");
+                double highRisk = GsonHelper.getAsDouble(jsonObject, "rage_threshold");
 
-                double socialDrain = GsonHelper.getAsDouble(jsonObject, "default_social_drain");
-                double trustIncrease = GsonHelper.getAsDouble(jsonObject, "default_trust_increase");
-
-                double eatRate = GsonHelper.getAsDouble(jsonObject, "default_eat_rate");
-                double dehydrationRate = GsonHelper.getAsDouble(jsonObject, "default_dehydration_rate");
-                double exhaustionRate = GsonHelper.getAsDouble(jsonObject, "default_exhaustion_rate");
-
-                int hungerTickRate = GsonHelper.getAsInt(jsonObject, "default_hunger_tick_rate");
-                int thirstTickRate = GsonHelper.getAsInt(jsonObject, "default_thirst_tick_rate");
-                int energyTickRate = GsonHelper.getAsInt(jsonObject, "default_energy_tick_rate");
-
-                double lowRisk = GsonHelper.getAsDouble(jsonObject, "low_risk_threshold");
-                double mediumRisk = GsonHelper.getAsDouble(jsonObject, "medium_risk_threshold");
-                double highRisk = GsonHelper.getAsDouble(jsonObject, "high_risk_threshold");
-
-                boolean pack = GsonHelper.getAsBoolean(jsonObject,"can_form_pack");
-                boolean herd = GsonHelper.getAsBoolean(jsonObject,"can_form_herd");
+                boolean pack = GsonHelper.getAsBoolean(jsonObject,"can_form_group");
                 boolean nocturnal = GsonHelper.getAsBoolean(jsonObject,"nocturnal");
 
                 DinoBehaviourData data = new DinoBehaviourData(
-                        entityIdstring,dietID,dietType,maxHealth,
-                        stomachCapacity,thirstCapacity,energyCapacity,
-                        attack,resistance,speed,size,intelligence,social,groupSize,domesticity,fertility,gestationTime,
-                        clutchSize,visionQuality,immunity,tamingScore,aggressionScore,
-                        healthRegen,growthRate,socialDrain,trustIncrease,
-                        eatRate,dehydrationRate,exhaustionRate,hungerTickRate,
-                        thirstTickRate,energyTickRate,lowRisk,
-                        mediumRisk,highRisk,pack,herd,nocturnal
+                        entityIdstring,dietID,maxHealth,energyCapacity,attack,speed,size,intelligence,immunity,resistance,healthRegen,growthRate,fertility,
+                        gestationTime,clutchSize,visionQuality,domesticity,aggressionScore,tamingScore,trustIncrease,social,socialDrain,groupSize,eatRate,dehydrationRate,
+                        starvationLimit,dehydrationLimit,exhaustionRate,lowRisk,
+                        mediumRisk,highRisk,pack,nocturnal
                 );
 
 

@@ -21,6 +21,8 @@ public class CommonClientClass {
 
     private static final Map<Genes.Gene,  BiFunction<SequencerScreen, DinoData, GeneHolder>> GENE_WIDGET = new HashMap<>();
     private static final Map<EntityType<?>, List<DinoLayer>> LAYER_REGISTRY = new HashMap<>();
+    private static final Map<String, List<DinoLayer>> LAYER_REGISTRY_NEW = new HashMap<>();
+
     public static  BiFunction<SequencerScreen, DinoData,GeneHolder> getGeneWidget(Genes.Gene gene) {
         for(Genes.Gene g : GENE_WIDGET.keySet()) {
             if(g.equals(gene)) {
@@ -33,32 +35,97 @@ public class CommonClientClass {
         registerGeneWidgets();
         registerLayerNames();
     }
-
     public static void registerLayerNames(){
+
+        //Carnivores
+
         LAYER_REGISTRY.put(EntityInit.TYRANNOSAURUS_REX.get(),List.of(
-                new DinoLayer("back", 1),
-                new DinoLayer("yellow", 2),
+                new DinoLayer("base", 0),
                 new DinoLayer("belly", 2),
-                new DinoLayer("feet", 3),
+                new DinoLayer("back", 1),
                 new DinoLayer("pattern", 3),
                 new DinoLayer("mouth", -1),
                 new DinoLayer("teeth", -1),
                 new DinoLayer("eyes", -1),
                 new DinoLayer("nostrils", -1),
-                new DinoLayer("claws", -1)));
+                new DinoLayer("claws", -1),
+
+                new DinoLayer("feet", 3,dino -> dino.getDinoGender() == 2D),
+                new DinoLayer("yellow", 2,dino -> dino.getDinoGender() == 2D)
+
+        ));
+
+        LAYER_REGISTRY.put(EntityInit.VELOCIRAPTOR.get(),List.of(
+                new DinoLayer("base",0)
+
+
+             //   new DinoLayer("belly",2),
+             //   new DinoLayer("stripes",3),
+             //   new DinoLayer("mouth",-1),
+             //   new DinoLayer("eyes",-1),
+            //    new DinoLayer("eyelids",-1),
+            //    new DinoLayer("claws",-1)
+        ));
+
+        LAYER_REGISTRY.put(EntityInit.DILOPHOSAURUS.get(),List.of(
+                new DinoLayer("back", 1),
+                new DinoLayer("belly", 2),
+                new DinoLayer("pattern", 3),
+                new DinoLayer("red", 3),
+                new DinoLayer("whiteoutline", 3),
+                new DinoLayer("mouth", -1),
+                new DinoLayer("nostrils", -1),
+                new DinoLayer("teeth", -1),
+                new DinoLayer("eyes", -1),
+                new DinoLayer("frills", -1),
+                new DinoLayer("frillsgreen", -1),
+                new DinoLayer("frillswhite", -1),
+                new DinoLayer("frillsred", -1),
+                new DinoLayer("claws", -1)
+        ));
+
+        //Herbivores
+
         LAYER_REGISTRY.put(EntityInit.TRICERATOPS.get(),List.of(
+                new DinoLayer("base",0)
+               // new DinoLayer("toes",-1),
+             //   new DinoLayer("mouth",-1),
+              //  new DinoLayer("nostrils",-1),
+             //   new DinoLayer("eyes",-1),
+             //   new DinoLayer("eyelids",-1),
+
+            /// WHY NO WORK FOR TRICERATOPS?
+            //    new DinoLayer("midtone",    2,dino -> dino.getDinoGender() == 2D),
+             //   new DinoLayer("darkercolor",2,dino -> dino.getDinoGender() == 2D),
+              //  new DinoLayer("pattern",3,dino -> dino.getDinoGender() == 2D),
+              //  new DinoLayer("head",3,dino -> dino.getDinoGender() == 2D),
+             //   new DinoLayer("brown",2,dino -> dino.getDinoGender() == 2D),
+              //  new DinoLayer("spots",3,dino -> dino.getDinoGender() == 2D),
+                //new DinoLayer("belly",1,dino -> dino.getDinoGender() != 2D),
+                //new DinoLayer("osteoderms", 2,dino -> dino.getDinoGender() != 2D)
+                ));
+
+        LAYER_REGISTRY.put(EntityInit.BRACHIOSAURUS.get(),List.of(
                 new DinoLayer("back",1),
-                new DinoLayer("midtone",    2),
-                new DinoLayer("darkercolor",2),
-                new DinoLayer("pattern",3),
-                new DinoLayer("head",-1),
-                new DinoLayer("horns",0),
-                new DinoLayer("brown",2),
-                new DinoLayer("spots",3),
-                new DinoLayer("toes",-1),
-                new DinoLayer("mouth",-1),
+                new DinoLayer("belly",2),
+                new DinoLayer("eyes", -1),
+                new DinoLayer("mouth", -1),
                 new DinoLayer("nostrils",-1),
-                new DinoLayer("eyes",-1)));
+                new DinoLayer("toes",-1)
+        ));
+        LAYER_REGISTRY.put(EntityInit.GALLIMIMUS.get(),List.of(
+                new DinoLayer("body-darkness",1),
+                new DinoLayer("peach",2),
+                new DinoLayer("tail-darkness",1),
+                new DinoLayer("brown",2),
+                new DinoLayer("body-stripes",3),
+                new DinoLayer("belly",2),
+                new DinoLayer("tail-stripes",2),
+                new DinoLayer("claws",-1),
+                new DinoLayer("nostrils",-1),
+                new DinoLayer("eyes",-1),
+                new DinoLayer("eyelids",-1)
+        ));
     }
     public static List<DinoLayer> getDinoLayers(EntityType<?> type){
         if(!LAYER_REGISTRY.containsKey(type)){

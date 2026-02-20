@@ -2,21 +2,17 @@ package net.dumbcode.projectnublar.client.renderer;
 
 import com.mojang.blaze3d.vertex.PoseStack;
 import com.mojang.blaze3d.vertex.VertexConsumer;
-import net.dumbcode.projectnublar.api.Genes;
+import net.dumbcode.projectnublar.Constants;
 import net.dumbcode.projectnublar.client.renderer.layer.DinoLayer;
-import net.dumbcode.projectnublar.entity.Dinosaur;
-import net.dumbcode.projectnublar.entity.species.DinosaurPart;
-import net.dumbcode.projectnublar.entity.species.carnivore.TyrannosaurusRexEntity;
+import net.dumbcode.projectnublar.entity.dinosaur.Dinosaur;
 import net.dumbcode.projectnublar.init.GeneInit;
-import net.minecraft.client.renderer.LevelRenderer;
+import net.minecraft.client.Minecraft;
 import net.minecraft.client.renderer.MultiBufferSource;
 import net.minecraft.client.renderer.RenderType;
 import net.minecraft.client.renderer.entity.EntityRendererProvider;
+import net.minecraft.core.BlockPos;
 import net.minecraft.resources.ResourceLocation;
-import net.minecraft.util.Mth;
 import net.minecraft.world.phys.Vec3;
-import org.jetbrains.annotations.Nullable;
-import org.joml.Quaternionf;
 import org.joml.Vector3f;
 import software.bernie.geckolib.cache.object.BakedGeoModel;
 import software.bernie.geckolib.cache.object.GeoBone;
@@ -26,75 +22,58 @@ import software.bernie.geckolib.model.DefaultedEntityGeoModel;
 import software.bernie.geckolib.model.GeoModel;
 import software.bernie.geckolib.renderer.GeoEntityRenderer;
 import software.bernie.geckolib.renderer.layer.GeoRenderLayer;
+import software.bernie.geckolib.renderer.layer.GeoRenderLayersContainer;
 
-import java.util.Arrays;
+import javax.annotation.Nullable;
+import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
-import java.util.Optional;
+import java.util.Map;
 
 public class DinosaurRenderer extends GeoEntityRenderer<Dinosaur> {
-    public DinosaurRenderer(EntityRendererProvider.Context renderManager, DefaultedEntityGeoModel model, List<DinoLayer> layers) {
+    protected final SimpleGeoLayerContainer<Dinosaur> simpleRenderLayers = new SimpleGeoLayerContainer<>(this);
+    public DinosaurRenderer(EntityRendererProvider.Context renderManager, DefaultedEntityGeoModel model) {
         super(renderManager, model);
-          for(DinoLayer layer : layers) {
-           this.addRenderLayer(new GeoRenderLayer<>(this) {
-
-            @Override
-           public void render(PoseStack poseStack, Dinosaur animatable, BakedGeoModel bakedModel, RenderType renderType, MultiBufferSource bufferSource, VertexConsumer buffer, float partialTick, int packedLight, int packedOverlay) {
-             Color color = animatable.layerColor(layers.indexOf(layer) + 1, layer);
-             buffer = bufferSource.getBuffer(RenderType.entityTranslucent(getTextureResource(animatable)));
-        reRender(bakedModel, poseStack, bufferSource, animatable, renderType, buffer, partialTick, packedLight, packedOverlay, color.getRedFloat(), color.getGreenFloat(), color.getBlueFloat(), 1f);
-                   reRender(bakedModel, poseStack, bufferSource, animatable, renderType, buffer, partialTick, packedLight, packedOverlay, 1, 1, 1, 1);
-
-                CoreGeoBone head = this.getGeoModel().getAnimationProcessor().getBone("head");
-
-                if(head != null){
-                    Vector3f local = new Vector3f(head.getPivotX(),head.getPivotY(),head.getPivotZ());
-                    /*
-                    Quaternionf q = new Quaternionf()
-                            .rotateXYZ(head.getRotX(),head.getRotZ(),head.getRotX());
-                    q.transform(local);
-*/
-                    Vec3 worldpos =  animatable.position().add(local.x,local.y,local.z);
-
-                    animatable.setHeadPositon(worldpos);
-
-                }
-
-            }
-
-
-
-         @Override
-        public GeoModel<Dinosaur> getGeoModel() {
-           return DinosaurRenderer.this.getGeoModel();
-        }
-
-         @Override
-         protected ResourceLocation getTextureResource(Dinosaur animatable) {
-           return layer.getTextureLocation(animatable, animatable.getDinoGender());
-         }
-         });
-        }
-
-
     }
 
+    public void createLayers(Dinosaur entity) {
+        List<DinoLayer> layers = entity.getLayers();
+        for(DinoLayer layer : layers) {
+            if (layer.getRenderRequirement().apply(entity)) {
+                this.addSimpleRenderLayer(new SimpleGeoLayerRenderer<>(this, layer.getLayerName()) {
 
+                    @Override
+                    public void render(PoseStack poseStack, Dinosaur animatable, BakedGeoModel bakedModel, RenderType renderType, MultiBufferSource bufferSource, VertexConsumer buffer, float partialTick, int packedLight, int packedOverlay) {
+                        Color color = animatable.layerColor(layers.indexOf(layer) + 1, layer);
+                        buffer = bufferSource.getBuffer(RenderType.entityTranslucent(this.getTextureResource(animatable)));
+                        reRender(bakedModel, poseStack, bufferSource, animatable, renderType, buffer, partialTick, packedLight, packedOverlay, color.getRedFloat(), color.getGreenFloat(), color.getBlueFloat(), 1f);
+                        reRender(bakedModel, poseStack, bufferSource, animatable, renderType, buffer, partialTick, packedLight, packedOverlay, 1, 1, 1, 1);
+                    }
+
+                    @Override
+                    public GeoModel<Dinosaur> getGeoModel() {
+                        return DinosaurRenderer.this.getGeoModel();
+                    }
+
+                    @Override
+                    public @Nullable ResourceLocation getTextureResource(Dinosaur animatable) {
+                        if (layer.getTextureLocation(animatable).isPresent()) {
+                            return layer.getTextureLocation(animatable).get();
+                        } else {
+                            return null;
+                        }
+                    }
+                });
+            }
+        }
+    }
 
     @Override
-    public void scaleModelForRender(float widthScale, float heightScale, PoseStack poseStack, Dinosaur animatable, BakedGeoModel model, boolean isReRender, float partialTick, int packedLight, int packedOverlay) {
-        float adultScale = ((float) animatable.getDinoData().getGeneValue(GeneInit.SIZE.get()) / 100) + 1.0f;
-        float babyScale = adultScale * 0.25F;
-        float juvenileScale = adultScale * 0.5F;
-        float subAdultScale = adultScale * 0.75F;
-
-        float renderScale = switch (animatable.getGrowthStage()) {
-            case 1 -> babyScale;
-            case 2 -> juvenileScale;
-            case 3 -> subAdultScale;
-            default -> adultScale;
-        };
-
-        super.scaleModelForRender(renderScale, renderScale, poseStack, animatable, model, isReRender, partialTick, packedLight, packedOverlay);
+    public void render(Dinosaur entity, float entityYaw, float partialTick, PoseStack poseStack, MultiBufferSource buffer, int packedLight) {
+        if(getSimpleRenderLayers().isEmpty()) {
+            createLayers(entity);
+        }
+        super.render(entity, entityYaw, partialTick, poseStack, buffer, packedLight);
     }
 
     private Color color = null;
@@ -103,16 +82,25 @@ public class DinosaurRenderer extends GeoEntityRenderer<Dinosaur> {
     public Color getRenderColor(Dinosaur animatable, float partialTick, int packedLight) {
         return animatable.layerColor(0, null);
     }
-
     @Override
     public float getMotionAnimThreshold(Dinosaur animatable) {
         return 0.005f;
     }
+    @Override
+    public void applyRenderLayers(PoseStack poseStack, Dinosaur animatable, BakedGeoModel model, RenderType renderType, MultiBufferSource bufferSource, VertexConsumer buffer, float partialTick, int packedLight, int packedOverlay) {
+        if(getSimpleRenderLayers().isEmpty()) {
+            createLayers(animatable);
+        }
 
-
-
-    //    @Override
-//    public RenderType getRenderType(Dinosaur animatable, ResourceLocation texture, @Nullable MultiBufferSource bufferSource, float partialTick) {
-//        return RenderType.entityTranslucent(texture);
-//    }
+        for (SimpleGeoLayerRenderer<Dinosaur> renderLayer : getSimpleRenderLayers()) {
+            renderLayer.render(poseStack, animatable, model, renderType, bufferSource, buffer, partialTick, packedLight, packedOverlay);
+        }
+    }
+    public List<SimpleGeoLayerRenderer<Dinosaur>> getSimpleRenderLayers() {
+        return this.simpleRenderLayers.getRenderLayers();
+    }
+    private GeoEntityRenderer<Dinosaur> addSimpleRenderLayer(SimpleGeoLayerRenderer<Dinosaur> renderLayer) {
+        this.simpleRenderLayers.addLayer(renderLayer);
+        return this;
+    }
 }

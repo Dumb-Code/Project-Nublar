@@ -3,18 +3,7 @@ package net.dumbcode.projectnublar.init;
 import dev.architectury.registry.registries.DeferredRegister;
 import dev.architectury.registry.registries.DeferredSupplier;
 import net.dumbcode.projectnublar.Constants;
-import net.dumbcode.projectnublar.item.AmberItem;
-import net.dumbcode.projectnublar.item.BulbItem;
-import net.dumbcode.projectnublar.item.FossilItem;
-import net.dumbcode.projectnublar.item.IncubatedEggItem;
-import net.dumbcode.projectnublar.item.PlantTankItem;
-import net.dumbcode.projectnublar.item.TankItem;
-import net.dumbcode.projectnublar.item.TestTubeItem;
-import net.dumbcode.projectnublar.item.ComputerChipItem;
-import net.dumbcode.projectnublar.item.DiskStorageItem;
-import net.dumbcode.projectnublar.item.FilterItem;
-import net.dumbcode.projectnublar.item.SyringeItem;
-import net.dumbcode.projectnublar.item.UnincubatedEggItem;
+import net.dumbcode.projectnublar.item.*;
 import net.minecraft.core.registries.Registries;
 import net.minecraft.world.item.Item;
 
@@ -24,6 +13,7 @@ public class ItemInit {
     public static final DeferredSupplier<Item> FOSSIL_ITEM = ITEMS.register("fossil", () -> new FossilItem(getItemProperties()));
     public static final DeferredSupplier<Item> AMBER_ITEM = ITEMS.register("amber", () -> new AmberItem(getItemProperties()));
 
+    public static final DeferredSupplier<Item> DEV_STICK = ITEMS.register("dev_stick", () -> new DebugStick(getItemProperties()));
 
     public static final DeferredSupplier<Item> TEST_TUBE_ITEM = ITEMS.register("test_tube", () -> new TestTubeItem(getItemProperties()));
 

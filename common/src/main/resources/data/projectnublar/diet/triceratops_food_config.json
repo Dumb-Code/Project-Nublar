@@ -1,7 +1,8 @@
 {
   "diet_id": "triceratops_diet",
   "valid_food_items": {
-    "item.minecraft.wheat": 5.0
+    "item.minecraft.wheat": 10.0,
+    "item.minecraft.apple": 10.0
     }
 
 }

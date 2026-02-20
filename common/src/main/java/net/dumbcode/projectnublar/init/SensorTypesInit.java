@@ -1,16 +1,10 @@
 package net.dumbcode.projectnublar.init;
 
-import dev.architectury.registry.registries.DeferredRegister;
-import dev.architectury.registry.registries.DeferredSupplier;
-import dev.architectury.registry.registries.RegistrySupplier;
 import net.dumbcode.projectnublar.Constants;
-import net.dumbcode.projectnublar.entity.sensors.NearbyDinosaurSensor;
-import net.dumbcode.projectnublar.entity.sensors.NearestWaterSourceSensor;
-import net.minecraft.core.registries.Registries;
+import net.dumbcode.projectnublar.entity.ai.sensors.NearbyDinosaurSensor;
+import net.dumbcode.projectnublar.entity.ai.sensors.NearestWaterSourceSensor;
 import net.minecraft.world.entity.ai.sensing.SensorType;
-import net.tslat.smartbrainlib.SBLConstants;
 import net.tslat.smartbrainlib.api.core.sensor.ExtendedSensor;
-import net.tslat.smartbrainlib.api.core.sensor.vanilla.NearestItemSensor;
 
 import java.util.function.Supplier;
 

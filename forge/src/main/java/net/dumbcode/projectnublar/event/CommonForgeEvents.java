@@ -8,8 +8,7 @@ import net.dumbcode.projectnublar.data.DietReloadListener;
 import net.dumbcode.projectnublar.data.FossilConfigReloadListener;
 import net.dumbcode.projectnublar.data.GeneDataReloadListener;
 import net.dumbcode.projectnublar.entity.DeathMessageHandler;
-import net.dumbcode.projectnublar.entity.Dinosaur;
-import net.dumbcode.projectnublar.init.BlockInit;
+import net.dumbcode.projectnublar.entity.dinosaur.Dinosaur;
 import net.dumbcode.projectnublar.init.ItemInit;
 import net.minecraft.core.Direction;
 import net.minecraft.world.level.Level;
@@ -17,7 +16,6 @@ import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraftforge.event.AddReloadListenerEvent;
 import net.minecraftforge.event.entity.living.LivingDeathEvent;
 import net.minecraftforge.event.entity.player.PlayerInteractEvent;
-import net.minecraftforge.event.level.BlockEvent;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
 import net.minecraftforge.fml.common.Mod;
 

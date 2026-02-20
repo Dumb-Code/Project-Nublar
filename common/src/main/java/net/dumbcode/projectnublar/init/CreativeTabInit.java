@@ -4,18 +4,23 @@ import dev.architectury.registry.registries.DeferredRegister;
 import dev.architectury.registry.registries.DeferredSupplier;
 import net.dumbcode.projectnublar.Constants;
 import net.dumbcode.projectnublar.api.*;
+import net.dumbcode.projectnublar.entity.dinosaur.Dinosaur;
 import net.minecraft.client.Minecraft;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.core.registries.Registries;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.chat.Component;
 import net.minecraft.resources.ResourceLocation;
+import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.animal.Parrot;
 import net.minecraft.world.item.CreativeModeTab;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.Blocks;
+
+import java.util.ArrayList;
+import java.util.List;
 
 public class CreativeTabInit {
     public static final DeferredRegister<CreativeModeTab> CREATIVE_MODE_TABS = DeferredRegister.create(Constants.MODID, Registries.CREATIVE_MODE_TAB);
@@ -161,47 +166,42 @@ public class CreativeTabInit {
             .displayItems(
                     (itemDisplayParameters, output) -> {
                         output.accept(ItemInit.ARTIFICIAL_EGG.get());
-                        ItemStack femaleTrexEggItem = new ItemStack(ItemInit.INCUBATED_EGG.get());
-                        ItemStack maleTrexEggItem = new ItemStack(ItemInit.INCUBATED_EGG.get());
 
-                        ItemStack triceratopsEggItem = new ItemStack(ItemInit.INCUBATED_EGG.get());
+                        output.accept(createDinoEggs(EntityInit.TYRANNOSAURUS_REX.get(),1.0D,100D).get(0));
+                        output.accept(createDinoEggs(EntityInit.TYRANNOSAURUS_REX.get(),2.0D,100D).get(0));
+                        output.accept(createDinoEggs(EntityInit.DILOPHOSAURUS.get(),1.0D,100D).get(0));
+                        output.accept(createDinoEggs(EntityInit.DILOPHOSAURUS.get(),2.0D,100D).get(0));
+                        output.accept(createDinoEggs(EntityInit.VELOCIRAPTOR.get(),1.0D,100D).get(0));
+                        output.accept(createDinoEggs(EntityInit.VELOCIRAPTOR.get(),2.0D,100D).get(0));
+                        output.accept(createDinoEggs(EntityInit.TRICERATOPS.get(),1.0D,100D).get(0));
+                        output.accept(createDinoEggs(EntityInit.TRICERATOPS.get(),2.0D,100D).get(0));
+                        output.accept(createDinoEggs(EntityInit.BRACHIOSAURUS.get(),1.0D,100D).get(0));
+                        output.accept(createDinoEggs(EntityInit.BRACHIOSAURUS.get(),2.0D,100D).get(0));
+                        output.accept(createDinoEggs(EntityInit.GALLIMIMUS.get(),1.0D,100D).get(0));
+                        output.accept(createDinoEggs(EntityInit.GALLIMIMUS.get(),2.0D,100D).get(0));
 
-                        ItemStack femaleTrexEggItemCopy = new ItemStack(ItemInit.UNINCUBATED_EGG.get());
-                        ItemStack maleTrexEggItemCopy = new ItemStack(ItemInit.UNINCUBATED_EGG.get());
+                        output.accept(ItemInit.DEV_STICK.get());
 
-                        ItemStack triceratopsEggItemCopy = new ItemStack(ItemInit.UNINCUBATED_EGG.get());
-
-                        DinoData dnaData = new DinoData();
-
-                        //Female Tyrannosaurus
-                        dnaData.setBaseDino(EntityInit.TYRANNOSAURUS_REX.get());
-                        dnaData.setGeneValue(GeneInit.GENDER.get(), 1.0D);
-                        dnaData.setBasePercentage(100);
-                        dnaData.toStack(femaleTrexEggItem);
-                        dnaData.copy().toStack(femaleTrexEggItemCopy);
-                        output.accept(femaleTrexEggItem);
-                        output.accept(femaleTrexEggItemCopy);
-                        dnaData = new DinoData();
-
-                        //Male
-                        dnaData.setBaseDino(EntityInit.TYRANNOSAURUS_REX.get());
-                        dnaData.setGeneValue(GeneInit.GENDER.get(), 2.0D);
-                        dnaData.setBasePercentage(100);
-                        dnaData.toStack(maleTrexEggItem);
-                        dnaData.copy().toStack(maleTrexEggItemCopy);
-                        output.accept(maleTrexEggItem);
-                        output.accept(maleTrexEggItemCopy);
-                        dnaData = new DinoData();
-
-
-                        dnaData.setBaseDino(EntityInit.TRICERATOPS.get());
-                        dnaData.setBasePercentage(100);
-                        dnaData.toStack(triceratopsEggItem);
-                        dnaData.copy().toStack(triceratopsEggItemCopy);
-                        output.accept(triceratopsEggItem);
-                        output.accept(triceratopsEggItemCopy);
                     })
             .build());
+
+    public static List<ItemStack> createDinoEggs(EntityType<? extends Dinosaur> pDinosaur, Double pGender, Double pBasePercentage) {
+        ItemStack IncubatedEggItem = new ItemStack(ItemInit.INCUBATED_EGG.get());
+        ItemStack UnincubatedEggItem = new ItemStack(ItemInit.UNINCUBATED_EGG.get());
+        DinoData dnaData = new DinoData();
+        List<ItemStack> dinoEggs = new ArrayList<>();
+
+        dnaData.setBaseDino(pDinosaur);
+        dnaData.setGeneValue(GeneInit.GENDER.get(), pGender);
+        dnaData.setBasePercentage(pBasePercentage);
+        dnaData.toStack(IncubatedEggItem);
+        dnaData.copy().toStack(UnincubatedEggItem);
+
+        dinoEggs.add(IncubatedEggItem);
+        dinoEggs.add(UnincubatedEggItem);
+
+        return dinoEggs;
+    }
 
     public static void loadClass() {
         CREATIVE_MODE_TABS.register();

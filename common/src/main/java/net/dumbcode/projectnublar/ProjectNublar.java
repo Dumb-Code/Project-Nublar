@@ -29,7 +29,7 @@ public class ProjectNublar {
         RecipeInit.loadClass();
         AttributesInit.loadClass();
         GeneInit.loadClass();
-        MemoryTypesInit.loadClass();
+        MemoryModuleTypeInit.loadClass();
         SoundInit.loadClass();
     }
     public static String checkReplace(String registryObject) {

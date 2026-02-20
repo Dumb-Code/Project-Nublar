@@ -9,14 +9,13 @@ import net.dumbcode.projectnublar.client.renderer.ElectricFenceRenderer;
 import net.dumbcode.projectnublar.client.renderer.ElectricWireRenderer;
 import net.dumbcode.projectnublar.client.renderer.ProcessorRenderer;
 import net.dumbcode.projectnublar.client.renderer.SequencerRenderer;
+import net.dumbcode.projectnublar.client.renderer.dinosaurs.*;
 import net.dumbcode.projectnublar.client.screen.EggPrinterScreen;
 import net.dumbcode.projectnublar.client.screen.GeneratorScreen;
 import net.dumbcode.projectnublar.client.screen.IncubatorScreen;
 import net.dumbcode.projectnublar.client.screen.ProcessorScreen;
 import net.dumbcode.projectnublar.client.screen.SequencerScreen;
-import net.dumbcode.projectnublar.entity.PackEntity;
-import net.dumbcode.projectnublar.entity.social.interactionmanagers.tyrannosaurusrex.TyrannosaurInteractionEntity;
-import net.dumbcode.projectnublar.entity.species.DinosaurPart;
+import net.dumbcode.projectnublar.entity.dinosaur.DinosaurPart;
 import net.dumbcode.projectnublar.init.BlockInit;
 import net.dumbcode.projectnublar.init.EntityInit;
 import net.dumbcode.projectnublar.init.ItemInit;
@@ -40,24 +39,18 @@ import software.bernie.geckolib.renderer.GeoBlockRenderer;
 public class ClientRegistrationHolder {
 
     public static void registerEntityRenderers() {
-        EntityRenderers.register(EntityInit.INTERACTION_ENTITY.get(), context -> new EntityRenderer<TyrannosaurInteractionEntity>(context) {
-            @Override
-            public ResourceLocation getTextureLocation(TyrannosaurInteractionEntity entity) {
-                return null;
-            }
-        });
         EntityRenderers.register(EntityInit.DINOSAUR_PART.get(),context -> new EntityRenderer<DinosaurPart>(context) {
             @Override
             public ResourceLocation getTextureLocation(DinosaurPart entity) {
                 return null;
             }
         });
-        EntityRenderers.register(EntityInit.TYRANNOSAURUS_REX.get(), (context) -> new DinosaurRenderer(context, new DefaultedEntityGeoModel<>(Constants.modLoc("tyrannosaurus_rex")).withAltTexture(
-                new ResourceLocation(Constants.MODID, "tyrannosaurus_rex/male/base")
-        ), CommonClientClass.getDinoLayers(EntityInit.TYRANNOSAURUS_REX.get())));
-        EntityRenderers.register(EntityInit.TRICERATOPS.get(), (context) -> new DinosaurRenderer(context, new DefaultedEntityGeoModel<>(Constants.modLoc("triceratops")).withAltTexture(
-                new ResourceLocation(Constants.MODID, "triceratops/male/base")
-        ), CommonClientClass.getDinoLayers(EntityInit.TRICERATOPS.get())));
+        EntityRenderers.register(EntityInit.TYRANNOSAURUS_REX.get(), (context) -> new TyrannosaurusRenderer(context, new DefaultedEntityGeoModel<>(Constants.modLoc("tyrannosaurus_rex"))));
+        EntityRenderers.register(EntityInit.VELOCIRAPTOR.get(), (context) -> new VelociraptorRenderer(context, new DefaultedEntityGeoModel<>(Constants.modLoc("velociraptor"))));
+        EntityRenderers.register(EntityInit.DILOPHOSAURUS.get(), (context) -> new DilophosaurusRenderer(context, new DefaultedEntityGeoModel<>(Constants.modLoc("dilophosaurus"))));
+        EntityRenderers.register(EntityInit.TRICERATOPS.get(), (context) -> new TriceratopsRenderer(context, new DefaultedEntityGeoModel<>(Constants.modLoc("triceratops"))));
+        EntityRenderers.register(EntityInit.BRACHIOSAURUS.get(), (context) -> new BrachiosaurusRenderer(context, new DefaultedEntityGeoModel<>(Constants.modLoc("brachiosaurus"))));
+        EntityRenderers.register(EntityInit.GALLIMIMUS.get(), (context) -> new GallimimusRenderer(context, new DefaultedEntityGeoModel<>(Constants.modLoc("gallimimus"))));
     }
 
     public static void menuScreens() {
@@ -67,7 +60,11 @@ public class ClientRegistrationHolder {
         MenuScreens.register(MenuTypeInit.INCUBATOR.get(), IncubatorScreen::new);
         MenuScreens.register(MenuTypeInit.GENERATOR_MENU.get(), GeneratorScreen::new);
         Minecraft.getInstance().getTextureManager().register(Constants.modLoc("textures/entity/tyrannosaurus_rex.png"), createRexTexture());
+        Minecraft.getInstance().getTextureManager().register(Constants.modLoc("textures/entity/velociraptor.png"), createVelociraptorTexture());
+        Minecraft.getInstance().getTextureManager().register(Constants.modLoc("textures/entity/dilophosaurus.png"), createDiloTexture());
         Minecraft.getInstance().getTextureManager().register(Constants.modLoc("textures/entity/triceratops.png"), createTrikeTexture());
+        Minecraft.getInstance().getTextureManager().register(Constants.modLoc("textures/entity/brachiosaurus.png"), createBrachTexture());
+        Minecraft.getInstance().getTextureManager().register(Constants.modLoc("textures/entity/gallimimus.png"), createGalliTexture());
     }
 
     public static void registerBlockEntityRenderers() {
@@ -106,10 +103,10 @@ public class ClientRegistrationHolder {
         ItemProperties.register(ItemInit.SYRINGE.get(), Constants.modLoc("filled"), (stack, world, entity, i) -> stack.hasTag() ? stack.getTag().getBoolean("dna_percentage") ? 0.5F : 1.0F : 0f);
     }
 
-    public static AbstractTexture createRexTexture() {
-        return Minecraft.getInstance().getTextureManager().getTexture(Constants.modLoc("textures/entity/tyrannosaurus_rex/male/tyrannosaurus_rex.png"));
-    }
-    public static AbstractTexture createTrikeTexture() {
-        return Minecraft.getInstance().getTextureManager().getTexture(Constants.modLoc("textures/entity/triceratops/male/triceratops.png"));
-    }
+    public static AbstractTexture createRexTexture() {return Minecraft.getInstance().getTextureManager().getTexture(Constants.modLoc("textures/entity/tyrannosaurus_rex/female/tyrannosaurus_rex.png"));}
+    public static AbstractTexture createVelociraptorTexture() {return Minecraft.getInstance().getTextureManager().getTexture(Constants.modLoc("textures/entity/velociraptor/male/velociraptor.png"));}
+    public static AbstractTexture createDiloTexture() {return Minecraft.getInstance().getTextureManager().getTexture(Constants.modLoc("textures/entity/dilophosaurus/male/dilophosaurus.png"));}
+    public static AbstractTexture createTrikeTexture() {return Minecraft.getInstance().getTextureManager().getTexture(Constants.modLoc("textures/entity/triceratops/male/triceratops.png"));}
+    public static AbstractTexture createBrachTexture() {return Minecraft.getInstance().getTextureManager().getTexture(Constants.modLoc("textures/entity/brachiosaurus/male/brachiosaurus.png"));}
+    public static AbstractTexture createGalliTexture() {return Minecraft.getInstance().getTextureManager().getTexture(Constants.modLoc("textures/entity/gallimimus/male/gallimimus.png"));}
 }

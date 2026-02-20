@@ -1,6 +1,7 @@
 package net.dumbcode.projectnublar.entity;
 
 import net.dumbcode.projectnublar.entity.api.IDinoPart;
+import net.dumbcode.projectnublar.entity.dinosaur.Dinosaur;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.protocol.Packet;
 import net.minecraft.network.protocol.game.ClientGamePacketListener;
@@ -8,10 +9,8 @@ import net.minecraft.world.damagesource.DamageSource;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.EntityDimensions;
 import net.minecraft.world.entity.Pose;
-import net.minecraft.world.entity.boss.enderdragon.EnderDragon;
 import net.minecraft.world.item.ItemStack;
 import net.minecraftforge.entity.PartEntity;
-import org.codehaus.plexus.util.dag.DAG;
 import org.jetbrains.annotations.Nullable;
 
 public class DinosaurPart extends PartEntity<Dinosaur> implements IDinoPart {
