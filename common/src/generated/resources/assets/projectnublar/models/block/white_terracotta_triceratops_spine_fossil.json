@@ -1,0 +1,8 @@
+{
+  "parent": "projectnublar:block/fossil_base",
+  "render_type": "minecraft:cutout",
+  "textures": {
+    "0": "minecraft:block/white_terracotta",
+    "1": "projectnublar:block/fossil_overlay/common/spine"
+  }
+}

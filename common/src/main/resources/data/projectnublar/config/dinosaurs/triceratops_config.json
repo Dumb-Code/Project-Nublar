@@ -1,0 +1,50 @@
+{
+ "id_Configs": "attaches the config files to the Dinosaur Entity",
+ "species_id": "projectnublar:triceratops",
+ "diet_id": "triceratops_diet",
+
+
+ "stats_config": "Defines the default stats for the Dinosaur",
+ "max_health": 200.0,
+ "max_stamina": 200.0,
+ "attack_damage": 5.0,
+ "speed_multiplier": 2.0,
+ "size_multiplier": 1.0,
+ "intelligence": 10.0,
+ "immunity": 10.0,
+ "resistance": 2.0,
+ "health_regen": 5.0,
+ "growth_rate": 1.0,
+ "fertility_chance": 100.0,
+ "gestation_time": 5.0,
+ "egg_clutch_size": 3.0,
+ "vision_quality": 100.0,
+
+ "temperament_configs": "Defines temperament of Dinosaur and sets difficulty of Taming",
+ "domesticity": 10.0,
+ "aggression_level": 80.0,
+ "taming_trust_threshold": 100.0,
+ "trust_increase": 0.5,
+ "max_social_need": 50,
+ "loneliness_drain": 1.0,
+ "group_size": 5,
+
+ "needs_configs": "Defines how often Dinosaurs need to Eat, Drink and Rest",
+ "eat_rate_per_day": 5.0,
+ "drink_rate_per_day": 5.0,
+ "max_days_without_food": 7,
+ "max_days_without_water": 3,
+ "stamina_drain_per_second": 2.0,
+
+ "mood_threshold_Config": "Defines the threshold for Dinosaur mood. 0.0 -> 1.0 (bad mood -> good mood)",
+ "happy_threshold": 0.9,
+ "uncomfortable_threshold": 0.6,
+ "rage_threshold": 0.4,
+
+ "behaviour_config": "defines behaviour states for dinosaur",
+ "can_form_group": true,
+ "nocturnal": false
+
+
+
+}

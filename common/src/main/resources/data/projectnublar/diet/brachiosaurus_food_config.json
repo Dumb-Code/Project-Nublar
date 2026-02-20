@@ -1,0 +1,8 @@
+{
+  "diet_id": "brachiosaurus_diet",
+  "valid_food_items": {
+    "item.minecraft.wheat": 10.0,
+    "item.minecraft.apple": 10.0
+    }
+
+}

@@ -1,0 +1,14 @@
+{
+  "diet_id": "velociraptor_diet",
+  "valid_food_items": {
+    "item.minecraft.cooked_beef": 10.0,
+    "item.minecraft.beef": 5.0,
+    "item.minecraft.cooked_chicken": 6.0,
+    "item.minecraft.chicken": 3.0,
+    "item.minecraft.cooked_porkchop": 10.0,
+    "item.minecraft.porkchop": 5.0,
+    "item.minecraft.cooked_mutton": 10.0,
+    "item.minecraft.mutton": 5.0
+    }
+
+}
