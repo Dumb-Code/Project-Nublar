@@ -25,7 +25,6 @@ public class Dinosaurs {
         return DINOSAURS_MAP;
     }
 
-
     public static EntityType<?>  getEntityType(ResourceLocation type){
         return getDinosaurMap().get(type);
     }

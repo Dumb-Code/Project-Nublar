@@ -1,8 +1,9 @@
 package net.dumbcode.projectnublar.api;
 
 import net.minecraft.ChatFormatting;
+import net.minecraft.util.StringRepresentable;
 
-public enum Quality {
+public enum Quality implements StringRepresentable {
     NONE("none", 0, ChatFormatting.GRAY),
     FRAGMENTED("fragmented", 1, ChatFormatting.GRAY),
     POOR("poor", 2, ChatFormatting.WHITE),
@@ -36,5 +37,10 @@ public enum Quality {
 
     public ChatFormatting getColor() {
         return color;
+    }
+
+    @Override
+    public String getSerializedName() {
+        return this.name;
     }
 }

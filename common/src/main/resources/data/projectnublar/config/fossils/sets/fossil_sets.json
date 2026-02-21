@@ -2,17 +2,19 @@
   "config_id": "fossil_sets",
 
     "biped": [
+      {"piece": "rex_skull", "weight": 1},
       {"piece": "ribs", "weight": 1},
-      {"piece": "foot", "weight": 1},
-      {"piece": "arm", "weight": 1},
-      {"piece": "leg_biped", "weight": 1},
+      {"piece": "foot", "weight": 2},
+      {"piece": "arm", "weight": 2},
+      {"piece": "leg_biped", "weight": 2},
       {"piece": "tail", "weight": 1},
       {"piece": "spine", "weight": 1}
     ],
 
     "quadruped": [
+      {"piece": "skull", "weight": 1},
       {"piece": "ribs", "weight": 1},
-      {"piece": "foot", "weight": 1},
+      {"piece": "foot", "weight": 4},
       {"piece": "leg_quadruped", "weight": 4},
       {"piece": "tail", "weight": 1},
       {"piece": "spine", "weight": 1}

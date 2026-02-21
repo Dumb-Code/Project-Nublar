@@ -35,7 +35,7 @@ public class BlockInit {
 
 
      public static FossilCollection TYRANNOSAURUS_REX_FOSSILS = FossilCollection.create(EntityInit.TYRANNOSAURUS_REX.getId());
-     public static FossilCollection TRICERATOPS_FOSSILS = FossilCollection.create(EntityInit.TRICERATOPS.getId());
+    // public static FossilCollection TRICERATOPS_FOSSILS = FossilCollection.create(EntityInit.TRICERATOPS.getId());
 
     public static DeferredSupplier<Block> PROCESSOR = registerBlock("processor", () -> new ProcessorBlock(BlockBehaviour.Properties.of().noOcclusion(),3,2, 2), block->()-> new GeoMultiBlockItem(block.get(),ItemInit.getItemProperties(),3,2, 2));
     public static DeferredSupplier<Block> SEQUENCER = registerBlock("sequencer", () -> new SequencerBlock(BlockBehaviour.Properties.of().noOcclusion(),2,2, 2), block->()-> new GeoMultiBlockItem(block.get(),ItemInit.getItemProperties(),2,2, 2));

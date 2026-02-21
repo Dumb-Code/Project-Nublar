@@ -20,11 +20,7 @@ public record FossilCollection(Map<Block,Map<Quality,Map<FossilPiece, DeferredSu
     public static Map<String,FossilCollection> COLLECTIONS = new HashMap<>();
 
     public static List<Block> stonelist = List.of(
-            Blocks.STONE,
-            Blocks.ANDESITE, Blocks.GRANITE, Blocks.DIORITE, Blocks.SANDSTONE, Blocks.DEEPSLATE,
-            Blocks.TERRACOTTA, Blocks.RED_TERRACOTTA, Blocks.ORANGE_TERRACOTTA,
-            Blocks.YELLOW_TERRACOTTA, Blocks.BROWN_TERRACOTTA, Blocks.WHITE_TERRACOTTA,
-            Blocks.LIGHT_GRAY_TERRACOTTA
+            Blocks.STONE, Blocks.DEEPSLATE
     );
     //overload for PN Entities
     public static FossilCollection create(String fossilName) {
@@ -49,6 +45,10 @@ public record FossilCollection(Map<Block,Map<Quality,Map<FossilPiece, DeferredSu
             fullAmberMap.put(stone,BlockInit.registerBlock(stoneName + "_" + entityType.getPath() + "_amber", () -> new AmberBlock(BlockBehaviour.Properties.copy(stone).noOcclusion(), entityType,stone)));
         }
         return COLLECTIONS.put(entityType.toString(),new FossilCollection(fullFossilMap, fullAmberMap));
+    }
+
+    public static FossilCollection getFossilCollection(ResourceLocation entityType) {
+        return COLLECTIONS.get(entityType.getPath());
     }
 
 }

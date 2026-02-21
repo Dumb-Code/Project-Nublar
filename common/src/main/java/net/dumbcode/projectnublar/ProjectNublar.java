@@ -12,7 +12,7 @@ import java.util.Map;
 import java.util.stream.Collectors;
 
 public class ProjectNublar {
-    public static Map<String, Map<String, SimpleWeightedRandomList.Builder<String>>> WEIGHTED_PERIOD_BIOME_FOSSIL_MAP = new HashMap<>();;
+    public static Map<String, Map<String, SimpleWeightedRandomList.Builder<String>>> WEIGHTED_PERIOD_BIOME_FOSSIL_MAP = new HashMap<>();
 
     public static void init() {
         RegistrarManager registrarManager = RegistrarManager.get(Constants.MODID);

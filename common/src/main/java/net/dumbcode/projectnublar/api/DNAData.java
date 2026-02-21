@@ -157,7 +157,7 @@ public class DNAData {
     }
 
     public CompoundTag saveToNBT(CompoundTag tag) {
-        tag.putString("entityType", BuiltInRegistries.ENTITY_TYPE.getKey(entityType).toString());
+        tag.putString("EntityType", BuiltInRegistries.ENTITY_TYPE.getKey(entityType).toString());
         if (dnaPercentage != 0)
             tag.putDouble("dnaPercentage", dnaPercentage);
         if (variant != null)
@@ -177,7 +177,7 @@ public class DNAData {
 
     public static DNAData loadFromNBT(CompoundTag tag) {
         DNAData dnaData = new DNAData();
-        dnaData.setEntityType(BuiltInRegistries.ENTITY_TYPE.get(new ResourceLocation(tag.getString("entityType"))));
+        dnaData.setEntityType(BuiltInRegistries.ENTITY_TYPE.get(new ResourceLocation(tag.getString("EntityType"))));
         if (tag.contains("dnaPercentage"))
             dnaData.setDnaPercentage(tag.getDouble("dnaPercentage"));
         if (tag.contains("variant"))

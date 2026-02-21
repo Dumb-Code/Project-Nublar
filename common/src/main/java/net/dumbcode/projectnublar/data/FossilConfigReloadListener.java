@@ -15,10 +15,7 @@ import net.minecraft.world.entity.EntityType;
 import org.jetbrains.annotations.Nullable;
 
 import java.lang.reflect.Type;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 public class FossilConfigReloadListener extends SimpleJsonResourceReloadListener {
     private static final Gson GSON = new GsonBuilder().setPrettyPrinting().disableHtmlEscaping().create();
@@ -122,11 +119,36 @@ public class FossilConfigReloadListener extends SimpleJsonResourceReloadListener
                     List<FossilSets.FossilPiece> quadrupedList = GSON.fromJson(jsonObject.get("quadruped"), listType);
                     List<FossilSets.FossilPiece> fernList = GSON.fromJson(jsonObject.get("fern"), listType);
 
+                    Map<FossilPiece,Integer> pBipedList = new HashMap<>();
+                    Map<FossilPiece,Integer> pQuadrupedList = new HashMap<>();
+                    Map<FossilPiece,Integer> pFernList = new HashMap<>();
+
+
+
+                    for(FossilSets.FossilPiece p: bipedList) {
+                        String piece = p.piece();
+                        int weight = p.weight();
+                        FossilPiece fossilPiece = FossilPieces.getPieceByName(piece);
+                        pBipedList.put(fossilPiece,weight);
+                    }
+                    for(FossilSets.FossilPiece p: quadrupedList) {
+                        String piece = p.piece();
+                        int weight = p.weight();
+                        FossilPiece fossilPiece = FossilPieces.getPieceByName(piece);
+                        pQuadrupedList.put(fossilPiece,weight);
+                    }
+                    for(FossilSets.FossilPiece p: fernList) {
+                        String piece = p.piece();
+                        int weight = p.weight();
+                        FossilPiece fossilPiece = FossilPieces.getPieceByName(piece);
+                        pFernList.put(fossilPiece,weight);
+                    }
+
                     FossilSets fossilSets = new FossilSets(
                             configId,
-                            bipedList,
-                            quadrupedList,
-                            fernList
+                            pBipedList,
+                            pQuadrupedList,
+                            pFernList
                     );
                     if (newSetsMap.containsKey(configId)) {
                         Constants.LOG.warn("Duplicate datapack file definition");
