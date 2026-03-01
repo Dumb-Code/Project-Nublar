@@ -2,6 +2,9 @@ package net.dumbcode.projectnublar;
 
 import dev.architectury.platform.forge.EventBuses;
 
+import dev.architectury.registry.registries.RegistrarManager;
+import net.dumbcode.projectnublar.api.Dinosaurs;
+import net.dumbcode.projectnublar.config.FossilsConfig;
 import net.dumbcode.projectnublar.datagen.GeneDataProvider;
 import net.dumbcode.projectnublar.datagen.ModBlockStateProvider;
 import net.dumbcode.projectnublar.datagen.ModItemModelProvider;
@@ -12,13 +15,19 @@ import net.dumbcode.projectnublar.datagen.ModSoundProvider;
 import net.dumbcode.projectnublar.datagen.ModTagProvider;
 import net.dumbcode.projectnublar.datagen.ModWorldGenProvider;
 import net.dumbcode.projectnublar.init.SensorTypesInit;
+import net.minecraft.core.HolderLookup;
 import net.minecraft.data.DataGenerator;
 import net.minecraft.data.PackOutput;
+import net.minecraftforge.common.data.BlockTagsProvider;
 import net.minecraftforge.common.data.ExistingFileHelper;
 import net.minecraftforge.data.event.GatherDataEvent;
 import net.minecraftforge.eventbus.api.IEventBus;
+import net.minecraftforge.fml.ModLoadingContext;
 import net.minecraftforge.fml.common.Mod;
+import net.minecraftforge.fml.config.ModConfig;
 import net.minecraftforge.fml.javafmlmod.FMLJavaModLoadingContext;
+
+import java.util.concurrent.CompletableFuture;
 
 @Mod(Constants.MODID)
 public class ProjectNublarForge {
@@ -29,7 +38,8 @@ public class ProjectNublarForge {
         EventBuses.registerModEventBus(Constants.MODID,bus);
         ProjectNublar.init();
         SensorTypesInit.init();
-      //  ModLoadingContext.get().registerConfig(ModConfig.Type.COMMON, FossilsConfig.CONFIG_SPEC,"projectnublar-fossils.toml");
+        ModLoadingContext.get().registerConfig(ModConfig.Type.COMMON, FossilsConfig.CONFIG_SPEC,"projectnublar-fossils.toml");
+
     }
 
 
@@ -43,7 +53,7 @@ public class ProjectNublarForge {
         generator.addProvider(includeServer, new ModLootTableProvider(packOutput));
         generator.addProvider(includeServer, new ModSoundProvider(packOutput, existingFileHelper));
         generator.addProvider(includeServer, new ModWorldGenProvider(packOutput, event.getLookupProvider()));
-        generator.addProvider(includeServer, new ModTagProvider.BlockTag(packOutput,event.getLookupProvider(), existingFileHelper));
+        generator.addProvider(includeServer, new ModTagProvider.BlockTag(packOutput,event.getLookupProvider(),Constants.MODID, existingFileHelper));
         generator.addProvider(includeServer, new ModTagProvider.ItemTag(packOutput,event.getLookupProvider(), existingFileHelper));
         generator.addProvider(includeServer, new ModTagProvider.EntityTypeTag(packOutput,event.getLookupProvider(), existingFileHelper));
         generator.addProvider(includeClient, new ModBlockStateProvider(packOutput, existingFileHelper));

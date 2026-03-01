@@ -3,21 +3,19 @@ package net.dumbcode.projectnublar;
 import dev.architectury.registry.registries.RegistrarManager;
 import net.dumbcode.projectnublar.init.*;
 import net.dumbcode.projectnublar.network.NetworkInit;
-import net.minecraft.util.random.SimpleWeightedRandomList;
+import net.dumbcode.projectnublar.worldgen.placement.ModifierTypes;
 import org.apache.commons.lang3.StringUtils;
+import org.apache.http.config.RegistryBuilder;
 
 import java.util.Arrays;
-import java.util.HashMap;
-import java.util.Map;
 import java.util.stream.Collectors;
 
 public class ProjectNublar {
-    public static Map<String, Map<String, SimpleWeightedRandomList.Builder<String>>> WEIGHTED_PERIOD_BIOME_FOSSIL_MAP = new HashMap<>();
-
     public static void init() {
         RegistrarManager registrarManager = RegistrarManager.get(Constants.MODID);
         registrarManager.builder(GeneInit.GENE_KEY.location(), new GeneInit[0]).build();
         EntityInit.loadClass();
+        ModifierTypes.loadClass();
         BlockInit.loadClass();
         ItemInit.loadClass();
         LootFunctionInit.loadClass();

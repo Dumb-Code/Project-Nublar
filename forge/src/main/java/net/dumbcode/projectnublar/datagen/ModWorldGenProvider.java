@@ -2,13 +2,14 @@ package net.dumbcode.projectnublar.datagen;
 
 import net.dumbcode.projectnublar.Constants;
 import net.dumbcode.projectnublar.api.FossilCollection;
-import net.dumbcode.projectnublar.api.FossilPiece;
-import net.dumbcode.projectnublar.api.FossilPieces;
-import net.dumbcode.projectnublar.api.Quality;
-import net.dumbcode.projectnublar.init.EntityInit;
+
+import net.dumbcode.projectnublar.block.FossilBlock;
 
 import net.dumbcode.projectnublar.init.FeatureInit;
+import net.dumbcode.projectnublar.init.TagInit;
 import net.dumbcode.projectnublar.worldgen.FossilConfiguration;
+import net.dumbcode.projectnublar.worldgen.placement.FossilHeightPlacement;
+import net.dumbcode.projectnublar.worldgen.placement.FossilRarityFilter;
 import net.minecraft.core.HolderGetter;
 import net.minecraft.core.HolderLookup;
 import net.minecraft.core.HolderSet;
@@ -19,18 +20,9 @@ import net.minecraft.data.worldgen.BootstapContext;
 import net.minecraft.resources.ResourceKey;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.tags.BiomeTags;
-import net.minecraft.tags.BlockTags;
-import net.minecraft.util.valueproviders.ConstantInt;
-import net.minecraft.world.entity.EntityType;
-import net.minecraft.world.item.ItemStack;
-import net.minecraft.world.level.block.Block;
-import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.level.dimension.DimensionType;
 import net.minecraft.world.level.levelgen.GenerationStep;
-import net.minecraft.world.level.levelgen.VerticalAnchor;
 import net.minecraft.world.level.levelgen.feature.ConfiguredFeature;
-import net.minecraft.world.level.levelgen.feature.Feature;
-import net.minecraft.world.level.levelgen.feature.configurations.OreConfiguration;
 import net.minecraft.world.level.levelgen.placement.*;
 import net.minecraft.world.level.levelgen.structure.templatesystem.RuleTest;
 import net.minecraft.world.level.levelgen.structure.templatesystem.TagMatchTest;
@@ -60,30 +52,7 @@ public class ModWorldGenProvider extends DatapackBuiltinEntriesProvider {
 
 
     public static void biomeModifiers(BootstapContext<BiomeModifier> context) {
-        createFossilDepositBiomeModifier("common_tyrannosaur_stone",context);
-        //Registers each fossil block as individual ore
-        /*
-        FossilCollection.COLLECTIONS.forEach((s,fossilCollection) -> {
-            fossilCollection.fossilblocks().forEach((block, qualityMap) -> {
-                qualityMap.forEach((quality, fossilPieceRegistryObjectMap) -> {
-                    fossilPieceRegistryObjectMap.forEach((fossilPiece, blockRegistryObject) -> {
-                        String blockd = blockRegistryObject.get().getDescriptionId().replaceAll("block.projectnublar.","");
-                        System.out.println(blockd);
-                        ResourceKey<BiomeModifier> FOSSIL_ORE_KEY = ResourceKey.create(ForgeRegistries.Keys.BIOME_MODIFIERS, Constants.modLoc( blockd));
-                        ResourceKey<PlacedFeature> FOSSIL_ORE_KEY_PLACED = placedFeatureKeys.get(blockd);
-                        biomeKeys.put(blockd, FOSSIL_ORE_KEY);
-                        context.register(FOSSIL_ORE_KEY,
-                                new ForgeBiomeModifiers.AddFeaturesBiomeModifier(context.lookup(Registries.BIOME).getOrThrow(BiomeTags.IS_OVERWORLD), HolderSet.direct(
-                                        context.lookup(Registries.PLACED_FEATURE).getOrThrow(FOSSIL_ORE_KEY_PLACED)
-                                ), GenerationStep.Decoration.UNDERGROUND_ORES)
-                        );
-                    });
-                });
-            });
-        });
-
-         */
-
+    //    createFossilDepositBiomeModifier("cretaceous_fossils_feature",context);
     }
 
     public static void dimension(BootstapContext<DimensionType> context) {
@@ -91,89 +60,59 @@ public class ModWorldGenProvider extends DatapackBuiltinEntriesProvider {
     }
     public static void configuredFeature(BootstapContext<ConfiguredFeature<?, ?>> context) {
 
-        createFossilDepositConfiguredFeature(EntityInit.TYRANNOSAURUS_REX.getId(),Quality.COMMON, Blocks.STONE,"common_tyrannosaur_stone",context);
+    //    createFossilDepositConfiguredFeature("cretaceous_fossils_feature","cretaceous",context);
 
     }
 
 
     public static void placedFeatures(BootstapContext<PlacedFeature> context) {
-        createFossilDepositPlacedFeature("common_tyrannosaur_stone",context);
-        //Registers each fossil block as individual ore
-        /*
-        FossilCollection.COLLECTIONS.forEach((s,fossilCollection) -> {
-            fossilCollection.fossilblocks().forEach((block, qualityMap) -> {
-                qualityMap.forEach((quality, fossilPieceRegistryObjectMap) -> {
-                    fossilPieceRegistryObjectMap.forEach((fossilPiece, blockRegistryObject) -> {
-                        String blockd = blockRegistryObject.get().getDescriptionId().replaceAll("block.projectnublar.","");
-                        System.out.println(blockd);
-                        ResourceKey<PlacedFeature> FOSSIL_ORE_KEY = registerPlacedKey(blockd);
-                        ResourceKey<ConfiguredFeature<?,?>> FOSSIL_ORE_KEY_CONFIGURED = configuredFeaturesKeys.get(blockd);
+     //   createFossilDepositPlacedFeature("cretaceous_fossils_feature","cretaceous",context);
 
-                        placedFeatureKeys.put(blockd, FOSSIL_ORE_KEY);
-
-                        context.register(FOSSIL_ORE_KEY, new PlacedFeature(configuredFeatures.getOrThrow(FOSSIL_ORE_KEY_CONFIGURED),
-                                ModOrePlacement.commonOrePlacement(12,
-                                        HeightRangePlacement.uniform(VerticalAnchor.absolute(-64), VerticalAnchor.absolute(80)))));
-                    });
-                });
-            });
-        });
-
-        //Legacy Attempt
-        context.register(Constants.FOSSIL_PLACED, new PlacedFeature(context.lookup(Registries.CONFIGURED_FEATURE).get(Constants.FOSSIL).get(),
-                        List.of(
-                                CountPlacement.of(ConstantInt.of(100)),
-                                HeightRangePlacement.uniform(VerticalAnchor.absolute(-64),VerticalAnchor.absolute(256)),
-                                InSquarePlacement.spread(),
-                                BiomeFilter.biome()
-                        )
-                )
-        );
-
-         */
     }
-    public static void createFossilDepositConfiguredFeature(ResourceLocation dinosaur, Quality pQuality, Block stoneType, String key, BootstapContext<ConfiguredFeature<?, ?>> context) {
-        List<FossilPiece> fossilPieces = new ArrayList<>();
-        fossilPieces.addAll(FossilPieces.getPiecesByEntityType(dinosaur));
+    public static void createFossilDepositConfiguredFeature(String key,String period, BootstapContext<ConfiguredFeature<?, ?>> context) {
 
-        RuleTest stoneReplaceabeles = new TagMatchTest(BlockTags.STONE_ORE_REPLACEABLES);
+     //need custom rule to include all fossil block types soon to be deprecated
+        RuleTest fossilReplaceabeles = new TagMatchTest(TagInit.FOSSIL_BASE);
+
         ResourceKey<ConfiguredFeature<?, ?>> fossil_key =  ResourceKey.create(Registries.CONFIGURED_FEATURE, new ResourceLocation(Constants.MODID,key));
         configuredFeaturesKeys.put(key,fossil_key);
-        List<FossilConfiguration.TargetBlockState> fossilList = new ArrayList<>();
 
+        //add all the fossils
+        /*
+        List<FossilConfiguration.TargetBlockState> fossilList = new ArrayList<>();
         FossilCollection.COLLECTIONS.forEach((entity, fossilCollection) -> {
             fossilCollection.fossilblocks().forEach((block, qualityMap) -> {
                 qualityMap.forEach((quality, stoneMap) -> {
                     stoneMap.forEach((piece, blockDeferredSupplier) -> {
-                        if(entity.equals(dinosaur.toString()) && quality == pQuality && block == stoneType && fossilPieces.contains(piece)) {
-                            fossilList.add(FossilConfiguration.target(stoneReplaceabeles,blockDeferredSupplier.get().defaultBlockState()));
+                        FossilBlock fossilBlock = (FossilBlock) blockDeferredSupplier.get();
+                        if(fossilBlock.getTimePeriod().equals(period)) {
+                            fossilList.add(FossilConfiguration.target(fossilReplaceabeles, blockDeferredSupplier.get().defaultBlockState()));
                         }
                     });
                 });
             });
         });
 
-        List<FossilConfiguration.TargetEntityType> entityTypeList = new ArrayList<>();
-        entityTypeList.add(FossilConfiguration.targetEntityType(EntityInit.TYRANNOSAURUS_REX.get()));
 
         context.register(fossil_key, new ConfiguredFeature<>(
                         FeatureInit.FOSSIL_FEATURE.get(),
-                        new FossilConfiguration(fossilList,entityTypeList, 9)
+                        new FossilConfiguration(fossilList, 15)
                 )
         );
 
 
+         */
+
     }
-    public static void createFossilDepositPlacedFeature(String key, BootstapContext<PlacedFeature> context) {
+    public static void createFossilDepositPlacedFeature(String key,String period, BootstapContext<PlacedFeature> context) {
 
         HolderGetter<ConfiguredFeature<?, ?>> configuredFeatures = context.lookup(Registries.CONFIGURED_FEATURE);
-        ResourceKey<PlacedFeature> fossil_key =  ResourceKey.create(Registries.PLACED_FEATURE, new ResourceLocation(Constants.MODID,key + "_placed"));
-        placedFeatureKeys.put(key + "_placed",fossil_key);
+        ResourceKey<PlacedFeature> fossil_key =  ResourceKey.create(Registries.PLACED_FEATURE, new ResourceLocation(Constants.MODID,key + "_placed_key"));
+        placedFeatureKeys.put(key + "_placed_key",fossil_key);
         ResourceKey<ConfiguredFeature<?,?>> configuredKey = configuredFeaturesKeys.get(key);
 
         context.register(fossil_key, new PlacedFeature(configuredFeatures.getOrThrow(configuredKey),
-                ModOrePlacement.commonOrePlacement(20,
-                        HeightRangePlacement.uniform(VerticalAnchor.absolute(-64), VerticalAnchor.absolute(80)))));
+                List.of(FossilRarityFilter.useConfigBasedChanceAndHeight(period), InSquarePlacement.spread(), FossilHeightPlacement.of(period), BiomeFilter.biome())));
 
 
     }
@@ -181,7 +120,7 @@ public class ModWorldGenProvider extends DatapackBuiltinEntriesProvider {
     public static void createFossilDepositBiomeModifier(String key, BootstapContext<BiomeModifier> context) {
         ResourceKey<BiomeModifier> fossil_key =  ResourceKey.create(ForgeRegistries.Keys.BIOME_MODIFIERS, new ResourceLocation(Constants.MODID,key));
         biomeKeys.put(key,fossil_key);
-        ResourceKey<PlacedFeature> placedKey = placedFeatureKeys.get(key + "_placed");
+        ResourceKey<PlacedFeature> placedKey = placedFeatureKeys.get(key + "_placed_key");
 
         context.register(fossil_key,
                 new ForgeBiomeModifiers.AddFeaturesBiomeModifier(context.lookup(Registries.BIOME).getOrThrow(BiomeTags.IS_OVERWORLD), HolderSet.direct(
@@ -190,5 +129,4 @@ public class ModWorldGenProvider extends DatapackBuiltinEntriesProvider {
         );
 
     }
-
 }

@@ -3,9 +3,6 @@ package net.dumbcode.projectnublar.api;
 import net.minecraft.nbt.CompoundTag;
 
 public record DinoBehaviourData(
-        String speciesID,
-        String dietID,
-
         double maxHealth,
         double maxStamina,
         double attackDamage,
@@ -45,10 +42,6 @@ public record DinoBehaviourData(
 {
 
     public static DinoBehaviourData fromNBT(CompoundTag tag) {
-        String pSpeciesID = tag.getString("species_id");
-        String pDietID = tag.getString("diet_id");
-
-
         double pMaxHealth = tag.getDouble("default_health");
         double pEnergyCapacity= tag.getDouble("default_energy_capacity");
         double pAttack = tag.getDouble("default_attack_damage");
@@ -86,7 +79,7 @@ public record DinoBehaviourData(
         boolean pPack = tag.getBoolean("can_form_group");
         boolean pNocturnal = tag.getBoolean("nocturnal");
 
-        return new DinoBehaviourData(pSpeciesID,pDietID,pMaxHealth,pEnergyCapacity,pAttack,pSpeed,pSize,
+        return new DinoBehaviourData(pMaxHealth,pEnergyCapacity,pAttack,pSpeed,pSize,
                 pIntelligence,pImmunity,pResistance,pHealthRegen,pGrowthRate,pFertility,pGestationTime,pClutchSize,pVisionQuality,pDomesticity,
                 pAggressionScore,pTamingScore,pTrustIncrease,pSocial,pSocialDrain,pGroupSize,pEatRate,pDehydrationRate,pStarvationLimit,pDehydrationLimit,
                 pBaseExhaustionRate,pLowRisk,pMediumRisk,pHighRisk,pPack,pNocturnal);
@@ -94,9 +87,6 @@ public record DinoBehaviourData(
 
     public CompoundTag toNBT(DinoBehaviourData behaviourData) {
         CompoundTag tag = new CompoundTag();
-        tag.putString("species_id", behaviourData.speciesID);
-        tag.putString("diet_id", behaviourData.dietID);
-
         tag.putDouble("default_health",behaviourData.maxHealth);
         tag.putDouble("default_stamina",behaviourData.maxStamina);
         tag.putDouble("default_attack_damage",behaviourData.attackDamage);
@@ -111,8 +101,6 @@ public record DinoBehaviourData(
         tag.putDouble("default_gestation_time",behaviourData.gestationTime);
         tag.putDouble("default_egg_clutch",behaviourData.eggClutchSize);
         tag.putDouble("default_vision",behaviourData.visionQuality);
-
-
         tag.putDouble("default_domesticity",behaviourData.domesticity);
         tag.putDouble("default_aggression",behaviourData.aggressionLevel);
         tag.putDouble("default_tame_score",behaviourData.trustThreshold);
@@ -120,18 +108,14 @@ public record DinoBehaviourData(
         tag.putDouble("default_social",behaviourData.socialNeed);
         tag.putDouble("default_social_drain",behaviourData.socialDrain);
         tag.putInt("default_group_size",behaviourData.groupSize);
-
-
         tag.putDouble("default_eat_rate", behaviourData.eatRate);
         tag.putDouble("default_dehydration_rate", behaviourData.drinkRate);
         tag.putInt("default_starvation_limit",behaviourData.starvationLimit);
         tag.putInt("default_dehydration_limit",behaviourData.dehydrationLimit);
         tag.putDouble("default_exhaustion_rate", behaviourData.staminaDrain);
-
         tag.putDouble("low_risk_threshold",behaviourData.happyThreshold);
         tag.putDouble("medium_risk_threshold",behaviourData.uncomfortableThreshold);
         tag.putDouble("high_risk_threshold",behaviourData.rageThreshold);
-
         tag.putBoolean("can_form_group", behaviourData.canFormGroup);
         tag.putBoolean("nocturnal", behaviourData.isNocturnal);
 

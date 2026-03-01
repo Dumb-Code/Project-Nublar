@@ -1,0 +1,16 @@
+{
+  "variants": {
+    "quality=common": {
+      "model": "projectnublar:block/common_deepslate_tail"
+    },
+    "quality=fragmented": {
+      "model": "projectnublar:block/fragmented_deepslate_tail"
+    },
+    "quality=poor": {
+      "model": "projectnublar:block/poor_deepslate_tail"
+    },
+    "quality=pristine": {
+      "model": "projectnublar:block/pristine_deepslate_tail"
+    }
+  }
+}

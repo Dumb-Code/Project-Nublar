@@ -2,7 +2,7 @@ package net.dumbcode.projectnublar.entity.ai.tasks;
 
 import com.mojang.datafixers.util.Pair;
 import it.unimi.dsi.fastutil.objects.ObjectArrayList;
-import net.dumbcode.projectnublar.entity.dinosaur.Dinosaur;
+import net.dumbcode.projectnublar.entity.dinosaur.AbstractDinosaur;
 import net.dumbcode.projectnublar.init.MemoryModuleTypeInit;
 import net.minecraft.core.BlockPos;
 import net.minecraft.server.level.ServerLevel;
@@ -18,7 +18,7 @@ import java.util.List;
 import java.util.function.BiFunction;
 import java.util.function.BiPredicate;
 
-public class SetWalkTargetToFoodItem<E extends Dinosaur> extends ExtendedBehaviour<E> {
+public class SetWalkTargetToFoodItem<E extends AbstractDinosaur> extends ExtendedBehaviour<E> {
 
     private static final List<Pair<MemoryModuleType<?>, MemoryStatus>> MEMORY_REQUIREMENTS = ObjectArrayList.of(
             Pair.of(MemoryModuleType.NEAREST_VISIBLE_WANTED_ITEM, MemoryStatus.VALUE_PRESENT),

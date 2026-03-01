@@ -8,7 +8,7 @@ import net.minecraft.world.level.Level;
 public class DilophosaurusEntity extends CarnivoreDinosaur {
 
     public DilophosaurusEntity(EntityType<? extends DilophosaurusEntity> $$0, Level $$1) {
-        super($$0, $$1, 39);
+        super($$0, $$1,null,null);
     }
 
     @Override

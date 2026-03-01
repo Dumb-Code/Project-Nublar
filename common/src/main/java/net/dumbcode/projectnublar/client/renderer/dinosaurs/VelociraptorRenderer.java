@@ -2,7 +2,7 @@ package net.dumbcode.projectnublar.client.renderer.dinosaurs;
 
 import com.mojang.blaze3d.vertex.PoseStack;
 import net.dumbcode.projectnublar.client.renderer.DinosaurRenderer;
-import net.dumbcode.projectnublar.entity.dinosaur.Dinosaur;
+import net.dumbcode.projectnublar.entity.dinosaur.AbstractDinosaur;
 import net.dumbcode.projectnublar.init.GeneInit;
 import net.minecraft.client.renderer.entity.EntityRendererProvider;
 import net.minecraft.world.phys.Vec3;
@@ -18,7 +18,7 @@ public class VelociraptorRenderer extends DinosaurRenderer {
     }
 
     @Override
-    public void scaleModelForRender(float widthScale, float heightScale, PoseStack poseStack, Dinosaur animatable, BakedGeoModel model, boolean isReRender, float partialTick, int packedLight, int packedOverlay) {
+    public void scaleModelForRender(float widthScale, float heightScale, PoseStack poseStack, AbstractDinosaur animatable, BakedGeoModel model, boolean isReRender, float partialTick, int packedLight, int packedOverlay) {
         float adultScale = ((float) animatable.getDinoData().getGeneValue(GeneInit.SIZE.get()) / 100) + 0.6F;
         float babyScale = adultScale * 0.25F;
         float juvenileScale = adultScale * 0.5F;
@@ -35,7 +35,7 @@ public class VelociraptorRenderer extends DinosaurRenderer {
             CoreGeoBone head = model.getBone("head").get();
             Vector3f local = new Vector3f(head.getPivotX(),head.getPivotY(),head.getPivotZ());
             Vec3 worldpos =  animatable.position().add(local.x,local.y,local.z);
-            animatable.getEntityData().set(Dinosaur.DINOSAUR_HEAD_POS, worldpos.toVector3f());
+            animatable.getEntityData().set(AbstractDinosaur.DINOSAUR_HEAD_POS, worldpos.toVector3f());
         }
 
         super.scaleModelForRender(renderScale, renderScale, poseStack, animatable, model, isReRender, partialTick, packedLight, packedOverlay);

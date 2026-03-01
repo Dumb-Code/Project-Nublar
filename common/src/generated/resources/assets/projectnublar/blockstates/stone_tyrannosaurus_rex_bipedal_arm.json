@@ -1,0 +1,16 @@
+{
+  "variants": {
+    "quality=common": {
+      "model": "projectnublar:block/common_stone_bipedal_arm"
+    },
+    "quality=fragmented": {
+      "model": "projectnublar:block/fragmented_stone_bipedal_arm"
+    },
+    "quality=poor": {
+      "model": "projectnublar:block/poor_stone_bipedal_arm"
+    },
+    "quality=pristine": {
+      "model": "projectnublar:block/pristine_stone_bipedal_arm"
+    }
+  }
+}

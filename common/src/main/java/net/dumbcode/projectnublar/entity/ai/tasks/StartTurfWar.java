@@ -1,7 +1,7 @@
 package net.dumbcode.projectnublar.entity.ai.tasks;
 
 import com.mojang.datafixers.util.Pair;
-import net.dumbcode.projectnublar.entity.dinosaur.Dinosaur;
+import net.dumbcode.projectnublar.entity.dinosaur.AbstractDinosaur;
 import net.dumbcode.projectnublar.init.MemoryModuleTypeInit;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.entity.LivingEntity;
@@ -16,7 +16,7 @@ import java.util.Random;
 import java.util.function.Predicate;
 
 
-public class StartTurfWar<E extends Dinosaur> extends ExtendedBehaviour<E> {
+public class StartTurfWar<E extends AbstractDinosaur> extends ExtendedBehaviour<E> {
 
     private Random random = new Random();
 
@@ -81,7 +81,7 @@ public class StartTurfWar<E extends Dinosaur> extends ExtendedBehaviour<E> {
         BrainUtils.setMemory(entity, MemoryModuleTypeInit.TURF_WAR_MEMBER.get(),1);
         BrainUtils.setMemory(toTarget, MemoryModuleTypeInit.TURF_WAR_MEMBER.get(),2);
         BrainUtils.setMemory(entity, MemoryModuleTypeInit.TURF_WAR_OUTCOME.get(),encounterOutcome);
-        BrainUtils.setMemory(entity, MemoryModuleTypeInit.SOCIAL_TARGET.get(),(Dinosaur) toTarget);
+        BrainUtils.setMemory(entity, MemoryModuleTypeInit.SOCIAL_TARGET.get(),(AbstractDinosaur) toTarget);
 
         //END OF BRAIN TO DO
         this.toTarget = null;

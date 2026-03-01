@@ -2,7 +2,7 @@ package net.dumbcode.projectnublar.entity.ai.behaviour.social;
 
 import com.mojang.datafixers.util.Pair;
 import it.unimi.dsi.fastutil.objects.ObjectArrayList;
-import net.dumbcode.projectnublar.entity.dinosaur.Dinosaur;
+import net.dumbcode.projectnublar.entity.dinosaur.AbstractDinosaur;
 import net.dumbcode.projectnublar.init.MemoryModuleTypeInit;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.entity.ai.memory.MemoryModuleType;
@@ -13,12 +13,12 @@ import net.tslat.smartbrainlib.util.BrainUtils;
 
 import java.util.List;
 
-public class LargeCarnivoreFight<E extends Dinosaur> extends ExtendedBehaviour<E> {
+public class LargeCarnivoreFight<E extends AbstractDinosaur> extends ExtendedBehaviour<E> {
 
     private static final List<Pair<MemoryModuleType<?>, MemoryStatus>> MEMORY_REQUIREMENTS = ObjectArrayList.of(Pair.of(MemoryModuleTypeInit.INITIATED_TURF_WAR.get(), MemoryStatus.VALUE_PRESENT));
     private int turfWarTicks;
-    private Dinosaur host;
-    private Dinosaur socialTarget;
+    private AbstractDinosaur host;
+    private AbstractDinosaur socialTarget;
 
     private boolean turfWarStarted;
 
@@ -65,8 +65,8 @@ public class LargeCarnivoreFight<E extends Dinosaur> extends ExtendedBehaviour<E
         if (getHost() == entity) {
 
         if (getTarget() != null) {
-            Dinosaur host = getHost();
-            Dinosaur target = getTarget();
+            AbstractDinosaur host = getHost();
+            AbstractDinosaur target = getTarget();
 
             if (host.distanceTo(target) > 10 && turfWarTicks == 0) {
                 BrainUtils.setMemory(host, MemoryModuleType.WALK_TARGET, new WalkTarget(target.position(), 1.0F, 10));
@@ -123,10 +123,10 @@ public class LargeCarnivoreFight<E extends Dinosaur> extends ExtendedBehaviour<E
             return BrainUtils.getMemory(getHost(), MemoryModuleTypeInit.TURF_WAR_MEMBER.get());
         } else return 1;
     }
-    public Dinosaur getHost(){
+    public AbstractDinosaur getHost(){
         return this.host;
     }
-    public Dinosaur getTarget(){
+    public AbstractDinosaur getTarget(){
         return this.socialTarget;
     }
     public void doFight(E entity){

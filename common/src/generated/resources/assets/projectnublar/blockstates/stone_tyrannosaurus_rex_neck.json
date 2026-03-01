@@ -1,0 +1,16 @@
+{
+  "variants": {
+    "quality=common": {
+      "model": "projectnublar:block/common_stone_neck"
+    },
+    "quality=fragmented": {
+      "model": "projectnublar:block/fragmented_stone_neck"
+    },
+    "quality=poor": {
+      "model": "projectnublar:block/poor_stone_neck"
+    },
+    "quality=pristine": {
+      "model": "projectnublar:block/pristine_stone_neck"
+    }
+  }
+}

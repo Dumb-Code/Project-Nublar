@@ -3,7 +3,7 @@ package net.dumbcode.projectnublar.entity.ai.behaviour.actions;
 import com.mojang.datafixers.util.Pair;
 import it.unimi.dsi.fastutil.objects.ObjectArrayList;
 import net.dumbcode.projectnublar.block.entity.BlockEntityElectricFence;
-import net.dumbcode.projectnublar.entity.dinosaur.Dinosaur;
+import net.dumbcode.projectnublar.entity.dinosaur.AbstractDinosaur;
 import net.dumbcode.projectnublar.init.BlockInit;
 import net.dumbcode.projectnublar.init.MemoryModuleTypeInit;
 import net.dumbcode.projectnublar.util.DinoAnimationUtils;
@@ -21,7 +21,7 @@ import org.jetbrains.annotations.Nullable;
 
 import java.util.List;
 
-public class BreakFenceBehaviour<E extends Dinosaur> extends DelayedBehaviour<E> {
+public class BreakFenceBehaviour<E extends AbstractDinosaur> extends DelayedBehaviour<E> {
     private static final List<Pair<MemoryModuleType<?>, MemoryStatus>> MEMORY_REQUIREMENTS = ObjectArrayList.of(Pair.of(MemoryModuleTypeInit.WANTS_TO_BREAK_FENCE.get(), MemoryStatus.VALUE_PRESENT));
 
     @Nullable BlockEntityElectricFence beElectricFence;

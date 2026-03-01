@@ -4,19 +4,21 @@ import dev.architectury.registry.registries.DeferredRegister;
 import dev.architectury.registry.registries.DeferredSupplier;
 import net.dumbcode.projectnublar.Constants;
 import net.dumbcode.projectnublar.api.*;
-import net.dumbcode.projectnublar.api.fossil.Dinosaurs;
-import net.dumbcode.projectnublar.entity.dinosaur.Dinosaur;
+import net.dumbcode.projectnublar.api.fossil.FossilBase;
+import net.dumbcode.projectnublar.api.fossil.FossilBlockStates;
+import net.dumbcode.projectnublar.api.fossil.Quality;
+import net.dumbcode.projectnublar.block.FossilBlock;
 import net.minecraft.client.Minecraft;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.core.registries.Registries;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.chat.Component;
 import net.minecraft.resources.ResourceLocation;
-import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.animal.Parrot;
 import net.minecraft.world.item.CreativeModeTab;
 import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.level.ClipContext;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.Blocks;
 
@@ -29,24 +31,20 @@ public class CreativeTabInit {
     public static final DeferredSupplier<CreativeModeTab> FOSSIL_ORES_TAB = CREATIVE_MODE_TABS.register(Constants.MODID + "_fossil_ores", () -> CreativeModeTab.builder(CreativeModeTab.Row.TOP, 0)
             .title(Component.translatable("itemGroup." + Constants.MODID + ".fossil_ores"))
             .icon(() -> {
-                Block block = FossilCollection.COLLECTIONS.get("projectnublar:tyrannosaurus_rex").fossilblocks().get(Blocks.STONE).get(Quality.PRISTINE).get(FossilPieces.getPieceByName("rex_skull")).get();
-                ItemStack stack = new ItemStack(block);
+                FossilBlock test_1 = (FossilBlock) BlockInit.TYRANNOSAURUS_REX_FOSSILS.fossilblocks().get(Blocks.STONE).get(FossilPieces.TYRANNOSAURUS_SKULL);
+                ItemStack stack = new ItemStack(test_1);
+                FossilPiece piece = FossilPieces.TYRANNOSAURUS_SKULL;
+                stack.getOrCreateTag().put("fossil_blockstate", piece.toNBT());
                 return stack;
             })
             .displayItems(
                     (itemDisplayParameters, output) -> {
-                        FossilCollection.COLLECTIONS.forEach((entity, fossilCollection) -> {
-                            fossilCollection.fossilblocks().forEach((block, qualityMap) -> {
-                                qualityMap.forEach((quality, stoneMap) -> {
-                                    stoneMap.forEach((piece, blockDeferredSupplier) -> {
-                                        ItemStack stack = new ItemStack(blockDeferredSupplier.get());
-                                        stack.getOrCreateTag().putString("quality", quality.getName());
-                                        output.accept(stack);
-                                    });
-                                });
-                            });
-                            fossilCollection.amberBlocks().forEach((block, blockDeferredSupplier) -> output.accept(blockDeferredSupplier.get()));
-                        });
+                        FossilBlock test_1 = (FossilBlock) BlockInit.TYRANNOSAURUS_REX_FOSSILS.fossilblocks().get(Blocks.STONE).get(FossilPieces.TYRANNOSAURUS_SKULL);
+                        ItemStack stack = new ItemStack(test_1);
+                        FossilPiece piece = FossilPieces.TYRANNOSAURUS_SKULL;
+                        stack.getOrCreateTag().put("fossil_blockstate", piece.toNBT());
+                        output.accept(stack);
+
                     })
             .build());
     public static final DeferredSupplier<CreativeModeTab> FOSSIL_ITEMS_TAB = CREATIVE_MODE_TABS.register(Constants.MODID + "_fossil_items", () -> CreativeModeTab.builder(CreativeModeTab.Row.TOP, 0)
@@ -54,15 +52,16 @@ public class CreativeTabInit {
             .icon(() -> {
                 ItemStack stack = new ItemStack(ItemInit.FOSSIL_ITEM.get());
                 DNAData dnaData = new DNAData();
-                dnaData.setEntityType(EntityInit.TYRANNOSAURUS_REX.get());
-                dnaData.setFossilPiece(FossilPieces.REX_SKULL);
+                dnaData.setEntityType(EntityInit.TYRANNOSAURUS_REX_ENTITY.get());
+                dnaData.setFossilPiece(FossilPieces.TYRANNOSAURUS_SKULL);
                 dnaData.setQuality(Quality.PRISTINE);
                 stack.getOrCreateTag().put("DNAData", dnaData.saveToNBT(new CompoundTag()));
                 return stack;
             })
             .displayItems(
                     (itemDisplayParameters, output) -> {
-                        for(ResourceLocation type : Dinosaurs.DINOSAURS_LIST) {
+                     //   for(ResourceLocation type : Dinosaurs.DINOSAURS_LIST) {
+                          /*
                             FossilPieces.getPiecesByEntityType(type).forEach(fossilPiece -> {
                                 for (Quality value : Quality.values()) {
                                     if (value == Quality.NONE) continue;
@@ -75,9 +74,15 @@ public class CreativeTabInit {
                                     stack.getOrCreateTag().put("DNAData", dnaData.saveToNBT(new CompoundTag()));
                                     output.accept(stack);
                                 }
+
+
                             });
 
-                        }
+
+
+                           */
+
+                     //   }
                     })
             .build());
     public static final DeferredSupplier<CreativeModeTab> MACHINES_TAB = CREATIVE_MODE_TABS.register(Constants.MODID + "_machines", () -> CreativeModeTab.builder(CreativeModeTab.Row.TOP, 0)
@@ -195,8 +200,9 @@ public class CreativeTabInit {
                     (itemDisplayParameters, output) -> {
                         output.accept(ItemInit.ARTIFICIAL_EGG.get());
 
-                        output.accept(createDinoEggs(EntityInit.TYRANNOSAURUS_REX.get(),1.0D,100D).get(0));
-                        output.accept(createDinoEggs(EntityInit.TYRANNOSAURUS_REX.get(),2.0D,100D).get(0));
+                        output.accept(createDinoEggs(DinosaurInit.TYRANNOSAURUS_REX,new ItemStack(ItemInit.INCUBATED_TYRANNOSAURUS_REX_EGG.get()),new ItemStack(ItemInit.UNINCUBATED_EGG.get()),1.0D,100D).get(0));
+                        output.accept(createDinoEggs(DinosaurInit.TYRANNOSAURUS_REX,new ItemStack(ItemInit.INCUBATED_TYRANNOSAURUS_REX_EGG.get()),new ItemStack(ItemInit.UNINCUBATED_EGG.get()),2.0D,100D).get(0));
+                    /*
                         output.accept(createDinoEggs(EntityInit.DILOPHOSAURUS.get(),1.0D,100D).get(0));
                         output.accept(createDinoEggs(EntityInit.DILOPHOSAURUS.get(),2.0D,100D).get(0));
                         output.accept(createDinoEggs(EntityInit.VELOCIRAPTOR.get(),1.0D,100D).get(0));
@@ -208,25 +214,24 @@ public class CreativeTabInit {
                         output.accept(createDinoEggs(EntityInit.GALLIMIMUS.get(),1.0D,100D).get(0));
                         output.accept(createDinoEggs(EntityInit.GALLIMIMUS.get(),2.0D,100D).get(0));
 
+
+                     */
                         output.accept(ItemInit.DEV_STICK.get());
 
                     })
             .build());
 
-    public static List<ItemStack> createDinoEggs(EntityType<? extends Dinosaur> pDinosaur, Double pGender, Double pBasePercentage) {
-        ItemStack IncubatedEggItem = new ItemStack(ItemInit.INCUBATED_EGG.get());
-        ItemStack UnincubatedEggItem = new ItemStack(ItemInit.UNINCUBATED_EGG.get());
+    public static List<ItemStack> createDinoEggs(Dinosaur dinosaur, ItemStack incubatedEgg,ItemStack unincubatedEgg, Double pGender, Double pBasePercentage) {
         DinoData dnaData = new DinoData();
         List<ItemStack> dinoEggs = new ArrayList<>();
-
-        dnaData.setBaseDino(pDinosaur);
+        dnaData.setBaseDino(EntityInit.TYRANNOSAURUS_REX_ENTITY.get());
         dnaData.setGeneValue(GeneInit.GENDER.get(), pGender);
         dnaData.setBasePercentage(pBasePercentage);
-        dnaData.toStack(IncubatedEggItem);
-        dnaData.copy().toStack(UnincubatedEggItem);
+        dnaData.toStack(incubatedEgg);
+        dnaData.copy().toStack(unincubatedEgg);
 
-        dinoEggs.add(IncubatedEggItem);
-        dinoEggs.add(UnincubatedEggItem);
+        dinoEggs.add(incubatedEgg);
+        dinoEggs.add(unincubatedEgg);
 
         return dinoEggs;
     }

@@ -3,7 +3,9 @@ package net.dumbcode.projectnublar.client.model.fossil;
 import com.mojang.math.Transformation;
 import net.dumbcode.projectnublar.Constants;
 import net.dumbcode.projectnublar.api.DNAData;
+
 import net.dumbcode.projectnublar.api.FossilPiece;
+import net.dumbcode.projectnublar.api.fossil.Quality;
 import net.dumbcode.projectnublar.client.model.api.IStackSensitive;
 import net.dumbcode.projectnublar.client.model.api.StackSensitiveItemOverrides;
 import net.minecraft.client.Minecraft;
@@ -46,7 +48,9 @@ public class FossilItemModel implements IDynamicBakedModel, IStackSensitive {
         ModelState modelState = new SimpleModelState(new Transformation(new Vector3f(0f,0,0), new Quaternionf(1,1,1,0), new Vector3f(0.1F, 0.1F, 0.1F), new Quaternionf(1,1,1,0)));
         DNAData data = DNAData.loadFromNBT(stack.getOrCreateTag().getCompound("DNAData"));
         FossilPiece piece = data.getFossilPiece();
-        TextureAtlasSprite sprite = getTexture("block/fossil_overlay/" + piece.folder() + "/"+piece.name());
+        Quality quality = data.getQuality();
+
+        TextureAtlasSprite sprite = getTexture("block/fossil_overlay/tyrannosaurus_rex" + quality.getName().toLowerCase() + "/" +piece.name());
         List<BlockElement> unbaked = UnbakedGeometryHelper.createUnbakedItemElements(0,sprite.contents());
 
         return UnbakedGeometryHelper.bakeElements(unbaked, m->sprite, modelState, Constants.modLoc( "item/fossil"));

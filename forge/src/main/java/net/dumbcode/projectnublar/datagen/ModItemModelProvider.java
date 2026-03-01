@@ -2,7 +2,6 @@ package net.dumbcode.projectnublar.datagen;
 
 import com.google.gson.JsonObject;
 import net.dumbcode.projectnublar.Constants;
-import net.dumbcode.projectnublar.api.FossilCollection;
 import net.dumbcode.projectnublar.client.model.fossil.FossilModelLoader;
 import net.dumbcode.projectnublar.client.model.testtube.TestTubeModelLoader;
 import net.dumbcode.projectnublar.init.BlockInit;
@@ -58,7 +57,7 @@ public class ModItemModelProvider extends ItemModelProvider {
                         ItemInit.INCUBATOR_ARM_BASE,
                         ItemInit.INCUBATOR_NEST,
                         ItemInit.UNINCUBATED_EGG,
-                        ItemInit.INCUBATED_EGG,
+                        ItemInit.INCUBATED_TYRANNOSAURUS_REX_EGG,
                         ItemInit.WIRE_SPOOL
                 )
                 .map(Supplier::get)
@@ -68,26 +67,9 @@ public class ModItemModelProvider extends ItemModelProvider {
         simpleGeneratedModel(BlockInit.INCUBATOR.get().asItem());
         simpleGeneratedModel(BlockInit.HIGH_SECURITY_ELECTRIC_FENCE_POST.get().asItem());
         simpleGeneratedModel(BlockInit.LOW_SECURITY_ELECTRIC_FENCE_POST.get().asItem());
-        FossilCollection.COLLECTIONS.forEach((s, fossilCollection) -> {
-            fossilCollection.fossilblocks().forEach((block, qualityMap) -> {
-                qualityMap.forEach((quality, fossilPieceRegistryObjectMap) -> {
-                    fossilPieceRegistryObjectMap.forEach((fossilPiece, blockRegistryObject) -> {
-                        try {
-                            simpleBlockItemModel(blockRegistryObject.get());
-                        } catch (Exception ignored) {
-                        }
-                    });
-                });
-            });
-            fossilCollection.amberBlocks().forEach((block, blockRegistryObject) -> {
-                try {
-                    simpleBlockItemModel(blockRegistryObject.get());
-                } catch (Exception ignored) {
-                }
-            });
-        });
+
         withExistingParent(getName(ItemInit.FOSSIL_ITEM.get()), "item/generated")
-                .texture("layer0", modLoc("block/fossil_overlay/common/spine"))
+                .texture("layer0", modLoc("block/fossil_overlay/tyrannosaurus_rex/fresh/tyrannosaurus_skull"))
                 .customLoader((builder, helper) -> new FossilLoaderBuilder(FossilModelLoader.GENERATOR, builder, helper));
         withExistingParent(getName(ItemInit.TEST_TUBE_ITEM.get()), "item/generated")
                 .texture("layer0", modLoc("item/test_tube"))

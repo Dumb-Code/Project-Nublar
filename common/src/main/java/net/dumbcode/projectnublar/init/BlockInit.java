@@ -3,7 +3,10 @@ package net.dumbcode.projectnublar.init;
 import dev.architectury.registry.registries.DeferredRegister;
 import dev.architectury.registry.registries.DeferredSupplier;
 import net.dumbcode.projectnublar.Constants;
+import net.dumbcode.projectnublar.api.Dinosaur;
 import net.dumbcode.projectnublar.api.FossilCollection;
+import net.dumbcode.projectnublar.api.fossil.FossilBase;
+import net.dumbcode.projectnublar.api.fossil.Quality;
 import net.dumbcode.projectnublar.block.LowSecurityElectricFencePostBlock;
 import net.dumbcode.projectnublar.block.*;
 import net.dumbcode.projectnublar.block.api.EnumConnectionType;
@@ -14,16 +17,17 @@ import net.dumbcode.projectnublar.block.entity.GeneratorBlockEntity;
 import net.dumbcode.projectnublar.block.entity.IncubatorBlockEntity;
 import net.dumbcode.projectnublar.block.entity.ProcessorBlockEntity;
 import net.dumbcode.projectnublar.block.entity.SequencerBlockEntity;
-import net.dumbcode.projectnublar.client.widget.VanillaColorPickerWidget;
 import net.dumbcode.projectnublar.item.GeoMultiBlockItem;
+import net.dumbcode.projectnublar.item.fossil.FossilBlockItem;
 import net.minecraft.core.registries.Registries;
-import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.item.BlockItem;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.level.block.entity.BlockEntityType;
 import net.minecraft.world.level.block.state.BlockBehaviour;
 
+import java.util.HashMap;
+import java.util.Map;
 import java.util.function.Function;
 import java.util.function.Supplier;
 
@@ -33,10 +37,8 @@ public class BlockInit {
 
 
 
-
-     public static FossilCollection TYRANNOSAURUS_REX_FOSSILS = FossilCollection.create(EntityInit.TYRANNOSAURUS_REX.getId());
-    // public static FossilCollection TRICERATOPS_FOSSILS = FossilCollection.create(EntityInit.TRICERATOPS.getId());
-
+    public static FossilCollection TYRANNOSAURUS_REX_FOSSILS = FossilCollection.create(DinosaurInit.TYRANNOSAURUS_REX);
+    //  public static Map<Dinosaur, FossilCollection> FOSSIL_ORES = FossilCollection.createAllFossilCollections();
     public static DeferredSupplier<Block> PROCESSOR = registerBlock("processor", () -> new ProcessorBlock(BlockBehaviour.Properties.of().noOcclusion(),3,2, 2), block->()-> new GeoMultiBlockItem(block.get(),ItemInit.getItemProperties(),3,2, 2));
     public static DeferredSupplier<Block> SEQUENCER = registerBlock("sequencer", () -> new SequencerBlock(BlockBehaviour.Properties.of().noOcclusion(),2,2, 2), block->()-> new GeoMultiBlockItem(block.get(),ItemInit.getItemProperties(),2,2, 2));
     public static DeferredSupplier<Block> EGG_PRINTER = registerBlock("egg_printer", () -> new EggPrinterBlock(BlockBehaviour.Properties.of().noOcclusion(),1,2, 1), block->()-> new GeoMultiBlockItem(block.get(),ItemInit.getItemProperties(),1,2, 1));
@@ -64,6 +66,10 @@ public class BlockInit {
 
     public static <T extends Block> DeferredSupplier<T> registerBlock(String name, Supplier<T> block) {
         return registerBlock(name, block, b -> () -> new BlockItem(b.get(), ItemInit.getItemProperties()));
+    }
+
+    public static <T extends Block> DeferredSupplier<T> registerFossilBlock(String name, Supplier<T> block) {
+        return registerBlock(name, block, b -> () -> new FossilBlockItem(b.get(), ItemInit.getItemProperties()));
     }
 
     public static <T extends Block> DeferredSupplier<T> registerBlock(String name, Supplier<T> block, Function<DeferredSupplier<T>, Supplier<? extends BlockItem>> item) {

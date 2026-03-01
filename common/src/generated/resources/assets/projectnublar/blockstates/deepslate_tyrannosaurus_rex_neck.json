@@ -1,0 +1,16 @@
+{
+  "variants": {
+    "quality=common": {
+      "model": "projectnublar:block/common_deepslate_neck"
+    },
+    "quality=fragmented": {
+      "model": "projectnublar:block/fragmented_deepslate_neck"
+    },
+    "quality=poor": {
+      "model": "projectnublar:block/poor_deepslate_neck"
+    },
+    "quality=pristine": {
+      "model": "projectnublar:block/pristine_deepslate_neck"
+    }
+  }
+}

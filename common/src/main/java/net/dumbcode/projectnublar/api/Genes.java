@@ -10,6 +10,8 @@ import net.minecraft.ChatFormatting;
 import net.minecraft.network.chat.Component;
 import net.minecraft.world.entity.EntityType;
 
+import java.awt.*;
+
 public class Genes {
     public static Codec<Gene> CODEC = Codec.STRING.xmap(Genes::byName, Gene::name);
     public static Multimap<Gene, Pair<EntityType<?>, Double>> GENE_STORAGE = HashMultimap.create();
@@ -27,15 +29,22 @@ public class Genes {
         return null;
     }
 
-    public record Gene(String name, double requirement) {
+    public record Gene(String name, double doubleValue) {
 
         public Gene(String name) {
             this(name, 1);
         }
 
         public Component getTooltip(Double value) {
+            return name.equals("gender") ? getGenderComponent(name(),value) : getGenericComponent(name(),value);
+        }
 
-            return Component.literal(ProjectNublar.checkReplace(name())).append(Component.literal(": ")).append(Component.literal(String.valueOf(value.intValue())).withStyle(value > 0 ? ChatFormatting.GREEN : ChatFormatting.RED).append(Component.literal("%")));
+        private Component getGenderComponent(String pName,Double value) {
+            String gender = value == 2D ? "Female" : "Male";
+            return Component.literal(ProjectNublar.checkReplace(pName)).append(Component.literal(": ")).append(Component.literal(gender).withStyle(value == 2D ? ChatFormatting.LIGHT_PURPLE : ChatFormatting.BLUE));
+        }
+        private Component getGenericComponent(String pName, Double value) {
+           return Component.literal(ProjectNublar.checkReplace(pName)).append(Component.literal(": ")).append(Component.literal(String.valueOf(value.intValue())).withStyle(value > 0 ? ChatFormatting.GREEN : ChatFormatting.RED).append(Component.literal("%")));
         }
 
         public Component getTooltip() {

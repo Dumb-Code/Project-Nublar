@@ -2,7 +2,7 @@ package net.dumbcode.projectnublar.entity.ai.tasks;
 
 import com.mojang.datafixers.util.Pair;
 import it.unimi.dsi.fastutil.objects.ObjectArrayList;
-import net.dumbcode.projectnublar.entity.dinosaur.Dinosaur;
+import net.dumbcode.projectnublar.entity.dinosaur.AbstractDinosaur;
 import net.dumbcode.projectnublar.init.MemoryModuleTypeInit;
 import net.dumbcode.projectnublar.util.DinoNeedsUtils;
 import net.minecraft.core.BlockPos;
@@ -17,7 +17,7 @@ import java.util.List;
 import java.util.function.Predicate;
 
 
-public class Drink<E extends Dinosaur> extends DelayedBehaviour<E> {
+public class Drink<E extends AbstractDinosaur> extends DelayedBehaviour<E> {
     private static final List<Pair<MemoryModuleType<?>, MemoryStatus>> MEMORY_REQUIREMENTS = ObjectArrayList.of(Pair.of(MemoryModuleTypeInit.HAS_FOUND_WATER.get(), MemoryStatus.VALUE_PRESENT),Pair.of(MemoryModuleTypeInit.IS_THIRSTY.get(), MemoryStatus.VALUE_PRESENT));
 
     protected Predicate<? extends BlockState> targetPredicate = (blockState) -> true;

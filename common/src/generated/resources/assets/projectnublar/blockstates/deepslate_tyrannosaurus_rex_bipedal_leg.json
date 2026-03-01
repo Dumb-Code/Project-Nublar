@@ -1,0 +1,16 @@
+{
+  "variants": {
+    "quality=common": {
+      "model": "projectnublar:block/common_deepslate_bipedal_leg"
+    },
+    "quality=fragmented": {
+      "model": "projectnublar:block/fragmented_deepslate_bipedal_leg"
+    },
+    "quality=poor": {
+      "model": "projectnublar:block/poor_deepslate_bipedal_leg"
+    },
+    "quality=pristine": {
+      "model": "projectnublar:block/pristine_deepslate_bipedal_leg"
+    }
+  }
+}

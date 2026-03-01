@@ -1,9 +1,14 @@
 package net.dumbcode.projectnublar.entity.dinosaur.carnivore;
 
 import net.dumbcode.projectnublar.Constants;
+import net.dumbcode.projectnublar.api.Dinosaur;
+import net.dumbcode.projectnublar.api.Dinosaurs;
+import net.dumbcode.projectnublar.api.dinosaur.IDinosaur;
 import net.dumbcode.projectnublar.entity.dinosaur.CarnivoreDinosaur;
-import net.dumbcode.projectnublar.entity.dinosaur.Dinosaur;
+import net.dumbcode.projectnublar.entity.dinosaur.AbstractDinosaur;
 import net.dumbcode.projectnublar.entity.dinosaur.DinosaurPart;
+import net.dumbcode.projectnublar.init.DinosaurInit;
+import net.dumbcode.projectnublar.init.EntityInit;
 import net.dumbcode.projectnublar.init.SoundInit;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.server.level.ServerLevel;
@@ -18,10 +23,10 @@ import org.jetbrains.annotations.Nullable;
 
 import java.util.UUID;
 
-public class TyrannosaurusRexEntity extends CarnivoreDinosaur {
+public class TyrannosaurusRexEntity extends CarnivoreDinosaur implements IDinosaur {
 
     public TyrannosaurusRexEntity(EntityType<? extends TyrannosaurusRexEntity> $$0, Level $$1) {
-        super($$0, $$1, 34);
+        super($$0, $$1, DinosaurInit.TYRANNOSAURUS_REX,DinosaurInit.TYRANNOSAURUS_REX.behaviourData());
     }
 
     @Override
@@ -51,7 +56,7 @@ public class TyrannosaurusRexEntity extends CarnivoreDinosaur {
     }
 
     @Override
-    public void updatePart(@Nullable DinosaurPart part, @NotNull Dinosaur parent) {
+    public void updatePart(@Nullable DinosaurPart part, @NotNull AbstractDinosaur parent) {
         if (part == null || !(parent.level() instanceof ServerLevel serverLevel) || parent.isRemoved()) {
             return;
         }
@@ -77,7 +82,7 @@ public class TyrannosaurusRexEntity extends CarnivoreDinosaur {
 
             if(part.getPartName().equals("head")) {
                 part.setPos(parent.getHeadBonePos());
-                //   part.setPos(parent.getHeadBonePos().x + part.radius * Mth.cos((float) (renderYawOffset * (Math.PI / 180.0F) + part.angleYaw)), parent.getEntityData().get(Dinosaur.DINOSAUR_HEAD_Y), parent.getHeadBonePos().z + part.radius * Mth.sin((float) (renderYawOffset * (Math.PI / 180.0F) + part.angleYaw)));
+                //   part.setPos(parent.getHeadBonePos().x + part.radius * Mth.cos((float) (renderYawOffset * (Math.PI / 180.0F) + part.angleYaw)), parent.getEntityData().get(AbstractDinosaur.DINOSAUR_HEAD_Y), parent.getHeadBonePos().z + part.radius * Mth.sin((float) (renderYawOffset * (Math.PI / 180.0F) + part.angleYaw)));
             }
 
 
@@ -130,4 +135,14 @@ public class TyrannosaurusRexEntity extends CarnivoreDinosaur {
     public @Nullable SoundEvent getAttackGrowlSound() {return SoundInit.TYRANNOSAUR_GROWL.get();}
     @Override
     public @Nullable SoundEvent getAttackSound() {return SoundInit.TYRANNOSAUR_BITE.get();}
+
+    @Override
+    public void registerDinosaur(Dinosaur dinosaur) {
+
+    }
+
+    @Override
+    public Dinosaur getDinosaur() {
+        return this.dinosaur;
+    }
 }

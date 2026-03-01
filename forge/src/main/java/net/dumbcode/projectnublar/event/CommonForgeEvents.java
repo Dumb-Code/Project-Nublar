@@ -1,14 +1,14 @@
 package net.dumbcode.projectnublar.event;
 
+
 import net.dumbcode.projectnublar.block.api.BlockConnectableBase;
 import net.dumbcode.projectnublar.block.api.ConnectableBlockEntity;
 import net.dumbcode.projectnublar.block.api.Connection;
-import net.dumbcode.projectnublar.data.BehaviourDataReloadListener;
+
 import net.dumbcode.projectnublar.data.DietReloadListener;
-import net.dumbcode.projectnublar.data.FossilConfigReloadListener;
 import net.dumbcode.projectnublar.data.GeneDataReloadListener;
 import net.dumbcode.projectnublar.entity.DeathMessageHandler;
-import net.dumbcode.projectnublar.entity.dinosaur.Dinosaur;
+import net.dumbcode.projectnublar.entity.dinosaur.AbstractDinosaur;
 import net.dumbcode.projectnublar.init.ItemInit;
 import net.minecraft.core.Direction;
 import net.minecraft.world.level.Level;
@@ -24,17 +24,15 @@ public class CommonForgeEvents {
     @SubscribeEvent
     public static void onReloadListeners(AddReloadListenerEvent event){
         event.addListener(new GeneDataReloadListener());
-        event.addListener(new BehaviourDataReloadListener());
         event.addListener(new DietReloadListener());
-        event.addListener(new FossilConfigReloadListener());
     }
+
     @SubscribeEvent
     public static void onLivingDeath(LivingDeathEvent event){
-        if(event.getEntity() instanceof Dinosaur dinosaur) {
+        if(event.getEntity() instanceof AbstractDinosaur dinosaur) {
             DeathMessageHandler.onLivingDeath(dinosaur, event.getSource());
         }
     }
-
     @SubscribeEvent
     public static void onRightClick(PlayerInteractEvent.RightClickBlock event) {
         Level world = event.getLevel();

@@ -11,7 +11,7 @@ import net.dumbcode.projectnublar.api.NublarMath;
 import net.dumbcode.projectnublar.block.entity.SequencerBlockEntity;
 import net.dumbcode.projectnublar.client.widget.*;
 import net.dumbcode.projectnublar.container.ToggleSlot;
-import net.dumbcode.projectnublar.entity.dinosaur.Dinosaur;
+import net.dumbcode.projectnublar.entity.dinosaur.AbstractDinosaur;
 import net.dumbcode.projectnublar.init.GeneInit;
 import net.dumbcode.projectnublar.item.DiskStorageItem;
 import net.dumbcode.projectnublar.menutypes.SequencerMenu;
@@ -436,7 +436,7 @@ public class SequencerScreen extends AbstractContainerScreen<SequencerMenu> {
             button.active = button.type != null;
             if (button.type != null) {
                 double completion = DiskStorageItem.getGeneCompletion(button.type, menu.storageSlot.getItem());
-                button.active = completion >= button.type.requirement();
+                button.active = completion >= button.type.doubleValue();
             }
         });
         isAdvanced = true;
@@ -687,7 +687,7 @@ public class SequencerScreen extends AbstractContainerScreen<SequencerMenu> {
         guiGraphics.fill(leftPos + 106, topPos + 25, leftPos + 222, topPos + 123, 0xCF193B59);
         if (sequencingDino != null) {
             guiGraphics.enableScissor(leftPos + 105, topPos + 25, leftPos + 222, topPos + 123);
-            ((Dinosaur) sequencingDino).setDinoData(dinoData);
+            ((AbstractDinosaur) sequencingDino).setDinoData(dinoData);
             InventoryScreen.renderEntityInInventory(guiGraphics, leftPos + 105 + 55, topPos + 25 + 90, 18, new Quaternionf().rotateZ((float) Math.PI).rotateY(90), null, sequencingDino);
             guiGraphics.pose().pushPose();
             guiGraphics.pose().translate(0, 0, 10);

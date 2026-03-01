@@ -1,0 +1,16 @@
+{
+  "variants": {
+    "quality=common": {
+      "model": "projectnublar:block/common_sandstone_tyrannosaurus_pelvis"
+    },
+    "quality=fragmented": {
+      "model": "projectnublar:block/fragmented_sandstone_tyrannosaurus_pelvis"
+    },
+    "quality=poor": {
+      "model": "projectnublar:block/poor_sandstone_tyrannosaurus_pelvis"
+    },
+    "quality=pristine": {
+      "model": "projectnublar:block/pristine_sandstone_tyrannosaurus_pelvis"
+    }
+  }
+}

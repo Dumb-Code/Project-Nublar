@@ -1,0 +1,16 @@
+{
+  "variants": {
+    "quality=common": {
+      "model": "projectnublar:block/common_sandstone_bipedal_leg"
+    },
+    "quality=fragmented": {
+      "model": "projectnublar:block/fragmented_sandstone_bipedal_leg"
+    },
+    "quality=poor": {
+      "model": "projectnublar:block/poor_sandstone_bipedal_leg"
+    },
+    "quality=pristine": {
+      "model": "projectnublar:block/pristine_sandstone_bipedal_leg"
+    }
+  }
+}

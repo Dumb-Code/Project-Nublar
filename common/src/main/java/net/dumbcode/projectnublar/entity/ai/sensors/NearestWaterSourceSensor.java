@@ -2,7 +2,7 @@ package net.dumbcode.projectnublar.entity.ai.sensors;
 
 import com.mojang.datafixers.util.Pair;
 import it.unimi.dsi.fastutil.objects.ObjectArrayList;
-import net.dumbcode.projectnublar.entity.dinosaur.Dinosaur;
+import net.dumbcode.projectnublar.entity.dinosaur.AbstractDinosaur;
 import net.dumbcode.projectnublar.init.MemoryModuleTypeInit;
 import net.dumbcode.projectnublar.init.SensorTypesInit;
 import net.minecraft.core.BlockPos;
@@ -18,7 +18,7 @@ import net.tslat.smartbrainlib.util.BrainUtils;
 import javax.annotation.Nullable;
 import java.util.List;
 
-public class NearestWaterSourceSensor<E extends Dinosaur> extends PredicateSensor<BlockState, E> {
+public class NearestWaterSourceSensor<E extends AbstractDinosaur> extends PredicateSensor<BlockState, E> {
 
     private static final List<MemoryModuleType<?>> MEMORIES = ObjectArrayList.of(MemoryModuleTypeInit.HAS_FOUND_WATER.get());
 

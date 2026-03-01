@@ -3,14 +3,11 @@ package net.dumbcode.projectnublar.init;
 import dev.architectury.registry.registries.DeferredRegister;
 import dev.architectury.registry.registries.DeferredSupplier;
 import net.dumbcode.projectnublar.Constants;
-import net.dumbcode.projectnublar.entity.dinosaur.Dinosaur;
+import net.dumbcode.projectnublar.api.Dinosaur;
+import net.dumbcode.projectnublar.api.Dinosaurs;
+import net.dumbcode.projectnublar.entity.dinosaur.AbstractDinosaur;
 import net.dumbcode.projectnublar.entity.dinosaur.DinosaurPart;
-import net.dumbcode.projectnublar.entity.dinosaur.carnivore.DilophosaurusEntity;
 import net.dumbcode.projectnublar.entity.dinosaur.carnivore.TyrannosaurusRexEntity;
-import net.dumbcode.projectnublar.entity.dinosaur.carnivore.VelociraptorEntity;
-import net.dumbcode.projectnublar.entity.dinosaur.herbivore.BrachiosaurusEntity;
-import net.dumbcode.projectnublar.entity.dinosaur.omnivore.GallimimusEntity;
-import net.dumbcode.projectnublar.entity.dinosaur.herbivore.TriceratopsEntity;
 import net.minecraft.core.registries.Registries;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.EntityType;
@@ -26,33 +23,30 @@ public class EntityInit {
     public static final DeferredRegister<EntityType<?>> ENTITIES = DeferredRegister.create(Constants.MODID, Registries.ENTITY_TYPE);
     public static final List<AttributesRegister<?>> attributeSuppliers = new ArrayList<>();
 
-    //Carnivores
-    public static final DeferredSupplier<EntityType<TyrannosaurusRexEntity>> TYRANNOSAURUS_REX = registerEntity("tyrannosaurus_rex", ()-> EntityType.Builder.of(TyrannosaurusRexEntity::new, MobCategory.MONSTER).sized(1,3), Dinosaur::createAttributes);
-    public static final DeferredSupplier<EntityType<VelociraptorEntity>> VELOCIRAPTOR = registerEntity("velociraptor", () -> EntityType.Builder.of(VelociraptorEntity::new, MobCategory.MONSTER).sized(0.6F,0.6F), Dinosaur::createAttributes);
-    public static final DeferredSupplier<EntityType<DilophosaurusEntity>> DILOPHOSAURUS = registerEntity("dilophosaurus", () -> EntityType.Builder.of(DilophosaurusEntity::new, MobCategory.MONSTER).sized(1,1), Dinosaur::createAttributes);
-
-    //Herbivores
-    public static final DeferredSupplier<EntityType<TriceratopsEntity>> TRICERATOPS = registerEntity("triceratops", ()-> EntityType.Builder.of(TriceratopsEntity::new, MobCategory.MONSTER).sized(2,3), Dinosaur::createAttributes);
-    public static final DeferredSupplier<EntityType<BrachiosaurusEntity>> BRACHIOSAURUS = registerEntity("brachiosaurus", ()-> EntityType.Builder.of(BrachiosaurusEntity::new, MobCategory.MONSTER).sized(2,3), Dinosaur::createAttributes);
-
-    //Omnivores
-    public static final DeferredSupplier<EntityType<GallimimusEntity>> GALLIMIMUS = registerEntity("gallimimus", ()-> EntityType.Builder.of(GallimimusEntity::new, MobCategory.MONSTER).sized(2,3), Dinosaur::createAttributes);
 
 
-   // public static final DeferredSupplier<EntityType<TyrannosaurInteractionEntity>> INTERACTION_ENTITY = registerEntity("carnivore_pack",()->EntityType.Builder.of(TyrannosaurInteractionEntity::new, MobCategory.MISC));
-    public static final DeferredSupplier<EntityType<DinosaurPart>> DINOSAUR_PART = registerEntity("dinosaur_part_entity", () -> EntityType.Builder.<DinosaurPart>of(DinosaurPart::new,
-            MobCategory.MISC).sized(0.5f,0.5f));
+    public static final DeferredSupplier<EntityType<TyrannosaurusRexEntity>> TYRANNOSAURUS_REX_ENTITY = registerTyrannosaurusRexEntity();
 
 
-    private static <T extends Entity> DeferredSupplier<EntityType<T>> registerEntity(String name, Supplier<EntityType.Builder<T>> supplier) {
+    public static final DeferredSupplier<EntityType<DinosaurPart>> DINOSAUR_PART = registerEntity("dinosaur_part_entity", () -> EntityType.Builder.<DinosaurPart>of(DinosaurPart::new, MobCategory.MISC).sized(0.5f,0.5f));
+
+    public static <T extends Entity> DeferredSupplier<EntityType<T>> registerEntity(String name, Supplier<EntityType.Builder<T>> supplier) {
         return ENTITIES.register(name, () -> supplier.get().build(Constants.MODID + ":" + name));
     }
-    private static <T extends LivingEntity> DeferredSupplier<EntityType<T>> registerEntity(String name, Supplier<EntityType.Builder<T>> supplier,
+    public static <T extends LivingEntity> DeferredSupplier<EntityType<T>> registerEntity(String name, Supplier<EntityType.Builder<T>> supplier,
                                                                                          Supplier<AttributeSupplier.Builder> attributeSupplier) {
         DeferredSupplier<EntityType<T>> entityTypeSupplier = registerEntity(name, supplier);
         attributeSuppliers.add(new AttributesRegister<>(entityTypeSupplier, attributeSupplier));
         return entityTypeSupplier;
     }
+    public static DeferredSupplier<EntityType<TyrannosaurusRexEntity>> registerTyrannosaurusRexEntity(){
+       DeferredSupplier<EntityType<TyrannosaurusRexEntity>> tyrannosaurus = registerEntity(DinosaurInit.TYRANNOSAURUS_REX_ID, () -> EntityType.Builder.of(TyrannosaurusRexEntity::new, MobCategory.MONSTER).sized(2f,4f),TyrannosaurusRexEntity::createAttributes);
+       return tyrannosaurus;
+    }
+
+
+
+
 
     public static void loadClass() {
         ENTITIES.register();

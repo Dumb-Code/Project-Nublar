@@ -16,10 +16,7 @@ import net.dumbcode.projectnublar.client.screen.IncubatorScreen;
 import net.dumbcode.projectnublar.client.screen.ProcessorScreen;
 import net.dumbcode.projectnublar.client.screen.SequencerScreen;
 import net.dumbcode.projectnublar.entity.dinosaur.DinosaurPart;
-import net.dumbcode.projectnublar.init.BlockInit;
-import net.dumbcode.projectnublar.init.EntityInit;
-import net.dumbcode.projectnublar.init.ItemInit;
-import net.dumbcode.projectnublar.init.MenuTypeInit;
+import net.dumbcode.projectnublar.init.*;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.screens.MenuScreens;
 import net.minecraft.client.renderer.MultiBufferSource;
@@ -45,12 +42,17 @@ public class ClientRegistrationHolder {
                 return null;
             }
         });
-        EntityRenderers.register(EntityInit.TYRANNOSAURUS_REX.get(), (context) -> new TyrannosaurusRenderer(context, new DefaultedEntityGeoModel<>(Constants.modLoc("tyrannosaurus_rex"))));
-        EntityRenderers.register(EntityInit.VELOCIRAPTOR.get(), (context) -> new VelociraptorRenderer(context, new DefaultedEntityGeoModel<>(Constants.modLoc("velociraptor"))));
+        EntityRenderers.register(EntityInit.TYRANNOSAURUS_REX_ENTITY.get(), (context) -> new DinosaurRenderer(context, new DefaultedEntityGeoModel<>(Constants.modLoc("tyrannosaurus_rex"))));
+
+/*
+        EntityRenderers.register(EntityInit.VELOCIRAPTOR.get(), (context) -> new D(context, new DefaultedEntityGeoModel<>(Constants.modLoc("velociraptor"))));
         EntityRenderers.register(EntityInit.DILOPHOSAURUS.get(), (context) -> new DilophosaurusRenderer(context, new DefaultedEntityGeoModel<>(Constants.modLoc("dilophosaurus"))));
         EntityRenderers.register(EntityInit.TRICERATOPS.get(), (context) -> new TriceratopsRenderer(context, new DefaultedEntityGeoModel<>(Constants.modLoc("triceratops"))));
         EntityRenderers.register(EntityInit.BRACHIOSAURUS.get(), (context) -> new BrachiosaurusRenderer(context, new DefaultedEntityGeoModel<>(Constants.modLoc("brachiosaurus"))));
         EntityRenderers.register(EntityInit.GALLIMIMUS.get(), (context) -> new GallimimusRenderer(context, new DefaultedEntityGeoModel<>(Constants.modLoc("gallimimus"))));
+
+
+ */
     }
 
     public static void menuScreens() {

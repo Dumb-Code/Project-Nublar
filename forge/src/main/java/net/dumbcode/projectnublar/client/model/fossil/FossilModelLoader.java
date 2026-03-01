@@ -23,17 +23,14 @@ public class FossilModelLoader implements IGeometryLoader<FossilModelLoader.Foss
 
     @Override
     public FossilModelLoader.FossilModelGeometry read(JsonObject jsonObject, JsonDeserializationContext deserializationContext) throws JsonParseException {
-
         return new FossilModelGeometry();
     }
+
+
     public record FossilModelGeometry() implements IUnbakedGeometry<FossilModelGeometry> {
-
-
         @Override
         public BakedModel bake(IGeometryBakingContext context, ModelBaker baker, Function<Material, TextureAtlasSprite> spriteGetter, ModelState modelState, ItemOverrides overrides, ResourceLocation modelLocation) {
             return new FossilItemModel();
         }
     }
-
-
 }

@@ -1,8 +1,6 @@
 package net.dumbcode.projectnublar.item;
 
-import net.dumbcode.projectnublar.Constants;
-import net.dumbcode.projectnublar.api.DNAData;
-import net.dumbcode.projectnublar.entity.dinosaur.Dinosaur;
+import net.dumbcode.projectnublar.entity.dinosaur.AbstractDinosaur;
 import net.dumbcode.projectnublar.util.DinoNeedsUtils;
 import net.minecraft.network.chat.Component;
 import net.minecraft.server.MinecraftServer;
@@ -22,7 +20,7 @@ public class DebugStick extends Item {
 
     @Override
     public InteractionResult interactLivingEntity(ItemStack stack, Player player, LivingEntity interactionTarget, InteractionHand usedHand) {
-        if(interactionTarget instanceof Dinosaur dinosaur) {
+        if(interactionTarget instanceof AbstractDinosaur dinosaur) {
             if (!dinosaur.level().isClientSide()) {
                 Component dinoName = Component.literal(dinosaur.getName().getString());
                 Component groupStatus = Component.literal("Has Group: " + dinosaur.hasGroup());

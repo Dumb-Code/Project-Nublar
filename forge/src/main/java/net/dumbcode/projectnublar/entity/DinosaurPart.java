@@ -1,7 +1,7 @@
 package net.dumbcode.projectnublar.entity;
 
 import net.dumbcode.projectnublar.entity.api.IDinoPart;
-import net.dumbcode.projectnublar.entity.dinosaur.Dinosaur;
+import net.dumbcode.projectnublar.entity.dinosaur.AbstractDinosaur;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.protocol.Packet;
 import net.minecraft.network.protocol.game.ClientGamePacketListener;
@@ -13,13 +13,13 @@ import net.minecraft.world.item.ItemStack;
 import net.minecraftforge.entity.PartEntity;
 import org.jetbrains.annotations.Nullable;
 
-public class DinosaurPart extends PartEntity<Dinosaur> implements IDinoPart {
-    public final Dinosaur parentMob;
+public class DinosaurPart extends PartEntity<AbstractDinosaur> implements IDinoPart {
+    public final AbstractDinosaur parentMob;
     public final String name;
     private final EntityDimensions size;
 
 
-    public DinosaurPart(Dinosaur parent,String name, float width, float height) {
+    public DinosaurPart(AbstractDinosaur parent, String name, float width, float height) {
         super(parent);
         this.size = EntityDimensions.scalable(width, height);
         this.refreshDimensions();

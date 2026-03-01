@@ -8,7 +8,7 @@ import net.minecraft.world.level.Level;
 public class BrachiosaurusEntity extends HerbivoreDinosaur {
 
     public BrachiosaurusEntity(EntityType<? extends BrachiosaurusEntity> $$0, Level $$1) {
-        super($$0, $$1, 0);
+        super($$0, $$1);
     }
 
     @Override

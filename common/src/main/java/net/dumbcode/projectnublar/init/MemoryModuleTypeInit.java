@@ -3,7 +3,7 @@ package net.dumbcode.projectnublar.init;
 import dev.architectury.registry.registries.DeferredRegister;
 import dev.architectury.registry.registries.DeferredSupplier;
 import net.dumbcode.projectnublar.Constants;
-import net.dumbcode.projectnublar.entity.dinosaur.Dinosaur;
+import net.dumbcode.projectnublar.entity.dinosaur.AbstractDinosaur;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.registries.Registries;
 import net.minecraft.world.entity.ai.memory.MemoryModuleType;
@@ -47,7 +47,7 @@ public class MemoryModuleTypeInit {
             MEMORIES.register("turf_war_entity_id",()->new MemoryModuleType<>(Optional.empty()));
  public static final DeferredSupplier<MemoryModuleType<Integer>> TURF_WAR_OUTCOME =
             MEMORIES.register("turf_war_outcome_id",()->new MemoryModuleType<>(Optional.empty()));
-    public static final DeferredSupplier<MemoryModuleType<Dinosaur>> SOCIAL_TARGET =
+    public static final DeferredSupplier<MemoryModuleType<AbstractDinosaur>> SOCIAL_TARGET =
             MEMORIES.register("social_dino_entity",()->new MemoryModuleType<>(Optional.empty()));
 
     public static final DeferredSupplier<MemoryModuleType<Boolean>> IS_HUNGRY =
@@ -105,7 +105,7 @@ public class MemoryModuleTypeInit {
 
     public static final DeferredSupplier<MemoryModuleType<UUID>> MATE_UUID  =
             MEMORIES.register("dino_mate_id", ()-> new MemoryModuleType<>(Optional.empty()));
-    public static final DeferredSupplier<MemoryModuleType<Dinosaur>> MATE  =
+    public static final DeferredSupplier<MemoryModuleType<AbstractDinosaur>> MATE  =
             MEMORIES.register("dino_mate", ()-> new MemoryModuleType<>(Optional.empty()));
     public static final DeferredSupplier<MemoryModuleType<Boolean>> PREGNANT =
             MEMORIES.register("dino_pregnant", ()-> new MemoryModuleType<>(Optional.empty()));
@@ -113,9 +113,9 @@ public class MemoryModuleTypeInit {
             MEMORIES.register("dino_lay_eggs_date", ()-> new MemoryModuleType<>(Optional.empty()));
     public static final DeferredSupplier<MemoryModuleType<BlockPos>> NEST_LOCATION =
             MEMORIES.register("nest_location", () -> new MemoryModuleType<>(Optional.empty()));
-    public static final DeferredSupplier<MemoryModuleType<List<Dinosaur>>> OFFSPRING_LIST  =
+    public static final DeferredSupplier<MemoryModuleType<List<AbstractDinosaur>>> OFFSPRING_LIST  =
             MEMORIES.register("dino_offspring_list", ()-> new MemoryModuleType<>(Optional.empty()));
-    public static final DeferredSupplier<MemoryModuleType<List<Dinosaur>>> NEAREST_DINOSAURS  =
+    public static final DeferredSupplier<MemoryModuleType<List<AbstractDinosaur>>> NEAREST_DINOSAURS  =
             MEMORIES.register("dino_nearby_peers", ()-> new MemoryModuleType<>(Optional.empty()));
 
     public static final DeferredSupplier<MemoryModuleType<Map<Player,Integer>>> PLAYER_REPUTATION =

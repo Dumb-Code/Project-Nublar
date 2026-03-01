@@ -1,9 +1,8 @@
 {
 	"credit": "Made with Blockbench",
 	"textures": {
-		"0": "block/stone",
-		"1": "tyrannosaurus_fossilized_skull",
-		"particle": "block/stone"
+		"0": "minecraft:block/stone",
+		"1": "projectnublar:block/fossil_overlay/tyrannosaurus_rex/common/skull"
 	},
 	"elements": [
 		{

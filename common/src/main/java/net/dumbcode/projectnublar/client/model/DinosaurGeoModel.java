@@ -1,11 +1,11 @@
 package net.dumbcode.projectnublar.client.model;
 
-import net.dumbcode.projectnublar.entity.dinosaur.Dinosaur;
+import net.dumbcode.projectnublar.entity.dinosaur.AbstractDinosaur;
 import net.minecraft.resources.ResourceLocation;
 import software.bernie.geckolib.core.animation.AnimationState;
 import software.bernie.geckolib.model.DefaultedEntityGeoModel;
 
-public class DinosaurGeoModel extends DefaultedEntityGeoModel<Dinosaur> {
+public class DinosaurGeoModel extends DefaultedEntityGeoModel<AbstractDinosaur> {
 
     public DinosaurGeoModel(ResourceLocation assetSubpath) {
         super(assetSubpath);
@@ -16,12 +16,12 @@ public class DinosaurGeoModel extends DefaultedEntityGeoModel<Dinosaur> {
     }
 
     @Override
-    public ResourceLocation getTextureResource(Dinosaur animatable) {
+    public ResourceLocation getTextureResource(AbstractDinosaur animatable) {
         return super.getTextureResource(animatable);
     }
 
     @Override
-    public void setCustomAnimations(Dinosaur animatable, long instanceId, AnimationState<Dinosaur> animationState) {
+    public void setCustomAnimations(AbstractDinosaur animatable, long instanceId, AnimationState<AbstractDinosaur> animationState) {
         super.setCustomAnimations(animatable, instanceId, animationState);
 
 

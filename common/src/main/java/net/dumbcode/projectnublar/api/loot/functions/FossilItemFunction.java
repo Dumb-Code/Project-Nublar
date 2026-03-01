@@ -1,19 +1,15 @@
 package net.dumbcode.projectnublar.api.loot.functions;
 
-import net.dumbcode.projectnublar.api.DNAData;
+import net.dumbcode.projectnublar.api.*;
 
-import net.dumbcode.projectnublar.api.FossilCollection;
-import net.dumbcode.projectnublar.api.FossilPiece;
-import net.dumbcode.projectnublar.api.Quality;
+
+import net.dumbcode.projectnublar.api.fossil.Quality;
 import net.dumbcode.projectnublar.block.FossilBlock;
-import net.dumbcode.projectnublar.init.ItemInit;
 import net.dumbcode.projectnublar.init.LootFunctionInit;
 import com.google.gson.JsonDeserializationContext;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonSerializationContext;
-import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.nbt.CompoundTag;
-import net.minecraft.resources.ResourceLocation;
 import net.minecraft.util.random.SimpleWeightedRandomList;
 import net.minecraft.world.item.BlockItem;
 import net.minecraft.world.item.ItemStack;
@@ -41,14 +37,14 @@ public class FossilItemFunction extends LootItemConditionalFunction {
     @Override
     protected ItemStack run(ItemStack itemStack, LootContext lootContext) {
         FossilBlock block = (FossilBlock) ((BlockItem) itemStack.getItem()).getBlock();
-        ResourceLocation dino = block.getEntityType();
+     //   Dinosaur dino = block.defaultBlockState().getValue(FossilBlock.SPECIES_PROPERTY);
         FossilPiece piece = block.getFossilPiece();
         Quality quality = block.getQuality();
         ItemStack toolStack = lootContext.getParamOrNull(LootContextParams.TOOL);
         if (toolStack != null) {
             int i = EnchantmentHelper.getItemEnchantmentLevel(Enchantments.BLOCK_FORTUNE, toolStack);
             boolean hasSilkTouch = EnchantmentHelper.hasSilkTouch(toolStack);
-            if (quality == Quality.NONE) {
+            if (quality == Quality.FRAGMENTED) {
                 quality = Quality.FRAGMENTED;
                 for (int j = 0; j <= i; ++j) {
                     SimpleWeightedRandomList.Builder<Quality> builder = new SimpleWeightedRandomList.Builder<>();
@@ -64,14 +60,14 @@ public class FossilItemFunction extends LootItemConditionalFunction {
                 }
             }
             if (!hasSilkTouch) {
-                itemStack = new ItemStack(ItemInit.FOSSIL_ITEM.get());
+               // itemStack = new ItemStack(ItemInit.FOSSIL_ITEM.get());
                 DNAData dnaData = new DNAData();
-                dnaData.setEntityType(BuiltInRegistries.ENTITY_TYPE.get(dino));
+              //  dnaData.setEntityType(d);
                 dnaData.setQuality(quality);
-                dnaData.setFossilPiece(piece);
+               // dnaData.setFossilPiece(piece);
                 itemStack.getOrCreateTag().put("DNAData", dnaData.saveToNBT(new CompoundTag()));
             } else {
-               itemStack = new ItemStack(FossilCollection.COLLECTIONS.get(dino.toString()).fossilblocks().get(block.getBase()).get(quality).get(piece).get());
+             //  itemStack = new ItemStack(FossilCollection.COLLECTIONS.get(dino.toString()).fossilblocks().get(block.getBase()).get(quality).get(piece).get());
             }
 
         }

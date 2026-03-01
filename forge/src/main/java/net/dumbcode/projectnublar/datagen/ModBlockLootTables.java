@@ -59,6 +59,7 @@ public class ModBlockLootTables extends BlockLootSubProvider {
         return shouldGenerateLoot(block);
     }
 
+    @Deprecated
     protected void fossilDrops(FossilBlock block) {
         ItemLike pItem = block.asItem();
         this.add(block, LootTable.lootTable().withPool(
@@ -66,6 +67,7 @@ public class ModBlockLootTables extends BlockLootSubProvider {
                         .apply(FossilItemFunction.fossilItem())
                         .setRolls(ConstantValue.exactly(1.0F)).add(LootItem.lootTableItem(pItem)))));
     }
+    @Deprecated
     protected void amberDrops(AmberBlock block) {
         ItemLike pItem = block.asItem();
         this.add(block, LootTable.lootTable().withPool(

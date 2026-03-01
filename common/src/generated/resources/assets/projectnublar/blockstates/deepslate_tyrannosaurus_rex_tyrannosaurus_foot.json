@@ -1,0 +1,16 @@
+{
+  "variants": {
+    "quality=common": {
+      "model": "projectnublar:block/common_deepslate_tyrannosaurus_foot"
+    },
+    "quality=fragmented": {
+      "model": "projectnublar:block/fragmented_deepslate_tyrannosaurus_foot"
+    },
+    "quality=poor": {
+      "model": "projectnublar:block/poor_deepslate_tyrannosaurus_foot"
+    },
+    "quality=pristine": {
+      "model": "projectnublar:block/pristine_deepslate_tyrannosaurus_foot"
+    }
+  }
+}

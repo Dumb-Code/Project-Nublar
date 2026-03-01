@@ -8,7 +8,7 @@ import net.minecraft.world.level.Level;
 public class GallimimusEntity extends HerbivoreDinosaur {
 
     public GallimimusEntity(EntityType<? extends GallimimusEntity> $$0, Level $$1) {
-        super($$0, $$1, 0);
+        super($$0, $$1);
     }
 
     @Override

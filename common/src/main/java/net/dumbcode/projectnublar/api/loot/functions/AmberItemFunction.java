@@ -1,6 +1,8 @@
 package net.dumbcode.projectnublar.api.loot.functions;
 
 import net.dumbcode.projectnublar.api.DNAData;
+import net.dumbcode.projectnublar.api.Dinosaur;
+import net.dumbcode.projectnublar.api.Dinosaurs;
 import net.dumbcode.projectnublar.api.NublarMath;
 import net.dumbcode.projectnublar.block.AmberBlock;
 import net.dumbcode.projectnublar.init.ItemInit;
@@ -36,15 +38,15 @@ public class AmberItemFunction extends LootItemConditionalFunction {
     @Override
     protected ItemStack run(ItemStack itemStack, LootContext lootContext) {
         AmberBlock block = (AmberBlock) ((BlockItem) itemStack.getItem()).getBlock();
-        ResourceLocation dino = block.getEntityType();
+        Dinosaur dino = block.getEntityType();
         ItemStack toolStack = lootContext.getParamOrNull(LootContextParams.TOOL);
         if (toolStack != null) {
             int i = EnchantmentHelper.getItemEnchantmentLevel(Enchantments.BLOCK_FORTUNE, toolStack);
             boolean hasSilkTouch = EnchantmentHelper.hasSilkTouch(toolStack);
             if (!hasSilkTouch) {
-                itemStack = new ItemStack(ItemInit.AMBER_ITEM.get());
+              //  itemStack = new ItemStack(ItemInit.AMBER_ITEM.get());
                 DNAData dnaData = new DNAData();
-                dnaData.setEntityType(BuiltInRegistries.ENTITY_TYPE.get(dino));
+                dnaData.setEntityType(Dinosaurs.getDinosaurEntity(dino));
                 dnaData.setDnaPercentage(NublarMath.round(Math.pow(lootContext.getRandom().nextDouble(), 0.8d),2));
                 itemStack.getOrCreateTag().put("DNAData", dnaData.saveToNBT(new CompoundTag()));
             }

@@ -319,7 +319,7 @@ public class IncubatorBlockEntity extends SyncingContainerBlockEntity implements
                                 data.toStack(slot.stack);
                                 updateBlock();
                             } else if (data.getIncubationProgress() >= 1) {
-                                ItemStack dinoEgg = ItemInit.INCUBATED_EGG.get().getDefaultInstance();
+                                ItemStack dinoEgg = ItemInit.INCUBATED_TYRANNOSAURUS_REX_EGG.get().getDefaultInstance();
                                 data.setIncubationProgress(-1);
                                 data.setIncubationTimeLeft(-1);
                                 data.toStack(dinoEgg);

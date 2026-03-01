@@ -2,7 +2,7 @@ package net.dumbcode.projectnublar.entity.ai.behaviour.actions;
 
 import com.mojang.datafixers.util.Pair;
 import it.unimi.dsi.fastutil.objects.ObjectArrayList;
-import net.dumbcode.projectnublar.entity.dinosaur.Dinosaur;
+import net.dumbcode.projectnublar.entity.dinosaur.AbstractDinosaur;
 import net.dumbcode.projectnublar.init.MemoryModuleTypeInit;
 import net.dumbcode.projectnublar.init.SoundInit;
 import net.dumbcode.projectnublar.util.DinoAnimationUtils;
@@ -14,7 +14,7 @@ import net.tslat.smartbrainlib.util.BrainUtils;
 
 import java.util.List;
 
-public class ThreatDisplay<E extends Dinosaur> extends DelayedBehaviour<E> {
+public class ThreatDisplay<E extends AbstractDinosaur> extends DelayedBehaviour<E> {
     private static final List<Pair<MemoryModuleType<?>, MemoryStatus>> MEMORY_REQUIREMENTS = ObjectArrayList.of(Pair.of(MemoryModuleType.NEAREST_LIVING_ENTITIES, MemoryStatus.VALUE_PRESENT));
 
     public ThreatDisplay(int delayTicks) {

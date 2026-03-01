@@ -1,0 +1,16 @@
+{
+  "variants": {
+    "quality=common": {
+      "model": "projectnublar:block/common_sandstone_ribcage"
+    },
+    "quality=fragmented": {
+      "model": "projectnublar:block/fragmented_sandstone_ribcage"
+    },
+    "quality=poor": {
+      "model": "projectnublar:block/poor_sandstone_ribcage"
+    },
+    "quality=pristine": {
+      "model": "projectnublar:block/pristine_sandstone_ribcage"
+    }
+  }
+}

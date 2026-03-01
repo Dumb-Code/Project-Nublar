@@ -1,17 +1,12 @@
 package net.dumbcode.projectnublar.worldgen;
 
 import com.mojang.serialization.Codec;
-import net.dumbcode.projectnublar.api.FossilPiece;
-import net.dumbcode.projectnublar.api.FossilPieces;
-import net.dumbcode.projectnublar.api.fossil.FossilSets;
-import net.dumbcode.projectnublar.api.fossil.Fossils;
-import net.dumbcode.projectnublar.block.FossilBlock;
-import net.dumbcode.projectnublar.data.FossilConfigReloadListener;
+import net.dumbcode.projectnublar.config.FossilsConfig;
+import net.dumbcode.projectnublar.util.FossilUtils;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.SectionPos;
 import net.minecraft.util.Mth;
 import net.minecraft.util.RandomSource;
-import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.level.WorldGenLevel;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.chunk.BulkSectionAccess;
@@ -19,14 +14,13 @@ import net.minecraft.world.level.chunk.LevelChunkSection;
 import net.minecraft.world.level.levelgen.Heightmap;
 import net.minecraft.world.level.levelgen.feature.Feature;
 import net.minecraft.world.level.levelgen.feature.FeaturePlaceContext;
-import net.minecraft.world.level.levelgen.feature.OreFeature;
 import net.minecraft.world.level.levelgen.feature.configurations.OreConfiguration;
-import org.jetbrains.annotations.Nullable;
 
 import java.util.*;
 import java.util.function.Function;
 
 public class FossilFeature extends Feature<FossilConfiguration> {
+
 
     public FossilFeature(Codec<FossilConfiguration> codec) {
         super(codec);
@@ -35,28 +29,30 @@ public class FossilFeature extends Feature<FossilConfiguration> {
         RandomSource randomsource = context.random();
         BlockPos blockpos = context.origin();
         WorldGenLevel worldgenlevel = context.level();
-        FossilConfiguration oreconfiguration = (FossilConfiguration)context.config();
+        FossilConfiguration fossilConfiguration = context.config();
 
-        float f = randomsource.nextFloat() * (float)Math.PI;
-        float f1 = (float)oreconfiguration.size / 8.0F;
-        int i = Mth.ceil(((float)oreconfiguration.size / 16.0F * 2.0F + 1.0F) / 2.0F);
-        double d0 = (double)blockpos.getX() + Math.sin((double)f) * (double)f1;
-        double d1 = (double)blockpos.getX() - Math.sin((double)f) * (double)f1;
-        double d2 = (double)blockpos.getZ() + Math.cos((double)f) * (double)f1;
-        double d3 = (double)blockpos.getZ() - Math.cos((double)f) * (double)f1;
-        int j = 2;
-        double d4 = (double)(blockpos.getY() + randomsource.nextInt(3) - 2);
-        double d5 = (double)(blockpos.getY() + randomsource.nextInt(3) - 2);
-        int k = blockpos.getX() - Mth.ceil(f1) - i;
-        int l = blockpos.getY() - 2 - i;
-        int i1 = blockpos.getZ() - Mth.ceil(f1) - i;
-        int j1 = 2 * (Mth.ceil(f1) + i);
-        int k1 = 2 * (2 + i);
+        float randomAngle = randomsource.nextFloat() * (float)Math.PI;
+        float veinHalfLength = (float)fossilConfiguration.size / 8.0F;
+        int boundingRadius = Mth.ceil(((float)fossilConfiguration.size / 16.0F * 2.0F + 1.0F) / 2.0F);
+        double startX = (double)blockpos.getX() + Math.sin((double)randomAngle) * (double)veinHalfLength;
+        double endX = (double)blockpos.getX() - Math.sin((double)randomAngle) * (double)veinHalfLength;
+        double StartZ = (double)blockpos.getZ() + Math.cos((double)randomAngle) * (double)veinHalfLength;
+        double endZ = (double)blockpos.getZ() - Math.cos((double)randomAngle) * (double)veinHalfLength;
 
-        for(int l1 = k; l1 <= k + j1; ++l1) {
-            for(int i2 = i1; i2 <= i1 + j1; ++i2) {
-                if (l <= worldgenlevel.getHeight(Heightmap.Types.OCEAN_FLOOR_WG, l1, i2)) {
-                    return this.doPlace(worldgenlevel, randomsource, oreconfiguration, d0, d1, d2, d3, d4, d5, k, l, i1, j1, k1);
+        double startY = (double)(blockpos.getY() + randomsource.nextInt(3) - 2);
+        double endY = (double)(blockpos.getY() + randomsource.nextInt(3) - 2);
+
+        int minX = blockpos.getX() - Mth.ceil(veinHalfLength) - boundingRadius;
+        int minY = blockpos.getY() - 2 - boundingRadius;
+        int minZ = blockpos.getZ() - Mth.ceil(veinHalfLength) - boundingRadius;
+
+        int width = 2 * (Mth.ceil(veinHalfLength) + boundingRadius);
+        int height = 2 * (2 + boundingRadius);
+
+        for(int x = minX; x <= minX + width; ++x) {
+            for(int z = minZ; z <= minZ + width; ++z) {
+                if (minY <= worldgenlevel.getHeight(Heightmap.Types.OCEAN_FLOOR_WG, x, z)) {
+                    return this.doPlace(worldgenlevel, randomsource, fossilConfiguration, startX, endX, StartZ, endZ, startY, endY, minX, minY, minZ, width, height);
                 }
             }
         }
@@ -67,71 +63,49 @@ public class FossilFeature extends Feature<FossilConfiguration> {
         int i = 0;
         BitSet bitset = new BitSet(width * height * width);
         BlockPos.MutableBlockPos blockpos$mutableblockpos = new BlockPos.MutableBlockPos();
-        int j = config.size;
-        double[] adouble = new double[j * 4];
+        int veinSize = config.size;
+
+        int midY = (int) Math.round((minY + maxY)/2.0D);
+        String timePeriod = FossilsConfig.getPeriod(midY);
 
 
-        int fossilCount = config.targetStates.size();
-
-        Map<FossilConfiguration.TargetBlockState, Integer> weights = new HashMap<>();
-        Map<FossilConfiguration.TargetBlockState, Integer> weightTracker = new HashMap<>();
-
-        for(FossilConfiguration.TargetBlockState pState:  config.targetStates ) {
-            FossilBlock block = (FossilBlock) pState.state.getBlock();
-            FossilPiece piece = block.getFossilPiece();
-            int weight = 1;
-
-            if(piece.name().equals("leg_biped")){
-                weight = 2;
-            }
-            if(piece.name().equals("leg_quadruped")){
-                weight = 4;
-            }
-            if(piece.name().equals("foot")){
-                weight = 2;
-            }
-            if(piece.name().equals("arm")){
-                weight = 2;
-            }
-
-            weights.put(pState,weight);
-            weightTracker.put(pState,0);
+        //Generate the sphere chain
+        // Each sphere stores: [centerX, centerY, centerZ, radius]
+        double[] sphereData = new double[veinSize * 4];
+        for(int step = 0; step < veinSize; ++step) {
+            // Interpolation progress along the vein (0 → 1)
+            float progress = (float)step / (float)veinSize;
+            // Interpolate position along vein line
+            double centerX = Mth.lerp((double)progress, minX, maxX);
+            double centerY = Mth.lerp((double)progress, minY, maxY);
+            double centerZ = Mth.lerp((double)progress, minZ, maxZ);
+            // Random radius scaling
+            double randomScale = random.nextDouble() * (double)veinSize / (double)16.0F;
+            // Makes vein thicker in middle, thinner at ends
+            double radius = ((double)(Mth.sin((float)Math.PI * progress) + 1.0F) * randomScale + (double)1.0F) / (double)2.0F;
+            sphereData[step * 4 + 0] = centerX;
+            sphereData[step * 4 + 1] = centerY;
+            sphereData[step * 4 + 2] = centerZ;
+            sphereData[step * 4 + 3] = radius;
         }
 
-
-        if (fossilCount == 0) {
-            return false;
-        }
-        int fossilIndex = 0;
-
-        boolean placedAny = false;
-
-        for(int k = 0; k < j; ++k) {
-            float f = (float)k / (float)j;
-            double d0 = Mth.lerp((double)f, minX, maxX);
-            double d1 = Mth.lerp((double)f, minY, maxY);
-            double d2 = Mth.lerp((double)f, minZ, maxZ);
-            double d3 = random.nextDouble() * (double)j / (double)16.0F;
-            double d4 = ((double)(Mth.sin((float)Math.PI * f) + 1.0F) * d3 + (double)1.0F) / (double)2.0F;
-            adouble[k * 4 + 0] = d0;
-            adouble[k * 4 + 1] = d1;
-            adouble[k * 4 + 2] = d2;
-            adouble[k * 4 + 3] = d4;
-        }
-
-        for(int l3 = 0; l3 < j - 1; ++l3) {
-            if (!(adouble[l3 * 4 + 3] <= (double)0.0F)) {
-                for(int i4 = l3 + 1; i4 < j; ++i4) {
-                    if (!(adouble[i4 * 4 + 3] <= (double)0.0F)) {
-                        double d8 = adouble[l3 * 4 + 0] - adouble[i4 * 4 + 0];
-                        double d10 = adouble[l3 * 4 + 1] - adouble[i4 * 4 + 1];
-                        double d12 = adouble[l3 * 4 + 2] - adouble[i4 * 4 + 2];
-                        double d14 = adouble[l3 * 4 + 3] - adouble[i4 * 4 + 3];
-                        if (d14 * d14 > d8 * d8 + d10 * d10 + d12 * d12) {
-                            if (d14 > (double)0.0F) {
-                                adouble[i4 * 4 + 3] = (double)-1.0F;
+        //cull overlapping spheres
+        for(int a = 0; a < veinSize - 1; ++a) {
+            if (!(sphereData[a * 4 + 3] <= (double)0.0F)) {
+                for(int b = a + 1; b < veinSize; ++b) {
+                    if (!(sphereData[b * 4 + 3] <= (double)0.0F)) {
+                        //Distance between centers
+                        double dX = sphereData[a * 4 + 0] - sphereData[b * 4 + 0];
+                        double dY = sphereData[a * 4 + 1] - sphereData[b * 4 + 1];
+                        double dZ = sphereData[a * 4 + 2] - sphereData[b * 4 + 2];
+                        double radiusDiff = sphereData[a * 4 + 3] - sphereData[b * 4 + 3];
+                        // If one sphere fully contains the other
+                        if (radiusDiff * radiusDiff > dX * dX + dY * dY + dZ * dZ) {
+                            // Kill the smaller one
+                            if (radiusDiff > (double)0.0F) {
+                                sphereData[b * 4 + 3] = (double)-1.0F;
                             } else {
-                                adouble[l3 * 4 + 3] = (double)-1.0F;
+                                sphereData[a * 4 + 3] = (double)-1.0F;
                             }
                         }
                     }
@@ -139,76 +113,48 @@ public class FossilFeature extends Feature<FossilConfiguration> {
             }
         }
 
-        try (BulkSectionAccess bulksectionaccess = new BulkSectionAccess(level)) {
-            for(int j4 = 0; j4 < j; ++j4) {
-                double d9 = adouble[j4 * 4 + 3];
-                if (!(d9 < (double)0.0F)) {
-                    double d11 = adouble[j4 * 4 + 0];
-                    double d13 = adouble[j4 * 4 + 1];
-                    double d15 = adouble[j4 * 4 + 2];
-                    int k4 = Math.max(Mth.floor(d11 - d9), x);
-                    int l = Math.max(Mth.floor(d13 - d9), y);
-                    int i1 = Math.max(Mth.floor(d15 - d9), z);
-                    int j1 = Math.max(Mth.floor(d11 + d9), k4);
-                    int k1 = Math.max(Mth.floor(d13 + d9), l);
-                    int l1 = Math.max(Mth.floor(d15 + d9), i1);
+        //get random weighted quality from config values
+        FossilsConfig.Quality quality = getRandomWeightedQuality(new Random());
 
-                    for(int i2 = k4; i2 <= j1; ++i2) {
-                        double d5 = ((double)i2 + (double)0.5F - d11) / d9;
-                        if (d5 * d5 < (double)1.0F) {
-                            for(int j2 = l; j2 <= k1; ++j2) {
-                                double d6 = ((double)j2 + (double)0.5F - d13) / d9;
-                                if (d5 * d5 + d6 * d6 < (double)1.0F) {
-                                    for(int k2 = i1; k2 <= l1; ++k2) {
-                                        double d7 = ((double)k2 + (double)0.5F - d15) / d9;
-                                        if (d5 * d5 + d6 * d6 + d7 * d7 < (double)1.0F && !level.isOutsideBuildHeight(j2)) {
-                                            int l2 = i2 - x + (j2 - y) * width + (k2 - z) * width * height;
-                                            if (!bitset.get(l2)) {
-                                                bitset.set(l2);
-                                                blockpos$mutableblockpos.set(i2, j2, k2);
+
+        try (BulkSectionAccess bulksectionaccess = new BulkSectionAccess(level)) {
+            for(int sphereIndex = 0; sphereIndex < veinSize; ++sphereIndex) {
+                double radius = sphereData[sphereIndex * 4 + 3];
+                if (!(radius < (double)0.0F)) {
+                    double centerX = sphereData[sphereIndex * 4 + 0];
+                    double centerY = sphereData[sphereIndex * 4 + 1];
+                    double centerZ = sphereData[sphereIndex * 4 + 2];
+                    int minSphereX = Math.max(Mth.floor(centerX - radius), x);
+                    int minSphereY = Math.max(Mth.floor(centerY - radius), y);
+                    int minSphereZ = Math.max(Mth.floor(centerZ - radius), z);
+                    int maxSphereX = Math.max(Mth.floor(centerX + radius), minSphereX);
+                    int maxSphereY = Math.max(Mth.floor(centerY + radius), minSphereY);
+                    int maxSphereZ = Math.max(Mth.floor(centerZ + radius), minSphereZ);
+
+                    for(int pX = minSphereX; pX <= maxSphereX; ++pX) {
+                        double normalisedX = ((double)pX + (double)0.5F - centerX) / radius;
+                        if (normalisedX * normalisedX < (double)1.0F) {
+                            for(int pY = minSphereY; pY <= maxSphereY; ++pY) {
+                                double normalisedY = ((double)pY + (double)0.5F - centerY) / radius;
+                                if (normalisedX * normalisedX + normalisedY * normalisedY < (double)1.0F) {
+                                    for(int pZ = minSphereZ; pZ <= maxSphereZ; ++pZ) {
+                                        double normalisedZ = ((double)pZ + (double)0.5F - centerZ) / radius;
+                                        if (normalisedX * normalisedX + normalisedY * normalisedY + normalisedZ * normalisedZ < (double)1.0F && !level.isOutsideBuildHeight(pY)) {
+                                            int bitIndex = pX - x + (pY - y) * width + (pZ - z) * width * height;
+                                            if (!bitset.get(bitIndex)) {
+                                                bitset.set(bitIndex);
+                                                blockpos$mutableblockpos.set(pX, pY, pZ);
                                                 if (level.ensureCanWrite(blockpos$mutableblockpos)) {
                                                     LevelChunkSection levelchunksection = bulksectionaccess.getSection(blockpos$mutableblockpos);
                                                     if (levelchunksection != null) {
-                                                        int i3 = SectionPos.sectionRelative(i2);
-                                                        int j3 = SectionPos.sectionRelative(j2);
-                                                        int k3 = SectionPos.sectionRelative(k2);
-                                                        BlockPos blockPos = new BlockPos(i3,j3,k3);
-                                                        BlockState blockstate = levelchunksection.getBlockState(i3, j3, k3);
+                                                        int localX = SectionPos.sectionRelative(pX);
+                                                        int localY = SectionPos.sectionRelative(pY);
+                                                        int localZ = SectionPos.sectionRelative(pZ);
+                                                        BlockPos blockPos = new BlockPos(localX,localY,localZ);
+                                                        BlockState blockstate = levelchunksection.getBlockState(localX, localY, localZ);
 
-                                                        FossilConfiguration.TargetBlockState predicateSource = config.targetStates.get(0);
+                                                        //Get random weighted Piece
 
-                                                        if (predicateSource.target.test(blockstate  , random)) {
-                                                            int attempts = weightTracker.get(config.targetStates.get(fossilIndex));
-                                                            int weight = weights.get(config.targetStates.get(fossilIndex));
-
-                                                            int p = 0;
-
-                                                            while (attempts > weight) {
-                                                                fossilIndex++;
-                                                                if (fossilIndex >= fossilCount - 1) {
-                                                                    p++;
-                                                                    fossilIndex = 0;
-                                                                }
-
-                                                                attempts = weights.get(config.targetStates.get(fossilIndex));
-                                                                weight = weights.get(config.targetStates.get(fossilIndex));
-                                                                if(attempts < weight || p > 2) {
-                                                                    break;
-                                                                }
-                                                            }
-                                                            levelchunksection.setBlockState(i3, j3, k3, config.targetStates.get(fossilIndex).state, false);
-                                                                attempts++;
-                                                                weightTracker.remove(config.targetStates.get(fossilIndex));
-                                                                weightTracker.put(config.targetStates.get(fossilIndex),attempts);
-
-                                                                fossilIndex++;
-                                                                if (fossilIndex >= fossilCount - 1) {
-                                                                    fossilIndex = 0;
-                                                                }
-
-                                                                placedAny = true;
-
-                                                        }
 
 
                                                     }
@@ -224,7 +170,124 @@ public class FossilFeature extends Feature<FossilConfiguration> {
             }
         }
 
-        return placedAny;
+        return i > 0;
+    }
+
+    public static FossilsConfig.Quality getRandomWeightedQuality(Random random) {
+       List<String> qualities = List.of("fragmented","poor","common","pristine");
+       int totalWeights = 0;
+       Map<String,Integer> qualityWeights = new HashMap<>();
+
+       for(String quality : qualities){
+           qualityWeights.put(quality,FossilsConfig.getQuality(quality).weight().get());
+           totalWeights += FossilsConfig.getQuality(quality).weight().get();
+       }
+       if (totalWeights <= 0) {
+           throw new IllegalArgumentException("Total weight must be > 0");
+       }
+       int r = random.nextInt(totalWeights);
+
+       String selectedQuality = qualities.get(2);
+
+       for(Map.Entry<String,Integer> entry : qualityWeights.entrySet()){
+           r -= entry.getValue();
+           if(r <= 0){
+               selectedQuality = entry.getKey();
+           }
+       }
+
+       return FossilsConfig.getQuality(selectedQuality);
+
+    }
+    public static String getRandomWeightedPiece(Random random,Map<String,Integer> pieceWeights) {
+        int totalWeights = 0;
+
+        for(int value : pieceWeights.values()){
+            totalWeights += value;
+        }
+        int r = random.nextInt(totalWeights);
+
+        for(Map.Entry<String,Integer> entry : pieceWeights.entrySet()){
+            r -= entry.getValue();
+            if(r <= 0){
+                return entry.getKey();
+            }
+        }
+        throw new IllegalStateException("Total weight must be > 0");
+    }
+    public static String getRandomPeriod(Random random){
+        Map<String,Double> map = FossilsConfig.getPeriods();
+
+        List<String> list = new ArrayList<>(map.keySet());
+
+        int i = random.nextInt(0,2);
+
+        String period;
+        boolean canChoose = false;
+        int k = 0;
+        while(!canChoose) {
+            period = list.get(i);
+            switch (period) {
+                case "carboniferous" -> canChoose = random.nextDouble(0D, 5D) < map.get("carboniferous");
+                case "jurassic" -> canChoose = random.nextDouble(0D, 5D) < map.get("jurassic");
+                case "cretaceous" -> canChoose = random.nextDouble(0D, 5D) < map.get("cretaceous");
+                default -> canChoose = false;
+            }
+            i = random.nextInt(0,2);
+            k++;
+            if(canChoose||k > 2){
+                if(k > 2){
+                    i = 2;
+                    break;
+                }
+                break;
+            }
+        }
+        return list.get(i);
+    }
+
+
+    public static FossilsConfig.Fossil getRandomWeightedFossil(Random rand, String period) {
+        List<FossilsConfig.Fossil> fossils = new ArrayList<>();
+
+        int totalWeights = 0;
+
+        for(FossilsConfig.Fossil fossil : FossilsConfig.getFossils().values()){
+            if(fossil.getPeriods().get().contains(period)) {
+                totalWeights += fossil.getWeight().get();
+                fossils.add(fossil);
+            }
+        }
+
+        int r = rand.nextInt(totalWeights);
+
+        for(FossilsConfig.Fossil fossil : fossils){
+            r-= fossil.getWeight().get();
+            if(r < 0){
+                return fossil;
+            }
+        }
+        throw new IllegalStateException("No weight for random fossil found");
+    }
+
+
+    public static boolean canPlaceOre(BlockState state, Function<BlockPos, BlockState> adjacentStateAccessor, RandomSource random, OreConfiguration config, OreConfiguration.TargetBlockState targetState, BlockPos.MutableBlockPos mutablePos) {
+        if (!targetState.target.test(state, random)) {
+            return false;
+        } else if (shouldSkipAirCheck(random, config.discardChanceOnAirExposure)) {
+            return true;
+        } else {
+            return !isAdjacentToAir(adjacentStateAccessor, mutablePos);
+        }
+    }
+    protected static boolean shouldSkipAirCheck(RandomSource random, float chance) {
+        if (chance <= 0.0F) {
+            return true;
+        } else if (chance >= 1.0F) {
+            return false;
+        } else {
+            return random.nextFloat() >= chance;
+        }
     }
 
 }

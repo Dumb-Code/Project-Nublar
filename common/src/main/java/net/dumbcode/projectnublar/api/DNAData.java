@@ -2,6 +2,8 @@ package net.dumbcode.projectnublar.api;
 
 import net.dumbcode.projectnublar.ProjectNublar;
 import net.dumbcode.projectnublar.Constants;
+import net.dumbcode.projectnublar.api.fossil.Quality;
+import net.dumbcode.projectnublar.config.FossilsConfig;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.chat.Component;
@@ -46,8 +48,7 @@ public class DNAData {
 
     public double getDnaPercentage() {
         if (quality != null) {
-            //  return FossilsConfig.getQuality(quality.getName()).dnaYield().get() / 100d;
-            return dnaPercentage;
+            return FossilsConfig.getQuality(quality.getName()).dnaYield().get() / 100d;
         }
         return dnaPercentage;
     }
@@ -182,8 +183,8 @@ public class DNAData {
             dnaData.setDnaPercentage(tag.getDouble("dnaPercentage"));
         if (tag.contains("variant"))
             dnaData.setVariant(tag.getString("variant"));
-        if (tag.contains("fossilPiece"))
-            dnaData.setFossilPiece(FossilPieces.getPieceByName(tag.getString("fossilPiece")));
+       // if (tag.contains("fossilPiece"))
+           // dnaData.setFossilPiece(FossilPieces.byName(tag.getString("fossilPiece")));
         if (tag.contains("quality"))
             dnaData.setQuality(Quality.byName(tag.getString("quality")));
         dnaData.setEmbryo(tag.getBoolean("isEmbryo"));

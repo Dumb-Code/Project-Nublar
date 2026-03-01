@@ -1,12 +1,16 @@
 package net.dumbcode.projectnublar.client;
 
 import net.dumbcode.projectnublar.api.DinoData;
+import net.dumbcode.projectnublar.api.Dinosaurs;
 import net.dumbcode.projectnublar.api.Genes;
 import net.dumbcode.projectnublar.client.renderer.layer.DinoLayer;
 import net.dumbcode.projectnublar.client.screen.SequencerScreen;
 import net.dumbcode.projectnublar.client.widget.AdvancedColorWidget;
+import net.dumbcode.projectnublar.client.widget.GeneButton;
 import net.dumbcode.projectnublar.client.widget.GeneHolder;
 import net.dumbcode.projectnublar.client.widget.GeneSlider;
+import net.dumbcode.projectnublar.init.BlockInit;
+import net.dumbcode.projectnublar.init.DinosaurInit;
 import net.dumbcode.projectnublar.init.EntityInit;
 import net.dumbcode.projectnublar.init.GeneInit;
 import net.minecraft.network.chat.Component;
@@ -39,7 +43,7 @@ public class CommonClientClass {
 
         //Carnivores
 
-        LAYER_REGISTRY.put(EntityInit.TYRANNOSAURUS_REX.get(),List.of(
+        LAYER_REGISTRY.put(EntityInit.TYRANNOSAURUS_REX_ENTITY.get(),List.of(
                 new DinoLayer("base", 0),
                 new DinoLayer("belly", 2),
                 new DinoLayer("back", 1),
@@ -55,7 +59,9 @@ public class CommonClientClass {
 
         ));
 
-        LAYER_REGISTRY.put(EntityInit.VELOCIRAPTOR.get(),List.of(
+      /*
+       LAYER_REGISTRY.put(EntityInit.VELOCIRAPTOR.get(),List.of(
+
                 new DinoLayer("base",0)
 
 
@@ -126,7 +132,12 @@ public class CommonClientClass {
                 new DinoLayer("eyes",-1),
                 new DinoLayer("eyelids",-1)
         ));
+
+
+       */
     }
+
+
     public static List<DinoLayer> getDinoLayers(EntityType<?> type){
         if(!LAYER_REGISTRY.containsKey(type)){
             return List.of(new DinoLayer("base", 0));
@@ -134,6 +145,8 @@ public class CommonClientClass {
         return LAYER_REGISTRY.get(type);
     }
     public static void registerGeneWidgets() {
+
+
         registerGeneWidget(GeneInit.AGGRESSION.get() , (screen, meep)->new GeneSlider(screen.leftPos() + 235, screen.topPos() + 50, 100, 20, Component.empty(), Component.literal("%"), -100, 100, 0, true, (slider, value) -> {
             meep.setGeneValue(GeneInit.AGGRESSION.get() , value);
         }));

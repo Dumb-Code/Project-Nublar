@@ -1,15 +1,17 @@
 package net.dumbcode.projectnublar.entity.dinosaur;
 
+import net.dumbcode.projectnublar.api.DinoBehaviourData;
+import net.dumbcode.projectnublar.api.Dinosaur;
 import net.dumbcode.projectnublar.util.DinoNeedsUtils;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.entity.*;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.level.Level;
 
-public abstract class CarnivoreDinosaur extends Dinosaur {
+public class CarnivoreDinosaur extends AbstractDinosaur {
 
-    public CarnivoreDinosaur(EntityType<? extends CarnivoreDinosaur> $$0, Level $$1, int flinchAnimLength) {
-        super($$0, $$1, flinchAnimLength);
+    public CarnivoreDinosaur(EntityType<? extends CarnivoreDinosaur> $$0, Level $$1, Dinosaur pDinosaur, DinoBehaviourData pBehaviourData) {
+        super($$0, $$1,pDinosaur,pBehaviourData);
 
     }
 
@@ -29,7 +31,7 @@ public abstract class CarnivoreDinosaur extends Dinosaur {
        }
 
        //Avoid Cannibalism unless starving
-        if(target instanceof Dinosaur targetDinosaur) {
+        if(target instanceof AbstractDinosaur targetDinosaur) {
             if (this.getDinoData().getBaseDino() == targetDinosaur.getDinoData().getBaseDino()) {
                 return false;
             }

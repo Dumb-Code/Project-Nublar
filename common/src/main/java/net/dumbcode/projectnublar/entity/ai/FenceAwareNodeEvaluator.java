@@ -1,6 +1,6 @@
 package net.dumbcode.projectnublar.entity.ai;
 
-import net.dumbcode.projectnublar.entity.dinosaur.Dinosaur;
+import net.dumbcode.projectnublar.entity.dinosaur.AbstractDinosaur;
 import net.dumbcode.projectnublar.init.BlockInit;
 import net.dumbcode.projectnublar.util.DinoNeedsUtils;
 import net.minecraft.core.BlockPos;
@@ -20,7 +20,7 @@ public class FenceAwareNodeEvaluator extends WalkNodeEvaluator {
         BlockState above2 = level.getBlockState(pos.above(2));
 
         if(isFenceOrWire(ground) || isFenceOrWire(above) || isFenceOrWire(above2)){
-            if(mob instanceof Dinosaur dinosaur && DinoNeedsUtils.allNeedsAtZero(dinosaur)) {
+            if(mob instanceof AbstractDinosaur dinosaur && DinoNeedsUtils.allNeedsAtZero(dinosaur)) {
                     return BlockPathTypes.OPEN;
             }
 

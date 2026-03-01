@@ -4,6 +4,7 @@ import dev.architectury.registry.registries.DeferredRegister;
 import dev.architectury.registry.registries.DeferredSupplier;
 import net.dumbcode.projectnublar.Constants;
 import net.dumbcode.projectnublar.item.*;
+import net.dumbcode.projectnublar.item.fossil.FossilBlockItem;
 import net.minecraft.core.registries.Registries;
 import net.minecraft.world.item.Item;
 
@@ -11,6 +12,7 @@ public class ItemInit {
     public static final DeferredRegister<Item> ITEMS = DeferredRegister.create(Constants.MODID, Registries.ITEM);
 
     public static final DeferredSupplier<Item> FOSSIL_ITEM = ITEMS.register("fossil", () -> new FossilItem(getItemProperties()));
+
     public static final DeferredSupplier<Item> AMBER_ITEM = ITEMS.register("amber", () -> new AmberItem(getItemProperties()));
 
     public static final DeferredSupplier<Item> DEV_STICK = ITEMS.register("dev_stick", () -> new DebugStick(getItemProperties()));
@@ -55,7 +57,7 @@ public class ItemInit {
     public static final DeferredSupplier<Item> INCUBATOR_LID = ITEMS.register("incubator_lid", () -> new Item(getItemProperties()));
     public static final DeferredSupplier<Item> INCUBATOR_ARM_BASE = ITEMS.register("incubator_arm_base", () -> new Item(getItemProperties()));
     public static final DeferredSupplier<Item> INCUBATOR_ARM = ITEMS.register("incubator_arm", () -> new Item(getItemProperties()));
-    public static final DeferredSupplier<Item> INCUBATED_EGG = ITEMS.register("incubated_egg", () -> new IncubatedEggItem(getItemProperties()));
+    public static final DeferredSupplier<Item> INCUBATED_TYRANNOSAURUS_REX_EGG = ITEMS.register("incubated_egg", () -> new IncubatedEggItem(getItemProperties(),DinosaurInit.TYRANNOSAURUS_REX));
     public static final DeferredSupplier<Item> LEVELING_SENSOR = ITEMS.register("leveling_sensor", () -> new Item(getItemProperties()));
     public static final DeferredSupplier<Item> WIRE_SPOOL = ITEMS.register("wire_spool", () -> new Item(getItemProperties()));
     public static DeferredSupplier<Item> registerSingleItem(String name) {

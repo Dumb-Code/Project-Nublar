@@ -1,7 +1,7 @@
 package net.dumbcode.projectnublar.entity.ai.sensors;
 
 import it.unimi.dsi.fastutil.objects.ObjectArrayList;
-import net.dumbcode.projectnublar.entity.dinosaur.Dinosaur;
+import net.dumbcode.projectnublar.entity.dinosaur.AbstractDinosaur;
 import net.dumbcode.projectnublar.init.MemoryModuleTypeInit;
 import net.dumbcode.projectnublar.init.SensorTypesInit;
 import net.minecraft.server.level.ServerLevel;
@@ -18,7 +18,7 @@ import org.jetbrains.annotations.Nullable;
 import java.util.Comparator;
 import java.util.List;
 
-public class NearbyDinosaurSensor <E extends Dinosaur> extends PredicateSensor<Dinosaur, E> {
+public class NearbyDinosaurSensor <E extends AbstractDinosaur> extends PredicateSensor<AbstractDinosaur, E> {
     private static final List<MemoryModuleType<?>> MEMORIES = ObjectArrayList.of(MemoryModuleTypeInit.NEAREST_DINOSAURS.get());
 
     @Nullable
@@ -71,7 +71,7 @@ public class NearbyDinosaurSensor <E extends Dinosaur> extends PredicateSensor<D
             radius = new SquareRadius(dist, dist);
         }
 
-        List<Dinosaur> entities = EntityRetrievalUtil.getEntities(level, entity.getBoundingBox().inflate(radius.xzRadius(), radius.yRadius(), radius.xzRadius()), obj -> obj instanceof Dinosaur dinosaur && predicate().test(dinosaur, entity));
+        List<AbstractDinosaur> entities = EntityRetrievalUtil.getEntities(level, entity.getBoundingBox().inflate(radius.xzRadius(), radius.yRadius(), radius.xzRadius()), obj -> obj instanceof AbstractDinosaur dinosaur && predicate().test(dinosaur, entity));
 
         entities.sort(Comparator.comparingDouble(entity::distanceToSqr));
 

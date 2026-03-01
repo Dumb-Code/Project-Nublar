@@ -1,8 +1,7 @@
 package net.dumbcode.projectnublar.util;
 
 import net.dumbcode.projectnublar.api.DinoBehaviourData;
-import net.dumbcode.projectnublar.entity.dinosaur.CarnivoreDinosaur;
-import net.dumbcode.projectnublar.entity.dinosaur.Dinosaur;
+import net.dumbcode.projectnublar.entity.dinosaur.AbstractDinosaur;
 import net.dumbcode.projectnublar.init.*;
 import net.minecraft.core.BlockPos;
 import net.minecraft.network.syncher.EntityDataAccessor;
@@ -13,7 +12,6 @@ import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.ai.attributes.AttributeInstance;
 import net.minecraft.world.entity.ai.attributes.Attributes;
 import net.minecraft.world.entity.monster.Monster;
-import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.phys.Vec3;
@@ -21,25 +19,25 @@ import net.tslat.smartbrainlib.util.BrainUtils;
 import org.jetbrains.annotations.Nullable;
 
 public class DinoNeedsUtils {
-    public static final EntityDataAccessor<Float> HUNGER = SynchedEntityData.defineId(Dinosaur.class, EntityDataSerializers.FLOAT);
-    public static final EntityDataAccessor<Float> THIRST = SynchedEntityData.defineId(Dinosaur.class, EntityDataSerializers.FLOAT);
-    public static final EntityDataAccessor<Float> STAMINA = SynchedEntityData.defineId(Dinosaur.class, EntityDataSerializers.FLOAT);
-    public static final EntityDataAccessor<Float> SOCIAL = SynchedEntityData.defineId(Dinosaur.class, EntityDataSerializers.FLOAT);
-    public static final EntityDataAccessor<Float> AGGRESSION = SynchedEntityData.defineId(Dinosaur.class, EntityDataSerializers.FLOAT);
-    public static final EntityDataAccessor<Float> FERTILITY = SynchedEntityData.defineId(Dinosaur.class, EntityDataSerializers.FLOAT);
-    public static final EntityDataAccessor<Float> DOMESTICITY = SynchedEntityData.defineId(Dinosaur.class, EntityDataSerializers.FLOAT);
-    public static final EntityDataAccessor<Float> SIZE = SynchedEntityData.defineId(Dinosaur.class, EntityDataSerializers.FLOAT);
-    public static final EntityDataAccessor<Float> INTELLIGENCE = SynchedEntityData.defineId(Dinosaur.class, EntityDataSerializers.FLOAT);
-    public static final EntityDataAccessor<Float> VISION = SynchedEntityData.defineId(Dinosaur.class, EntityDataSerializers.FLOAT);
-    public static final EntityDataAccessor<Float> IMMUNITY = SynchedEntityData.defineId(Dinosaur.class, EntityDataSerializers.FLOAT);
-    public static final EntityDataAccessor<Float> TAMING_SCORE = SynchedEntityData.defineId(Dinosaur.class, EntityDataSerializers.FLOAT);
+    public static final EntityDataAccessor<Float> HUNGER = SynchedEntityData.defineId(AbstractDinosaur.class, EntityDataSerializers.FLOAT);
+    public static final EntityDataAccessor<Float> THIRST = SynchedEntityData.defineId(AbstractDinosaur.class, EntityDataSerializers.FLOAT);
+    public static final EntityDataAccessor<Float> STAMINA = SynchedEntityData.defineId(AbstractDinosaur.class, EntityDataSerializers.FLOAT);
+    public static final EntityDataAccessor<Float> SOCIAL = SynchedEntityData.defineId(AbstractDinosaur.class, EntityDataSerializers.FLOAT);
+    public static final EntityDataAccessor<Float> AGGRESSION = SynchedEntityData.defineId(AbstractDinosaur.class, EntityDataSerializers.FLOAT);
+    public static final EntityDataAccessor<Float> FERTILITY = SynchedEntityData.defineId(AbstractDinosaur.class, EntityDataSerializers.FLOAT);
+    public static final EntityDataAccessor<Float> DOMESTICITY = SynchedEntityData.defineId(AbstractDinosaur.class, EntityDataSerializers.FLOAT);
+    public static final EntityDataAccessor<Float> SIZE = SynchedEntityData.defineId(AbstractDinosaur.class, EntityDataSerializers.FLOAT);
+    public static final EntityDataAccessor<Float> INTELLIGENCE = SynchedEntityData.defineId(AbstractDinosaur.class, EntityDataSerializers.FLOAT);
+    public static final EntityDataAccessor<Float> VISION = SynchedEntityData.defineId(AbstractDinosaur.class, EntityDataSerializers.FLOAT);
+    public static final EntityDataAccessor<Float> IMMUNITY = SynchedEntityData.defineId(AbstractDinosaur.class, EntityDataSerializers.FLOAT);
+    public static final EntityDataAccessor<Float> TAMING_SCORE = SynchedEntityData.defineId(AbstractDinosaur.class, EntityDataSerializers.FLOAT);
 
-    public static float getMaxHunger(Dinosaur dinosaur){return (float) dinosaur.getAttributeValue(AttributesInit.DINO_HUNGER_NEED.get());}
-    public static float getMaxThirst(Dinosaur dinosaur){return (float) dinosaur.getAttributeValue(AttributesInit.DINO_THIRST_NEED.get());}
-    public static float getMaxStamina(Dinosaur dinosaur){return (float) dinosaur.getAttributeValue(AttributesInit.DINO_ENERGY_NEED.get());}
-    public static float getMaxSocial(Dinosaur dinosaur){return (float) dinosaur.getAttributeValue(AttributesInit.DINO_SOCIAL_NEED.get());}
+    public static float getMaxHunger(AbstractDinosaur dinosaur){return (float) dinosaur.getAttributeValue(AttributesInit.DINO_HUNGER_NEED.get());}
+    public static float getMaxThirst(AbstractDinosaur dinosaur){return (float) dinosaur.getAttributeValue(AttributesInit.DINO_THIRST_NEED.get());}
+    public static float getMaxStamina(AbstractDinosaur dinosaur){return (float) dinosaur.getAttributeValue(AttributesInit.DINO_ENERGY_NEED.get());}
+    public static float getMaxSocial(AbstractDinosaur dinosaur){return (float) dinosaur.getAttributeValue(AttributesInit.DINO_SOCIAL_NEED.get());}
 
-    public static float getAggressionScoreFromStats(Dinosaur dinosaur){
+    public static float getAggressionScoreFromStats(AbstractDinosaur dinosaur){
         double baseAggression = dinosaur.getAttributeValue(AttributesInit.DINO_AGGRESSION.get());
         double multiplier = dinosaur.getDinoData().getGeneValue(GeneInit.AGGRESSION.get());
         if(multiplier != 0.0D){
@@ -48,7 +46,7 @@ public class DinoNeedsUtils {
         } else return (float) baseAggression;
     }
 
-    public static void setAggressionScoreFromStats(Dinosaur dinosaur){
+    public static void setAggressionScoreFromStats(AbstractDinosaur dinosaur){
         float aggressionScore = DinoNeedsUtils.getAggressionScoreFromStats(dinosaur);
         dinosaur.getEntityData().set(AGGRESSION, aggressionScore);
     }
@@ -69,12 +67,12 @@ public class DinoNeedsUtils {
 
         int groupsize = 1;
 
-        if(entity instanceof Dinosaur dinosaur && dinosaur.hasGroup()){
+        if(entity instanceof AbstractDinosaur dinosaur && dinosaur.hasGroup()){
             ///TO-DO : Multiply threat by group size
         }
         return (float) ((attack * 2) + (defence * 1.7) + (health * 1.4) + (speed * 0.3) ) * groupsize;
     }
-    public static boolean isTargetInsideEnclosure(LivingEntity target, Dinosaur dinosaur) {
+    public static boolean isTargetInsideEnclosure(LivingEntity target, AbstractDinosaur dinosaur) {
         BlockPos targetPos = target.blockPosition();
         BlockPos mobPos = dinosaur.blockPosition();
 
@@ -110,13 +108,13 @@ public class DinoNeedsUtils {
         return targetFoodValue * multiplyerFromRisk;
     }
 
-    public static boolean isStaminaFull(Dinosaur dinosaur){return dinosaur.getEntityData().get(STAMINA) == DinoNeedsUtils.getMaxStamina(dinosaur);}
-    public static boolean isHungerFull(Dinosaur dinosaur){return dinosaur.getEntityData().get(HUNGER) == DinoNeedsUtils.getMaxHunger(dinosaur);}
-    public static boolean isThirstFull(Dinosaur dinosaur){return dinosaur.getEntityData().get(THIRST) == DinoNeedsUtils.getMaxThirst(dinosaur);}
-    public static boolean isSocialFull(Dinosaur dinosaur){return dinosaur.getEntityData().get(SOCIAL) == DinoNeedsUtils.getMaxSocial(dinosaur);}
+    public static boolean isStaminaFull(AbstractDinosaur dinosaur){return dinosaur.getEntityData().get(STAMINA) == DinoNeedsUtils.getMaxStamina(dinosaur);}
+    public static boolean isHungerFull(AbstractDinosaur dinosaur){return dinosaur.getEntityData().get(HUNGER) == DinoNeedsUtils.getMaxHunger(dinosaur);}
+    public static boolean isThirstFull(AbstractDinosaur dinosaur){return dinosaur.getEntityData().get(THIRST) == DinoNeedsUtils.getMaxThirst(dinosaur);}
+    public static boolean isSocialFull(AbstractDinosaur dinosaur){return dinosaur.getEntityData().get(SOCIAL) == DinoNeedsUtils.getMaxSocial(dinosaur);}
 
 
-    public static boolean isHungry(Dinosaur dinosaur){
+    public static boolean isHungry(AbstractDinosaur dinosaur){
         float currentHunger = dinosaur.getEntityData().get(HUNGER);
         float maxhunger = DinoNeedsUtils.getMaxHunger(dinosaur);
         float lowRiskThreshold = (float) dinosaur.getDinoBehaviour().happyThreshold();
@@ -124,32 +122,32 @@ public class DinoNeedsUtils {
 
         return currentHunger < stomachThreshold;
     }
-    public static boolean isThirsty(Dinosaur dinosaur){return dinosaur.getEntityData().get(THIRST) < DinoNeedsUtils.getMaxThirst(dinosaur) * dinosaur.getDinoBehaviour().uncomfortableThreshold();}
-    public static boolean isTired(Dinosaur dinosaur){return dinosaur.getEntityData().get(STAMINA) < DinoNeedsUtils.getMaxStamina(dinosaur) * dinosaur.getDinoBehaviour().rageThreshold();}
-    public static boolean isSociallyLow(Dinosaur dinosaur){return dinosaur.getEntityData().get(SOCIAL) == 0.0F;}
+    public static boolean isThirsty(AbstractDinosaur dinosaur){return dinosaur.getEntityData().get(THIRST) < DinoNeedsUtils.getMaxThirst(dinosaur) * dinosaur.getDinoBehaviour().uncomfortableThreshold();}
+    public static boolean isTired(AbstractDinosaur dinosaur){return dinosaur.getEntityData().get(STAMINA) < DinoNeedsUtils.getMaxStamina(dinosaur) * dinosaur.getDinoBehaviour().rageThreshold();}
+    public static boolean isSociallyLow(AbstractDinosaur dinosaur){return dinosaur.getEntityData().get(SOCIAL) == 0.0F;}
 
-    public static boolean allNeedsAtZero(Dinosaur dinosaur){
+    public static boolean allNeedsAtZero(AbstractDinosaur dinosaur){
         return dinosaur.getEntityData().get(THIRST) == 0.0 && dinosaur.getEntityData().get(HUNGER) == 0.0F
                 && dinosaur.getEntityData().get(SOCIAL) == 0.0 && dinosaur.getEntityData().get(STAMINA) == 0.0F;
     }
-    public static boolean isDehydratedOrStarving(Dinosaur dinosaur){return dinosaur.getEntityData().get(THIRST) == 0.0F || dinosaur.getEntityData().get(HUNGER) == 0.0F;}
-    public static boolean starving(Dinosaur dinosaur){return dinosaur.getEntityData().get(HUNGER) == 0.0F;}
-    public static boolean dehyrdrated(Dinosaur dinosaur){return dinosaur.getEntityData().get(THIRST) == 0.0F;}
-    public static boolean isExhausted(Dinosaur dinosaur){return dinosaur.getEntityData().get(STAMINA) == 0.0F;}
-    public static boolean isSociallyDrained(Dinosaur dinosaur){return dinosaur.getEntityData().get(STAMINA) == 0.0F;}
+    public static boolean isDehydratedOrStarving(AbstractDinosaur dinosaur){return dinosaur.getEntityData().get(THIRST) == 0.0F || dinosaur.getEntityData().get(HUNGER) == 0.0F;}
+    public static boolean starving(AbstractDinosaur dinosaur){return dinosaur.getEntityData().get(HUNGER) == 0.0F;}
+    public static boolean dehyrdrated(AbstractDinosaur dinosaur){return dinosaur.getEntityData().get(THIRST) == 0.0F;}
+    public static boolean isExhausted(AbstractDinosaur dinosaur){return dinosaur.getEntityData().get(STAMINA) == 0.0F;}
+    public static boolean isSociallyDrained(AbstractDinosaur dinosaur){return dinosaur.getEntityData().get(STAMINA) == 0.0F;}
 
 
-    public static void setCurrentHunger(Dinosaur dinosaur, float pHunger){dinosaur.getEntityData().set(HUNGER, pHunger);}
-    public static void setCurrentThirst(Dinosaur dinosaur, float pThirst){dinosaur.getEntityData().set(THIRST, pThirst);}
-    public static void setCurrentSocial(Dinosaur dinosaur, float pSocial){dinosaur.getEntityData().set(SOCIAL, pSocial);}
-    public static void setCurrentStamina(Dinosaur dinosaur, float pStamina){dinosaur.getEntityData().set(STAMINA, pStamina);}
+    public static void setCurrentHunger(AbstractDinosaur dinosaur, float pHunger){dinosaur.getEntityData().set(HUNGER, pHunger);}
+    public static void setCurrentThirst(AbstractDinosaur dinosaur, float pThirst){dinosaur.getEntityData().set(THIRST, pThirst);}
+    public static void setCurrentSocial(AbstractDinosaur dinosaur, float pSocial){dinosaur.getEntityData().set(SOCIAL, pSocial);}
+    public static void setCurrentStamina(AbstractDinosaur dinosaur, float pStamina){dinosaur.getEntityData().set(STAMINA, pStamina);}
 
-    public static float getCurrentHunger(Dinosaur dinosaur){return dinosaur.getEntityData().get(HUNGER);}
-    public static float getCurrentThirst(Dinosaur dinosaur){return dinosaur.getEntityData().get(THIRST);}
-    public static float getCurrentSocial(Dinosaur dinosaur){return dinosaur.getEntityData().get(SOCIAL);}
-    public static float getCurrentStamina(Dinosaur dinosaur){return dinosaur.getEntityData().get(STAMINA);}
+    public static float getCurrentHunger(AbstractDinosaur dinosaur){return dinosaur.getEntityData().get(HUNGER);}
+    public static float getCurrentThirst(AbstractDinosaur dinosaur){return dinosaur.getEntityData().get(THIRST);}
+    public static float getCurrentSocial(AbstractDinosaur dinosaur){return dinosaur.getEntityData().get(SOCIAL);}
+    public static float getCurrentStamina(AbstractDinosaur dinosaur){return dinosaur.getEntityData().get(STAMINA);}
 
-    public static void tickHunger(Dinosaur dinosaur, int timeSinceLastMeal, int starvationTime){
+    public static void tickHunger(AbstractDinosaur dinosaur, int timeSinceLastMeal, int starvationTime){
         float currentHunger = dinosaur.getEntityData().get(HUNGER);
         double eatRate = dinosaur.getDinoBehaviour().eatRate();
         double stomachCapacity = 100D;
@@ -184,7 +182,7 @@ public class DinoNeedsUtils {
         //Let brain know dinosaur is hungry
         BrainUtils.setMemory(dinosaur, MemoryModuleTypeInit.IS_HUNGRY.get(), true);
     }
-    public static void tickThirst(Dinosaur dinosaur, int timeSinceLastDrink, int dehydrationTime){
+    public static void tickThirst(AbstractDinosaur dinosaur, int timeSinceLastDrink, int dehydrationTime){
         float currentThirst = dinosaur.getEntityData().get(THIRST);
         double drinkRate = dinosaur.getDinoBehaviour().drinkRate();
         double stomachCapacity = 100D;
@@ -205,7 +203,7 @@ public class DinoNeedsUtils {
         dinosaur.getEntityData().set(THIRST, newCurrentThirst);
         BrainUtils.setMemory(dinosaur, MemoryModuleTypeInit.IS_THIRSTY.get(), true);
     }
-    public static void setDinoBaseNeeds(Dinosaur dinosaur, DinoBehaviourData data){
+    public static void setDinoBaseNeeds(AbstractDinosaur dinosaur, DinoBehaviourData data){
         dinosaur.getAttribute(Attributes.MAX_HEALTH).setBaseValue(data.maxHealth());
   //      dinosaur.getAttribute(Attributes.MOVEMENT_SPEED).setBaseValue(data.speed());
         dinosaur.getAttribute(Attributes.ATTACK_DAMAGE).setBaseValue(data.attackDamage());
@@ -224,7 +222,7 @@ public class DinoNeedsUtils {
         DinoNeedsUtils.setAggressionScoreFromStats(dinosaur);
     }
 
-    public static void tickStamina(Dinosaur dinosaur){
+    public static void tickStamina(AbstractDinosaur dinosaur){
         float currentStamina = dinosaur.getEntityData().get(STAMINA);
         float staminaDecrease = (float) dinosaur.getDinoBehaviour().staminaDrain();
         float newCurrentValue;
@@ -245,7 +243,7 @@ public class DinoNeedsUtils {
     public static void tickSocial(){
     }
 
-    public static void feed(Dinosaur dinosaur, String foodItem){
+    public static void feed(AbstractDinosaur dinosaur, String foodItem){
         float currentHunger = dinosaur.getEntityData().get(HUNGER);
         float maxHunger = 100;
         double hungerIncrease;
@@ -272,7 +270,7 @@ public class DinoNeedsUtils {
 
     }
 
-    public static void drink(Dinosaur dinosaur){
+    public static void drink(AbstractDinosaur dinosaur){
         DinoNeedsUtils.setCurrentThirst(dinosaur, getMaxThirst(dinosaur));
     }
 

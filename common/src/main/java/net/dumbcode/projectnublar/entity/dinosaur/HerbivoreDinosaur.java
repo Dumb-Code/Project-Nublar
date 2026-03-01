@@ -4,10 +4,10 @@ import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.level.Level;
 
-public class HerbivoreDinosaur extends Dinosaur {
+public class HerbivoreDinosaur extends AbstractDinosaur {
 
-    public HerbivoreDinosaur(EntityType<? extends HerbivoreDinosaur> $$0, Level $$1, int flinchAnimLength) {
-        super($$0, $$1, flinchAnimLength);
+    public HerbivoreDinosaur(EntityType<? extends HerbivoreDinosaur> $$0, Level $$1) {
+        super($$0, $$1);
     }
 
     @Override

@@ -2,8 +2,8 @@ package net.dumbcode.projectnublar.entity.ai.tasks;
 
 import com.mojang.datafixers.util.Pair;
 import it.unimi.dsi.fastutil.objects.ObjectArrayList;
+import net.dumbcode.projectnublar.entity.dinosaur.AbstractDinosaur;
 import net.dumbcode.projectnublar.entity.dinosaur.CarnivoreDinosaur;
-import net.dumbcode.projectnublar.entity.dinosaur.Dinosaur;
 import net.dumbcode.projectnublar.init.MemoryModuleTypeInit;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.entity.LivingEntity;
@@ -18,7 +18,7 @@ import java.util.List;
 import java.util.function.BiPredicate;
 import java.util.function.Predicate;
 
-public class SetMateFromNearbyDinosaurs<E extends Dinosaur> extends ExtendedBehaviour<E> {
+public class SetMateFromNearbyDinosaurs<E extends AbstractDinosaur> extends ExtendedBehaviour<E> {
 
    @Nullable protected LivingEntity pMate = null;
 
@@ -31,8 +31,8 @@ public class SetMateFromNearbyDinosaurs<E extends Dinosaur> extends ExtendedBeha
         return MEMORY_REQUIREMENTS;
     }
 
-   protected Predicate<LivingEntity> canChoosePredicate = (dinosaur) -> dinosaur instanceof Dinosaur dino && dino.isAlive();
-protected BiPredicate<E, LivingEntity> canChooseAsMatePredicate = (dinosaur, pMate) -> (pMate instanceof Dinosaur mate) &&  dinosaur.canMateWith(dinosaur, mate);
+   protected Predicate<LivingEntity> canChoosePredicate = (dinosaur) -> dinosaur instanceof AbstractDinosaur dino && dino.isAlive();
+protected BiPredicate<E, LivingEntity> canChooseAsMatePredicate = (dinosaur, pMate) -> (pMate instanceof AbstractDinosaur mate) &&  dinosaur.canMateWith(dinosaur, mate);
 
 
     public SetMateFromNearbyDinosaurs<E> canChooseAsMatePredicate(final BiPredicate<E, LivingEntity> predicate){
@@ -55,7 +55,7 @@ protected BiPredicate<E, LivingEntity> canChooseAsMatePredicate = (dinosaur, pMa
 
     @Override
     protected void start(E entity) {
-        if(this.pMate instanceof Dinosaur dinosaur) {
+        if(this.pMate instanceof AbstractDinosaur dinosaur) {
             BrainUtils.setMemory(entity, MemoryModuleTypeInit.MATE_UUID.get(), dinosaur.getUUID());
             BrainUtils.setMemory(dinosaur, MemoryModuleTypeInit.MATE_UUID.get(), entity.getUUID());
             BrainUtils.setMemory(entity, MemoryModuleTypeInit.MATE.get(), dinosaur);
