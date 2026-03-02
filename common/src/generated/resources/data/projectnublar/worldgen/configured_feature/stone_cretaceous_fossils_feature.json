@@ -1,0 +1,117 @@
+{
+  "type": "projectnublar:fossil_feature",
+  "config": {
+    "discard_chance_on_air_exposure": 0.0,
+    "size": 15,
+    "targets": [
+      {
+        "state": {
+          "Name": "projectnublar:stone_tyrannosaurus_rex_tyrannosaurus_skull",
+          "Properties": {
+            "quality": "fragmented"
+          }
+        },
+        "target": {
+          "predicate_type": "minecraft:tag_match",
+          "tag": "minecraft:stone_ore_replaceables"
+        }
+      },
+      {
+        "state": {
+          "Name": "projectnublar:stone_tyrannosaurus_rex_tyrannosaurus_hand",
+          "Properties": {
+            "quality": "fragmented"
+          }
+        },
+        "target": {
+          "predicate_type": "minecraft:tag_match",
+          "tag": "minecraft:stone_ore_replaceables"
+        }
+      },
+      {
+        "state": {
+          "Name": "projectnublar:stone_tyrannosaurus_rex_tyrannosaurus_foot",
+          "Properties": {
+            "quality": "fragmented"
+          }
+        },
+        "target": {
+          "predicate_type": "minecraft:tag_match",
+          "tag": "minecraft:stone_ore_replaceables"
+        }
+      },
+      {
+        "state": {
+          "Name": "projectnublar:stone_tyrannosaurus_rex_neck",
+          "Properties": {
+            "quality": "fragmented"
+          }
+        },
+        "target": {
+          "predicate_type": "minecraft:tag_match",
+          "tag": "minecraft:stone_ore_replaceables"
+        }
+      },
+      {
+        "state": {
+          "Name": "projectnublar:stone_tyrannosaurus_rex_bipedal_leg",
+          "Properties": {
+            "quality": "fragmented"
+          }
+        },
+        "target": {
+          "predicate_type": "minecraft:tag_match",
+          "tag": "minecraft:stone_ore_replaceables"
+        }
+      },
+      {
+        "state": {
+          "Name": "projectnublar:stone_tyrannosaurus_rex_tyrannosaurus_pelvis",
+          "Properties": {
+            "quality": "fragmented"
+          }
+        },
+        "target": {
+          "predicate_type": "minecraft:tag_match",
+          "tag": "minecraft:stone_ore_replaceables"
+        }
+      },
+      {
+        "state": {
+          "Name": "projectnublar:stone_tyrannosaurus_rex_ribcage",
+          "Properties": {
+            "quality": "fragmented"
+          }
+        },
+        "target": {
+          "predicate_type": "minecraft:tag_match",
+          "tag": "minecraft:stone_ore_replaceables"
+        }
+      },
+      {
+        "state": {
+          "Name": "projectnublar:stone_tyrannosaurus_rex_tail",
+          "Properties": {
+            "quality": "fragmented"
+          }
+        },
+        "target": {
+          "predicate_type": "minecraft:tag_match",
+          "tag": "minecraft:stone_ore_replaceables"
+        }
+      },
+      {
+        "state": {
+          "Name": "projectnublar:stone_tyrannosaurus_rex_bipedal_arm",
+          "Properties": {
+            "quality": "fragmented"
+          }
+        },
+        "target": {
+          "predicate_type": "minecraft:tag_match",
+          "tag": "minecraft:stone_ore_replaceables"
+        }
+      }
+    ]
+  }
+}

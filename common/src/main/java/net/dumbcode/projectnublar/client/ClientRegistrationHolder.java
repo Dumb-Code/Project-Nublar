@@ -2,7 +2,12 @@ package net.dumbcode.projectnublar.client;
 
 import com.mojang.blaze3d.vertex.PoseStack;
 import com.mojang.blaze3d.vertex.VertexConsumer;
+import dev.architectury.registry.registries.DeferredSupplier;
 import net.dumbcode.projectnublar.Constants;
+import net.dumbcode.projectnublar.api.FossilCollection;
+import net.dumbcode.projectnublar.api.FossilPieces;
+import net.dumbcode.projectnublar.api.fossil.FossilBase;
+import net.dumbcode.projectnublar.api.fossil.Quality;
 import net.dumbcode.projectnublar.block.entity.IncubatorBlockEntity;
 import net.dumbcode.projectnublar.client.renderer.DinosaurRenderer;
 import net.dumbcode.projectnublar.client.renderer.ElectricFenceRenderer;
@@ -17,6 +22,7 @@ import net.dumbcode.projectnublar.client.screen.ProcessorScreen;
 import net.dumbcode.projectnublar.client.screen.SequencerScreen;
 import net.dumbcode.projectnublar.entity.dinosaur.DinosaurPart;
 import net.dumbcode.projectnublar.init.*;
+import net.dumbcode.projectnublar.item.fossil.FossilBlockItem;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.screens.MenuScreens;
 import net.minecraft.client.renderer.MultiBufferSource;
@@ -27,6 +33,8 @@ import net.minecraft.client.renderer.entity.EntityRenderers;
 import net.minecraft.client.renderer.item.ItemProperties;
 import net.minecraft.client.renderer.texture.AbstractTexture;
 import net.minecraft.resources.ResourceLocation;
+import net.minecraft.world.item.Item;
+import net.minecraft.world.level.block.Block;
 import org.jetbrains.annotations.Nullable;
 import software.bernie.geckolib.cache.object.GeoBone;
 import software.bernie.geckolib.model.DefaultedBlockGeoModel;
@@ -103,7 +111,21 @@ public class ClientRegistrationHolder {
 
     public static void registerItemProperties() {
         ItemProperties.register(ItemInit.SYRINGE.get(), Constants.modLoc("filled"), (stack, world, entity, i) -> stack.hasTag() ? stack.getTag().getBoolean("dna_percentage") ? 0.5F : 1.0F : 0f);
+        registerFossilBlockItemProperties();
     }
+    public static void registerFossilBlockItemProperties(){
+
+        FossilCollection.getFossilOresForDinosaur(DinosaurInit.TYRANNOSAURUS_REX).forEach( block -> {
+            ItemProperties.register(block.get().asItem(), Constants.modLoc("quality"),
+                    (stack, level, entity, seed) -> 3F
+            );
+
+        });
+
+
+    }
+
+
 
     public static AbstractTexture createRexTexture() {return Minecraft.getInstance().getTextureManager().getTexture(Constants.modLoc("textures/entity/tyrannosaurus_rex/female/tyrannosaurus_rex.png"));}
     public static AbstractTexture createVelociraptorTexture() {return Minecraft.getInstance().getTextureManager().getTexture(Constants.modLoc("textures/entity/velociraptor/male/velociraptor.png"));}

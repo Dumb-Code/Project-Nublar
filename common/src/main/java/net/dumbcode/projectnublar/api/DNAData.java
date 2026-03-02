@@ -183,8 +183,8 @@ public class DNAData {
             dnaData.setDnaPercentage(tag.getDouble("dnaPercentage"));
         if (tag.contains("variant"))
             dnaData.setVariant(tag.getString("variant"));
-       // if (tag.contains("fossilPiece"))
-           // dnaData.setFossilPiece(FossilPieces.byName(tag.getString("fossilPiece")));
+        if (tag.contains("fossilPiece"))
+            dnaData.setFossilPiece(FossilPieces.byName(tag.getString("fossilPiece")));
         if (tag.contains("quality"))
             dnaData.setQuality(Quality.byName(tag.getString("quality")));
         dnaData.setEmbryo(tag.getBoolean("isEmbryo"));

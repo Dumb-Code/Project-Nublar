@@ -1,7 +1,11 @@
 package net.dumbcode.projectnublar.worldgen;
 
 import com.mojang.serialization.Codec;
+import net.dumbcode.projectnublar.api.FossilCollection;
+import net.dumbcode.projectnublar.api.fossil.Quality;
+import net.dumbcode.projectnublar.block.FossilBlock;
 import net.dumbcode.projectnublar.config.FossilsConfig;
+import net.dumbcode.projectnublar.init.DinosaurInit;
 import net.dumbcode.projectnublar.util.FossilUtils;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.SectionPos;
@@ -65,10 +69,6 @@ public class FossilFeature extends Feature<FossilConfiguration> {
         BlockPos.MutableBlockPos blockpos$mutableblockpos = new BlockPos.MutableBlockPos();
         int veinSize = config.size;
 
-        int midY = (int) Math.round((minY + maxY)/2.0D);
-        String timePeriod = FossilsConfig.getPeriod(midY);
-
-
         //Generate the sphere chain
         // Each sphere stores: [centerX, centerY, centerZ, radius]
         double[] sphereData = new double[veinSize * 4];
@@ -114,7 +114,9 @@ public class FossilFeature extends Feature<FossilConfiguration> {
         }
 
         //get random weighted quality from config values
-        FossilsConfig.Quality quality = getRandomWeightedQuality(new Random());
+        String quality = getRandomWeightedQuality(new Random());
+        String period = FossilsConfig.getPeriod(y);
+        FossilsConfig.Fossil fossil = getRandomWeightedFossil(new Random(),period);
 
 
         try (BulkSectionAccess bulksectionaccess = new BulkSectionAccess(level)) {
@@ -152,9 +154,25 @@ public class FossilFeature extends Feature<FossilConfiguration> {
                                                         int localZ = SectionPos.sectionRelative(pZ);
                                                         BlockPos blockPos = new BlockPos(localX,localY,localZ);
                                                         BlockState blockstate = levelchunksection.getBlockState(localX, localY, localZ);
+                                                        Map<String,Integer> pieces = FossilUtils.getPiecesForDino(fossil);
 
                                                         //Get random weighted Piece
+                                                        for (FossilConfiguration.TargetBlockState fossilConfiguration$targetblockstate : config.targetStates){
+                                                            Objects.requireNonNull(bulksectionaccess);
+                                                            if(canPlaceOre(blockstate,bulksectionaccess::getBlockState,random,config,fossilConfiguration$targetblockstate,blockpos$mutableblockpos)){
+                                                                String piece = getRandomWeightedPiece(new Random(),pieces);
+                                                                FossilBlock block = (FossilBlock) fossilConfiguration$targetblockstate.state.getBlock();
+                                                                BlockState setQuality = block.defaultBlockState().setValue(FossilBlock.QUALITY_PROPERTY, Quality.byName(quality));
 
+                                                                if(block.getFossilPiece().name().equals(piece)){
+                                                                    System.err.println("Placing fossil block:" + block.getFossilPiece().name() + " at co-ords" + localX+ " " +localY+ " "+localZ);
+                                                                    levelchunksection.setBlockState(localX, localY, localZ, setQuality, false);
+                                                                }
+
+
+
+                                                            }
+                                                        }
 
 
                                                     }
@@ -173,7 +191,7 @@ public class FossilFeature extends Feature<FossilConfiguration> {
         return i > 0;
     }
 
-    public static FossilsConfig.Quality getRandomWeightedQuality(Random random) {
+    public static String getRandomWeightedQuality(Random random) {
        List<String> qualities = List.of("fragmented","poor","common","pristine");
        int totalWeights = 0;
        Map<String,Integer> qualityWeights = new HashMap<>();
@@ -196,7 +214,7 @@ public class FossilFeature extends Feature<FossilConfiguration> {
            }
        }
 
-       return FossilsConfig.getQuality(selectedQuality);
+       return selectedQuality;
 
     }
     public static String getRandomWeightedPiece(Random random,Map<String,Integer> pieceWeights) {
@@ -215,36 +233,7 @@ public class FossilFeature extends Feature<FossilConfiguration> {
         }
         throw new IllegalStateException("Total weight must be > 0");
     }
-    public static String getRandomPeriod(Random random){
-        Map<String,Double> map = FossilsConfig.getPeriods();
 
-        List<String> list = new ArrayList<>(map.keySet());
-
-        int i = random.nextInt(0,2);
-
-        String period;
-        boolean canChoose = false;
-        int k = 0;
-        while(!canChoose) {
-            period = list.get(i);
-            switch (period) {
-                case "carboniferous" -> canChoose = random.nextDouble(0D, 5D) < map.get("carboniferous");
-                case "jurassic" -> canChoose = random.nextDouble(0D, 5D) < map.get("jurassic");
-                case "cretaceous" -> canChoose = random.nextDouble(0D, 5D) < map.get("cretaceous");
-                default -> canChoose = false;
-            }
-            i = random.nextInt(0,2);
-            k++;
-            if(canChoose||k > 2){
-                if(k > 2){
-                    i = 2;
-                    break;
-                }
-                break;
-            }
-        }
-        return list.get(i);
-    }
 
 
     public static FossilsConfig.Fossil getRandomWeightedFossil(Random rand, String period) {
@@ -259,19 +248,22 @@ public class FossilFeature extends Feature<FossilConfiguration> {
             }
         }
 
+        if(totalWeights <= 1) {
+            totalWeights = 2;
+        }
         int r = rand.nextInt(totalWeights);
 
         for(FossilsConfig.Fossil fossil : fossils){
             r-= fossil.getWeight().get();
             if(r < 0){
-                return fossil;
+              //  return fossil;
             }
         }
-        throw new IllegalStateException("No weight for random fossil found");
+        return FossilUtils.getFossilForDino(DinosaurInit.TYRANNOSAURUS_REX);
     }
 
 
-    public static boolean canPlaceOre(BlockState state, Function<BlockPos, BlockState> adjacentStateAccessor, RandomSource random, OreConfiguration config, OreConfiguration.TargetBlockState targetState, BlockPos.MutableBlockPos mutablePos) {
+    public static boolean canPlaceOre(BlockState state, Function<BlockPos, BlockState> adjacentStateAccessor, RandomSource random, FossilConfiguration config, FossilConfiguration.TargetBlockState targetState, BlockPos.MutableBlockPos mutablePos) {
         if (!targetState.target.test(state, random)) {
             return false;
         } else if (shouldSkipAirCheck(random, config.discardChanceOnAirExposure)) {

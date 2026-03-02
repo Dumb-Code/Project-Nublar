@@ -2,9 +2,13 @@ package net.dumbcode.projectnublar.datagen;
 
 import com.google.gson.JsonObject;
 import net.dumbcode.projectnublar.Constants;
+import net.dumbcode.projectnublar.api.FossilCollection;
+import net.dumbcode.projectnublar.api.fossil.Quality;
+import net.dumbcode.projectnublar.block.FossilBlock;
 import net.dumbcode.projectnublar.client.model.fossil.FossilModelLoader;
 import net.dumbcode.projectnublar.client.model.testtube.TestTubeModelLoader;
 import net.dumbcode.projectnublar.init.BlockInit;
+import net.dumbcode.projectnublar.init.DinosaurInit;
 import net.dumbcode.projectnublar.init.ItemInit;
 import net.minecraft.data.PackOutput;
 import net.minecraft.resources.ResourceLocation;
@@ -13,6 +17,7 @@ import net.minecraft.world.level.block.Block;
 import net.minecraftforge.client.model.generators.CustomLoaderBuilder;
 import net.minecraftforge.client.model.generators.ItemModelBuilder;
 import net.minecraftforge.client.model.generators.ItemModelProvider;
+import net.minecraftforge.client.model.generators.VariantBlockStateBuilder;
 import net.minecraftforge.common.data.ExistingFileHelper;
 import net.minecraftforge.registries.ForgeRegistries;
 
@@ -68,6 +73,10 @@ public class ModItemModelProvider extends ItemModelProvider {
         simpleGeneratedModel(BlockInit.HIGH_SECURITY_ELECTRIC_FENCE_POST.get().asItem());
         simpleGeneratedModel(BlockInit.LOW_SECURITY_ELECTRIC_FENCE_POST.get().asItem());
 
+        ItemInit.TYRANNOSAURUS_FOSSIL_ORE.forEach(itemStack -> {
+            withExistingParent(getName(itemStack.get()),Constants.modLoc("block/" + getName(itemStack.get()).replaceFirst("tyrannosaurus_rex_","")));
+        });
+
         withExistingParent(getName(ItemInit.FOSSIL_ITEM.get()), "item/generated")
                 .texture("layer0", modLoc("block/fossil_overlay/tyrannosaurus_rex/fresh/tyrannosaurus_skull"))
                 .customLoader((builder, helper) -> new FossilLoaderBuilder(FossilModelLoader.GENERATOR, builder, helper));
@@ -86,6 +95,7 @@ public class ModItemModelProvider extends ItemModelProvider {
                 .model(withExistingParent(getName(ItemInit.SYRINGE.get()) + "_embryo", "item/generated")
                         .texture("layer0", modLoc("item/syringe_embryo"))).end();
         ;
+
     }
 
     protected ItemModelBuilder simpleBlockItemModel(Block block) {

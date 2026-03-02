@@ -1,2 +1,3 @@
-// 1.20.1	2026-02-23T22:26:27.2411853	Tags for minecraft:block mod id projectnublar
-e8fd09cacfb714d4dbfb7ac1f03c3f72c21cc38b data/projectnublar/tags/blocks/fossil_base.json
+// 1.20.1	2026-03-02T17:00:34.2799798	Tags for minecraft:block mod id projectnublar
+480de1c9f33b6dc5165b19692462ea063ff48268 data/minecraft/tags/blocks/mineable/pickaxe.json
+cc4eec1bc62b821028f5ff4ed567f0962d99d8bf data/projectnublar/tags/blocks/fossil_base.json

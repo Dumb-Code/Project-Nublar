@@ -8,6 +8,7 @@ import net.dumbcode.projectnublar.api.fossil.FossilBase;
 import net.dumbcode.projectnublar.api.fossil.FossilBlockStates;
 import net.dumbcode.projectnublar.api.fossil.Quality;
 import net.dumbcode.projectnublar.block.FossilBlock;
+import net.dumbcode.projectnublar.item.fossil.FossilBlockItem;
 import net.minecraft.client.Minecraft;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.core.registries.Registries;
@@ -31,22 +32,22 @@ public class CreativeTabInit {
     public static final DeferredSupplier<CreativeModeTab> FOSSIL_ORES_TAB = CREATIVE_MODE_TABS.register(Constants.MODID + "_fossil_ores", () -> CreativeModeTab.builder(CreativeModeTab.Row.TOP, 0)
             .title(Component.translatable("itemGroup." + Constants.MODID + ".fossil_ores"))
             .icon(() -> {
-                FossilBlock test_1 = (FossilBlock) BlockInit.TYRANNOSAURUS_REX_FOSSILS.fossilblocks().get(Blocks.STONE).get(FossilPieces.TYRANNOSAURUS_SKULL);
+                FossilBlock test_1 = (FossilBlock) FossilCollection.getFossilOresForDinosaur(DinosaurInit.TYRANNOSAURUS_REX).get(0).get();
                 ItemStack stack = new ItemStack(test_1);
-                FossilPiece piece = FossilPieces.TYRANNOSAURUS_SKULL;
-                stack.getOrCreateTag().put("fossil_blockstate", piece.toNBT());
+                stack.getOrCreateTag().putInt("quality", 2);
                 return stack;
             })
             .displayItems(
                     (itemDisplayParameters, output) -> {
-                        FossilBlock test_1 = (FossilBlock) BlockInit.TYRANNOSAURUS_REX_FOSSILS.fossilblocks().get(Blocks.STONE).get(FossilPieces.TYRANNOSAURUS_SKULL);
-                        ItemStack stack = new ItemStack(test_1);
-                        FossilPiece piece = FossilPieces.TYRANNOSAURUS_SKULL;
-                        stack.getOrCreateTag().put("fossil_blockstate", piece.toNBT());
-                        output.accept(stack);
+                        ItemInit.TYRANNOSAURUS_FOSSIL_ORE.forEach(fossilBlock ->
+                                {
+                                        ItemStack stack = new ItemStack(fossilBlock.get());
+                                        output.accept(stack);
 
+                                });
                     })
             .build());
+    /*
     public static final DeferredSupplier<CreativeModeTab> FOSSIL_ITEMS_TAB = CREATIVE_MODE_TABS.register(Constants.MODID + "_fossil_items", () -> CreativeModeTab.builder(CreativeModeTab.Row.TOP, 0)
             .title(Component.translatable("itemGroup." + Constants.MODID + ".fossil_items"))
             .icon(() -> {
@@ -80,11 +81,13 @@ public class CreativeTabInit {
 
 
 
-                           */
+
 
                      //   }
                     })
             .build());
+
+     */
     public static final DeferredSupplier<CreativeModeTab> MACHINES_TAB = CREATIVE_MODE_TABS.register(Constants.MODID + "_machines", () -> CreativeModeTab.builder(CreativeModeTab.Row.TOP, 0)
             .title(Component.translatable("itemGroup." + Constants.MODID + ".machines"))
             .icon(() -> new ItemStack(BlockInit.PROCESSOR.get()))

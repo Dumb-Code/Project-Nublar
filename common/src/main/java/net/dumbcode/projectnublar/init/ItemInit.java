@@ -3,10 +3,17 @@ package net.dumbcode.projectnublar.init;
 import dev.architectury.registry.registries.DeferredRegister;
 import dev.architectury.registry.registries.DeferredSupplier;
 import net.dumbcode.projectnublar.Constants;
+import net.dumbcode.projectnublar.api.FossilCollection;
+import net.dumbcode.projectnublar.api.fossil.Quality;
 import net.dumbcode.projectnublar.item.*;
 import net.dumbcode.projectnublar.item.fossil.FossilBlockItem;
 import net.minecraft.core.registries.Registries;
 import net.minecraft.world.item.Item;
+import net.minecraft.world.level.block.Block;
+
+import java.util.ArrayList;
+import java.util.List;
+import java.util.function.Supplier;
 
 public class ItemInit {
     public static final DeferredRegister<Item> ITEMS = DeferredRegister.create(Constants.MODID, Registries.ITEM);
@@ -18,6 +25,7 @@ public class ItemInit {
     public static final DeferredSupplier<Item> DEV_STICK = ITEMS.register("dev_stick", () -> new DebugStick(getItemProperties()));
 
     public static final DeferredSupplier<Item> TEST_TUBE_ITEM = ITEMS.register("test_tube", () -> new TestTubeItem(getItemProperties()));
+    public static final List<DeferredSupplier<Item>> TYRANNOSAURUS_FOSSIL_ORE = registerFossilBlockItems();
 
     public static final DeferredSupplier<Item> IRON_FILTER = ITEMS.register("iron_filter", () -> new FilterItem(getItemProperties().durability(100), 0.25));
     public static final DeferredSupplier<Item> GOLD_FILTER = ITEMS.register("gold_filter", () -> new FilterItem(getItemProperties().durability(100),0.5));
@@ -65,6 +73,16 @@ public class ItemInit {
     }
     public static Item.Properties getItemProperties() {
         return new Item.Properties();
+    }
+
+    public static List<DeferredSupplier<Item>> registerFossilBlockItems(){
+       List<DeferredSupplier<Item>> items = new ArrayList<>();
+        FossilCollection.getFossilOresForDinosaur(DinosaurInit.TYRANNOSAURUS_REX).forEach(blockDeferredSupplier -> {
+           for(Quality quality: Quality.values()){
+               items.add(ITEMS.register(quality.getName().toLowerCase() + "_" + blockDeferredSupplier.getId().getPath(), () -> new FossilBlockItem(blockDeferredSupplier.get(), getItemProperties(),quality)));
+           }
+        });
+        return items;
     }
 
     public static void loadClass() {ITEMS.register();

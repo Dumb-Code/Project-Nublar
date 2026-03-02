@@ -1,12 +1,14 @@
 package net.dumbcode.projectnublar.datagen;
 
 import net.dumbcode.projectnublar.Constants;
+import net.dumbcode.projectnublar.api.FossilCollection;
+import net.dumbcode.projectnublar.block.FossilBlock;
+import net.dumbcode.projectnublar.init.DinosaurInit;
 import net.dumbcode.projectnublar.init.TagInit;
 import net.minecraft.core.HolderLookup;
 import net.minecraft.core.registries.Registries;
 import net.minecraft.data.PackOutput;
 import net.minecraft.data.tags.TagsProvider;
-import net.minecraft.resources.ResourceLocation;
 import net.minecraft.tags.BlockTags;
 import net.minecraft.tags.ItemTags;
 import net.minecraft.tags.TagKey;
@@ -14,11 +16,9 @@ import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.Items;
 import net.minecraft.world.level.ItemLike;
-import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.level.block.ComposterBlock;
 import net.minecraft.world.level.block.LeavesBlock;
-import net.minecraftforge.common.Tags;
 import net.minecraftforge.common.data.BlockTagsProvider;
 import net.minecraftforge.common.data.ExistingFileHelper;
 import net.minecraftforge.registries.ForgeRegistries;
@@ -41,6 +41,9 @@ public class ModTagProvider {
             populateTag(TagInit.BONE_MATTER, Items.BONE_MEAL);
             tag(TagInit.PLANT_MATTER).addTag(ItemTags.LEAVES);
             populateTag(TagInit.PLANT_MATTER, ComposterBlock.COMPOSTABLES.keySet().stream().filter(item -> !(item instanceof LeavesBlock)).toArray(ItemLike[]::new));
+
+
+
         }
 
         public void populateTag(TagKey<Item> tag, ItemLike... items){
@@ -58,14 +61,13 @@ public class ModTagProvider {
 
         @Override
         protected void addTags(HolderLookup.Provider provider) {
-            this.tag(TagInit.FOSSIL_BASE).add(Blocks.STONE);
-            this.tag(TagInit.FOSSIL_BASE).add(Blocks.DEEPSLATE);
-            this.tag(TagInit.FOSSIL_BASE).addTag(BlockTags.TERRACOTTA);
-            this.tag(TagInit.FOSSIL_BASE).add(Blocks.SANDSTONE);
-            this.tag(TagInit.FOSSIL_BASE).add(Blocks.RED_SANDSTONE);
-            this.tag(TagInit.FOSSIL_BASE).add(Blocks.ANDESITE);
-            this.tag(TagInit.FOSSIL_BASE).add(Blocks.DIORITE);
-            this.tag(TagInit.FOSSIL_BASE).add(Blocks.GRANITE);
+            this.tag(TagInit.SANDSTONE_REPLACEABLES).add(Blocks.SANDSTONE);
+            FossilCollection.getFossilOresForDinosaur(DinosaurInit.TYRANNOSAURUS_REX).forEach( block -> {
+                FossilBlock fossilBlock = (FossilBlock) block.get();
+                this.tag(BlockTags.MINEABLE_WITH_PICKAXE)
+                        .add(fossilBlock);
+
+            });
         }
     }
 

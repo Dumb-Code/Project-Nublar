@@ -8,11 +8,14 @@ import net.dumbcode.projectnublar.block.FossilBlock;
 import net.dumbcode.projectnublar.init.BlockInit;
 import net.dumbcode.projectnublar.init.DinosaurInit;
 import net.minecraft.world.level.block.Block;
+import net.minecraft.world.level.block.SoundType;
 import net.minecraft.world.level.block.state.BlockBehaviour;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.block.state.StateDefinition;
 
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 public record FossilCollection(Map<Block,Map<FossilPiece, DeferredSupplier<Block>>> fossilblocks, Map<Block,DeferredSupplier<Block>> amberBlocks) {
@@ -27,10 +30,10 @@ public record FossilCollection(Map<Block,Map<FossilPiece, DeferredSupplier<Block
         for (FossilBase stone : FossilBase.values()) {
             Map<FossilPiece,DeferredSupplier<Block>> partMap = new HashMap<>();
                 for(FossilPiece piece : dinosaur.fossilCollection()) {
-                  partMap.put(piece, BlockInit.registerBlock(stone.name().toLowerCase() + "_" + dinosaur.name() + "_" + piece.name(), () -> new FossilBlock(BlockBehaviour.Properties.copy(stone.getBlock()).noOcclusion(),stone.getBlock(),dinosaur,piece)));
+                  partMap.put(piece, BlockInit.registerFossilBlock(stone.name().toLowerCase() + "_" + dinosaur.name() + "_" + piece.name(), () -> new FossilBlock(BlockBehaviour.Properties.copy(stone.getBlock()).requiresCorrectToolForDrops().strength(3.0F,4.0F).sound(SoundType.STONE),stone,dinosaur,piece)));
                 }
                 fullFossilMap.put(stone.getBlock(),partMap);
-            fullAmberMap.put(stone.getBlock(),BlockInit.registerBlock(stone.name().toLowerCase() + "_" + dinosaur.name() + "_amber", () -> new AmberBlock(BlockBehaviour.Properties.copy(stone.getBlock()).noOcclusion(), dinosaur,stone.getBlock())));
+         //   fullAmberMap.put(stone.getBlock(),BlockInit.registerBlock(stone.name().toLowerCase() + "_" + dinosaur.name() + "_amber", () -> new AmberBlock(BlockBehaviour.Properties.copy(stone.getBlock()).noOcclusion(), dinosaur,stone.getBlock())));
         }
         return COLLECTIONS.put(dinosaur,new FossilCollection(fullFossilMap, fullAmberMap));
     }
@@ -47,6 +50,17 @@ public record FossilCollection(Map<Block,Map<FossilPiece, DeferredSupplier<Block
 
     public static FossilCollection getFossilCollection(Dinosaur dinosaur) {
         return COLLECTIONS.get(dinosaur);
+    }
+
+    public static List<DeferredSupplier<Block>> getFossilOresForDinosaur(Dinosaur dinosaur) {
+        Map<Dinosaur ,List<DeferredSupplier<Block>>> map = new HashMap<>();
+        List<DeferredSupplier<Block>> list = new ArrayList<>();
+
+        getFossilCollection(dinosaur).fossilblocks().forEach((block, piecemap)->
+                piecemap.forEach((piece,fossilblock) -> list.add(fossilblock)));
+
+        map.put(dinosaur,list);
+        return list;
     }
 
 }

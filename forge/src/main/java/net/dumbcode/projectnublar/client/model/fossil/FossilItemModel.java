@@ -49,8 +49,13 @@ public class FossilItemModel implements IDynamicBakedModel, IStackSensitive {
         DNAData data = DNAData.loadFromNBT(stack.getOrCreateTag().getCompound("DNAData"));
         FossilPiece piece = data.getFossilPiece();
         Quality quality = data.getQuality();
+        String  qualityString = switch (quality.getName().toLowerCase()) {
+            case "fragmented", "poor" -> "fragmented";
+            case "pristine" -> "fresh";
+            default -> "fossilized";
+        };
 
-        TextureAtlasSprite sprite = getTexture("block/fossil_overlay/tyrannosaurus_rex" + quality.getName().toLowerCase() + "/" +piece.name());
+        TextureAtlasSprite sprite = getTexture("block/fossil_overlay/" + piece.getPath() + qualityString + "/" + piece.name());
         List<BlockElement> unbaked = UnbakedGeometryHelper.createUnbakedItemElements(0,sprite.contents());
 
         return UnbakedGeometryHelper.bakeElements(unbaked, m->sprite, modelState, Constants.modLoc( "item/fossil"));

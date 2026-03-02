@@ -1,0 +1,6 @@
+{
+  "type": "forge:add_features",
+  "biomes": "#minecraft:is_overworld",
+  "features": "projectnublar:sandstone_cretaceous_fossils_feature_placed_key",
+  "step": "underground_ores"
+}

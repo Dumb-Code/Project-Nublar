@@ -8,7 +8,14 @@ import org.jetbrains.annotations.NotNull;
 
 import java.util.Objects;
 
-public record FossilPiece(String name, String path){
+public record FossilPiece(String name, String path,String displayname){
+
+    public FossilPiece(String pName, String pPath){
+        this(pName,pPath,pName);
+    }
+
+
+
     public String getName() {
         return name;
     }

@@ -5,6 +5,7 @@ import net.dumbcode.projectnublar.api.FossilCollection;
 
 import net.dumbcode.projectnublar.block.FossilBlock;
 
+import net.dumbcode.projectnublar.init.DinosaurInit;
 import net.dumbcode.projectnublar.init.FeatureInit;
 import net.dumbcode.projectnublar.init.TagInit;
 import net.dumbcode.projectnublar.worldgen.FossilConfiguration;
@@ -20,12 +21,16 @@ import net.minecraft.data.worldgen.BootstapContext;
 import net.minecraft.resources.ResourceKey;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.tags.BiomeTags;
+import net.minecraft.tags.BlockTags;
+import net.minecraft.world.level.block.Block;
+import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.level.dimension.DimensionType;
 import net.minecraft.world.level.levelgen.GenerationStep;
 import net.minecraft.world.level.levelgen.feature.ConfiguredFeature;
 import net.minecraft.world.level.levelgen.placement.*;
 import net.minecraft.world.level.levelgen.structure.templatesystem.RuleTest;
 import net.minecraft.world.level.levelgen.structure.templatesystem.TagMatchTest;
+import net.minecraftforge.common.Tags;
 import net.minecraftforge.common.data.DatapackBuiltinEntriesProvider;
 import net.minecraftforge.common.world.BiomeModifier;
 import net.minecraftforge.common.world.ForgeBiomeModifiers;
@@ -52,43 +57,45 @@ public class ModWorldGenProvider extends DatapackBuiltinEntriesProvider {
 
 
     public static void biomeModifiers(BootstapContext<BiomeModifier> context) {
-    //    createFossilDepositBiomeModifier("cretaceous_fossils_feature",context);
+        createFossilDepositBiomeModifier("sandstone_cretaceous_fossils_feature",context);
+        createFossilDepositBiomeModifier("stone_cretaceous_fossils_feature",context);
+        createFossilDepositBiomeModifier("deepslate_cretaceous_fossils_feature",context);
     }
 
     public static void dimension(BootstapContext<DimensionType> context) {
 
     }
     public static void configuredFeature(BootstapContext<ConfiguredFeature<?, ?>> context) {
-
-    //    createFossilDepositConfiguredFeature("cretaceous_fossils_feature","cretaceous",context);
+        RuleTest stoneReplaceabeles = new TagMatchTest(BlockTags.STONE_ORE_REPLACEABLES);
+        RuleTest deepSlateReplaceabeles = new TagMatchTest(BlockTags.DEEPSLATE_ORE_REPLACEABLES);
+        RuleTest sandStoneReplaceabeles = new TagMatchTest(TagInit.SANDSTONE_REPLACEABLES);
+        createFossilDepositConfiguredFeature("sandstone_cretaceous_fossils_feature",sandStoneReplaceabeles,"cretaceous",Blocks.SANDSTONE,context);
+        createFossilDepositConfiguredFeature("stone_cretaceous_fossils_feature",stoneReplaceabeles,"cretaceous",Blocks.STONE,context);
+        createFossilDepositConfiguredFeature("deepslate_cretaceous_fossils_feature",deepSlateReplaceabeles,"cretaceous",Blocks.DEEPSLATE, context);
 
     }
 
 
     public static void placedFeatures(BootstapContext<PlacedFeature> context) {
-     //   createFossilDepositPlacedFeature("cretaceous_fossils_feature","cretaceous",context);
+        createFossilDepositPlacedFeature("stone_cretaceous_fossils_feature","cretaceous",context);
+        createFossilDepositPlacedFeature("sandstone_cretaceous_fossils_feature","cretaceous",context);
+        createFossilDepositPlacedFeature("deepslate_cretaceous_fossils_feature","cretaceous",context);
 
     }
-    public static void createFossilDepositConfiguredFeature(String key,String period, BootstapContext<ConfiguredFeature<?, ?>> context) {
+    public static void createFossilDepositConfiguredFeature(String key, RuleTest ruleTest, String period, Block base, BootstapContext<ConfiguredFeature<?, ?>> context) {
 
-     //need custom rule to include all fossil block types soon to be deprecated
-        RuleTest fossilReplaceabeles = new TagMatchTest(TagInit.FOSSIL_BASE);
 
         ResourceKey<ConfiguredFeature<?, ?>> fossil_key =  ResourceKey.create(Registries.CONFIGURED_FEATURE, new ResourceLocation(Constants.MODID,key));
         configuredFeaturesKeys.put(key,fossil_key);
 
-        //add all the fossils
-        /*
         List<FossilConfiguration.TargetBlockState> fossilList = new ArrayList<>();
         FossilCollection.COLLECTIONS.forEach((entity, fossilCollection) -> {
-            fossilCollection.fossilblocks().forEach((block, qualityMap) -> {
-                qualityMap.forEach((quality, stoneMap) -> {
-                    stoneMap.forEach((piece, blockDeferredSupplier) -> {
-                        FossilBlock fossilBlock = (FossilBlock) blockDeferredSupplier.get();
-                        if(fossilBlock.getTimePeriod().equals(period)) {
-                            fossilList.add(FossilConfiguration.target(fossilReplaceabeles, blockDeferredSupplier.get().defaultBlockState()));
+            fossilCollection.fossilblocks().forEach((block, piecemap) -> {
+                piecemap.forEach((piece, fossil) -> {
+                        FossilBlock fossilBlock = (FossilBlock) fossil.get();
+                        if(fossilBlock.getDinosaur().period().equals(period) && fossilBlock.getBase().getBlock().equals(base)) {
+                            fossilList.add(FossilConfiguration.target(ruleTest, fossil.get().defaultBlockState()));
                         }
-                    });
                 });
             });
         });
@@ -99,9 +106,6 @@ public class ModWorldGenProvider extends DatapackBuiltinEntriesProvider {
                         new FossilConfiguration(fossilList, 15)
                 )
         );
-
-
-         */
 
     }
     public static void createFossilDepositPlacedFeature(String key,String period, BootstapContext<PlacedFeature> context) {

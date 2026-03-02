@@ -2,9 +2,6 @@ package net.dumbcode.projectnublar.init;
 
 import net.dumbcode.projectnublar.Constants;
 import net.minecraft.core.registries.BuiltInRegistries;
-import net.minecraft.resources.ResourceLocation;
-import net.minecraft.tags.BlockTags;
-import net.minecraft.tags.ItemTags;
 import net.minecraft.tags.TagKey;
 import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.item.Item;
@@ -17,7 +14,7 @@ public class TagInit {
     public static TagKey<EntityType<?>> EMBRYO_ENTITY = TagKey.create(BuiltInRegistries.ENTITY_TYPE.key(), Constants.modLoc("embryo_entity"));
     public static TagKey<EntityType<?>> LAND_FOOD_SOURCE = TagKey.create(BuiltInRegistries.ENTITY_TYPE.key(), Constants.modLoc("land_food_source"));
     public static TagKey<EntityType<?>> AQUATIC_FOOD_SOURCE = TagKey.create(BuiltInRegistries.ENTITY_TYPE.key(), Constants.modLoc("aquatic_food_source"));
-    public static TagKey<Block> FOSSIL_BASE = TagKey.create(BuiltInRegistries.BLOCK.key(), Constants.modLoc("fossil_base"));
+    public static TagKey<Block> SANDSTONE_REPLACEABLES = TagKey.create(BuiltInRegistries.BLOCK.key(), Constants.modLoc("fossil_base"));
 
 
 }

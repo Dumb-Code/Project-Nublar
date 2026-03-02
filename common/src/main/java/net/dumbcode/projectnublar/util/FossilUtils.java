@@ -1,6 +1,7 @@
 package net.dumbcode.projectnublar.util;
 
 
+import net.dumbcode.projectnublar.api.Dinosaur;
 import net.dumbcode.projectnublar.config.FossilsConfig;
 import net.minecraft.util.random.SimpleWeightedRandomList;
 
@@ -13,13 +14,13 @@ import java.util.Map;
 public class FossilUtils {
 
 
-    public static FossilsConfig.Fossil getFossilForDino(String dinoName){
+    public static FossilsConfig.Fossil getFossilForDino(Dinosaur dinoName){
         return FossilsConfig.getFossils().get(dinoName);
     }
     public static String getDinoFossilSet(FossilsConfig.Fossil fossil){
         return fossil.getPieces().get();
     }
-    public static Map<String,Map<String,Integer>> getSpecialPieces(String dinoName,FossilsConfig.Fossil fossil){
+    public static Map<String,Map<String,Integer>> getSpecialPieces(FossilsConfig.Fossil fossil){
         List<String> specialPieces = fossil.getSpecial_pieces().get();
         List<Integer> weights = fossil.getSpecial_weights().get();
         Map<String, Integer> pieceWeights = new HashMap<>();
@@ -27,13 +28,13 @@ public class FossilUtils {
         for(int i = 0; i < specialPieces.size(); i++){
             pieceWeights.put(specialPieces.get(i), weights.get(i));
         }
-        setMap.put(dinoName, pieceWeights);
+        setMap.put(fossil.toString(), pieceWeights);
         return setMap;
     }
 
-    public static Map<String,Integer> getPiecesForDino(String dinoName,FossilsConfig.Fossil fossil){
+    public static Map<String,Integer> getPiecesForDino(FossilsConfig.Fossil fossil){
        Map<String,Map<String,Integer>> setMap = getFossilSet(getDinoFossilSet(fossil));
-       Map<String, Map<String,Integer>> specialPieces = getSpecialPieces(dinoName,fossil);
+       Map<String, Map<String,Integer>> specialPieces = getSpecialPieces(fossil);
        Map<String, Integer> piecesToAdd = new HashMap<>();
 
        for(String key : setMap.keySet()){

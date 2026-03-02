@@ -1,0 +1,19 @@
+{
+  "feature": "projectnublar:stone_cretaceous_fossils_feature",
+  "placement": [
+    {
+      "type": "projectnublar:fossil_filter",
+      "period": "cretaceous"
+    },
+    {
+      "type": "minecraft:in_square"
+    },
+    {
+      "type": "projectnublar:fossil_height",
+      "period": "cretaceous"
+    },
+    {
+      "type": "minecraft:biome"
+    }
+  ]
+}

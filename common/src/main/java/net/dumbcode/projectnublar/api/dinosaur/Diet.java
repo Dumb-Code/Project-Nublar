@@ -21,12 +21,4 @@ public enum Diet {
         return name;
     }
 
-    public static Diet byName(String name) {
-        for (Diet diet : values()) {
-            if (diet.getName().equals(name)) {
-                return diet;
-            }
-        }
-        return null;
-    }
 }

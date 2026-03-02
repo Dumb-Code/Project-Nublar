@@ -1,11 +1,15 @@
 package net.dumbcode.projectnublar.config;
 
 
+import net.dumbcode.projectnublar.api.Dinosaur;
 import net.dumbcode.projectnublar.api.FossilPiece;
 import net.dumbcode.projectnublar.api.FossilPieces;
 import net.dumbcode.projectnublar.api.fossil.config.FossilSet;
+import net.dumbcode.projectnublar.api.fossil.config.FossilSets;
+import net.dumbcode.projectnublar.init.DinosaurInit;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.util.RandomSource;
+import net.minecraft.world.level.biome.Biomes;
 import net.minecraftforge.common.ForgeConfigSpec;
 import org.apache.commons.lang3.tuple.Pair;
 
@@ -15,7 +19,7 @@ import java.util.Map;
 
 
 public class FossilsConfig {
-    private static final Map<String, Fossil> FOSSILS = new HashMap<>();
+    private static final Map<Dinosaur, Fossil> FOSSILS = new HashMap<>();
     private static final Map<String, Set> SETS = new HashMap<>();
     private static final Map<String, Quality> QUALITIES = new HashMap<>();
 
@@ -47,21 +51,30 @@ public class FossilsConfig {
         builder.push("fossils");
         builder.comment("defines the configured information for each type of fossil");
         builder.push("tyrannosaurus_rex");
-     //   tyrannosaurus_rex = registerFossil("tyrannosaurus_rex", new Fossil(builder, FossilSets.BIPED, Map.of(FossilPieces.REX_SKULL, 1), 1, List.of("cretaceous"), List.of(Biomes.DESERT.location(), Biomes.FOREST.location())));
+        tyrannosaurus_rex = registerFossil("tyrannosaurus_rex", new Fossil(builder, FossilSets.BIPED,
+                Map.of(
+                        FossilPieces.TYRANNOSAURUS_SKULL, 1,
+                        FossilPieces.TYRANNOSAURUS_FOOT,2,
+                        FossilPieces.TYRANNOSAURUS_HAND,2,
+                        FossilPieces.TYRANNOSAURUS_PELVIS,1
+
+                        ),
+                1, List.of("cretaceous"),
+                List.of(Biomes.DESERT.location(), Biomes.FOREST.location())));
         builder.pop();
         builder.pop();
 
         builder.push("sets");
         builder.comment("Fossil Piece Sets");
         builder.push("biped");
-       // biped = registerSet("biped", builder.defineList("pieces", List.of("ribcage", "foot", "arm", "leg", "tail", "spine"), s -> s instanceof String st && FossilPieces.byName(st) != null), builder.defineList("weights", List.of(1, 2, 2, 2, 1, 1), o -> o instanceof Integer));
+        biped = registerSet("biped", builder.defineList("pieces", List.of("ribcage","bipedal_arm", "bipedal_leg", "tail", "spine"), s -> s instanceof String st && FossilPieces.byName(st) != null), builder.defineList("weights", List.of(1, 2, 2, 1, 1), o -> o instanceof Integer));
         builder.pop();
-        builder.push("quadruped");
+      //  builder.push("quadruped");
        // quadruped = registerSet("quadruped", builder.defineList("pieces", List.of("ribcage", "foot", "arm", "leg", "tail", "spine"), s -> s instanceof String st && FossilPieces.byName(st) != null), builder.defineList("weights", List.of(1, 4, 4, 1, 1), o -> o instanceof Integer));
-        builder.pop();
-        builder.push("fern");
+      //  builder.pop();
+     //   builder.push("fern");
      //   fern = registerSet("fern", builder.defineList("pieces", List.of("leaf"), s -> s instanceof String st && FossilPieces.byName(st) != null), builder.defineList("weights", List.of(1), o -> o instanceof Integer));
-        builder.pop();
+     //   builder.pop();
         builder.pop();
 
         builder.push("periods");
@@ -107,11 +120,11 @@ public class FossilsConfig {
 
     }
     public static Fossil registerFossil(String fossilName, Fossil fossil) {
-        FOSSILS.put(fossilName, fossil);
+        FOSSILS.put(DinosaurInit.byName(fossilName),fossil);
         return fossil;
     }
 
-    public static Map<String, Fossil> getFossils() {
+    public static Map<Dinosaur, Fossil> getFossils() {
         return FOSSILS;
     }
 

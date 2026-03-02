@@ -43,12 +43,10 @@ public class ModBlockStateProvider extends BlockStateProvider {
               generateFossils(base.getBlock(), block,piece);
             }
         }
-
     }
     protected void simpleCubeBottomTopBlockState(Block block) {
         simpleBlock(block, blockCubeTopModel(block));
     }
-
     protected BlockModelBuilder blockCubeTopModel(Block block) {
         String name = getName(block);
         return models().cubeBottomTop(name, modLoc("block/" + name + "_side"), modLoc("block/" + name + "_bottom"), modLoc("block/" + name + "_top"));

@@ -19,6 +19,7 @@ import net.dumbcode.projectnublar.block.entity.ProcessorBlockEntity;
 import net.dumbcode.projectnublar.block.entity.SequencerBlockEntity;
 import net.dumbcode.projectnublar.item.GeoMultiBlockItem;
 import net.dumbcode.projectnublar.item.fossil.FossilBlockItem;
+import net.minecraft.client.renderer.item.ItemProperties;
 import net.minecraft.core.registries.Registries;
 import net.minecraft.world.item.BlockItem;
 import net.minecraft.world.level.block.Block;
@@ -26,8 +27,7 @@ import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.level.block.entity.BlockEntityType;
 import net.minecraft.world.level.block.state.BlockBehaviour;
 
-import java.util.HashMap;
-import java.util.Map;
+import java.util.*;
 import java.util.function.Function;
 import java.util.function.Supplier;
 
@@ -69,7 +69,8 @@ public class BlockInit {
     }
 
     public static <T extends Block> DeferredSupplier<T> registerFossilBlock(String name, Supplier<T> block) {
-        return registerBlock(name, block, b -> () -> new FossilBlockItem(b.get(), ItemInit.getItemProperties()));
+      var reg = BLOCKS.register(name, block);
+      return reg;
     }
 
     public static <T extends Block> DeferredSupplier<T> registerBlock(String name, Supplier<T> block, Function<DeferredSupplier<T>, Supplier<? extends BlockItem>> item) {

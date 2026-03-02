@@ -2,14 +2,25 @@ package net.dumbcode.projectnublar.datagen;
 
 import dev.architectury.registry.registries.DeferredSupplier;
 import net.dumbcode.projectnublar.Constants;
+import net.dumbcode.projectnublar.api.DNAData;
+import net.dumbcode.projectnublar.api.Dinosaur;
+import net.dumbcode.projectnublar.api.FossilPiece;
+import net.dumbcode.projectnublar.api.fossil.Quality;
 import net.dumbcode.projectnublar.api.loot.functions.AmberItemFunction;
 import net.dumbcode.projectnublar.api.loot.functions.FossilItemFunction;
 import net.dumbcode.projectnublar.block.AmberBlock;
 import net.dumbcode.projectnublar.block.FossilBlock;
+import net.dumbcode.projectnublar.config.FossilsConfig;
 import net.dumbcode.projectnublar.init.BlockInit;
+import net.dumbcode.projectnublar.init.EntityInit;
+import net.dumbcode.projectnublar.init.ItemInit;
+import net.dumbcode.projectnublar.item.FossilItem;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.data.loot.BlockLootSubProvider;
+import net.minecraft.nbt.CompoundTag;
+import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.flag.FeatureFlags;
+import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
 import net.minecraft.world.level.ItemLike;
 import net.minecraft.world.level.block.Block;
@@ -61,11 +72,12 @@ public class ModBlockLootTables extends BlockLootSubProvider {
 
     @Deprecated
     protected void fossilDrops(FossilBlock block) {
-        ItemLike pItem = block.asItem();
+        ItemLike item = block.asItem();
+
         this.add(block, LootTable.lootTable().withPool(
-                this.applyExplosionCondition(pItem, LootPool.lootPool()
+                this.applyExplosionCondition(item, LootPool.lootPool()
                         .apply(FossilItemFunction.fossilItem())
-                        .setRolls(ConstantValue.exactly(1.0F)).add(LootItem.lootTableItem(pItem)))));
+                        .setRolls(ConstantValue.exactly(1.0F)).add(LootItem.lootTableItem(item)))));
     }
     @Deprecated
     protected void amberDrops(AmberBlock block) {

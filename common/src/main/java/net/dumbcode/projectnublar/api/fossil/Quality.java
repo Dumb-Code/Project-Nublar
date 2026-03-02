@@ -1,5 +1,6 @@
 package net.dumbcode.projectnublar.api.fossil;
 
+import net.dumbcode.projectnublar.Constants;
 import net.minecraft.ChatFormatting;
 import net.minecraft.util.StringRepresentable;
 
@@ -7,23 +8,23 @@ import java.util.Arrays;
 import java.util.List;
 
 public enum Quality implements StringRepresentable {
-    FRAGMENTED("fragmented", 1, ChatFormatting.GRAY),
-    POOR("poor", 2, ChatFormatting.WHITE),
-    COMMON("common", 3, ChatFormatting.GREEN),
-    PRISTINE("pristine", 4, ChatFormatting.DARK_PURPLE);
+    FRAGMENTED("fragmented", 0.0F, ChatFormatting.GRAY),
+    POOR("poor", 1F, ChatFormatting.WHITE),
+    COMMON("common", 2F, ChatFormatting.GREEN),
+    PRISTINE("pristine", 3F, ChatFormatting.DARK_PURPLE);
 
     private final String name;
-    private final int value;
+    private final float value;
     private final ChatFormatting color;
 
 
-    Quality(String name, int value, ChatFormatting color) {
+    Quality(String name, float value, ChatFormatting color) {
         this.name = name;
         this.value = value;
         this.color = color;
     }
 
-    public int getValue() {
+    public float getValue() {
         return value;
     }
 
@@ -42,6 +43,15 @@ public enum Quality implements StringRepresentable {
             }
         }
         return null;
+    }
+    public static Quality byValue(float value) {
+        for (Quality quality : values()) {
+            if (quality.getValue() == value) {
+                return quality;
+            }
+        }
+        Constants.LOG.error("Invalid quality value detected: " + value + ", [defaulting to common]");
+        return Quality.COMMON;
     }
 
     public ChatFormatting getColor() {

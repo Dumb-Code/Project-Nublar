@@ -12,11 +12,14 @@ public class FossilItem extends DNADataItem {
     }
 
 
+
+
     @Override
     public Component getName(ItemStack stack) {
         if(stack.hasTag()){
             DNAData data = DNAData.loadFromNBT(stack.getTag().getCompound("DNAData"));
-            return Component.translatable("item." + Constants.MODID + ".fossil", data.getFormattedType(), Component.translatable("piece.projectnublar." + data.getFossilPiece().name())).withStyle(data.getQuality().getColor());
+            return Component.translatable("item." + Constants.MODID + ".fossil", data.getFormattedType(),
+                    Component.translatable("piece.projectnublar." + data.getFossilPiece().name())).withStyle(data.getQuality().getColor());
         }
         return super.getName(stack);
     }
