@@ -38,6 +38,7 @@ public class ModBlockLootTables extends BlockLootSubProvider {
                         BlockInit.INCUBATOR,
                         BlockInit.HIGH_SECURITY_ELECTRIC_FENCE_POST,
                         BlockInit.LOW_SECURITY_ELECTRIC_FENCE_POST,
+                BlockInit.CARNIVORE_FEEDER_ONE,
                 BlockInit.COAL_GENERATOR,
                 BlockInit.CREATIVE_GENERATOR
                 )

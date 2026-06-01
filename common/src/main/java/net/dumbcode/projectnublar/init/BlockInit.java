@@ -7,20 +7,11 @@ import net.dumbcode.projectnublar.api.FossilCollection;
 import net.dumbcode.projectnublar.block.LowSecurityElectricFencePostBlock;
 import net.dumbcode.projectnublar.block.*;
 import net.dumbcode.projectnublar.block.api.EnumConnectionType;
-import net.dumbcode.projectnublar.block.entity.BlockEntityElectricFence;
-import net.dumbcode.projectnublar.block.entity.BlockEntityElectricFencePole;
-import net.dumbcode.projectnublar.block.entity.EggPrinterBlockEntity;
-import net.dumbcode.projectnublar.block.entity.GeneratorBlockEntity;
-import net.dumbcode.projectnublar.block.entity.IncubatorBlockEntity;
-import net.dumbcode.projectnublar.block.entity.ProcessorBlockEntity;
-import net.dumbcode.projectnublar.block.entity.SequencerBlockEntity;
-import net.dumbcode.projectnublar.client.widget.VanillaColorPickerWidget;
+import net.dumbcode.projectnublar.block.entity.*;
 import net.dumbcode.projectnublar.item.GeoMultiBlockItem;
 import net.minecraft.core.registries.Registries;
-import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.item.BlockItem;
 import net.minecraft.world.level.block.Block;
-import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.level.block.entity.BlockEntityType;
 import net.minecraft.world.level.block.state.BlockBehaviour;
 
@@ -48,7 +39,11 @@ public class BlockInit {
     public static DeferredSupplier<Block> COAL_GENERATOR = registerBlock("coal_generator", ()-> new GeneratorBlock(BlockBehaviour.Properties.of(),256,16,0));
     public static DeferredSupplier<Block> CREATIVE_GENERATOR = registerBlock("creative_generator", ()-> new GeneratorBlock(BlockBehaviour.Properties.of(),99999,99999,0));
 
+    //Feeders
+    public static DeferredSupplier<Block> CARNIVORE_FEEDER_ONE = registerBlock("carnivore_feeder_one",() -> new DinosaurFeederBlock(BlockBehaviour.Properties.of().noOcclusion(),"feeder/meat/feeder_one"));
+   // public static DeferredSupplier<Block> CARNIVORE_FEEDER_TWO = registerBlock("carnivore_feeder_two",() -> new DinosaurFeederBlock(BlockBehaviour.Properties.of().noOcclusion(),"feeder/meat/feeder_two"));
 
+    public static DeferredSupplier<BlockEntityType<DinosaurFeederBlockEntity>> FEEDER_BLOCK_ENTITY = BLOCK_ENTITIES.register("carrnivore_feeder_one",() -> BlockEntityType.Builder.of(DinosaurFeederBlockEntity::new, CARNIVORE_FEEDER_ONE.get()).build(null));
     public static DeferredSupplier<BlockEntityType<ProcessorBlockEntity>> PROCESSOR_BLOCK_ENTITY = BLOCK_ENTITIES.register("processor", () -> BlockEntityType.Builder.of(ProcessorBlockEntity::new, PROCESSOR.get()).build(null));
     public static DeferredSupplier<BlockEntityType<SequencerBlockEntity>> SEQUENCER_BLOCK_ENTITY = BLOCK_ENTITIES.register("sequencer", () -> BlockEntityType.Builder.of(SequencerBlockEntity::new, SEQUENCER.get()).build(null));
     public static DeferredSupplier<BlockEntityType<EggPrinterBlockEntity>> EGG_PRINTER_BLOCK_ENTITY = BLOCK_ENTITIES.register("egg_printer", () -> BlockEntityType.Builder.of(EggPrinterBlockEntity::new, EGG_PRINTER.get()).build(null));

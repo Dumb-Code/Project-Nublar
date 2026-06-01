@@ -34,6 +34,7 @@ public class ModBlockStateProvider extends BlockStateProvider {
                 amberBlock(block, (AmberBlock) blockRegistryObject.get());
             });
         });
+        simpleBlock(BlockInit.CARNIVORE_FEEDER_ONE.get(), models().getBuilder("block/carnivore_feeder_one").texture("particle",modLoc("block/feeder/meat/feeder_one/empty")));
         simpleBlock(BlockInit.PROCESSOR.get(), models().getBuilder("block/processor").texture("particle", modLoc("block/processor")));
         simpleBlock(BlockInit.SEQUENCER.get(), models().getBuilder("block/sequencer").texture("particle", modLoc("block/sequencer")));
         simpleBlock(BlockInit.EGG_PRINTER.get(), models().getBuilder("block/egg_printer").texture("particle", modLoc("block/egg_printer")));
