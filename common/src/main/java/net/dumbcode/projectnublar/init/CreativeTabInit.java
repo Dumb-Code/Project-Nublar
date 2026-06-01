@@ -69,6 +69,7 @@ public class CreativeTabInit {
                         output.accept(ItemInit.INCUBATOR_LID.get());
                         output.accept(ItemInit.INCUBATOR_NEST.get());
                         output.accept(BlockInit.COAL_GENERATOR.get());
+                        output.accept(BlockInit.CARNIVORE_FEEDER_ONE.get());
                         output.accept(BlockInit.CREATIVE_GENERATOR.get());
                         
                     })

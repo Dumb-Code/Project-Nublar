@@ -37,6 +37,7 @@ public class Eat<E extends Dinosaur> extends DelayedBehaviour<E> {
     @Override
     protected boolean checkExtraStartConditions(ServerLevel level, E dinosaur) {
         foodItem = BrainUtils.getMemory(dinosaur, MemoryModuleType.NEAREST_VISIBLE_WANTED_ITEM);
+
         if(dinosaur.getDinoDiet().foodMap().containsKey(foodItem.getItem().getDescriptionId())){
             return dinosaur.distanceToSqr(foodItem) <= 5;
         } else return false;

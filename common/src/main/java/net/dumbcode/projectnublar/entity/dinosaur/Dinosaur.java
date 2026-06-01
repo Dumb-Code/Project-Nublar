@@ -3,6 +3,8 @@ package net.dumbcode.projectnublar.entity.dinosaur;
 import net.dumbcode.projectnublar.api.DinoBehaviourData;
 import net.dumbcode.projectnublar.api.DinoData;
 import net.dumbcode.projectnublar.api.DinoDietData;
+import net.dumbcode.projectnublar.block.DinosaurFeederBlock;
+import net.dumbcode.projectnublar.block.entity.DinosaurFeederBlockEntity;
 import net.dumbcode.projectnublar.client.CommonClientClass;
 import net.dumbcode.projectnublar.client.renderer.layer.DinoLayer;
 import net.dumbcode.projectnublar.data.DietReloadListener;
@@ -12,12 +14,14 @@ import net.dumbcode.projectnublar.entity.ai.behaviour.actions.DinosaurLookAtTarg
 import net.dumbcode.projectnublar.entity.ai.behaviour.actions.GettingUpFromRestBehaviour;
 import net.dumbcode.projectnublar.entity.ai.behaviour.needs.SoloHuntRoamBehaviour;
 import net.dumbcode.projectnublar.entity.ai.behaviour.needs.SoloHuntingBehaviour;
+import net.dumbcode.projectnublar.entity.ai.sensors.NearestFeederSensor;
 import net.dumbcode.projectnublar.entity.ai.tasks.*;
 import net.dumbcode.projectnublar.entity.api.FossilRevived;
 import net.dumbcode.projectnublar.entity.ai.sensors.NearestWaterSourceSensor;
 import net.dumbcode.projectnublar.init.*;
 import net.dumbcode.projectnublar.util.DinoAnimationUtils;
 import net.dumbcode.projectnublar.util.DinoNeedsUtils;
+import net.minecraft.core.BlockPos;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.syncher.EntityDataAccessor;
 import net.minecraft.network.syncher.EntityDataSerializers;
@@ -43,6 +47,7 @@ import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.Blocks;
+import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.phys.Vec3;
 import net.tslat.smartbrainlib.api.SmartBrainOwner;
@@ -400,6 +405,10 @@ public abstract class Dinosaur extends TamableAnimal implements FossilRevived, G
                 BrainUtils.hasMemory(this, MemoryModuleTypeInit.IS_DRINKING.get());
     }
 
+    public boolean canTargetFeeder(BlockState target){
+        return target.getBlock() instanceof DinosaurFeederBlock;
+    }
+
     public boolean canTargetFoodItem(ItemEntity target) {
         if(this.isSleeping()){
             return false;
@@ -493,6 +502,9 @@ public abstract class Dinosaur extends TamableAnimal implements FossilRevived, G
         NearestWaterSourceSensor<Dinosaur> waterSourceSensor = new NearestWaterSourceSensor<>();
         waterSourceSensor.setPredicate((block, dinosaur) -> dinosaur.canTargetWaterSource(block));
         waterSourceSensor.setRadius(20);
+        NearestFeederSensor<Dinosaur> feederSensor = new NearestFeederSensor<>();
+        feederSensor.setPredicate((block, dinosaur) -> dinosaur.canTargetFeeder(block));
+        feederSensor.setRadius(20);
         NearbyBlocksSensor<Dinosaur> fenceProximinitySensor = new NearbyBlocksSensor<>();
         fenceProximinitySensor.setRadius(10.0);
         fenceProximinitySensor.setPredicate((block, dinosaur) -> block.is(BlockInit.ELECTRIC_FENCE.get()) && DinoNeedsUtils.starving(dinosaur));
@@ -502,6 +514,7 @@ public abstract class Dinosaur extends TamableAnimal implements FossilRevived, G
         NearbyLivingEntitySensor<Dinosaur> nearbyLivingEntitySensor = new NearbyLivingEntitySensor<>();
         return List.of(
                 waterSourceSensor,
+                feederSensor,
                 nearbyLivingEntitySensor,
                 foodItemSensor,
                 fenceProximinitySensor
@@ -519,6 +532,7 @@ public abstract class Dinosaur extends TamableAnimal implements FossilRevived, G
                 new MoveToWalkTarget<>().stopIf((entity) -> (entity instanceof Dinosaur dinosaur) && (dinosaur.isResting() || dinosaur.isDrinking() || dinosaur.isDeadOrDying())) ,
                 new SetHunting<>(),
                 new SetWalkTargetToWaterSource<>().closeEnoughWhen((entity, pos)-> 3),
+                new WalkToNearestFeeder<>().closeEnoughWhen((entity, pos) -> 3) ,
                 new SetWalkTargetToFoodItem<>().predicate(Dinosaur::canTargetFoodItem),
                 new FollowParent<>().parentPredicate((baby, parent)-> baby instanceof Dinosaur dino && dino.isFamily(parent) && !parent.isBaby())
         );
@@ -533,6 +547,9 @@ public abstract class Dinosaur extends TamableAnimal implements FossilRevived, G
                         new Drink<>(100)
                                 .whenStarting(dinosaur -> DinoAnimationUtils.setAnimationState(dinosaur,"drink",true))
                                 .whenStopping(dinosaur ->  DinoAnimationUtils.setAnimationState(dinosaur,"drink",false)),
+                        new EatFromMeatFeeder<>(20)
+                                .whenStarting(dinosaur -> DinoAnimationUtils.setAnimationState(dinosaur,"eat",true))
+                                .whenStopping(dinosaur ->  DinoAnimationUtils.setAnimationState(dinosaur,"eat",false)),
                         new Eat<>(69)
                                 .whenStarting(dinosaur -> DinoAnimationUtils.setAnimationState(dinosaur,"eat",true))
                                 .whenStopping(dinosaur ->  DinoAnimationUtils.setAnimationState(dinosaur,"eat",false)),

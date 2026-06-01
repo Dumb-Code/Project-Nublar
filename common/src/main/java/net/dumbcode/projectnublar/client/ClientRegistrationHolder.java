@@ -4,11 +4,7 @@ import com.mojang.blaze3d.vertex.PoseStack;
 import com.mojang.blaze3d.vertex.VertexConsumer;
 import net.dumbcode.projectnublar.Constants;
 import net.dumbcode.projectnublar.block.entity.IncubatorBlockEntity;
-import net.dumbcode.projectnublar.client.renderer.DinosaurRenderer;
-import net.dumbcode.projectnublar.client.renderer.ElectricFenceRenderer;
-import net.dumbcode.projectnublar.client.renderer.ElectricWireRenderer;
-import net.dumbcode.projectnublar.client.renderer.ProcessorRenderer;
-import net.dumbcode.projectnublar.client.renderer.SequencerRenderer;
+import net.dumbcode.projectnublar.client.renderer.*;
 import net.dumbcode.projectnublar.client.renderer.dinosaurs.*;
 import net.dumbcode.projectnublar.client.screen.EggPrinterScreen;
 import net.dumbcode.projectnublar.client.screen.GeneratorScreen;
@@ -68,6 +64,7 @@ public class ClientRegistrationHolder {
     }
 
     public static void registerBlockEntityRenderers() {
+        BlockEntityRenderers.register(BlockInit.FEEDER_BLOCK_ENTITY.get(), (context) -> new CarnivoreFeederRenderer());
         BlockEntityRenderers.register(BlockInit.PROCESSOR_BLOCK_ENTITY.get(), (context) -> new ProcessorRenderer());
          BlockEntityRenderers.register(BlockInit.SEQUENCER_BLOCK_ENTITY.get(), (context) -> new SequencerRenderer());
          BlockEntityRenderers.register(BlockInit.EGG_PRINTER_BLOCK_ENTITY.get(), (context) -> new GeoBlockRenderer<>(new DefaultedBlockGeoModel<>(new ResourceLocation(Constants.MODID, "egg_printer"))));

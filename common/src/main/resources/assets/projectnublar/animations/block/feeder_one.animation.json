@@ -1,0 +1,66 @@
+{
+	"format_version": "1.8.0",
+	"animations": {
+		"dispense": {
+			"loop": "hold_on_last_frame",
+			"animation_length": 9,
+			"bones": {
+				"Food_Panel": {
+					"position": {
+						"0.125": {
+							"vector": [0, 0, 0]
+						},
+						"3.0": {
+							"vector": [0, 0, 0]
+						},
+						"4.0": {
+							"vector": [0, 14, 0]
+						},
+						"4.2083": {
+							"vector": [0, 14.805, 0]
+						},
+						"4.375": {
+							"vector": [0, 14, 0]
+						}
+					}
+				},
+				"Right_door": {
+					"position": {
+						"0.0": {
+							"vector": [0, 0, 0]
+						},
+						"0.75": {
+							"vector": [0, 0, 0]
+						},
+						"2.0": {
+							"vector": [17, 0, 0]
+						},
+						"4.5": {
+							"vector": [17, 0, 0]
+						}
+					}
+				},
+				"Left_door": {
+					"position": {
+						"0.0": {
+							"vector": [0, 0, 0]
+						},
+						"0.75": {
+							"vector": [0, 0, 0]
+						},
+						"2.0": {
+							"vector": [-16, 0, 0]
+						},
+						"4.5": {
+							"vector": [-16, 0, 0]
+						}
+					}
+				}
+			}
+		},
+		"idle": {
+			"loop": true,
+			"animation_length": 1
+		}
+	}
+}

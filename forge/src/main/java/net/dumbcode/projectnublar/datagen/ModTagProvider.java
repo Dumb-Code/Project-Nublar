@@ -1,6 +1,7 @@
 package net.dumbcode.projectnublar.datagen;
 
 import net.dumbcode.projectnublar.Constants;
+import net.dumbcode.projectnublar.init.ItemInit;
 import net.dumbcode.projectnublar.init.TagInit;
 import net.minecraft.core.HolderLookup;
 import net.minecraft.core.registries.Registries;
@@ -34,6 +35,7 @@ public class ModTagProvider {
         protected void addTags(HolderLookup.Provider pProvider) {
             populateTag(TagInit.SUGAR, Items.SUGAR);
             populateTag(TagInit.BONE_MATTER, Items.BONE_MEAL);
+            populateTag(TagInit.FEEDER_MEAT, Items.PORKCHOP,Items.BEEF,Items.CHICKEN,Items.MUTTON,Items.COOKED_PORKCHOP,Items.COOKED_BEEF,Items.COOKED_MUTTON,Items.COOKED_CHICKEN);
             tag(TagInit.PLANT_MATTER).addTag(ItemTags.LEAVES);
             populateTag(TagInit.PLANT_MATTER, ComposterBlock.COMPOSTABLES.keySet().stream().filter(item -> !(item instanceof LeavesBlock)).toArray(ItemLike[]::new));
 

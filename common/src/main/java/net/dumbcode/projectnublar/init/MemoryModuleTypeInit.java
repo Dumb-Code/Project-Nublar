@@ -79,6 +79,9 @@ public class MemoryModuleTypeInit {
 
     public static final DeferredSupplier<MemoryModuleType<BlockPos>> HAS_FOUND_WATER =
             MEMORIES.register( "found_water_source", ()-> new MemoryModuleType<>(Optional.empty()));
+
+    public static final DeferredSupplier<MemoryModuleType<BlockPos>> HAS_FOUND_FEEDER =
+            MEMORIES.register( "found_feeder", ()-> new MemoryModuleType<>(Optional.empty()));
     public static final DeferredSupplier<MemoryModuleType<ItemEntity>> FOUND_FOOD_ITEM =
             MEMORIES.register( "found_food_item", ()-> new MemoryModuleType<>(Optional.empty()));
     public static final DeferredSupplier<MemoryModuleType<Boolean>> HUNTING =

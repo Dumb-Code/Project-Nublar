@@ -24,6 +24,7 @@ public record UpdateEditInfoPacket(DinoData info, BlockPos pos) {
             if(context.sender().level().getBlockEntity(pos) instanceof SequencerBlockEntity sequencer) {
                 sequencer.setDinoData(info);
             }
+
         });
     }
 }
