@@ -1,4 +1,4 @@
-package net.dumbcode.projectnublar.client.widget;
+package net.dumbcode.projectnublar.gui.widget;
 
 //COPYRIGHT OF MOJANG.
 

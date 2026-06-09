@@ -12,6 +12,7 @@ import net.dumbcode.projectnublar.block.entity.SequencerBlockEntity;
 import net.dumbcode.projectnublar.client.widget.*;
 import net.dumbcode.projectnublar.container.ToggleSlot;
 import net.dumbcode.projectnublar.entity.dinosaur.Dinosaur;
+import net.dumbcode.projectnublar.gui.widget.*;
 import net.dumbcode.projectnublar.registry.GeneInit;
 import net.dumbcode.projectnublar.item.DiskStorageItem;
 import net.dumbcode.projectnublar.menutypes.SequencerMenu;

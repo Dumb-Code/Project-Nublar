@@ -1,4 +1,4 @@
-package net.dumbcode.projectnublar.client.widget;
+package net.dumbcode.projectnublar.gui.widget;
 
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiGraphics;

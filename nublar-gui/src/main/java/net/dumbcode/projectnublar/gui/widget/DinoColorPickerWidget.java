@@ -1,8 +1,8 @@
-package net.dumbcode.projectnublar.client.widget;
+package net.dumbcode.projectnublar.gui.widget;
 
 
 
-import net.dumbcode.projectnublar.Constants;
+import net.dumbcode.projectnublar.gui.NublarGuiConstants;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.Font;
 import net.minecraft.client.gui.GuiGraphics;
@@ -16,7 +16,7 @@ import net.minecraft.util.Mth;
 import java.awt.*;
 
 public class DinoColorPickerWidget<T extends GuiEventListener> extends ParentWidget<T> {
-    public static final ResourceLocation COLOR_WHEEL_BACKGROUND = new ResourceLocation(Constants.MODID, "textures/gui/color_wheel_background.png");
+    public static final ResourceLocation COLOR_WHEEL_BACKGROUND = new ResourceLocation(NublarGuiConstants.MODID, "textures/gui/color_wheel_background.png");
     private float currentHue = 0;
     private float currentSaturation = 0;
     private float currentValue = 0.0f;

@@ -1,6 +1,6 @@
-package net.dumbcode.projectnublar.client.widget;
+package net.dumbcode.projectnublar.gui.widget;
 
-import net.dumbcode.projectnublar.Constants;
+import net.dumbcode.projectnublar.gui.NublarGuiConstants;
 import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.gui.components.AbstractWidget;
 import net.minecraft.client.gui.narration.NarrationElementOutput;
@@ -9,8 +9,8 @@ import net.minecraft.resources.ResourceLocation;
 import net.minecraft.util.Mth;
 
 public class VerticalGradientBarWidget extends AbstractWidget {
-    public static final ResourceLocation VALUE_BAR_SIDE = new ResourceLocation(Constants.MODID, "textures/gui/value_bar_side.png");
-    public static final ResourceLocation VALUE_BAR_MIDDLE = new ResourceLocation(Constants.MODID, "textures/gui/value_bar_middle.png");
+    public static final ResourceLocation VALUE_BAR_SIDE = new ResourceLocation(NublarGuiConstants.MODID, "textures/gui/value_bar_side.png");
+    public static final ResourceLocation VALUE_BAR_MIDDLE = new ResourceLocation(NublarGuiConstants.MODID, "textures/gui/value_bar_middle.png");
     private int topColor = 0xFFFFFFFF;
     private int bottomColor = 0xFF000000;
     private int barY;

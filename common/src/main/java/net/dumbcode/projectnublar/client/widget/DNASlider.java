@@ -4,6 +4,7 @@ package net.dumbcode.projectnublar.client.widget;
 import net.dumbcode.projectnublar.Constants;
 import net.dumbcode.projectnublar.api.dinosaur.DNAData;
 import net.dumbcode.projectnublar.client.screen.SequencerScreen;
+import net.dumbcode.projectnublar.gui.widget.NGLSlider;
 import net.minecraft.client.gui.Font;
 import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.network.chat.Component;

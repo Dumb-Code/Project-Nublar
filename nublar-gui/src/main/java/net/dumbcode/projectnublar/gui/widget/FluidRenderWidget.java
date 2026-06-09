@@ -1,4 +1,4 @@
-package net.dumbcode.projectnublar.client.widget;
+package net.dumbcode.projectnublar.gui.widget;
 
 import com.mojang.blaze3d.systems.RenderSystem;
 import net.minecraft.client.Minecraft;

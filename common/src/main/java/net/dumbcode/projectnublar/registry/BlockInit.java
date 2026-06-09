@@ -14,7 +14,7 @@ import net.dumbcode.projectnublar.block.entity.GeneratorBlockEntity;
 import net.dumbcode.projectnublar.block.entity.IncubatorBlockEntity;
 import net.dumbcode.projectnublar.block.entity.ProcessorBlockEntity;
 import net.dumbcode.projectnublar.block.entity.SequencerBlockEntity;
-import net.dumbcode.projectnublar.client.widget.VanillaColorPickerWidget;
+import net.dumbcode.projectnublar.gui.widget.VanillaColorPickerWidget;
 import net.dumbcode.projectnublar.item.GeoMultiBlockItem;
 import net.minecraft.core.registries.Registries;
 import net.minecraft.resources.ResourceLocation;

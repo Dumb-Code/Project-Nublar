@@ -1,8 +1,8 @@
-package net.dumbcode.projectnublar.client.widget;
+package net.dumbcode.projectnublar.gui.widget;
 
 import com.mojang.blaze3d.platform.NativeImage;
 
-import net.dumbcode.projectnublar.Constants;
+import net.dumbcode.projectnublar.gui.NublarGuiConstants;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.gui.components.AbstractWidget;
@@ -13,8 +13,8 @@ import net.minecraft.resources.ResourceLocation;
 
 import java.awt.*;
 public class ColorWheelWidget extends AbstractWidget {
-    public static final ResourceLocation COLOR_WHEEL = new ResourceLocation(Constants.MODID, "color_wheel");
-    public static final ResourceLocation COLOR_WHEEL_BLIP = new ResourceLocation(Constants.MODID, "textures/gui/color_wheel_blip.png");
+    public static final ResourceLocation COLOR_WHEEL = new ResourceLocation(NublarGuiConstants.MODID, "color_wheel");
+    public static final ResourceLocation COLOR_WHEEL_BLIP = new ResourceLocation(NublarGuiConstants.MODID, "textures/gui/color_wheel_blip.png");
     private int centerX;
     private int centerY;
     private int colorWheelBlipLocationX;
