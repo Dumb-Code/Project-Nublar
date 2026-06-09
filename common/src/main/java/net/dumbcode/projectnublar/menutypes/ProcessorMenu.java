@@ -1,7 +1,7 @@
 package net.dumbcode.projectnublar.menutypes;
 
-import net.dumbcode.projectnublar.init.ItemInit;
-import net.dumbcode.projectnublar.init.MenuTypeInit;
+import net.dumbcode.projectnublar.registry.ItemInit;
+import net.dumbcode.projectnublar.registry.MenuTypeInit;
 import net.dumbcode.projectnublar.item.ComputerChipItem;
 import net.dumbcode.projectnublar.item.FilterItem;
 import net.dumbcode.projectnublar.item.TankItem;

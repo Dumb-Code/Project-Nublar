@@ -1,7 +1,7 @@
 package net.dumbcode.projectnublar.block;
 
-import net.dumbcode.projectnublar.block.api.ConnectionType;
-import net.dumbcode.projectnublar.block.api.EnumConnectionType;
+import net.dumbcode.projectnublar.block.api.fence.ConnectionType;
+import net.dumbcode.projectnublar.block.api.fence.EnumConnectionType;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.block.state.StateDefinition;

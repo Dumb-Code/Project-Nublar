@@ -1,9 +1,9 @@
 package net.dumbcode.projectnublar.util;
 
-import net.dumbcode.projectnublar.api.DinoBehaviourData;
+import net.dumbcode.projectnublar.api.dinosaur.DinoBehaviourData;
 import net.dumbcode.projectnublar.entity.dinosaur.CarnivoreDinosaur;
 import net.dumbcode.projectnublar.entity.dinosaur.Dinosaur;
-import net.dumbcode.projectnublar.init.*;
+import net.dumbcode.projectnublar.registry.*;
 import net.minecraft.core.BlockPos;
 import net.minecraft.network.syncher.EntityDataAccessor;
 import net.minecraft.network.syncher.EntityDataSerializers;

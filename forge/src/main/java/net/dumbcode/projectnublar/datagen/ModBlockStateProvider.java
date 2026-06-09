@@ -1,10 +1,10 @@
 package net.dumbcode.projectnublar.datagen;
 
 import net.dumbcode.projectnublar.Constants;
-import net.dumbcode.projectnublar.api.FossilCollection;
+import net.dumbcode.projectnublar.api.fossil.FossilCollection;
 import net.dumbcode.projectnublar.block.AmberBlock;
 import net.dumbcode.projectnublar.block.FossilBlock;
-import net.dumbcode.projectnublar.init.BlockInit;
+import net.dumbcode.projectnublar.registry.BlockInit;
 import net.minecraft.data.PackOutput;
 import net.minecraft.world.level.block.Block;
 import net.minecraftforge.client.model.generators.BlockModelBuilder;

@@ -1,10 +1,10 @@
 package net.dumbcode.projectnublar.block.entity;
 
 import com.google.common.collect.Sets;
-import net.dumbcode.projectnublar.block.api.ConnectableBlockEntity;
-import net.dumbcode.projectnublar.block.api.Connection;
-import net.dumbcode.projectnublar.block.api.SyncingBlockEntity;
-import net.dumbcode.projectnublar.init.BlockInit;
+import net.dumbcode.projectnublar.block.api.fence.ConnectableBlockEntity;
+import net.dumbcode.projectnublar.block.api.fence.Connection;
+import net.dumbcode.projectnublar.block.api.sync.SyncingBlockEntity;
+import net.dumbcode.projectnublar.registry.BlockInit;
 import net.dumbcode.projectnublar.util.LineUtils;
 import net.minecraft.core.BlockPos;
 import net.minecraft.nbt.CompoundTag;

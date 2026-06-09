@@ -1,14 +1,14 @@
 package net.dumbcode.projectnublar.client;
 
-import net.dumbcode.projectnublar.api.DinoData;
-import net.dumbcode.projectnublar.api.Genes;
+import net.dumbcode.projectnublar.api.dinosaur.DinoData;
+import net.dumbcode.projectnublar.api.gene.Genes;
 import net.dumbcode.projectnublar.client.renderer.layer.DinoLayer;
 import net.dumbcode.projectnublar.client.screen.SequencerScreen;
 import net.dumbcode.projectnublar.client.widget.AdvancedColorWidget;
 import net.dumbcode.projectnublar.client.widget.GeneHolder;
 import net.dumbcode.projectnublar.client.widget.GeneSlider;
-import net.dumbcode.projectnublar.init.EntityInit;
-import net.dumbcode.projectnublar.init.GeneInit;
+import net.dumbcode.projectnublar.registry.EntityInit;
+import net.dumbcode.projectnublar.registry.GeneInit;
 import net.minecraft.network.chat.Component;
 import net.minecraft.world.entity.EntityType;
 

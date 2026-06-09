@@ -4,7 +4,7 @@ import net.dumbcode.projectnublar.Constants;
 import net.dumbcode.projectnublar.entity.dinosaur.CarnivoreDinosaur;
 import net.dumbcode.projectnublar.entity.dinosaur.Dinosaur;
 import net.dumbcode.projectnublar.entity.dinosaur.DinosaurPart;
-import net.dumbcode.projectnublar.init.SoundInit;
+import net.dumbcode.projectnublar.registry.SoundInit;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.sounds.SoundEvent;

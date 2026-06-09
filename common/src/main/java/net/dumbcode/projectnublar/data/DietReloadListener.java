@@ -6,7 +6,7 @@ import com.google.gson.GsonBuilder;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import net.dumbcode.projectnublar.Constants;
-import net.dumbcode.projectnublar.api.DinoDietData;
+import net.dumbcode.projectnublar.api.dinosaur.DinoDietData;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.packs.resources.ResourceManager;
 import net.minecraft.server.packs.resources.SimpleJsonResourceReloadListener;

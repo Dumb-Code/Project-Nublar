@@ -1,9 +1,9 @@
 package net.dumbcode.projectnublar.item;
 
 import com.mojang.datafixers.util.Pair;
-import net.dumbcode.projectnublar.api.DNAData;
-import net.dumbcode.projectnublar.api.Genes;
-import net.dumbcode.projectnublar.init.GeneInit;
+import net.dumbcode.projectnublar.api.dinosaur.DNAData;
+import net.dumbcode.projectnublar.api.gene.Genes;
+import net.dumbcode.projectnublar.registry.GeneInit;
 import net.minecraft.world.item.DyeColor;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;

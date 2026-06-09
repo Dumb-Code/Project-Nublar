@@ -5,7 +5,7 @@ import com.mojang.blaze3d.vertex.VertexConsumer;
 import net.dumbcode.projectnublar.Constants;
 import net.dumbcode.projectnublar.client.renderer.layer.DinoLayer;
 import net.dumbcode.projectnublar.entity.dinosaur.Dinosaur;
-import net.dumbcode.projectnublar.init.GeneInit;
+import net.dumbcode.projectnublar.registry.GeneInit;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.renderer.MultiBufferSource;
 import net.minecraft.client.renderer.RenderType;

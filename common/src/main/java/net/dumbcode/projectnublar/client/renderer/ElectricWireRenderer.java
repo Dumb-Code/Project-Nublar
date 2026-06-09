@@ -2,8 +2,8 @@ package net.dumbcode.projectnublar.client.renderer;
 
 import com.mojang.blaze3d.vertex.PoseStack;
 import com.mojang.blaze3d.vertex.VertexConsumer;
-import net.dumbcode.projectnublar.block.api.Connection;
-import net.dumbcode.projectnublar.block.api.RenderUtils;
+import net.dumbcode.projectnublar.block.api.fence.Connection;
+import net.dumbcode.projectnublar.block.api.geometry.RenderUtils;
 import net.dumbcode.projectnublar.block.entity.BlockEntityElectricFence;
 import net.minecraft.client.renderer.LightTexture;
 import net.minecraft.client.renderer.MultiBufferSource;

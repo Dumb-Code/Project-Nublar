@@ -3,7 +3,6 @@ package net.dumbcode.projectnublar.data;
 import com.google.common.reflect.TypeToken;
 import com.google.gson.*;
 import net.dumbcode.projectnublar.Constants;
-import net.dumbcode.projectnublar.api.*;
 import net.dumbcode.projectnublar.api.fossil.*;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.resources.ResourceLocation;
@@ -196,4 +195,3 @@ public class FossilConfigReloadListener extends SimpleJsonResourceReloadListener
 
 
 }
-

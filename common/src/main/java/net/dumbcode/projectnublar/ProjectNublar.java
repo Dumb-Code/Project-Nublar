@@ -1,7 +1,7 @@
 package net.dumbcode.projectnublar;
 
 import dev.architectury.registry.registries.RegistrarManager;
-import net.dumbcode.projectnublar.init.*;
+import net.dumbcode.projectnublar.registry.*;
 import net.dumbcode.projectnublar.network.NetworkInit;
 import net.minecraft.util.random.SimpleWeightedRandomList;
 import org.apache.commons.lang3.StringUtils;

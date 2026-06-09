@@ -3,7 +3,7 @@ package net.dumbcode.projectnublar.client.renderer.dinosaurs;
 import com.mojang.blaze3d.vertex.PoseStack;
 import net.dumbcode.projectnublar.client.renderer.DinosaurRenderer;
 import net.dumbcode.projectnublar.entity.dinosaur.Dinosaur;
-import net.dumbcode.projectnublar.init.GeneInit;
+import net.dumbcode.projectnublar.registry.GeneInit;
 import net.minecraft.client.renderer.entity.EntityRendererProvider;
 import net.minecraft.world.phys.Vec3;
 import org.joml.Vector3f;

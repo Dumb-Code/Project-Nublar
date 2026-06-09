@@ -1,10 +1,10 @@
 package net.dumbcode.projectnublar.api.loot.functions;
 
-import net.dumbcode.projectnublar.api.DNAData;
-import net.dumbcode.projectnublar.api.NublarMath;
+import net.dumbcode.projectnublar.api.dinosaur.DNAData;
+import net.dumbcode.projectnublar.api.util.NublarMath;
 import net.dumbcode.projectnublar.block.AmberBlock;
-import net.dumbcode.projectnublar.init.ItemInit;
-import net.dumbcode.projectnublar.init.LootFunctionInit;
+import net.dumbcode.projectnublar.registry.ItemInit;
+import net.dumbcode.projectnublar.registry.LootFunctionInit;
 import com.google.gson.JsonDeserializationContext;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonSerializationContext;

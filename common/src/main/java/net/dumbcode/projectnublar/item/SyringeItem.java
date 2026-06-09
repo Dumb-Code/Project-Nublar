@@ -1,8 +1,8 @@
 package net.dumbcode.projectnublar.item;
 
-import net.dumbcode.projectnublar.api.DNAData;
-import net.dumbcode.projectnublar.api.NublarMath;
-import net.dumbcode.projectnublar.init.TagInit;
+import net.dumbcode.projectnublar.api.dinosaur.DNAData;
+import net.dumbcode.projectnublar.api.util.NublarMath;
+import net.dumbcode.projectnublar.registry.TagInit;
 import net.dumbcode.projectnublar.item.api.DNADataItem;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.nbt.CompoundTag;

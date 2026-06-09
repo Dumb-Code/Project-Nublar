@@ -1,11 +1,11 @@
 package net.dumbcode.projectnublar.menutypes;
 
 import commonnetwork.api.Network;
-import net.dumbcode.projectnublar.api.DinoData;
+import net.dumbcode.projectnublar.api.dinosaur.DinoData;
 import net.dumbcode.projectnublar.block.entity.SequencerBlockEntity;
 import net.dumbcode.projectnublar.container.CloneDisplaySlot;
 import net.dumbcode.projectnublar.container.ToggleSlot;
-import net.dumbcode.projectnublar.init.MenuTypeInit;
+import net.dumbcode.projectnublar.registry.MenuTypeInit;
 import net.dumbcode.projectnublar.item.DiskStorageItem;
 import net.dumbcode.projectnublar.item.SyringeItem;
 import net.dumbcode.projectnublar.item.TestTubeItem;

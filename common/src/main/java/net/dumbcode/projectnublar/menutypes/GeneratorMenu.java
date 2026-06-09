@@ -1,7 +1,7 @@
 package net.dumbcode.projectnublar.menutypes;
 
 import net.dumbcode.projectnublar.block.entity.GeneratorBlockEntity;
-import net.dumbcode.projectnublar.init.MenuTypeInit;
+import net.dumbcode.projectnublar.registry.MenuTypeInit;
 import net.minecraft.world.Container;
 import net.minecraft.world.SimpleContainer;
 import net.minecraft.world.entity.player.Inventory;

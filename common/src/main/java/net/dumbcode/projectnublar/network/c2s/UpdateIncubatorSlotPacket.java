@@ -2,7 +2,7 @@ package net.dumbcode.projectnublar.network.c2s;
 
 import commonnetwork.networking.data.PacketContext;
 import net.dumbcode.projectnublar.Constants;
-import net.dumbcode.projectnublar.api.DinoData;
+import net.dumbcode.projectnublar.api.dinosaur.DinoData;
 import net.dumbcode.projectnublar.block.entity.IncubatorBlockEntity;
 import net.dumbcode.projectnublar.block.entity.SequencerBlockEntity;
 import net.minecraft.core.BlockPos;

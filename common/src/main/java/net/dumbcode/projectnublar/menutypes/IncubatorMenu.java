@@ -1,8 +1,8 @@
 package net.dumbcode.projectnublar.menutypes;
 
 import net.dumbcode.projectnublar.block.entity.IncubatorBlockEntity;
-import net.dumbcode.projectnublar.init.MenuTypeInit;
-import net.dumbcode.projectnublar.init.TagInit;
+import net.dumbcode.projectnublar.registry.MenuTypeInit;
+import net.dumbcode.projectnublar.registry.TagInit;
 import net.minecraft.client.Minecraft;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.NonNullList;

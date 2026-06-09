@@ -2,7 +2,7 @@ package net.dumbcode.projectnublar.data;
 
 import com.google.gson.*;
 import net.dumbcode.projectnublar.Constants;
-import net.dumbcode.projectnublar.api.DinoBehaviourData;
+import net.dumbcode.projectnublar.api.dinosaur.DinoBehaviourData;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.packs.resources.ResourceManager;

@@ -1,15 +1,15 @@
 package net.dumbcode.projectnublar.event;
 
-import net.dumbcode.projectnublar.block.api.BlockConnectableBase;
-import net.dumbcode.projectnublar.block.api.ConnectableBlockEntity;
-import net.dumbcode.projectnublar.block.api.Connection;
+import net.dumbcode.projectnublar.block.api.fence.BlockConnectableBase;
+import net.dumbcode.projectnublar.block.api.fence.ConnectableBlockEntity;
+import net.dumbcode.projectnublar.block.api.fence.Connection;
 import net.dumbcode.projectnublar.data.BehaviourDataReloadListener;
 import net.dumbcode.projectnublar.data.DietReloadListener;
 import net.dumbcode.projectnublar.data.FossilConfigReloadListener;
 import net.dumbcode.projectnublar.data.GeneDataReloadListener;
 import net.dumbcode.projectnublar.entity.DeathMessageHandler;
 import net.dumbcode.projectnublar.entity.dinosaur.Dinosaur;
-import net.dumbcode.projectnublar.init.ItemInit;
+import net.dumbcode.projectnublar.registry.ItemInit;
 import net.minecraft.core.Direction;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.entity.BlockEntity;

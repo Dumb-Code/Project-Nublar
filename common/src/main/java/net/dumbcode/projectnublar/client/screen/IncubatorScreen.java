@@ -3,7 +3,7 @@ package net.dumbcode.projectnublar.client.screen;
 import com.mojang.blaze3d.vertex.DefaultVertexFormat;
 import commonnetwork.api.Network;
 import net.dumbcode.projectnublar.Constants;
-import net.dumbcode.projectnublar.init.ItemInit;
+import net.dumbcode.projectnublar.registry.ItemInit;
 import net.dumbcode.projectnublar.menutypes.IncubatorMenu;
 import net.dumbcode.projectnublar.network.c2s.UpdateIncubatorSlotPacket;
 import net.minecraft.client.Minecraft;

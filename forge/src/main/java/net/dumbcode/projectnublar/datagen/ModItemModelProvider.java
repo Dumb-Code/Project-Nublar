@@ -2,11 +2,11 @@ package net.dumbcode.projectnublar.datagen;
 
 import com.google.gson.JsonObject;
 import net.dumbcode.projectnublar.Constants;
-import net.dumbcode.projectnublar.api.FossilCollection;
+import net.dumbcode.projectnublar.api.fossil.FossilCollection;
 import net.dumbcode.projectnublar.client.model.fossil.FossilModelLoader;
 import net.dumbcode.projectnublar.client.model.testtube.TestTubeModelLoader;
-import net.dumbcode.projectnublar.init.BlockInit;
-import net.dumbcode.projectnublar.init.ItemInit;
+import net.dumbcode.projectnublar.registry.BlockInit;
+import net.dumbcode.projectnublar.registry.ItemInit;
 import net.minecraft.data.PackOutput;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.item.Item;

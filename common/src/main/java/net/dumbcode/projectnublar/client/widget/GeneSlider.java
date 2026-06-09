@@ -1,8 +1,8 @@
 package net.dumbcode.projectnublar.client.widget;
 
 
-import net.dumbcode.projectnublar.api.DinoData;
-import net.dumbcode.projectnublar.api.Genes;
+import net.dumbcode.projectnublar.api.dinosaur.DinoData;
+import net.dumbcode.projectnublar.api.gene.Genes;
 import net.minecraft.network.chat.Component;
 
 public class GeneSlider extends NGLSlider implements GeneHolder {

@@ -1,9 +1,9 @@
 package net.dumbcode.projectnublar.block;
 
 
-import net.dumbcode.projectnublar.block.api.BlockConnectableBase;
-import net.dumbcode.projectnublar.block.api.ConnectableBlockEntity;
-import net.dumbcode.projectnublar.block.api.Connection;
+import net.dumbcode.projectnublar.block.api.fence.BlockConnectableBase;
+import net.dumbcode.projectnublar.block.api.fence.ConnectableBlockEntity;
+import net.dumbcode.projectnublar.block.api.fence.Connection;
 import net.dumbcode.projectnublar.block.entity.BlockEntityElectricFence;
 import net.dumbcode.projectnublar.block.entity.BlockEntityElectricFencePole;
 import net.minecraft.core.BlockPos;

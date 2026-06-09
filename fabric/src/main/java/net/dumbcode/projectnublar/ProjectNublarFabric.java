@@ -1,8 +1,8 @@
 package net.dumbcode.projectnublar;
 
 
-import net.dumbcode.projectnublar.init.EntityInit;
-import net.dumbcode.projectnublar.init.SensorTypesInit;
+import net.dumbcode.projectnublar.registry.EntityInit;
+import net.dumbcode.projectnublar.registry.SensorTypesInit;
 import net.fabricmc.api.ModInitializer;
 import net.fabricmc.fabric.api.object.builder.v1.entity.FabricDefaultAttributeRegistry;
 

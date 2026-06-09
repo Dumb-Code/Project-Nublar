@@ -1,6 +1,6 @@
 package net.dumbcode.projectnublar.datagen;
 
-import net.dumbcode.projectnublar.init.ItemInit;
+import net.dumbcode.projectnublar.registry.ItemInit;
 import net.dumbcode.projectnublar.recipe.UnincubatedEggRecipe;
 import net.dumbcode.projectnublar.recipe.UnincubatedEggRecipeBuilder;
 import net.minecraft.data.PackOutput;

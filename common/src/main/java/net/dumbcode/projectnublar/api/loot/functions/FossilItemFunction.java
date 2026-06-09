@@ -1,13 +1,13 @@
 package net.dumbcode.projectnublar.api.loot.functions;
 
-import net.dumbcode.projectnublar.api.DNAData;
+import net.dumbcode.projectnublar.api.dinosaur.DNAData;
 
-import net.dumbcode.projectnublar.api.FossilCollection;
-import net.dumbcode.projectnublar.api.FossilPiece;
-import net.dumbcode.projectnublar.api.Quality;
+import net.dumbcode.projectnublar.api.fossil.FossilCollection;
+import net.dumbcode.projectnublar.api.fossil.FossilPiece;
+import net.dumbcode.projectnublar.api.fossil.Quality;
 import net.dumbcode.projectnublar.block.FossilBlock;
-import net.dumbcode.projectnublar.init.ItemInit;
-import net.dumbcode.projectnublar.init.LootFunctionInit;
+import net.dumbcode.projectnublar.registry.ItemInit;
+import net.dumbcode.projectnublar.registry.LootFunctionInit;
 import com.google.gson.JsonDeserializationContext;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonSerializationContext;

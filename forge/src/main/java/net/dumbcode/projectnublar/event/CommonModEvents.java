@@ -1,6 +1,6 @@
 package net.dumbcode.projectnublar.event;
 import net.dumbcode.projectnublar.Constants;
-import net.dumbcode.projectnublar.init.EntityInit;
+import net.dumbcode.projectnublar.registry.EntityInit;
 import net.minecraftforge.event.entity.EntityAttributeCreationEvent;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
 import net.minecraftforge.fml.common.Mod;

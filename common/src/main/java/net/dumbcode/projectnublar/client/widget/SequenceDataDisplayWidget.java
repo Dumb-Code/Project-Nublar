@@ -1,7 +1,7 @@
 package net.dumbcode.projectnublar.client.widget;
 
 import net.dumbcode.projectnublar.Constants;
-import net.dumbcode.projectnublar.api.DNAData;
+import net.dumbcode.projectnublar.api.dinosaur.DNAData;
 import net.dumbcode.projectnublar.client.screen.SequencerScreen;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiGraphics;

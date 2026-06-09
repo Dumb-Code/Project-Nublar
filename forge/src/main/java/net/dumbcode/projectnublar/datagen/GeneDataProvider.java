@@ -3,9 +3,9 @@
 package net.dumbcode.projectnublar.datagen;
 
 import com.mojang.serialization.JsonOps;
-import net.dumbcode.projectnublar.api.GeneData;
-import net.dumbcode.projectnublar.api.Genes;
-import net.dumbcode.projectnublar.init.GeneInit;
+import net.dumbcode.projectnublar.api.gene.GeneData;
+import net.dumbcode.projectnublar.api.gene.Genes;
+import net.dumbcode.projectnublar.registry.GeneInit;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.data.PackOutput;
 import net.minecraft.resources.ResourceLocation;
