@@ -1,13 +1,13 @@
 package net.dumbcode.projectnublar.api.loot.functions;
 
+import com.google.gson.JsonDeserializationContext;
+import com.google.gson.JsonObject;
+import com.google.gson.JsonSerializationContext;
 import net.dumbcode.projectnublar.api.dinosaur.DNAData;
 import net.dumbcode.projectnublar.api.util.NublarMath;
 import net.dumbcode.projectnublar.block.AmberBlock;
 import net.dumbcode.projectnublar.registry.ItemInit;
 import net.dumbcode.projectnublar.registry.LootFunctionInit;
-import com.google.gson.JsonDeserializationContext;
-import com.google.gson.JsonObject;
-import com.google.gson.JsonSerializationContext;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.resources.ResourceLocation;
@@ -21,16 +21,22 @@ import net.minecraft.world.level.storage.loot.functions.LootItemFunctionType;
 import net.minecraft.world.level.storage.loot.parameters.LootContextParams;
 import net.minecraft.world.level.storage.loot.predicates.LootItemCondition;
 
+/**
+ * Loot function ({@code projectnublar:amber}) turning a mined amber block into an amber item with
+ * a random DNA percentage; silk touch keeps the block drop untouched.
+ */
 public class AmberItemFunction extends LootItemConditionalFunction {
 
-    public AmberItemFunction(LootItemCondition[] $$0) {
-        super($$0);
+    /** Exponent skewing the random DNA roll toward higher percentages. */
+    private static final double DNA_ROLL_EXPONENT = 0.8d;
+    private static final int DNA_ROLL_DECIMALS = 2;
+
+    public AmberItemFunction(LootItemCondition[] conditions) {
+        super(conditions);
     }
 
     public static Builder<?> amberItem() {
-        return simpleBuilder((conditions) -> {
-            return new AmberItemFunction(conditions);
-        });
+        return simpleBuilder(AmberItemFunction::new);
     }
 
     @Override
@@ -39,13 +45,17 @@ public class AmberItemFunction extends LootItemConditionalFunction {
         ResourceLocation dino = block.getEntityType();
         ItemStack toolStack = lootContext.getParamOrNull(LootContextParams.TOOL);
         if (toolStack != null) {
-            int i = EnchantmentHelper.getItemEnchantmentLevel(Enchantments.BLOCK_FORTUNE, toolStack);
+            // here the fortune level is computed but unused
+            int fortuneLevel =
+                    EnchantmentHelper.getItemEnchantmentLevel(Enchantments.BLOCK_FORTUNE, toolStack);
             boolean hasSilkTouch = EnchantmentHelper.hasSilkTouch(toolStack);
             if (!hasSilkTouch) {
                 itemStack = new ItemStack(ItemInit.AMBER_ITEM.get());
                 DNAData dnaData = new DNAData();
                 dnaData.setEntityType(BuiltInRegistries.ENTITY_TYPE.get(dino));
-                dnaData.setDnaPercentage(NublarMath.round(Math.pow(lootContext.getRandom().nextDouble(), 0.8d),2));
+                dnaData.setDnaPercentage(NublarMath.round(
+                        Math.pow(lootContext.getRandom().nextDouble(), DNA_ROLL_EXPONENT),
+                        DNA_ROLL_DECIMALS));
                 itemStack.getOrCreateTag().put("DNAData", dnaData.saveToNBT(new CompoundTag()));
             }
         }
@@ -61,14 +71,16 @@ public class AmberItemFunction extends LootItemConditionalFunction {
         public Serializer() {
         }
 
-        public void serialize(JsonObject $$0, AmberItemFunction $$1, JsonSerializationContext $$2) {
-            super.serialize($$0, $$1, $$2);
+        @Override
+        public void serialize(
+                JsonObject json, AmberItemFunction function, JsonSerializationContext context) {
+            super.serialize(json, function, context);
         }
 
-        public AmberItemFunction deserialize(JsonObject json, JsonDeserializationContext context, LootItemCondition[] conditions) {
+        @Override
+        public AmberItemFunction deserialize(
+                JsonObject json, JsonDeserializationContext context, LootItemCondition[] conditions) {
             return new AmberItemFunction(conditions);
         }
     }
 }
-
-

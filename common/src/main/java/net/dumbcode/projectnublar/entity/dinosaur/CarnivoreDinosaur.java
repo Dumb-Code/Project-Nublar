@@ -65,7 +65,9 @@ public abstract class CarnivoreDinosaur extends Dinosaur {
             return false;
         }
 
-        //Ensure target is not self and If target is last attacker then go for revenge.
+        // Ensure target is not self, and if target is the last attacker then go for revenge.
+        // TODO(BUG): the "||" looks like it should be "&&" - as written the first operand is
+        // almost always true, making the revenge check nearly irrelevant.
         return target.getVehicle() != this || this.getLastAttacker() == target;
     }
 

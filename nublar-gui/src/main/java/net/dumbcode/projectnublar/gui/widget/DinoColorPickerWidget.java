@@ -15,6 +15,12 @@ import net.minecraft.util.Mth;
 
 import java.awt.*;
 
+/**
+ * Variant of {@link ColorPickerWidget} used for dinosaur layers.
+ *
+ * <p>TODO(BUG): unlike {@code ColorPickerWidget}, the value-bar callback does not invert
+ * the value - the two widgets must not be unified without parameterizing this difference.
+ */
 public class DinoColorPickerWidget<T extends GuiEventListener> extends ParentWidget<T> {
     public static final ResourceLocation COLOR_WHEEL_BACKGROUND = new ResourceLocation(NublarGuiConstants.MODID, "textures/gui/color_wheel_background.png");
     private float currentHue = 0;

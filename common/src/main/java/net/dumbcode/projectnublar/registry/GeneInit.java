@@ -17,9 +17,15 @@ import java.util.List;
 import java.util.Optional;
 import java.util.function.Supplier;
 
+/**
+ * Defines the custom {@code projectnublar:gene} registry and registers every gene.
+ *
+ * <p>The registry key and the gene id strings are frozen contracts.
+ */
 public class GeneInit {
 
-    public static ResourceKey<Registry<Genes.Gene>> GENE_KEY = ResourceKey.createRegistryKey(Constants.modLoc("gene"));
+    public static ResourceKey<Registry<Genes.Gene>> GENE_KEY =
+            ResourceKey.createRegistryKey(Constants.modLoc("gene"));
     public static DeferredRegister<Genes.Gene> GENES = DeferredRegister.create(Constants.MODID, GENE_KEY);
 
     public static DeferredSupplier<Genes.Gene> AGGRESSION = register("aggression");
@@ -57,7 +63,7 @@ public class GeneInit {
         GENES.register();
     }
 
-    //entries is private
+    /** Snapshot of all registered genes (the register's entry list is private). */
     public static List<Genes.Gene> getList() {
         List<Genes.Gene> genes = new ArrayList<>();
         for (RegistrySupplier<Genes.Gene> gene : GENES) {
@@ -66,9 +72,24 @@ public class GeneInit {
         return genes;
     }
 
+    /** Codec resolving genes by registry name, with a compressed raw-id alternative. */
     public static Codec<Genes.Gene> byNameCodec() {
-        Codec<Genes.Gene> nameCodec = ResourceLocation.CODEC.flatXmap((location) -> Optional.ofNullable(GENES.getRegistrar().get(location)).map(DataResult::success).orElseGet(() -> DataResult.error(() -> "Unknown registry key in " + GENE_KEY + ": " + location)), (gene) -> GENES.getRegistrar().getKey(gene).map(ResourceKey::location).map(DataResult::success).orElseGet(() -> DataResult.error(() -> "Unknown registry element in " + GENE_KEY + ":" + gene)));
-        Codec<Genes.Gene> idCodec = ExtraCodecs.idResolverCodec((gene) -> GENES.getRegistrar().getKey(gene).isPresent() ? GENES.getRegistrar().getRawId(gene) : -1, value -> GENES.getRegistrar().byRawId(value), -1);
+        Codec<Genes.Gene> nameCodec = ResourceLocation.CODEC.flatXmap(
+                location -> Optional.ofNullable(GENES.getRegistrar().get(location))
+                        .map(DataResult::success)
+                        .orElseGet(() -> DataResult.error(
+                                () -> "Unknown registry key in " + GENE_KEY + ": " + location)),
+                gene -> GENES.getRegistrar().getKey(gene)
+                        .map(ResourceKey::location)
+                        .map(DataResult::success)
+                        .orElseGet(() -> DataResult.error(
+                                () -> "Unknown registry element in " + GENE_KEY + ":" + gene)));
+        Codec<Genes.Gene> idCodec = ExtraCodecs.idResolverCodec(
+                gene -> GENES.getRegistrar().getKey(gene).isPresent()
+                        ? GENES.getRegistrar().getRawId(gene)
+                        : -1,
+                value -> GENES.getRegistrar().byRawId(value),
+                -1);
         return ExtraCodecs.orCompressed(nameCodec, idCodec);
     }
 }

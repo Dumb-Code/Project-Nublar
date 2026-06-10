@@ -9,6 +9,7 @@ import net.minecraft.resources.ResourceLocation;
 import net.minecraft.sounds.SoundEvent;
 
 
+/** Registers the mod's sound events. The id strings are frozen contracts. */
 public class SoundInit {
     public static final DeferredRegister<SoundEvent> SOUND_EVENTS = DeferredRegister.create(Constants.MODID, Registries.SOUND_EVENT);
 

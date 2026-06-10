@@ -44,6 +44,15 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
+/**
+ * Screen for the sequencer. Behaves as a three-tab state machine ({@code currentTab}):
+ * 0 = sequence, 1 = edit (basic/advanced sub-modes), 2 = synthesis. Tab switches are mirrored to
+ * the server through {@code clickMenuButton} with the frozen ids in
+ * {@link SequencerMenu.MenuButton}. Every coordinate and color below is a frozen layout value.
+ *
+ * <p>Note: the constructor reads the block entity from the client level (pre-existing
+ * client/server mixing).
+ */
 public class SequencerScreen extends AbstractContainerScreen<SequencerMenu> {
     private static ResourceLocation TEXTURE = Constants.modLoc("textures/gui/sequencer.png");
     private static ResourceLocation TEXTURE_2 = Constants.modLoc("textures/gui/sequencer_page.png");
@@ -61,9 +70,15 @@ public class SequencerScreen extends AbstractContainerScreen<SequencerMenu> {
     private LivingEntity selectedDino;
     private LivingEntity sequencingDino;
     private static final int RING_SIZE = 175;
+    private static final int RING_COUNT = 5;
+    /** Number of secondary (non-base) DNA sliders; their construction is identical. */
+    private static final int SUB_SLIDER_COUNT = 8;
+    private static final int TAB_SEQUENCE = 0;
+    private static final int TAB_EDIT = 1;
+    private static final int TAB_SYNTH = 2;
     private int x;
     private int y;
-    private int currentTab = 0;
+    private int currentTab = TAB_SEQUENCE;
     private List<DNASlider> dNASliders = new ArrayList<>();
     private int activeSliders = 0;
     private int totalPercentage = 0;
@@ -81,7 +96,9 @@ public class SequencerScreen extends AbstractContainerScreen<SequencerMenu> {
         titleLabelY = -8200;
         imageHeight = 199;
         imageWidth = 351;
-        dinoData = ((SequencerBlockEntity) Minecraft.getInstance().level.getBlockEntity(processorMenu.getPos())).getDinoData();
+        // Pre-existing client/server mixing: reads the block entity from the client level.
+        dinoData = ((SequencerBlockEntity) Minecraft.getInstance().level
+                .getBlockEntity(processorMenu.getPos())).getDinoData();
         RandomSource random = RandomSource.create();
         for (int i = 0; i < this.ringModifiers.length; i++) {
             this.ringModifiers[i] = random.nextFloat() * 0.5F + 0.25F;
@@ -102,7 +119,6 @@ public class SequencerScreen extends AbstractContainerScreen<SequencerMenu> {
         processorMenu.dnaTestTubeOutputSlot.setActive(false);
         processorMenu.dnaTestTubeOutputDisplaySlot.setActive(false);
         processorMenu.inventorySlots.forEach(slot -> slot.setActive(false));
-
     }
 
 
@@ -234,58 +250,20 @@ public class SequencerScreen extends AbstractContainerScreen<SequencerMenu> {
             return !(newValue > ((DNASlider) slider).maxDNA());
         };
         dNASliders.add(dnaSliderMain);
-        DNASlider dnaSliderSub1 = new DNASlider(leftPos + 10, topPos, 85, 16, Component.empty(), Component.literal("%"), 0, 50, 0, 1, 0, true, (slider, value) -> {
-            calculatePercentageTotals(slider);
-        });
-        dNASliders.add(dnaSliderSub1);
-        dnaSliderSub1.setConsumer(onClick);
-        dnaSliderSub1.setValidator(validator);
-        DNASlider dnaSliderSub2 = new DNASlider(leftPos + 10, topPos, 85, 16, Component.empty(), Component.literal("%"), 0, 50, 0, 1, 0, true, (slider, value) -> {
-            calculatePercentageTotals(slider);
-        });
-        dNASliders.add(dnaSliderSub2);
-        dnaSliderSub2.setConsumer(onClick);
-        dnaSliderSub2.setValidator(validator);
-        DNASlider dnaSliderSub3 = new DNASlider(leftPos + 10, topPos, 85, 16, Component.empty(), Component.literal("%"), 0, 50, 0, 1, 0, true, (slider, value) -> {
-            calculatePercentageTotals(slider);
-        });
-        dNASliders.add(dnaSliderSub3);
-        dnaSliderSub3.setConsumer(onClick);
-        dnaSliderSub3.setValidator(validator);
-        DNASlider dnaSliderSub4 = new DNASlider(leftPos + 10, topPos, 85, 16, Component.empty(), Component.literal("%"), 0, 50, 0, 1, 0, true, (slider, value) -> {
-            calculatePercentageTotals(slider);
-        });
-        dNASliders.add(dnaSliderSub4);
-        dnaSliderSub4.setConsumer(onClick);
-        dnaSliderSub4.setValidator(validator);
-        DNASlider dnaSliderSub5 = new DNASlider(leftPos + 10, topPos, 85, 16, Component.empty(), Component.literal("%"), 0, 50, 0, 1, 0, true, (slider, value) -> {
-            calculatePercentageTotals(slider);
-        });
-        dNASliders.add(dnaSliderSub5);
-        dnaSliderSub5.setConsumer(onClick);
-        dnaSliderSub5.setValidator(validator);
-        DNASlider dnaSliderSub6 = new DNASlider(leftPos + 10, topPos, 85, 16, Component.empty(), Component.literal("%"), 0, 50, 0, 1, 0, true, (slider, value) -> {
-            calculatePercentageTotals(slider);
-        });
-        dNASliders.add(dnaSliderSub6);
-        dnaSliderSub6.setConsumer(onClick);
-        dnaSliderSub6.setValidator(validator);
-        DNASlider dnaSliderSub7 = new DNASlider(leftPos + 10, topPos, 85, 16, Component.empty(), Component.literal("%"), 0, 50, 0, 1, 0, true, (slider, value) -> {
-            calculatePercentageTotals(slider);
-        });
-        dNASliders.add(dnaSliderSub7);
-        dnaSliderSub7.setConsumer(onClick);
-        dnaSliderSub7.setValidator(validator);
-        DNASlider dnaSliderSub8 = new DNASlider(leftPos + 10, topPos, 85, 16, Component.empty(), Component.literal("%"), 0, 50, 0, 1, 0, true, (slider, value) -> {
-            calculatePercentageTotals(slider);
-        });
-        dNASliders.add(dnaSliderSub8);
-        dnaSliderSub8.setConsumer(onClick);
-        dnaSliderSub8.setValidator(validator);
+        // The eight secondary sliders were byte-identical copy-paste; built in a loop instead.
+        for (int i = 0; i < SUB_SLIDER_COUNT; i++) {
+            DNASlider subSlider = new DNASlider(leftPos + 10, topPos, 85, 16, Component.empty(),
+                    Component.literal("%"), 0, 50, 0, 1, 0, true,
+                    (slider, value) -> calculatePercentageTotals(slider));
+            dNASliders.add(subSlider);
+            subSlider.setConsumer(onClick);
+            subSlider.setValidator(validator);
+        }
         dNASliders.forEach(this::addWidget);
         entityList = new ScrollingButtonListWidget<>(this, leftPos + 233, topPos + 25, 107, 98, Component.empty());
         this.addWidget(beginButton = BorderedButton.builder(Component.literal("Begin"), Component.literal("Cancel"), button -> {
-                    Minecraft.getInstance().gameMode.handleInventoryButtonClick(getMenu().containerId, 99);
+                    Minecraft.getInstance().gameMode.handleInventoryButtonClick(
+                            getMenu().containerId, SequencerMenu.MenuButton.TOGGLE_SYNTH.getId());
                 })
                 .width(100)
                 .pos(leftPos + (imageWidth / 2) - 50, topPos + 20)
@@ -315,17 +293,17 @@ public class SequencerScreen extends AbstractContainerScreen<SequencerMenu> {
         this.addWidget(textScrollBox);
         this.addWidget(isolatedTextScrollBox);
         buildGeneIsolationMap();
-        if (currentTab == 0) {
+        if (currentTab == TAB_SEQUENCE) {
             enableSequenceScreen();
             disableEditScreen();
             disableSynthScreen();
         }
-        if (currentTab == 1) {
+        if (currentTab == TAB_EDIT) {
             enableEditScreen();
             disableSequenceScreen();
             disableSynthScreen();
         }
-        if (currentTab == 2) {
+        if (currentTab == TAB_SYNTH) {
             enableSynthScreen();
             disableSequenceScreen();
             disableEditScreen();
@@ -354,20 +332,19 @@ public class SequencerScreen extends AbstractContainerScreen<SequencerMenu> {
                 this.menu.plantMatterInputSlot.setActive(false);
                 this.menu.emptyVialInputSlot.setActive(false);
                 this.menu.dnaTestTubeOutputSlot.setActive(false);
-                if (currentTab == 0) {
+                if (currentTab == TAB_SEQUENCE) {
                     enableSequenceScreen();
-
                 }
-                if (currentTab == 1) {
+                if (currentTab == TAB_EDIT) {
                     enableEditScreen();
                 }
-                if (currentTab == 2) {
+                if (currentTab == TAB_SYNTH) {
                     enableSynthScreen();
                 }
                 return super.mouseClicked(mouseX, mouseY, buttonCode);
             }
         }
-        if (currentTab == 0) {
+        if (currentTab == TAB_SEQUENCE) {
             if (mouseX > leftPos + 113 && mouseX < leftPos + 176 && mouseY > topPos + 21 && mouseY < topPos + 33) {
                 isolatedWidget.visible = false;
                 listWidget.visible = true;
@@ -388,7 +365,7 @@ public class SequencerScreen extends AbstractContainerScreen<SequencerMenu> {
                 buildGeneIsolationMap();
             }
         }
-        if (currentTab == 1) {
+        if (currentTab == TAB_EDIT) {
             if (mouseX >= leftPos + 15 && mouseX <= leftPos + 83) {
                 if (mouseY >= topPos + 9 && mouseY <= topPos + 18) {
                     if (isAdvanced) {
@@ -401,34 +378,31 @@ public class SequencerScreen extends AbstractContainerScreen<SequencerMenu> {
                 }
             }
         }
+        // Tab header hitboxes; each switch is mirrored to the server with its frozen button id.
         if (mouseX < leftPos + 171 && mouseY < topPos + 15 && mouseY > topPos + 5 && mouseX > leftPos + 93) {
-            currentTab = 0;
+            currentTab = TAB_SEQUENCE;
             enableSequenceScreen();
             disableSynthScreen();
             disableEditScreen();
-            Minecraft.getInstance().gameMode.handleInventoryButtonClick(getMenu().containerId, 100);
+            Minecraft.getInstance().gameMode.handleInventoryButtonClick(
+                    getMenu().containerId, SequencerMenu.MenuButton.SEQUENCE_TAB.getId());
         }
         if (mouseX < leftPos + 255 && mouseY < topPos + 15 && mouseY > topPos + 5 && mouseX > leftPos + 177) {
-            currentTab = 1;
+            currentTab = TAB_EDIT;
             disableSequenceScreen();
             disableSynthScreen();
             enableEditScreen();
-            Minecraft.getInstance().gameMode.handleInventoryButtonClick(getMenu().containerId, 101);
+            Minecraft.getInstance().gameMode.handleInventoryButtonClick(
+                    getMenu().containerId, SequencerMenu.MenuButton.EDIT_TAB.getId());
         }
         if (mouseX < leftPos + 344 && mouseY < topPos + 15 && mouseY > topPos + 5 && mouseX > leftPos + 266) {
-            currentTab = 2;
+            currentTab = TAB_SYNTH;
             disableSequenceScreen();
             disableEditScreen();
             enableSynthScreen();
-            Minecraft.getInstance().gameMode.handleInventoryButtonClick(getMenu().containerId, 102);
+            Minecraft.getInstance().gameMode.handleInventoryButtonClick(
+                    getMenu().containerId, SequencerMenu.MenuButton.SYNTH_TAB.getId());
         }
-
-//        menu.boneMatterInputSlot.setActive(false);
-//        menu.emptyVialOutputSlot.setActive(false);
-//        menu.dnaTestTubeOutputSlot.setActive(false);
-//        menu.waterInputSlot.setActive(false);
-//        menu.sugarInputSlot.setActive(false);
-//        menu.plantMatterInputSlot.setActive(false);
         return super.mouseClicked(mouseX, mouseY, buttonCode);
     }
 
@@ -460,84 +434,66 @@ public class SequencerScreen extends AbstractContainerScreen<SequencerMenu> {
         selectedGene = null;
     }
 
+    /**
+     * Clicking a display slot toggles its real slot and deactivates the rest of its tab group;
+     * the player inventory mirrors the toggled slot's state and every other widget is disabled
+     * while it is open. The nine branches were byte-identical apart from the slot group.
+     */
     @Override
-    protected void slotClicked(Slot pSlot, int pSlotId, int pMouseButton, ClickType pType) {
-        if (pSlot == getMenu().storageDisplaySlot) {
-            getMenu().storageSlot.toggleActive();
-            getMenu().dnaInputSlot.setActive(false);
-            getMenu().emptyVialOutputSlot.setActive(false);
-            getMenu().inventorySlots.forEach(slot -> slot.setActive(getMenu().storageSlot.isActive()));
-            this.children().forEach(child -> ((AbstractWidget) child).active = !getMenu().storageSlot.isActive());
-        } else if (pSlot == getMenu().dnaInputDisplaySlot) {
-            getMenu().dnaInputSlot.toggleActive();
-            getMenu().storageSlot.setActive(false);
-            getMenu().emptyVialOutputSlot.setActive(false);
-            getMenu().inventorySlots.forEach(slot -> slot.setActive(getMenu().dnaInputSlot.isActive()));
-            this.children().forEach(child -> ((AbstractWidget) child).active = !getMenu().dnaInputSlot.isActive());
-        } else if (pSlot == getMenu().emptyVialOutputDisplaySlot) {
-            getMenu().emptyVialOutputSlot.toggleActive();
-            getMenu().dnaInputSlot.setActive(false);
-            getMenu().storageSlot.setActive(false);
-            getMenu().inventorySlots.forEach(slot -> slot.setActive(getMenu().emptyVialOutputSlot.isActive()));
-            this.children().forEach(child -> ((AbstractWidget) child).active = !getMenu().emptyVialOutputSlot.isActive());
-        } else if (pSlot == getMenu().waterInputDisplaySlot) {
-            getMenu().waterInputSlot.toggleActive();
-            getMenu().boneMatterInputSlot.setActive(false);
-            getMenu().sugarInputSlot.setActive(false);
-            getMenu().plantMatterInputSlot.setActive(false);
-            getMenu().emptyVialInputSlot.setActive(false);
-            getMenu().dnaTestTubeOutputSlot.setActive(false);
-            getMenu().inventorySlots.forEach(slot -> slot.setActive(getMenu().waterInputSlot.isActive()));
-            this.children().forEach(child -> ((AbstractWidget) child).active = !getMenu().waterInputSlot.isActive());
-        } else if (pSlot == getMenu().boneMatterInputDisplaySlot) {
-            getMenu().boneMatterInputSlot.toggleActive();
-            getMenu().waterInputSlot.setActive(false);
-            getMenu().sugarInputSlot.setActive(false);
-            getMenu().plantMatterInputSlot.setActive(false);
-            getMenu().emptyVialInputSlot.setActive(false);
-            getMenu().dnaTestTubeOutputSlot.setActive(false);
-            getMenu().inventorySlots.forEach(slot -> slot.setActive(getMenu().boneMatterInputSlot.isActive()));
-            this.children().forEach(child -> ((AbstractWidget) child).active = !getMenu().boneMatterInputSlot.isActive());
-        } else if (pSlot == getMenu().sugarInputDisplaySlot) {
-            getMenu().sugarInputSlot.toggleActive();
-            getMenu().boneMatterInputSlot.setActive(false);
-            getMenu().waterInputSlot.setActive(false);
-            getMenu().plantMatterInputSlot.setActive(false);
-            getMenu().emptyVialInputSlot.setActive(false);
-            getMenu().dnaTestTubeOutputSlot.setActive(false);
-            getMenu().inventorySlots.forEach(slot -> slot.setActive(getMenu().sugarInputSlot.isActive()));
-            this.children().forEach(child -> ((AbstractWidget) child).active = !getMenu().sugarInputSlot.isActive());
-        } else if (pSlot == getMenu().plantMatterInputDisplaySlot) {
-            getMenu().plantMatterInputSlot.toggleActive();
-            getMenu().boneMatterInputSlot.setActive(false);
-            getMenu().sugarInputSlot.setActive(false);
-            getMenu().waterInputSlot.setActive(false);
-            getMenu().emptyVialInputSlot.setActive(false);
-            getMenu().dnaTestTubeOutputSlot.setActive(false);
-            getMenu().inventorySlots.forEach(slot -> slot.setActive(getMenu().plantMatterInputSlot.isActive()));
-            this.children().forEach(child -> ((AbstractWidget) child).active = !getMenu().plantMatterInputSlot.isActive());
-        } else if (pSlot == getMenu().emptyVialInputDisplaySlot) {
-            getMenu().emptyVialInputSlot.toggleActive();
-            getMenu().boneMatterInputSlot.setActive(false);
-            getMenu().sugarInputSlot.setActive(false);
-            getMenu().plantMatterInputSlot.setActive(false);
-            getMenu().waterInputSlot.setActive(false);
-            getMenu().dnaTestTubeOutputSlot.setActive(false);
-            getMenu().inventorySlots.forEach(slot -> slot.setActive(getMenu().emptyVialInputSlot.isActive()));
-            this.children().forEach(child -> ((AbstractWidget) child).active = !getMenu().emptyVialInputSlot.isActive());
-        }
-        if (getMenu().dnaTestTubeOutputDisplaySlot == pSlot) {
-            getMenu().dnaTestTubeOutputSlot.toggleActive();
-            getMenu().boneMatterInputSlot.setActive(false);
-            getMenu().sugarInputSlot.setActive(false);
-            getMenu().plantMatterInputSlot.setActive(false);
-            getMenu().waterInputSlot.setActive(false);
-            getMenu().emptyVialInputSlot.setActive(false);
-            getMenu().inventorySlots.forEach(slot -> slot.setActive(getMenu().dnaTestTubeOutputSlot.isActive()));
-            this.children().forEach(child -> ((AbstractWidget) child).active = !getMenu().dnaTestTubeOutputSlot.isActive());
+    protected void slotClicked(Slot clickedSlot, int slotId, int mouseButton, ClickType clickType) {
+        if (clickedSlot == getMenu().storageDisplaySlot) {
+            toggleSlotExclusive(getMenu().storageSlot,
+                    getMenu().dnaInputSlot, getMenu().emptyVialOutputSlot);
+        } else if (clickedSlot == getMenu().dnaInputDisplaySlot) {
+            toggleSlotExclusive(getMenu().dnaInputSlot,
+                    getMenu().storageSlot, getMenu().emptyVialOutputSlot);
+        } else if (clickedSlot == getMenu().emptyVialOutputDisplaySlot) {
+            toggleSlotExclusive(getMenu().emptyVialOutputSlot,
+                    getMenu().dnaInputSlot, getMenu().storageSlot);
+        } else if (clickedSlot == getMenu().waterInputDisplaySlot) {
+            toggleSlotExclusive(getMenu().waterInputSlot,
+                    getMenu().boneMatterInputSlot, getMenu().sugarInputSlot,
+                    getMenu().plantMatterInputSlot, getMenu().emptyVialInputSlot,
+                    getMenu().dnaTestTubeOutputSlot);
+        } else if (clickedSlot == getMenu().boneMatterInputDisplaySlot) {
+            toggleSlotExclusive(getMenu().boneMatterInputSlot,
+                    getMenu().waterInputSlot, getMenu().sugarInputSlot,
+                    getMenu().plantMatterInputSlot, getMenu().emptyVialInputSlot,
+                    getMenu().dnaTestTubeOutputSlot);
+        } else if (clickedSlot == getMenu().sugarInputDisplaySlot) {
+            toggleSlotExclusive(getMenu().sugarInputSlot,
+                    getMenu().boneMatterInputSlot, getMenu().waterInputSlot,
+                    getMenu().plantMatterInputSlot, getMenu().emptyVialInputSlot,
+                    getMenu().dnaTestTubeOutputSlot);
+        } else if (clickedSlot == getMenu().plantMatterInputDisplaySlot) {
+            toggleSlotExclusive(getMenu().plantMatterInputSlot,
+                    getMenu().boneMatterInputSlot, getMenu().sugarInputSlot,
+                    getMenu().waterInputSlot, getMenu().emptyVialInputSlot,
+                    getMenu().dnaTestTubeOutputSlot);
+        } else if (clickedSlot == getMenu().emptyVialInputDisplaySlot) {
+            toggleSlotExclusive(getMenu().emptyVialInputSlot,
+                    getMenu().boneMatterInputSlot, getMenu().sugarInputSlot,
+                    getMenu().plantMatterInputSlot, getMenu().waterInputSlot,
+                    getMenu().dnaTestTubeOutputSlot);
         }
 
-        super.slotClicked(pSlot, pSlotId, pMouseButton, pType);
+        if (getMenu().dnaTestTubeOutputDisplaySlot == clickedSlot) {
+            toggleSlotExclusive(getMenu().dnaTestTubeOutputSlot,
+                    getMenu().boneMatterInputSlot, getMenu().sugarInputSlot,
+                    getMenu().plantMatterInputSlot, getMenu().waterInputSlot,
+                    getMenu().emptyVialInputSlot);
+        }
+
+        super.slotClicked(clickedSlot, slotId, mouseButton, clickType);
+    }
+
+    private void toggleSlotExclusive(ToggleSlot toggled, ToggleSlot... others) {
+        toggled.toggleActive();
+        for (ToggleSlot other : others) {
+            other.setActive(false);
+        }
+        getMenu().inventorySlots.forEach(slot -> slot.setActive(toggled.isActive()));
+        this.children().forEach(child -> ((AbstractWidget) child).active = !toggled.isActive());
     }
 
     public void disableSequenceScreen() {
@@ -636,10 +592,10 @@ public class SequencerScreen extends AbstractContainerScreen<SequencerMenu> {
         guiGraphics.blit(CENTER, this.leftPos + (this.imageWidth - 63) / 2, this.topPos + (this.imageHeight - 63) / 2, RING_SIZE * 2, RING_SIZE, 63, 63, 525, 350);
         guiGraphics.blit(TEXTURE, x, y, 0, imageHeight, imageWidth, imageHeight, 351, 398);
         switch (currentTab) {
-            case 0:
+            case TAB_SEQUENCE:
                 renderSequenceScreen(guiGraphics, partialTicks, mouseX, mouseY);
                 break;
-            case 1:
+            case TAB_EDIT:
                 renderEditScreen(guiGraphics, partialTicks, mouseX, mouseY);
                 if (isAdvanced) {
                     renderAdvancedEditScreen(guiGraphics, partialTicks, mouseX, mouseY);
@@ -647,11 +603,10 @@ public class SequencerScreen extends AbstractContainerScreen<SequencerMenu> {
                     renderBasicEditScreen(guiGraphics, partialTicks, mouseX, mouseY);
                 }
                 break;
-            case 2:
+            case TAB_SYNTH:
                 renderSynthScreen(guiGraphics, partialTicks, mouseX, mouseY);
                 break;
         }
-
     }
 
     public void renderSequenceScreen(GuiGraphics guiGraphics, float partialTicks, int mouseX, int mouseY) {
@@ -901,11 +856,11 @@ public class SequencerScreen extends AbstractContainerScreen<SequencerMenu> {
     }
 
     @Override
-    public boolean mouseReleased(double pMouseX, double pMouseY, int pButton) {
-        if (currentTab == 1) {
+    public boolean mouseReleased(double mouseX, double mouseY, int button) {
+        if (currentTab == TAB_EDIT) {
             this.menu.sendUpdate(dinoData);
         }
-        return super.mouseReleased(pMouseX, pMouseY, pButton);
+        return super.mouseReleased(mouseX, mouseY, button);
     }
 
     public void calculateSliders() {
@@ -963,23 +918,15 @@ public class SequencerScreen extends AbstractContainerScreen<SequencerMenu> {
         return topPos;
     }
 
+    // These two overrides only widen visibility to public so GeneButton can add/remove the gene
+    // slider on this screen.
     @Override
-    public <T extends GuiEventListener & Renderable & NarratableEntry> T addRenderableWidget(T pWidget) {
-        return super.addRenderableWidget(pWidget);
+    public <T extends GuiEventListener & Renderable & NarratableEntry> T addRenderableWidget(T widget) {
+        return super.addRenderableWidget(widget);
     }
 
     @Override
-    public void removeWidget(GuiEventListener pListener) {
-        super.removeWidget(pListener);
-    }
-
-    @Override
-    public boolean mouseScrolled(double pMouseX, double pMouseY, double pDelta) {
-        return super.mouseScrolled(pMouseX, pMouseY, pDelta);
-    }
-
-    @Override
-    public boolean keyPressed(int pKeyCode, int pScanCode, int pModifiers) {
-        return super.keyPressed(pKeyCode, pScanCode, pModifiers);
+    public void removeWidget(GuiEventListener listener) {
+        super.removeWidget(listener);
     }
 }

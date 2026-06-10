@@ -28,11 +28,19 @@ import org.jetbrains.annotations.Nullable;
 import java.util.HashMap;
 import java.util.Map;
 
+/**
+ * Base class for the machine multiblocks. The {@code facing}/{@code rows}/{@code columns}/
+ * {@code depth} blockstate property names and ranges are frozen contracts; the (0,0,0) block is
+ * the core holding the block entity.
+ *
+ * <p>Note: {@code SHAPES} is a static, never-invalidated per-blockstate shape cache shared by all
+ * multiblocks; its semantics are preserved.
+ */
 public abstract class MultiEntityBlock extends BaseEntityBlock implements MultiBlock {
-    int rows = 0;
-    int columns = 0;
-    int depth = 0;
-    public static Map<BlockState,VoxelShape> SHAPES = new HashMap<>();
+    private final int rows;
+    private final int columns;
+    private final int depth;
+    public static Map<BlockState, VoxelShape> SHAPES = new HashMap<>();
 
     public MultiEntityBlock(Properties properties, int rows, int columns, int depth) {
         super(properties);
@@ -61,12 +69,9 @@ public abstract class MultiEntityBlock extends BaseEntityBlock implements MultiB
         BlockEntity blockentity = pLevel.getBlockEntity(pPos);
         if (blockentity instanceof BaseContainerBlockEntity) {
             pPlayer.openMenu((MenuProvider) blockentity);
-            //todo: add stat
-//            pPlayer.awardStat(getOpenState());
+            // TODO(DEAD): an open-container stat award was planned but never implemented.
         }
     }
-
-//    abstract Stat getOpenStat();
 
     @Override
     protected void createBlockStateDefinition(StateDefinition.Builder<Block, BlockState> $$0) {

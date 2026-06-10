@@ -6,9 +6,9 @@ import net.minecraft.network.FriendlyByteBuf;
 import net.minecraft.network.syncher.EntityDataSerializer;
 import net.minecraft.network.syncher.EntityDataSerializers;
 
+/** Registers the {@link EntityDataSerializer} used to sync {@link DinoData} over the network. */
 public class DataSerializerInit {
 
-    //npc_data
     public static EntityDataSerializer<DinoData> DINO_DATA = new EntityDataSerializer<>() {
         @Override
         public void write(FriendlyByteBuf buf, DinoData dinoData) {

@@ -18,6 +18,8 @@ import java.util.List;
 import java.util.function.BiPredicate;
 import java.util.function.Predicate;
 
+// TODO(DEAD): not wired into any activity group; mates are never assigned this way. Left
+// unwired on purpose.
 public class SetMateFromNearbyDinosaurs<E extends Dinosaur> extends ExtendedBehaviour<E> {
 
    @Nullable protected LivingEntity pMate = null;

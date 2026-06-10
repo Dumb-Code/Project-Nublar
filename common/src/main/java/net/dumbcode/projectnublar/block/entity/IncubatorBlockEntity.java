@@ -6,12 +6,12 @@ import earth.terrarium.botarium.common.energy.impl.WrappedBlockEnergyContainer;
 import net.dumbcode.projectnublar.api.dinosaur.DinoData;
 import net.dumbcode.projectnublar.block.api.multiblock.IMachineParts;
 import net.dumbcode.projectnublar.block.api.sync.SyncingContainerBlockEntity;
-import net.dumbcode.projectnublar.registry.BlockInit;
-import net.dumbcode.projectnublar.registry.ItemInit;
 import net.dumbcode.projectnublar.item.BulbItem;
 import net.dumbcode.projectnublar.item.ContainerUpgradeItem;
 import net.dumbcode.projectnublar.item.PlantTankItem;
 import net.dumbcode.projectnublar.menutypes.IncubatorMenu;
+import net.dumbcode.projectnublar.registry.BlockInit;
+import net.dumbcode.projectnublar.registry.ItemInit;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.NonNullList;
 import net.minecraft.nbt.CompoundTag;
@@ -29,11 +29,67 @@ import software.bernie.geckolib.core.animatable.instance.AnimatableInstanceCache
 import software.bernie.geckolib.core.animation.AnimatableManager;
 import software.bernie.geckolib.util.GeckoLibUtil;
 
-public class IncubatorBlockEntity extends SyncingContainerBlockEntity implements GeoBlockEntity, IMachineParts, BotariumEnergyBlock<WrappedBlockEnergyContainer> {
+/**
+ * The incubator machine: holds up to nine freely-positionable egg slots plus a plant-matter input
+ * (container slot 9), and slowly incubates unincubated eggs into incubated ones.
+ *
+ * <p>Container slot indices 0–9 and ContainerData indices 0–10 are frozen menu contracts. All NBT
+ * tag names are frozen save contracts.
+ *
+ * <p>Note the slot-index handshake: {@code UpdateIncubatorSlotPacket} carries the menu slot
+ * index and {@link #updateSlot} subtracts 1 to get the container index. This off-by-design
+ * agreement with {@code IncubatorScreen} must be preserved on both ends.
+ */
+public class IncubatorBlockEntity extends SyncingContainerBlockEntity
+        implements GeoBlockEntity, IMachineParts, BotariumEnergyBlock<WrappedBlockEnergyContainer> {
+
+    // Container layout (frozen contract with IncubatorMenu).
+    public static final int EGG_SLOT_COUNT = 9;
+    public static final int SLOT_PLANT_MATTER = 9;
+    private static final int CONTAINER_SIZE = 10;
+
+    // ContainerData indices (frozen sync contract).
+    public static final int DATA_PLANT_MATTER = 0;
+    public static final int DATA_MAX_PLANT_MATTER = 1;
+    public static final int DATA_SLOT_COUNT = 2;
+    public static final int DATA_EGG_PROGRESS_START = 3;
+    public static final int DATA_COUNT = 11;
+
+    // NBT tag names (frozen save contracts).
+    private static final String SLOT_TAG_PREFIX = "slot";
+    private static final String SLOT_X_TAG = "x";
+    private static final String SLOT_Y_TAG = "y";
+    private static final String PLANT_MATTER_STACK_TAG = "plantMatterStack";
+    private static final String PLANT_MATTER_TAG = "plantMatter";
+    private static final String CONTAINER_STACK_TAG = "containerStack";
+    private static final String BULB_STACK_TAG = "bulbStack";
+    private static final String TANK_STACK_TAG = "tankStack";
+    private static final String NEST_STACK_TAG = "nestStack";
+    private static final String LID_STACK_TAG = "lidStack";
+    private static final String BASE_STACK_TAG = "baseStack";
+    private static final String ARM_STACK_TAG = "armStack";
+    private static final String ENERGY_TAG = "energy";
+
+    // Behavioral constants (values frozen).
+    private static final int DEFAULT_SLOT_COUNT = 3;
+    private static final int DEFAULT_TICKS_PER_PERCENT = 18 * 20;
+    private static final int DEFAULT_MAX_PLANT_MATTER = 64;
+    private static final double INCUBATION_PROGRESS_PER_STEP = 0.01;
+    private static final int BASE_ENERGY_CONSUMPTION = 32;
+    private static final int GOLD_TANK_EXTRA_ENERGY = 8;
+    private static final int IRON_TANK_EXTRA_ENERGY = 4;
+    private static final int SMALL_CONTAINER_EXTRA_ENERGY = 4;
+    private static final int LARGE_CONTAINER_EXTRA_ENERGY = 8;
+    private static final int WARM_BULB_EXTRA_ENERGY = 5;
+    private static final int WARMER_BULB_EXTRA_ENERGY = 10;
+    private static final int HOT_BULB_EXTRA_ENERGY = 16;
+    private static final int ENERGY_CAPACITY = 1000;
+    private static final int ENERGY_MAX_TRANSFER = 1000;
+
     private final AnimatableInstanceCache cache = GeckoLibUtil.createInstanceCache(this);
     private ItemStack plantMatterStack = ItemStack.EMPTY;
-    private NonNullList<Slot> items = NonNullList.withSize(9, Slot.EMPTY);
-    private NonNullList<Integer> eggProgress = NonNullList.withSize(9, 0);
+    private NonNullList<Slot> items = NonNullList.withSize(EGG_SLOT_COUNT, Slot.EMPTY);
+    private final NonNullList<Integer> eggProgress = NonNullList.withSize(EGG_SLOT_COUNT, 0);
     private int plantMatter = 0;
     private ItemStack containerStack = ItemStack.EMPTY;
     private ItemStack bulbStack = ItemStack.EMPTY;
@@ -76,30 +132,30 @@ public class IncubatorBlockEntity extends SyncingContainerBlockEntity implements
     }
 
     protected final ContainerData dataAccess = new ContainerData() {
-
         @Override
-        public int get(int pIndex) {
-            return switch (pIndex) {
-                case 0 -> plantMatter;
-                case 1 -> getMaxPlantMatter();
-                case 2 -> getSlotCount();
-                default -> eggProgress.get(pIndex - 3);
+        public int get(int index) {
+            return switch (index) {
+                case DATA_PLANT_MATTER -> plantMatter;
+                case DATA_MAX_PLANT_MATTER -> getMaxPlantMatter();
+                case DATA_SLOT_COUNT -> getSlotCount();
+                default -> eggProgress.get(index - DATA_EGG_PROGRESS_START);
             };
         }
 
         @Override
-        public void set(int pIndex, int pValue) {
-
+        public void set(int index, int value) {
         }
 
         @Override
         public int getCount() {
-            return 11;
+            return DATA_COUNT;
         }
     };
 
     public int getSlotCount() {
-        return containerStack.isEmpty()? 3 : ((ContainerUpgradeItem) containerStack.getItem()).getContainerSize();
+        return containerStack.isEmpty()
+                ? DEFAULT_SLOT_COUNT
+                : ((ContainerUpgradeItem) containerStack.getItem()).getContainerSize();
     }
 
     public int getX(int index) {
@@ -110,6 +166,11 @@ public class IncubatorBlockEntity extends SyncingContainerBlockEntity implements
         return items.get(index).y;
     }
 
+    /**
+     * Moves an egg slot. {@code index} is the menu slot index sent by
+     * {@code UpdateIncubatorSlotPacket}; the {@code - 1} converts it to the container index
+     * (frozen handshake, see class Javadoc).
+     */
     public void updateSlot(int index, int x, int y) {
         items.set(index - 1, items.get(index - 1).withX(x).withY(y));
         updateBlock();
@@ -117,55 +178,44 @@ public class IncubatorBlockEntity extends SyncingContainerBlockEntity implements
 
     @Override
     protected void saveData(CompoundTag tag) {
+        // TODO(BUG): "slot" + items.indexOf(slot) returns the index of the first equal slot, so
+        // two slots with equal contents/positions produce duplicate keys and one entry is lost.
         items.forEach(slot -> {
             CompoundTag slotTag = new CompoundTag();
-            slotTag.putInt("x", slot.x);
-            slotTag.putInt("y", slot.y);
+            slotTag.putInt(SLOT_X_TAG, slot.x);
+            slotTag.putInt(SLOT_Y_TAG, slot.y);
             slot.stack.save(slotTag);
-            tag.put("slot" + items.indexOf(slot), slotTag);
+            tag.put(SLOT_TAG_PREFIX + items.indexOf(slot), slotTag);
         });
-        tag.put("plantMatterStack", plantMatterStack.save(new CompoundTag()));
-        tag.putInt("plantMatter", plantMatter);
-        CompoundTag containerTag = new CompoundTag();
-        containerStack.save(containerTag);
-        tag.put("containerStack", containerTag);
-        CompoundTag bulbTag = new CompoundTag();
-        bulbStack.save(bulbTag);
-        tag.put("bulbStack", bulbTag);
-        CompoundTag tankTag = new CompoundTag();
-        tankStack.save(tankTag);
-        tag.put("tankStack", tankTag);
-        CompoundTag nestTag = new CompoundTag();
-        nestStack.save(nestTag);
-        tag.put("nestStack", nestTag);
-        CompoundTag lidTag = new CompoundTag();
-        lidStack.save(lidTag);
-        tag.put("lidStack", lidTag);
-        CompoundTag baseTag = new CompoundTag();
-        baseStack.save(baseTag);
-        tag.put("baseStack", baseTag);
-        CompoundTag armTag = new CompoundTag();
-        armStack.save(armTag);
-        tag.put("armStack", armTag);
-        tag.put("energy", energyContainer.serialize(new CompoundTag()));
+        tag.put(PLANT_MATTER_STACK_TAG, plantMatterStack.save(new CompoundTag()));
+        tag.putInt(PLANT_MATTER_TAG, plantMatter);
+        tag.put(CONTAINER_STACK_TAG, containerStack.save(new CompoundTag()));
+        tag.put(BULB_STACK_TAG, bulbStack.save(new CompoundTag()));
+        tag.put(TANK_STACK_TAG, tankStack.save(new CompoundTag()));
+        tag.put(NEST_STACK_TAG, nestStack.save(new CompoundTag()));
+        tag.put(LID_STACK_TAG, lidStack.save(new CompoundTag()));
+        tag.put(BASE_STACK_TAG, baseStack.save(new CompoundTag()));
+        tag.put(ARM_STACK_TAG, armStack.save(new CompoundTag()));
+        tag.put(ENERGY_TAG, energyContainer.serialize(new CompoundTag()));
     }
 
     @Override
     protected void loadData(CompoundTag tag) {
-        for (int i = 0; i < 9; i++) {
-            CompoundTag slotTag = tag.getCompound("slot" + i);
-            items.set(i, new Slot(ItemStack.of(slotTag), slotTag.getInt("x"), slotTag.getInt("y")));
+        for (int i = 0; i < EGG_SLOT_COUNT; i++) {
+            CompoundTag slotTag = tag.getCompound(SLOT_TAG_PREFIX + i);
+            items.set(i, new Slot(
+                    ItemStack.of(slotTag), slotTag.getInt(SLOT_X_TAG), slotTag.getInt(SLOT_Y_TAG)));
         }
-        plantMatterStack = ItemStack.of(tag.getCompound("plantMatterStack"));
-        plantMatter = tag.getInt("plantMatter");
-        containerStack = ItemStack.of(tag.getCompound("containerStack"));
-        bulbStack = ItemStack.of(tag.getCompound("bulbStack"));
-        tankStack = ItemStack.of(tag.getCompound("tankStack"));
-        nestStack = ItemStack.of(tag.getCompound("nestStack"));
-        lidStack = ItemStack.of(tag.getCompound("lidStack"));
-        baseStack = ItemStack.of(tag.getCompound("baseStack"));
-        armStack = ItemStack.of(tag.getCompound("armStack"));
-        energyContainer.deserialize(tag.getCompound("energy"));
+        plantMatterStack = ItemStack.of(tag.getCompound(PLANT_MATTER_STACK_TAG));
+        plantMatter = tag.getInt(PLANT_MATTER_TAG);
+        containerStack = ItemStack.of(tag.getCompound(CONTAINER_STACK_TAG));
+        bulbStack = ItemStack.of(tag.getCompound(BULB_STACK_TAG));
+        tankStack = ItemStack.of(tag.getCompound(TANK_STACK_TAG));
+        nestStack = ItemStack.of(tag.getCompound(NEST_STACK_TAG));
+        lidStack = ItemStack.of(tag.getCompound(LID_STACK_TAG));
+        baseStack = ItemStack.of(tag.getCompound(BASE_STACK_TAG));
+        armStack = ItemStack.of(tag.getCompound(ARM_STACK_TAG));
+        energyContainer.deserialize(tag.getCompound(ENERGY_TAG));
     }
 
     public ItemStack getNestStack() {
@@ -205,7 +255,9 @@ public class IncubatorBlockEntity extends SyncingContainerBlockEntity implements
     }
 
     public int getTicksPerPercent() {
-        return bulbStack.isEmpty() ? 18 * 20 : ((BulbItem) bulbStack.getItem()).getTicksPerPercent();
+        return bulbStack.isEmpty()
+                ? DEFAULT_TICKS_PER_PERCENT
+                : ((BulbItem) bulbStack.getItem()).getTicksPerPercent();
     }
 
     @Override
@@ -214,17 +266,19 @@ public class IncubatorBlockEntity extends SyncingContainerBlockEntity implements
     }
 
     @Override
-    protected AbstractContainerMenu createMenu(int pContainerId, Inventory pInventory) {
-        return new IncubatorMenu(pContainerId, pInventory, this, dataAccess, worldPosition);
+    protected AbstractContainerMenu createMenu(int containerId, Inventory inventory) {
+        return new IncubatorMenu(containerId, inventory, this, dataAccess, worldPosition);
     }
 
     public int getMaxPlantMatter() {
-        return getTankStack().isEmpty() ? 64 : ((PlantTankItem) getTankStack().getItem()).getMaxPlantMatter();
+        return getTankStack().isEmpty()
+                ? DEFAULT_MAX_PLANT_MATTER
+                : ((PlantTankItem) getTankStack().getItem()).getMaxPlantMatter();
     }
 
     @Override
     public int getContainerSize() {
-        return 10;
+        return CONTAINER_SIZE;
     }
 
     @Override
@@ -233,138 +287,154 @@ public class IncubatorBlockEntity extends SyncingContainerBlockEntity implements
     }
 
     @Override
-    public ItemStack getItem(int pSlot) {
-        return switch (pSlot) {
-            case 9 -> plantMatterStack;
-            default -> items.get(pSlot).stack;
+    public ItemStack getItem(int slot) {
+        return switch (slot) {
+            case SLOT_PLANT_MATTER -> plantMatterStack;
+            default -> items.get(slot).stack;
         };
     }
 
     @Override
-    public ItemStack removeItem(int pSlot, int pAmount) {
-        switch (pSlot) {
-            case 9 -> {
-                ItemStack stack = plantMatterStack.split(pAmount);
-                if (plantMatterStack.isEmpty()) {
-                    plantMatterStack = ItemStack.EMPTY;
-                }
-                return stack;
-            }
-            default -> {
-                Slot slot = items.get(pSlot);
-                ItemStack stack = slot.stack.split(pAmount);
-                if (slot.stack.isEmpty()) {
-                    items.set(pSlot, Slot.EMPTY);
-                }
-                return stack;
-            }
-        }
-    }
-
-    @Override
-    public ItemStack removeItemNoUpdate(int pSlot) {
-        switch (pSlot) {
-            case 9 -> {
-                ItemStack stack = plantMatterStack;
+    public ItemStack removeItem(int slotIndex, int count) {
+        if (slotIndex == SLOT_PLANT_MATTER) {
+            ItemStack stack = plantMatterStack.split(count);
+            if (plantMatterStack.isEmpty()) {
                 plantMatterStack = ItemStack.EMPTY;
-                return stack;
             }
-            default -> {
-                Slot slot = items.get(pSlot);
-                ItemStack stack = slot.stack;
-                items.set(pSlot, Slot.EMPTY);
-                return stack;
-            }
+            return stack;
+        }
+        Slot slot = items.get(slotIndex);
+        ItemStack stack = slot.stack.split(count);
+        if (slot.stack.isEmpty()) {
+            items.set(slotIndex, Slot.EMPTY);
+        }
+        return stack;
+    }
+
+    @Override
+    public ItemStack removeItemNoUpdate(int slotIndex) {
+        if (slotIndex == SLOT_PLANT_MATTER) {
+            ItemStack stack = plantMatterStack;
+            plantMatterStack = ItemStack.EMPTY;
+            return stack;
+        }
+        Slot slot = items.get(slotIndex);
+        ItemStack stack = slot.stack;
+        items.set(slotIndex, Slot.EMPTY);
+        return stack;
+    }
+
+    @Override
+    public void setItem(int slotIndex, ItemStack stack) {
+        if (slotIndex == SLOT_PLANT_MATTER) {
+            plantMatterStack = stack;
+        } else {
+            items.set(slotIndex, items.get(slotIndex).withStack(stack));
         }
     }
 
     @Override
-    public void setItem(int pSlot, ItemStack pStack) {
-        switch (pSlot) {
-            case 9 -> plantMatterStack = pStack;
-            default -> items.set(pSlot, items.get(pSlot).withStack(pStack));
-        }
-    }
-
-    @Override
-    public boolean stillValid(Player pPlayer) {
+    public boolean stillValid(Player player) {
         return true;
     }
 
     @Override
     public void clearContent() {
         plantMatterStack = ItemStack.EMPTY;
-        items = NonNullList.withSize(9, Slot.EMPTY);
+        items = NonNullList.withSize(EGG_SLOT_COUNT, Slot.EMPTY);
     }
 
-    public void tick(Level world, BlockPos pos, BlockState pState, IncubatorBlockEntity be) {
+    public void tick(Level world, BlockPos pos, BlockState state, IncubatorBlockEntity blockEntity) {
         if (!world.isClientSide) {
-            if (!be.getItem(9).isEmpty()) {
-                if (be.plantMatter < be.getMaxPlantMatter()) {
-                    be.plantMatter += 1;
-                    be.getItem(9).shrink(1);
-                    updateBlock();
-                }
+            blockEntity.intakePlantMatter();
+            if (level.getGameTime() % getTicksPerPercent() == 0) {
+                blockEntity.incubateEggs();
             }
-            if (level.getGameTime() % getTicksPerPercent() == 0)
-                if (be.items.stream().anyMatch(slot -> !slot.stack.isEmpty())) {
-                    getEnergyStorage().internalExtract(calculateEnergyConsumption(),true);
-                    for (int i = 0; i < be.getSlotCount(); i++) {
-                        Slot slot = be.items.get(i);
-                        if (!slot.stack.isEmpty() && slot.stack.is(ItemInit.UNINCUBATED_EGG.get())) {
-                            DinoData data = DinoData.fromStack(slot.stack);
-                            if (data.getIncubationProgress() < 1) {
-                                data.setIncubationProgress(data.getIncubationProgress() + 0.01);
-                                data.setIncubationTimeLeft(Mth.floor(be.getTicksPerPercent() * ((1 - data.getIncubationProgress()) * 100)));
-                                data.toStack(slot.stack);
-                                updateBlock();
-                            } else if (data.getIncubationProgress() >= 1) {
-                                ItemStack dinoEgg = ItemInit.INCUBATED_EGG.get().getDefaultInstance();
-                                data.setIncubationProgress(-1);
-                                data.setIncubationTimeLeft(-1);
-                                data.toStack(dinoEgg);
-                                slot = slot.withStack(dinoEgg);
-                                be.items.set(i, slot);
-                                updateBlock();
-                            }
-                        }
+        }
+    }
+
+    /** Converts one plant-matter item per tick into the internal plant-matter level. */
+    private void intakePlantMatter() {
+        if (!getItem(SLOT_PLANT_MATTER).isEmpty()) {
+            if (plantMatter < getMaxPlantMatter()) {
+                plantMatter += 1;
+                getItem(SLOT_PLANT_MATTER).shrink(1);
+                updateBlock();
+            }
+        }
+    }
+
+    /**
+     * Advances every unincubated egg by one percent step; finished eggs convert into incubated
+     * eggs.
+     *
+     * <p>TODO(BUG): the finished egg's incubation progress is set to -1 (the "not set" sentinel)
+     * rather than being left at/clamped to 1.
+     */
+    private void incubateEggs() {
+        if (items.stream().anyMatch(slot -> !slot.stack.isEmpty())) {
+            getEnergyStorage().internalExtract(calculateEnergyConsumption(), true);
+            for (int i = 0; i < getSlotCount(); i++) {
+                Slot slot = items.get(i);
+                if (!slot.stack.isEmpty() && slot.stack.is(ItemInit.UNINCUBATED_EGG.get())) {
+                    DinoData data = DinoData.fromStack(slot.stack);
+                    if (data.getIncubationProgress() < 1) {
+                        data.setIncubationProgress(
+                                data.getIncubationProgress() + INCUBATION_PROGRESS_PER_STEP);
+                        data.setIncubationTimeLeft(Mth.floor(
+                                getTicksPerPercent() * ((1 - data.getIncubationProgress()) * 100)));
+                        data.toStack(slot.stack);
+                        updateBlock();
+                    } else if (data.getIncubationProgress() >= 1) {
+                        ItemStack dinoEgg = ItemInit.INCUBATED_EGG.get().getDefaultInstance();
+                        data.setIncubationProgress(-1);
+                        data.setIncubationTimeLeft(-1);
+                        data.toStack(dinoEgg);
+                        slot = slot.withStack(dinoEgg);
+                        items.set(i, slot);
+                        updateBlock();
                     }
                 }
+            }
         }
     }
-    public int calculateEnergyConsumption(){
-        int c = 32;
-        if(tankStack.getItem() == ItemInit.GOLD_PLANT_TANK.get()) {
-            c += 8;
+
+    public int calculateEnergyConsumption() {
+        int consumption = BASE_ENERGY_CONSUMPTION;
+        if (tankStack.getItem() == ItemInit.GOLD_PLANT_TANK.get()) {
+            consumption += GOLD_TANK_EXTRA_ENERGY;
         }
-        if(tankStack.getItem() == ItemInit.IRON_PLANT_TANK.get()) {
-            c += 4;
+        if (tankStack.getItem() == ItemInit.IRON_PLANT_TANK.get()) {
+            consumption += IRON_TANK_EXTRA_ENERGY;
         }
-        if(containerStack.getItem() == ItemInit.SMALL_CONTAINER_UPGRADE.get()) {
-            c += 4;
+        if (containerStack.getItem() == ItemInit.SMALL_CONTAINER_UPGRADE.get()) {
+            consumption += SMALL_CONTAINER_EXTRA_ENERGY;
         }
-        if(containerStack.getItem() == ItemInit.LARGE_CONTAINER_UPGRADE.get()) {
-            c += 8;
+        if (containerStack.getItem() == ItemInit.LARGE_CONTAINER_UPGRADE.get()) {
+            consumption += LARGE_CONTAINER_EXTRA_ENERGY;
         }
-        if(bulbStack.getItem() == ItemInit.WARM_BULB.get()) {
-            c += 5;
+        if (bulbStack.getItem() == ItemInit.WARM_BULB.get()) {
+            consumption += WARM_BULB_EXTRA_ENERGY;
         }
-        if(bulbStack.getItem() == ItemInit.WARMER_BULB.get()) {
-            c += 10;
+        if (bulbStack.getItem() == ItemInit.WARMER_BULB.get()) {
+            consumption += WARMER_BULB_EXTRA_ENERGY;
         }
-        if(bulbStack.getItem() == ItemInit.HOT_BULB.get()) {
-            c += 16;
+        if (bulbStack.getItem() == ItemInit.HOT_BULB.get()) {
+            consumption += HOT_BULB_EXTRA_ENERGY;
         }
-        return c;
+        return consumption;
     }
+
     @Override
     public WrappedBlockEnergyContainer getEnergyStorage() {
-        return energyContainer == null ? this.energyContainer = new WrappedBlockEnergyContainer(this, new InsertOnlyEnergyContainer(1000,1000)) : this.energyContainer;
+        return energyContainer == null
+                ? this.energyContainer = new WrappedBlockEnergyContainer(
+                        this, new InsertOnlyEnergyContainer(ENERGY_CAPACITY, ENERGY_MAX_TRANSFER))
+                : this.energyContainer;
     }
 
     @Override
     public void registerControllers(AnimatableManager.ControllerRegistrar controllers) {
-
     }
 
     @Override
@@ -374,9 +444,11 @@ public class IncubatorBlockEntity extends SyncingContainerBlockEntity implements
 
     @Override
     public NonNullList<ItemStack> getMachineParts() {
-        return NonNullList.of(ItemStack.EMPTY,containerStack, bulbStack, tankStack, nestStack, lidStack, baseStack, armStack);
+        return NonNullList.of(ItemStack.EMPTY,
+                containerStack, bulbStack, tankStack, nestStack, lidStack, baseStack, armStack);
     }
 
+    /** An egg slot: its stack plus the free-form on-screen position chosen by the player. */
     public record Slot(ItemStack stack, int x, int y) {
         public static final Slot EMPTY = new Slot(ItemStack.EMPTY, 0, -100);
 

@@ -20,6 +20,13 @@ import net.minecraft.world.phys.Vec3;
 import net.tslat.smartbrainlib.util.BrainUtils;
 import org.jetbrains.annotations.Nullable;
 
+/**
+ * Static helpers for the dinosaur need bars (hunger/thirst/stamina/social) and threat scoring.
+ *
+ * <p>Frozen invariant: the {@link EntityDataAccessor} definitions below must stay in this
+ * class and in this order - their ids depend on class-load order together with {@code Dinosaur}
+ * and {@code DinoAnimationUtils}. Do not move or reorder them.
+ */
 public class DinoNeedsUtils {
     public static final EntityDataAccessor<Float> HUNGER = SynchedEntityData.defineId(Dinosaur.class, EntityDataSerializers.FLOAT);
     public static final EntityDataAccessor<Float> THIRST = SynchedEntityData.defineId(Dinosaur.class, EntityDataSerializers.FLOAT);
@@ -136,6 +143,8 @@ public class DinoNeedsUtils {
     public static boolean starving(Dinosaur dinosaur){return dinosaur.getEntityData().get(HUNGER) == 0.0F;}
     public static boolean dehyrdrated(Dinosaur dinosaur){return dinosaur.getEntityData().get(THIRST) == 0.0F;}
     public static boolean isExhausted(Dinosaur dinosaur){return dinosaur.getEntityData().get(STAMINA) == 0.0F;}
+
+    // TODO(BUG): checks STAMINA instead of SOCIAL (copy-paste from isExhausted);
     public static boolean isSociallyDrained(Dinosaur dinosaur){return dinosaur.getEntityData().get(STAMINA) == 0.0F;}
 
 
@@ -158,13 +167,6 @@ public class DinoNeedsUtils {
         int maxDays = starvationTime;
 
         if( (days >= maxDays) || (currentHunger <= 0)){
-            if(days >= maxDays){
-                System.err.println("Days without food: " + days);
-                System.err.println("Starvation time exceeds maximum of days!");
-            }
-            if(currentHunger <= 0){
-                System.err.println("Hunger reached zero");
-            }
             dinosaur.die(dinosaur.damageSources().starve());
             return;
         }
@@ -242,6 +244,8 @@ public class DinoNeedsUtils {
 
     }
 
+    // TODO(BUG): empty stub - the social bar never drains (and its caller's tick increment was
+    // also commented out in Dinosaur.tick());
     public static void tickSocial(){
     }
 
@@ -249,7 +253,6 @@ public class DinoNeedsUtils {
         float currentHunger = dinosaur.getEntityData().get(HUNGER);
         float maxHunger = 100;
         double hungerIncrease;
-        System.err.println(foodItem);
 
         if(dinosaur.getDinoDiet() != null) {
             hungerIncrease = dinosaur.getDinoDiet().foodMap().get(foodItem);

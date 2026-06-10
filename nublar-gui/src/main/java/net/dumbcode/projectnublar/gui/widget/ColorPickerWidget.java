@@ -12,6 +12,13 @@ import net.minecraft.util.FastColor;
 
 import java.awt.*;
 
+/**
+ * Full HSV color picker (wheel + value bar + vanilla palette + RGB/HSV edit boxes).
+ *
+ * <p>TODO(BUG): the value-bar callback inverts the value ({@code 1.0f - newValue}) while
+ * {@link DinoColorPickerWidget} does not - the two widgets must not be unified without
+ * parameterizing this inversion.
+ */
 public class ColorPickerWidget<T extends GuiEventListener> extends ParentWidget<T> {
     public static final ResourceLocation COLOR_WHEEL_BACKGROUND = new ResourceLocation(NublarGuiConstants.MODID, "textures/gui/color_wheel_background.png");
     private float currentHue = 0;
@@ -44,6 +51,7 @@ public class ColorPickerWidget<T extends GuiEventListener> extends ParentWidget<
             updateEditBoxes();
         }));
         this.valueBarWidget = this.addRenderableWidget(new VerticalGradientBarWidget(this.getX() + 81, this.getY() + 5, 12, 70, null, (oldValue, newValue) -> {
+            // TODO(BUG): inverted on purpose? DinoColorPickerWidget uses newValue directly.
             this.currentValue = 1.0f - newValue;
             this.colorWheelWidget.setBrightness(newValue);
             this.onColorChanged.onColorChanged(getCurrentColor(this.currentHue, this.currentSaturation, this.currentValue));
@@ -110,12 +118,7 @@ public class ColorPickerWidget<T extends GuiEventListener> extends ParentWidget<
             this.onColorChanged.onColorChanged(getCurrentColor(currentHue, currentSaturation, value));
         });
 
-//        this.addRenderableWidget(redEditBox);
-//        this.addRenderableWidget(greenEditBox);
-//        this.addRenderableWidget(blueEditBox);
-//        this.addRenderableWidget(hueEditBox);
-//        this.addRenderableWidget(saturationEditBox);
-//        this.addRenderableWidget(valueEditBox);
+        // Note: the edit boxes are already registered above
         this.addRenderableWidget(vanillaColorPickerWidget);
         this.addRenderableWidget(colorWheelWidget);
         this.addRenderableWidget(valueBarWidget);

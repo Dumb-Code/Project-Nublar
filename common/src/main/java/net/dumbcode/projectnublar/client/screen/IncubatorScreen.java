@@ -1,15 +1,13 @@
 package net.dumbcode.projectnublar.client.screen;
 
-import com.mojang.blaze3d.vertex.DefaultVertexFormat;
 import commonnetwork.api.Network;
+import java.util.List;
 import net.dumbcode.projectnublar.Constants;
-import net.dumbcode.projectnublar.registry.ItemInit;
 import net.dumbcode.projectnublar.menutypes.IncubatorMenu;
 import net.dumbcode.projectnublar.network.c2s.UpdateIncubatorSlotPacket;
-import net.minecraft.client.Minecraft;
+import net.dumbcode.projectnublar.registry.ItemInit;
 import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.gui.screens.inventory.AbstractContainerScreen;
-import net.minecraft.client.renderer.ShaderInstance;
 import net.minecraft.network.chat.Component;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.util.Mth;
@@ -17,18 +15,16 @@ import net.minecraft.world.entity.player.Inventory;
 import net.minecraft.world.inventory.ClickType;
 import net.minecraft.world.inventory.Slot;
 
-import java.io.IOException;
-import java.util.List;
-
+/**
+ * Screen for the incubator. Eggs live in freely-positionable slots: clicking or closing the
+ * screen sends {@link UpdateIncubatorSlotPacket} with the menu slot index (the block
+ * entity subtracts 1 - frozen off-by-design handshake, see {@code IncubatorBlockEntity}).
+ *
+ * <p>TODO(DEAD): an "incubator_bed" shader overlay was started and abandoned here (removed
+ * commented-out code); the bed is drawn with a plain texture blit instead.
+ */
 public class IncubatorScreen extends AbstractContainerScreen<IncubatorMenu> {
     private static final ResourceLocation TEXTURE = new ResourceLocation(Constants.MODID, "textures/gui/incubator.png");
-
-    private static ShaderInstance shaderManager;
-    private static final int TEXTURE_WIDTH = 334;
-    private static final int TEXTURE_HEIGHT = 222;
-
-    private static final int OVERLAY_START_X = 9;
-    private static final int OVERLAY_START_Y = 9;
 
     public static final int BED_WIDTH = 158;
     public static final int BED_HEIGHT = 115;
@@ -39,13 +35,6 @@ public class IncubatorScreen extends AbstractContainerScreen<IncubatorMenu> {
         this.imageHeight = 222;
         this.titleLabelY = -100;
         this.inventoryLabelY = -100;
-//        if (shaderManager == null) {
-//            try {
-//                shaderManager = new ShaderInstance(Minecraft.getInstance().getResourceManager(), Constants.MODID + ":incubator_bed", DefaultVertexFormat.BLIT_SCREEN);
-//            } catch (IOException e) {
-//                Constants.LOG.debug(e.getMessage());
-//            }
-//        }
     }
 
     @Override
@@ -60,30 +49,6 @@ public class IncubatorScreen extends AbstractContainerScreen<IncubatorMenu> {
         int x = this.leftPos;
         int y = (this.height - this.imageHeight) / 2;
         pGuiGraphics.blit(TEXTURE, x, y, 0, 0, imageWidth, imageHeight, 334, 222);
-//
-//        float progress = this.menu.getData().get(0) / (float)this.menu.getData().get(1);
-//
-//        RenderSystem.enableBlend();
-////        RenderSystem.enableAlphaTest();
-//        shaderManager.safeGetUniform("progress").set(progress);
-//        shaderManager.safeGetUniform("seed").set(this.menu.getPos().asLong());
-//        shaderManager.apply();
-//
-//        int left = this.leftPos + OVERLAY_START_X;
-//        int top = this.topPos + OVERLAY_START_Y;
-//        int right = left + BED_WIDTH;
-//        int bottom = top + BED_HEIGHT;
-//
-////        RenderSystem.setShaderTexture(0, new ResourceLocation("textures/block/stone.png"));
-//        BufferBuilder buff = Tesselator.getInstance().getBuilder();
-//        buff.begin(VertexFormat.Mode.QUADS, DefaultVertexFormat.POSITION_TEX);
-//        buff.vertex(left, top, 0).uv(0, 0).endVertex();
-//        buff.vertex(left, bottom, 0).uv(0, 1).endVertex();
-//        buff.vertex(right, bottom, 0).uv(1, 1).endVertex();
-//        buff.vertex(right, top, 0).uv(1, 0).endVertex();
-//
-//        Tesselator.getInstance().end();
-//        shaderManager.clear();
         pGuiGraphics.blit(TEXTURE, x + 9, y + 9, imageWidth, 0, BED_WIDTH, BED_HEIGHT, 334, 222);
         int plantmatterMax = this.menu.getData().get(1);
         int plantmatter = this.menu.getData().get(0);
@@ -102,6 +67,7 @@ public class IncubatorScreen extends AbstractContainerScreen<IncubatorMenu> {
                     x = 0;
                     y = -100;
                 }
+                // pSlotId is the menu slot index; the block entity subtracts 1
                 Network.getNetworkHandler().sendToServer(new UpdateIncubatorSlotPacket(menu.getPos(), pSlotId, x, y));
             }
         }

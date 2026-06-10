@@ -36,6 +36,24 @@ import java.util.function.BiPredicate;
 import java.util.function.Consumer;
 import java.util.stream.Stream;
 
+/**
+ * A filterable dropdown: a vanilla-EditBox-style filter line plus an expandable four-row entry
+ * list with a proportional scrollbar.
+ *
+ * <p>The class intentionally keeps four tightly-coupled concerns in one place, because they share
+ * mutable state ({@code value} drives the filtering, {@code insertText} resets the scroll):
+ *
+ * <ol>
+ *   <li><b>Dropdown shell</b>: {@code renderWidget}, {@code getHeight}, {@code mouseClicked},
+ *       {@code mouseScrolled}, {@code getEntryAtPosition};
+ *   <li><b>Filter box</b> (vendored fork of vanilla {@code EditBox}): the {@code value}/cursor/
+ *       highlight state, {@code keyPressed}/{@code charTyped}, {@code renderFilter},
+ *       {@code renderHighlight}, and the accessor block below them;
+ *   <li><b>Entry list</b>: {@code entries}/{@code entriesFiltered}, add/remove/select;
+ *   <li><b>{@link SelectionEntry}</b>: one row's data and rendering.
+ * </ol>
+ *
+ */
 public class FilteredSelectionWidget<T, E extends FilteredSelectionWidget.SelectionEntry<T>> extends AbstractWidget implements GuiEventListener {
     private static final ResourceLocation ICON_OVERLAY_LOCATION = new ResourceLocation("textures/gui/resource_packs.png");
     private static final int ENTRY_HEIGHT = 18;
@@ -99,8 +117,8 @@ public class FilteredSelectionWidget<T, E extends FilteredSelectionWidget.Select
         int x = this.getX();
         int y = this.getY();
 
-        // render(guiGraphics, x, y, this.width, this.height);
-
+        // TODO(DEAD): the collapsed-state title render (render(...)) was already commented out
+        // in the original; only the filter line and the arrow icon are drawn.
         if (extended) {
             int boxHeight = Math.max(1, ENTRY_HEIGHT * Math.min(entriesFiltered.size(), 4)) + 2;
 
@@ -162,9 +180,6 @@ public class FilteredSelectionWidget<T, E extends FilteredSelectionWidget.Select
         if (visible && active && pMouseX >= (x + width - 17) && pMouseX <= x + width && pMouseY >= y && pMouseY <= y + getHeight()) {
             int maxX = x + width - (entries.size() > 4 ? 5 : 0);
             int maxY = y + ENTRY_HEIGHT * Math.min(entries.size() + 1, 5);
-            //            if (extended && pMouseX < maxX && pMouseY > (y + ENTRY_HEIGHT) && pMouseY < maxY) {
-            //                setSelected(getEntryAtPosition(pMouseX, pMouseY), true);
-            //            }
 
             if (pMouseX < maxX) {
                 extended = !extended;
@@ -209,8 +224,6 @@ public class FilteredSelectionWidget<T, E extends FilteredSelectionWidget.Select
                 return true;
             }
         }
-        //        extended = false;
-        //        scrollOffset = 0;
 
         return super.mouseClicked(pMouseX, pMouseY, pButton);
     }
@@ -240,9 +253,6 @@ public class FilteredSelectionWidget<T, E extends FilteredSelectionWidget.Select
         int y = this.getY();
         return pMouseX >= x && pMouseY >= y && pMouseX < (x + width) && pMouseY < (y + getHeight());
     }
-    //    public boolean isMouseOver(double pMouseX, double pMouseY) {
-    //        return this.visible && pMouseX >= (double)this.x && pMouseX < (double)(this.x + this.width) && pMouseY >= (double)this.y && pMouseY < (double)(this.y + this.height);
-    //    }
 
     @Nullable
     private E getEntryAtPosition(double mouseX, double mouseY) {

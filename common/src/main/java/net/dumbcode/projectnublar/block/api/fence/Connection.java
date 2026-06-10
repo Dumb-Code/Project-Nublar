@@ -30,13 +30,38 @@ import java.util.Random;
 import java.util.stream.IntStream;
 
 
+/**
+ * One wire segment of an electric fence, running between two posts ({@code from}/{@code to}) at a
+ * vertical {@code offset}, passing through {@code position}. Combines three concerns that share
+ * the same intersection data ({@code in}):
+ *
+ * <ul>
+ *   <li><b>Geometry</b>: the rotated ray boxes and collision shape used for picking/collision -
+ *       all math here is numerically frozen ({@code RotatedRayBox}, {@code LineUtils}).
+ *   <li><b>Persistence</b>: {@link #writeToNBT}/{@link #fromNBT} with frozen tag names
+ *       ({@code id}, {@code offset}, {@code from}, {@code to}, {@code sign}, {@code next},
+ *       {@code previous}, {@code broken}).
+ *   <li><b>Rendering</b>: precomputed vertex arrays ({@link RenderData}) consumed by
+ *       {@code RenderUtils.drawSpacedCube}.
+ * </ul>
+ */
 public class Connection {
+
+    // NBT tag names (frozen save contracts).
+    private static final String ID_TAG = "id";
+    private static final String OFFSET_TAG = "offset";
+    private static final String FROM_TAG = "from";
+    private static final String TO_TAG = "to";
+    private static final String SIGN_TAG = "sign";
+    private static final String NEXT_TAG = "next";
+    private static final String PREVIOUS_TAG = "previous";
+    private static final String BROKEN_TAG = "broken";
 
     private final Runnable reRenderCallback;
     private final ConnectionType type;
 
     private final double offset;
-    //Used to help compare Connections
+    /** Used to help compare Connections. */
     private final int toFromHash;
     private final BlockPos from;
     private final BlockPos to;
@@ -44,7 +69,7 @@ public class Connection {
     private final BlockPos next;
     private final BlockPos previous;
 
-    boolean sign;
+    private boolean sign;
 
     private final BlockPos position;
     private final int compared;
@@ -71,17 +96,8 @@ public class Connection {
 
     public Connection(BlockEntity internalBlockEntity, ConnectionType type, double offset, BlockPos from, BlockPos to, BlockPos previous, BlockPos next, BlockPos position) {
         this(() -> {
-//            internalBlockEntity.requestModelDataUpdate();
             Level level = internalBlockEntity.getLevel();
-            if(level != null) {
-//                TileEntity p = level.getBlockEntity(previous);
-//                if(p instanceof ConnectableBlockEntity) {
-//                    p.requestModelDataUpdate();
-//                }
-//                TileEntity n = level.getBlockEntity(next);
-//                if(n instanceof ConnectableBlockEntity) {
-//                    n.requestModelDataUpdate();
-//                }
+            if (level != null) {
                 level.sendBlockUpdated(position, Blocks.AIR.defaultBlockState(), internalBlockEntity.getBlockState(), 3);
             }
         }, type, offset, from, to, previous, next, position);
@@ -135,8 +151,8 @@ public class Connection {
         this.prevCache = this.genCache(false);
         this.nextCache = this.genCache(true);
 
-        //todo: fix this
-//        DistExecutor.unsafeRunWhenOn(Dist.CLIENT, () -> () -> this.renderData = this.buildRenderData());
+        // TODO(BUG): render data is built on both logical sides (a pre-existing note asked to
+        // restrict this to the client via DistExecutor).
         this.renderData = this.buildRenderData();
 
         VoxelShape collisionShape = Shapes.empty();
@@ -205,29 +221,28 @@ public class Connection {
     }
 
     public CompoundTag writeToNBT(CompoundTag nbt) {
-        nbt.putString("id", this.type.getRegistryName().toString());
-        nbt.putDouble("offset", this.offset);
-        nbt.put("from", NbtUtils.writeBlockPos(this.getFrom()));
-            nbt.put("to", NbtUtils.writeBlockPos(this.getTo()));
-        nbt.putBoolean("sign", this.sign);
-        nbt.put("next", NbtUtils.writeBlockPos(this.next));
-        nbt.put("previous", NbtUtils.writeBlockPos(this.previous));
-        nbt.putBoolean("broken", this.broken);
+        nbt.putString(ID_TAG, this.type.getRegistryName().toString());
+        nbt.putDouble(OFFSET_TAG, this.offset);
+        nbt.put(FROM_TAG, NbtUtils.writeBlockPos(this.getFrom()));
+        nbt.put(TO_TAG, NbtUtils.writeBlockPos(this.getTo()));
+        nbt.putBoolean(SIGN_TAG, this.sign);
+        nbt.put(NEXT_TAG, NbtUtils.writeBlockPos(this.next));
+        nbt.put(PREVIOUS_TAG, NbtUtils.writeBlockPos(this.previous));
+        nbt.putBoolean(BROKEN_TAG, this.broken);
         return nbt;
     }
-
 
     public static Connection fromNBT(CompoundTag nbt, BlockEntity tileEntity) {
         return new Connection(
             tileEntity,
-            ConnectionType.getType(new ResourceLocation(nbt.getString("id"))),
-            nbt.getDouble("offset"),
-            NbtUtils.readBlockPos(nbt.getCompound("from")),
-            NbtUtils.readBlockPos(nbt.getCompound("to")),
-            NbtUtils.readBlockPos(nbt.getCompound("previous")),
-            NbtUtils.readBlockPos(nbt.getCompound("next")),
+            ConnectionType.getType(new ResourceLocation(nbt.getString(ID_TAG))),
+            nbt.getDouble(OFFSET_TAG),
+            NbtUtils.readBlockPos(nbt.getCompound(FROM_TAG)),
+            NbtUtils.readBlockPos(nbt.getCompound(TO_TAG)),
+            NbtUtils.readBlockPos(nbt.getCompound(PREVIOUS_TAG)),
+            NbtUtils.readBlockPos(nbt.getCompound(NEXT_TAG)),
             tileEntity.getBlockPos()
-        ).silentlySetBroken(nbt.getBoolean("broken")).setSign(nbt.getBoolean("sign"));
+        ).silentlySetBroken(nbt.getBoolean(BROKEN_TAG)).setSign(nbt.getBoolean(SIGN_TAG));
     }
 
     public boolean lazyEquals(Connection con) {
@@ -256,6 +271,12 @@ public class Connection {
         return true;
     }
 
+    /**
+     * TODO(BUG): the energy integration is unfinished (pre-existing "todo: energy" notes). The
+     * final {@code return false} means an unbroken, unpowered fence never shocks; whether the
+     * energy loop above ever returns true is part of the current (buggy) behavior and must not
+     * be changed.
+     */
     public boolean isPowered(BlockGetter world) {
         for (BlockPos pos : LineUtils.getBlocksInbetween(this.from, this.to, this.offset)) {
             BlockEntity te = world.getBlockEntity(pos);
@@ -268,14 +289,12 @@ public class Connection {
             }
         }
 
-        //todo: energy
         for (BlockPos pos : Lists.newArrayList(this.from, this.to)) {
             BlockEntity te = world.getBlockEntity(pos);
-            if (te instanceof BotariumEnergyBlock wbec && wbec.getEnergyStorage().getStoredEnergy() > 0) {
+            if (te instanceof BotariumEnergyBlock<?> wbec && wbec.getEnergyStorage().getStoredEnergy() > 0) {
                 return true;
             }
         }
-//todo: return to false when energy
         return false;
     }
 

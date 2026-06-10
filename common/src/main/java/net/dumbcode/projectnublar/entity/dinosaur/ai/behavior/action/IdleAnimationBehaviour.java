@@ -4,7 +4,8 @@ import net.minecraft.world.entity.LivingEntity;
 import net.tslat.smartbrainlib.api.core.behaviour.custom.misc.Idle;
 import software.bernie.geckolib.animatable.GeoEntity;
 
-public class  IdleAnimationBehaviour<E extends LivingEntity & GeoEntity> extends Idle<E> {
+// TODO(DEAD): not wired into any activity group. Left unwired on purpose.
+public class IdleAnimationBehaviour<E extends LivingEntity & GeoEntity> extends Idle<E> {
 
 
     @Override

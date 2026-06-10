@@ -1,7 +1,8 @@
 package net.dumbcode.projectnublar.api.dinosaur;
 
-import net.dumbcode.projectnublar.ProjectNublar;
+import java.util.List;
 import net.dumbcode.projectnublar.Constants;
+import net.dumbcode.projectnublar.ProjectNublar;
 import net.dumbcode.projectnublar.api.fossil.FossilPiece;
 import net.dumbcode.projectnublar.api.fossil.FossilPieces;
 import net.dumbcode.projectnublar.api.fossil.Quality;
@@ -16,15 +17,34 @@ import net.minecraft.world.entity.animal.TropicalFish;
 import net.minecraft.world.item.DyeColor;
 import net.minecraft.world.item.ItemStack;
 
-import java.util.List;
-
+/**
+ * A single DNA sample: source entity type (plus optional variant), DNA percentage, originating
+ * fossil piece/quality, and embryo flag.
+ *
+ * <p>Serialized into the {@code DNAData} compound on item stacks; every tag-name string below is
+ * a frozen save contract. Note that {@code SyringeItem} additionally writes a root-level
+ * {@code Embryo} boolean outside this compound - that inconsistency is preserved elsewhere.
+ */
 public class DNAData {
+    private static final String DNA_DATA_TAG = "DNAData";
+    private static final String ENTITY_TYPE_KEY = "entityType";
+    private static final String DNA_PERCENTAGE_KEY = "dnaPercentage";
+    private static final String VARIANT_KEY = "variant";
+    private static final String FOSSIL_PIECE_KEY = "fossilPiece";
+    private static final String QUALITY_KEY = "quality";
+    private static final String IS_EMBRYO_KEY = "isEmbryo";
+
+    private static final String QUALITY_TRANSLATION_PREFIX = "quality.";
+    private static final String TROPICAL_TOOLTIP_KEY = "tooltip." + Constants.MODID + ".tropical";
+    private static final String COLOR_TRANSLATION_PREFIX = "color.minecraft.";
+
     private EntityType<?> entityType;
     private double dnaPercentage;
     private String variant;
     private FossilPiece fossilPiece;
     private Quality quality;
-    boolean isEmbryo;
+    private boolean isEmbryo;
+    /** Tropical-fish pattern/base colors; BLACK doubles as the "not a tropical fish" sentinel. */
     private DyeColor tFish1 = DyeColor.BLACK;
     private DyeColor tFish2 = DyeColor.BLACK;
 
@@ -47,11 +67,9 @@ public class DNAData {
         this.entityType = entityType;
     }
 
+    // TODO(DEAD): a quality-based DNA yield (from the old FossilsConfig) was planned here but
+    // never finished; both branches returned the raw percentage, so the branch was removed.
     public double getDnaPercentage() {
-        if (quality != null) {
-            //  return FossilsConfig.getQuality(quality.getName()).dnaYield().get() / 100d;
-            return dnaPercentage;
-        }
         return dnaPercentage;
     }
 
@@ -75,9 +93,9 @@ public class DNAData {
         isEmbryo = embryo;
     }
 
-   public FossilPiece getFossilPiece() {
+    public FossilPiece getFossilPiece() {
         return fossilPiece;
-   }
+    }
 
     public void setFossilPiece(FossilPiece fossilPiece) {
         this.fossilPiece = fossilPiece;
@@ -99,19 +117,24 @@ public class DNAData {
         return BuiltInRegistries.ENTITY_TYPE.getKey(entityType).getPath();
     }
 
-
     public String getStorageName() {
-        return BuiltInRegistries.ENTITY_TYPE.getKey(entityType) + (variant == null ? "" : "_" + variant);
+        return createStorageKey(entityType, variant);
     }
 
     public static void createTooltip(ItemStack stack, List<Component> tooltip) {
         if (stack.hasTag()) {
-            DNAData dnaData = loadFromNBT(stack.getTag().getCompound("DNAData"));
+            DNAData dnaData = loadFromNBT(stack.getTag().getCompound(DNA_DATA_TAG));
             tooltip.add(dnaData.getFormattedType());
-            if (dnaData.getDnaPercentage() != 0)
+            if (dnaData.getDnaPercentage() != 0) {
                 tooltip.add(dnaData.getFormattedDNA());
+            }
             if (dnaData.getQuality() != null) {
-                tooltip.add(Component.translatable("quality." + Constants.MODID + "." + dnaData.getQuality().getName()));
+                tooltip.add(
+                        Component.translatable(
+                                QUALITY_TRANSLATION_PREFIX
+                                        + Constants.MODID
+                                        + "."
+                                        + dnaData.getQuality().getName()));
             }
             if (dnaData.variant != null) {
                 tooltip.add(Component.literal(ProjectNublar.checkReplace(dnaData.variant)));
@@ -122,7 +145,11 @@ public class DNAData {
 
     public void addTFishTT(List<Component> tooltip) {
         if (tFish1 != DyeColor.BLACK) {
-            tooltip.add(Component.translatable("tooltip." + Constants.MODID + ".tropical", Component.translatable("color.minecraft." + tFish1.getName()), Component.translatable("color.minecraft." + tFish2.getName())));
+            tooltip.add(
+                    Component.translatable(
+                            TROPICAL_TOOLTIP_KEY,
+                            Component.translatable(COLOR_TRANSLATION_PREFIX + tFish1.getName()),
+                            Component.translatable(COLOR_TRANSLATION_PREFIX + tFish2.getName())));
         }
     }
 
@@ -143,10 +170,11 @@ public class DNAData {
     public MutableComponent getFormattedType() {
         String localVariant = "";
         if (getVariant() != null) {
-            if (entityType.getDescription().getString().toLowerCase().contains("parrot"))
+            if (entityType.getDescription().getString().toLowerCase().contains("parrot")) {
                 localVariant = ProjectNublar.checkReplace(variant);
-            else if (entityType.getDescription().getString().toLowerCase().contains("cat"))
+            } else if (entityType.getDescription().getString().toLowerCase().contains("cat")) {
                 localVariant = ProjectNublar.checkReplace(new ResourceLocation(variant).getPath());
+            }
         }
         return Component.literal(localVariant + getEntityType().getDescription().getString());
     }
@@ -160,16 +188,20 @@ public class DNAData {
     }
 
     public CompoundTag saveToNBT(CompoundTag tag) {
-        tag.putString("entityType", BuiltInRegistries.ENTITY_TYPE.getKey(entityType).toString());
-        if (dnaPercentage != 0)
-            tag.putDouble("dnaPercentage", dnaPercentage);
-        if (variant != null)
-            tag.putString("variant", variant);
-        if (fossilPiece != null)
-            tag.putString("fossilPiece", fossilPiece.name());
-        if (quality != null)
-            tag.putString("quality", quality.getName());
-        tag.putBoolean("isEmbryo", isEmbryo);
+        tag.putString(ENTITY_TYPE_KEY, BuiltInRegistries.ENTITY_TYPE.getKey(entityType).toString());
+        if (dnaPercentage != 0) {
+            tag.putDouble(DNA_PERCENTAGE_KEY, dnaPercentage);
+        }
+        if (variant != null) {
+            tag.putString(VARIANT_KEY, variant);
+        }
+        if (fossilPiece != null) {
+            tag.putString(FOSSIL_PIECE_KEY, fossilPiece.name());
+        }
+        if (quality != null) {
+            tag.putString(QUALITY_KEY, quality.getName());
+        }
+        tag.putBoolean(IS_EMBRYO_KEY, isEmbryo);
         return tag;
     }
 
@@ -180,22 +212,27 @@ public class DNAData {
 
     public static DNAData loadFromNBT(CompoundTag tag) {
         DNAData dnaData = new DNAData();
-        dnaData.setEntityType(BuiltInRegistries.ENTITY_TYPE.get(new ResourceLocation(tag.getString("entityType"))));
-        if (tag.contains("dnaPercentage"))
-            dnaData.setDnaPercentage(tag.getDouble("dnaPercentage"));
-        if (tag.contains("variant"))
-            dnaData.setVariant(tag.getString("variant"));
-        if (tag.contains("fossilPiece"))
-            dnaData.setFossilPiece(FossilPieces.getPieceByName(tag.getString("fossilPiece")));
-        if (tag.contains("quality"))
-            dnaData.setQuality(Quality.byName(tag.getString("quality")));
-        dnaData.setEmbryo(tag.getBoolean("isEmbryo"));
+        dnaData.setEntityType(
+                BuiltInRegistries.ENTITY_TYPE.get(new ResourceLocation(tag.getString(ENTITY_TYPE_KEY))));
+        if (tag.contains(DNA_PERCENTAGE_KEY)) {
+            dnaData.setDnaPercentage(tag.getDouble(DNA_PERCENTAGE_KEY));
+        }
+        if (tag.contains(VARIANT_KEY)) {
+            dnaData.setVariant(tag.getString(VARIANT_KEY));
+        }
+        if (tag.contains(FOSSIL_PIECE_KEY)) {
+            dnaData.setFossilPiece(FossilPieces.getPieceByName(tag.getString(FOSSIL_PIECE_KEY)));
+        }
+        if (tag.contains(QUALITY_KEY)) {
+            dnaData.setQuality(Quality.byName(tag.getString(QUALITY_KEY)));
+        }
+        dnaData.setEmbryo(tag.getBoolean(IS_EMBRYO_KEY));
         return dnaData;
     }
 
+    /** Reads the sample from a storage-drive stack; the entityType parameter is unused. */
     public static DNAData fromDrive(ItemStack stack, EntityType<?> entityType) {
-
-        return loadFromNBT(stack.getTag().getCompound("DNAData"));
+        return loadFromNBT(stack.getTag().getCompound(DNA_DATA_TAG));
     }
 
     public static String createStorageKey(EntityType<?> entityType, String variant) {

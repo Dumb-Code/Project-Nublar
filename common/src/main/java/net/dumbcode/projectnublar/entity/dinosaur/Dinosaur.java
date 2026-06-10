@@ -78,7 +78,42 @@ import java.util.*;
 
 import static net.dumbcode.projectnublar.util.DinoAnimationUtils.IS_ROARING_STATE;
 
+/**
+ * Base class of every dinosaur entity: genetics ({@link DinoData}), datapack behaviour profile,
+ * needs (hunger/thirst/stamina/social), breeding, growth stages, multipart support, and the
+ * SmartBrainLib brain definition.
+ *
+ * <p><b>Frozen invariants:</b> the {@link EntityDataAccessor} declarations below must stay in
+ * this class and in this order (their ids depend on class-load order together with
+ * {@code DinoAnimationUtils} and {@code DinoNeedsUtils}); the {@code defineSynchedData} call
+ * order is a network contract; every NBT tag name is a save contract; all numeric constants are
+ * behavioral contracts.
+ *
+ * <p>Note: {@link #getLayers()} calls into the client-only {@code CommonClientClass}
+ * (pre-existing client/server mixing).
+ */
 public abstract class Dinosaur extends TamableAnimal implements FossilRevived, GeoEntity, SmartBrainOwner<Dinosaur>,GeoAnimatable{
+
+    // Growth-stage age thresholds (age counts up from negative to 0 = adult).
+    public static final int BABY_MAX_AGE = -18000;
+    public static final int JUVENILE_MAX_AGE = -12000;
+    public static final int SUB_ADULT_MAX_AGE = -6000;
+
+    // Breeding cooldown starts at 500, retries above a 50% roll, resets at 2000.
+    private static final int INITIAL_BREEDING_COOLDOWN = 500;
+    private static final int BREEDING_COOLDOWN_RESET = 2000;
+    private static final int BREEDING_ATTEMPT_THRESHOLD = 50;
+
+    // Need-ticking intervals/amounts.
+    private static final int STAMINA_DRAIN_INTERVAL_TICKS = 20;
+    private static final int REST_RECOVERY_INTERVAL_TICKS = 20;
+    private static final float REST_STAMINA_RECOVERY = 10F;
+    private static final int SOCIAL_DRAIN_INTERVAL_TICKS = 300;
+    private static final long DAY_LENGTH = 24000L;
+    private static final long NOCTURNAL_ACTIVE_START = 12000;
+    private static final long NOCTURNAL_ACTIVE_END = 23999;
+    private static final long DIURNAL_ACTIVE_START = 0;
+    private static final long DIURNAL_ACTIVE_END = 12000;
 
     public static EntityDataAccessor<DinoData> DINO_DATA = SynchedEntityData.defineId(Dinosaur.class, DataSerializerInit.DINO_DATA);
     public static EntityDataAccessor<CompoundTag> DINO_BEHAVIOUR = SynchedEntityData.defineId(Dinosaur.class, EntityDataSerializers.COMPOUND_TAG);
@@ -104,7 +139,7 @@ public abstract class Dinosaur extends TamableAnimal implements FossilRevived, G
     private int daysSincelastDrink;
     private boolean eatenToday;
     private int socialDrainTick;
-    private int breedingCoolDown = 500;
+    private int breedingCoolDown = INITIAL_BREEDING_COOLDOWN;
     private int flinchAnimLength;
     public DinosaurPart[] subEntities;
     private int cachedDayTime;
@@ -129,7 +164,8 @@ public abstract class Dinosaur extends TamableAnimal implements FossilRevived, G
 
     }
 
-    //STOP THE GAME DESPAWNING AFTER DEATH
+    // TODO(BUG): overridden empty (original intent: "stop the game despawning after death"), so
+    // dead dinosaurs never complete the vanilla death pipeline (death timer, removal, poof).
     @Override
     protected void tickDeath() {
     }
@@ -310,6 +346,8 @@ public abstract class Dinosaur extends TamableAnimal implements FossilRevived, G
         this.entityData.set(DinoNeedsUtils.THIRST, pTag.getFloat("thirst_bar"));
         this.entityData.set(DinoNeedsUtils.STAMINA, pTag.getFloat("stamina_bar"));
         this.entityData.set(DinoNeedsUtils.SOCIAL, pTag.getFloat("social_bar"));
+        // TODO(BUG): all four age flags are read from "baby_age_boolean"; the dedicated
+        // juvenile/sub_adult/adult keys are written in addAdditionalSaveData but never read.
         this.entityData.set(BABY_DATA_ID, pTag.getBoolean("baby_age_boolean"));
         this.entityData.set(JUVENILE_DATA_ID, pTag.getBoolean("baby_age_boolean"));
         this.entityData.set(SUB_ADULT_DATA_ID, pTag.getBoolean("baby_age_boolean"));
@@ -383,6 +421,8 @@ public abstract class Dinosaur extends TamableAnimal implements FossilRevived, G
         return validfood.foodMap().containsKey(stack.getDescriptionId());
     }
 
+    // TODO(BUG): always applies a generic damage source, discarding the real source (attacker,
+    // armor bypass flags, etc.) passed in by the part entity.
     public boolean hurtFromPart(DinosaurPart part, DamageSource source, float amount) {
         return this.hurt(this.damageSources().generic(), amount);
     }
@@ -513,9 +553,8 @@ public abstract class Dinosaur extends TamableAnimal implements FossilRevived, G
     public BrainActivityGroup<? extends Dinosaur> getCoreTasks() {
         return BrainActivityGroup.coreTasks(
                 new DinosaurLookAtTarget<>().stopIf((entity) -> (entity instanceof Dinosaur dinosaur) && (dinosaur.isResting() || dinosaur.isDrinking() || dinosaur.isDeadOrDying())),
-            //   new ThreatDisplay<>(34) //- needs to be made more situational so it happens more
-              //      .whenStarting(dinosaur -> dinosaur.entityData.set(IS_ROARING_STATE, true))
-                //    .whenStopping(dinosaur -> dinosaur.entityData.set(IS_ROARING_STATE,false)),
+                // TODO(DEAD): ThreatDisplay(34) was commented out of the core tasks ("needs to be
+                // made more situational"); intentionally left unwired.
                 new MoveToWalkTarget<>().stopIf((entity) -> (entity instanceof Dinosaur dinosaur) && (dinosaur.isResting() || dinosaur.isDrinking() || dinosaur.isDeadOrDying())) ,
                 new SetHunting<>(),
                 new SetWalkTargetToWaterSource<>().closeEnoughWhen((entity, pos)-> 3),
@@ -529,7 +568,7 @@ public abstract class Dinosaur extends TamableAnimal implements FossilRevived, G
     public BrainActivityGroup<? extends Dinosaur> getIdleTasks() {
         return BrainActivityGroup.idleTasks(
                 new FirstApplicableBehaviour(
-                //        new Panic<>(),
+                        // TODO(DEAD): a Panic behaviour was commented out here; left unwired.
                         new Drink<>(100)
                                 .whenStarting(dinosaur -> DinoAnimationUtils.setAnimationState(dinosaur,"drink",true))
                                 .whenStopping(dinosaur ->  DinoAnimationUtils.setAnimationState(dinosaur,"drink",false)),
@@ -543,7 +582,7 @@ public abstract class Dinosaur extends TamableAnimal implements FossilRevived, G
                                 .whenStarting(dinosaur -> DinoAnimationUtils.setAnimationState(dinosaur,"getup",true))
                                 .whenStopping(dinosaur ->DinoAnimationUtils.setAnimationState(dinosaur,"getup",false)),
                        new SoloHuntingBehaviour<>()
-                                .attackablePredicate(entity -> canTarget(entity))
+                                .attackablePredicate(this::canTarget)
                                 .startCondition(dinosaur -> dinosaur instanceof CarnivoreDinosaur),
                         new SoloHuntRoamBehaviour<>()
                                 .dontAvoidWater()
@@ -569,20 +608,20 @@ public abstract class Dinosaur extends TamableAnimal implements FossilRevived, G
     }
     private int flinchAnimTicks;
     private int restTicks;
+
+    /**
+     * The server-side tick is a fixed sequence of steps; the call order below matches the
+     * original inline code exactly and must not change.
+     */
     @Override
     public void tick() {
         super.tick();
 
-        if(this.entityData.get(DinoAnimationUtils.IS_FLINCHING_STATE)){
-            flinchAnimTicks++;
-            if(flinchAnimTicks > this.flinchAnimLength){
-                this.entityData.set(DinoAnimationUtils.IS_FLINCHING_STATE, false);
-                flinchAnimTicks = 0;
-            }
-        }
+        tickFlinchAnimation();
 
         if(!level().isClientSide() && !this.isDeadOrDying()) {
-         //   this.socialDrainTick++;
+            // TODO(BUG): the socialDrainTick++ increment was commented out in the original, so
+            // the social-drain branch below never fires.
             if(this.isResting()) {
                 this.restTicks++;
             }
@@ -590,156 +629,218 @@ public abstract class Dinosaur extends TamableAnimal implements FossilRevived, G
                 this.staminaDrainTick++;
             }
 
-            if(this.isBaby() && !this.entityData.get(BABY_DATA_ID)){
-                this.entityData.set(BABY_DATA_ID, true);
-            } else if (!this.isBaby() && this.entityData.get(BABY_DATA_ID)){
-                this.entityData.set(BABY_DATA_ID, false);
-            }
-            if(this.isJuvanile() && !this.entityData.get(JUVENILE_DATA_ID)){
-                this.entityData.set(JUVENILE_DATA_ID, true);
-            } else if (!this.isJuvanile() && this.entityData.get(JUVENILE_DATA_ID)){
-                this.entityData.set(JUVENILE_DATA_ID, false);
-            }
-            if(this.isSubAdult() && !this.entityData.get(SUB_ADULT_DATA_ID)){
-                this.entityData.set(SUB_ADULT_DATA_ID, true);
-            } else if (!this.isSubAdult() && this.entityData.get(SUB_ADULT_DATA_ID)){
-                this.entityData.set(SUB_ADULT_DATA_ID, false);
-            }
-            if(this.age >= 0 && !this.entityData.get(ADULT_DATA_ID)){
-                this.entityData.set(ADULT_DATA_ID, true);
-            } else if (this.age < 0 && this.entityData.get(ADULT_DATA_ID)){
-                this.entityData.set(ADULT_DATA_ID, false);
-            }
-
-          if(this.breedingCoolDown == 0){
-                if(this.getDinoGender() == 1.0F && this.hasMate()) {
-                    this.tryBreedWithMate();
-                    this.breedingCoolDown++;
-                }
-            }
-            if(this.breedingCoolDown >= 1){
-                this.breedingCoolDown++;
-            }
-            if(this.breedingCoolDown > 2000){
-                this.breedingCoolDown = 0;
-            }
-
-            if(this.staminaDrainTick >= 20 && this.shouldTickStamina()){
-                DinoNeedsUtils.tickStamina(this);
-                if(DinoNeedsUtils.isTired(this) && !BrainUtils.hasMemory(this, MemoryModuleTypeInit.IS_TIRED.get())){
-                    BrainUtils.setMemory(this, MemoryModuleTypeInit.IS_TIRED.get(), true);
-                }
-                this.staminaDrainTick = 0;
-            }
-
-            if(this.isResting() && restTicks >= 20){
-                if(DinoNeedsUtils.getMaxStamina(this) > DinoNeedsUtils.getCurrentStamina(this)) {
-                    float stamina = DinoNeedsUtils.getCurrentStamina(this);
-                    float newStamina = stamina + 10F;
-                    DinoNeedsUtils.setCurrentStamina(this, newStamina);
-                }
-                restTicks = 0;
-            }
-
-
-            if(this.socialDrainTick >= 300){
-                DinoNeedsUtils.tickSocial();
-                this.socialDrainTick = 0;
-            }
-
-            if(cachedDayTime != (int) this.level().getDayTime() / 24000L){
-                cachedDayTime = (int) (this.level().getDayTime() / 24000L);
-                this.isNewDay = true;
-            }
+            syncGrowthStageFlags();
+            tickBreedingCooldown();
+            tickStaminaDrain();
+            tickRestRecovery();
+            tickSocialDrain();
+            detectNewDay();
             if(this.isNewDay){
-                boolean eatenToday = Boolean.TRUE.equals(BrainUtils.getMemory(this, MemoryModuleTypeInit.EATEN_TODAY.get()));
-                boolean drankToday = Boolean.TRUE.equals(BrainUtils.getMemory(this, MemoryModuleTypeInit.DRANK_TODAY.get()));
-                if(!eatenToday){
-                    if(BrainUtils.hasMemory(this,MemoryModuleTypeInit.DAYS_SINCE_LAST_FED.get())) {
-                        daysSincelastAte = BrainUtils.getMemory(this,MemoryModuleTypeInit.DAYS_SINCE_LAST_FED.get());
-                    } else { daysSincelastAte = 0; }
-                        daysSincelastAte++;
-
-                    BrainUtils.setMemory(this, MemoryModuleTypeInit.DAYS_SINCE_LAST_FED.get(), daysSincelastAte);
-                }
-                if(!drankToday){
-                    if(BrainUtils.hasMemory(this,MemoryModuleTypeInit.DAYS_SINCE_LAST_DRANK.get())) {
-                        daysSincelastDrink = BrainUtils.getMemory(this,MemoryModuleTypeInit.DAYS_SINCE_LAST_DRANK.get());
-                    } else { daysSincelastDrink = 0;}
-
-                    daysSincelastDrink++;
-
-                    BrainUtils.setMemory(this, MemoryModuleTypeInit.DAYS_SINCE_LAST_DRANK.get(), daysSincelastDrink);
-                }
-
-                this.isNewDay = false;
-                BrainUtils.setMemory(this,MemoryModuleTypeInit.MEAL_COUNTER.get(), 0);
-                BrainUtils.setMemory(this, MemoryModuleTypeInit.DRANK_TODAY.get(), false);
-                BrainUtils.setMemory(this, MemoryModuleTypeInit.EATEN_TODAY.get(), false);
-                DinoNeedsUtils.tickThirst(this,this.daysSincelastDrink,this.getDinoBehaviour().dehydrationLimit());
-                DinoNeedsUtils.tickHunger(this,this.daysSincelastAte,this.getDinoBehaviour().starvationLimit());
-
-                long activeStart;
-                long activeEnd;
-
-                if(this.getDinoBehaviour().isNocturnal()){
-                    activeStart = 12000;
-                    activeEnd = 23999;
-                } else {
-                    activeStart = 0;
-                    activeEnd = 12000;
-                }
-                Random random = new Random();
-
-                for (int i = 0; i < this.getDinoBehaviour().eatRate() - 1; i++) {
-                    long hungerTime = random.nextInt((int)activeStart,(int) activeEnd);
-                    hungerSchedule.add(hungerTime);
-                }
-                for (int i = 0; i < this.getDinoBehaviour().drinkRate() - 1; i++) {
-                    long thirstTime = random.nextInt((int)activeStart,(int) activeEnd);
-                    thirstSchedule.add(thirstTime);
-                }
+                processNewDay();
             }
-            if(!thirstSchedule.isEmpty()) {
-                int toRemove = -1;
-                int i = 0;
-
-                for (long thirstTime : thirstSchedule) {
-                    if (this.level().getDayTime() % 24000 >= thirstTime) {
-                        toRemove = i;
-                        DinoNeedsUtils.tickThirst(this, this.daysSincelastDrink, this.getDinoBehaviour().dehydrationLimit());
-                    }
-                    i++;
-                }
-                if(toRemove != -1) {
-                    thirstSchedule.remove(toRemove);
-                }
-            }
-            if(!hungerSchedule.isEmpty()) {
-                int toRemove = -1;
-                int i = 0;
-
-                for (long hungerTime : hungerSchedule) {
-                    if (this.level().getDayTime() % 24000 >= hungerTime) {
-                        toRemove = i;
-                        DinoNeedsUtils.tickHunger(this, this.daysSincelastAte, this.getDinoBehaviour().starvationLimit());
-                    }
-                    i++;
-                }
-                if(toRemove != -1) {
-                    hungerSchedule.remove(toRemove);
-                }
-            }
+            processThirstSchedule();
+            processHungerSchedule();
             if(!DinoNeedsUtils.isHungry(this) && BrainUtils.hasMemory(this, MemoryModuleTypeInit.HUNTING.get())){
                 BrainUtils.clearMemory(this, MemoryModuleTypeInit.HUNTING.get());
             }
         }
     }
+
+    /** Counts down the flinch animation and clears the flag when it has played out. */
+    private void tickFlinchAnimation() {
+        if(this.entityData.get(DinoAnimationUtils.IS_FLINCHING_STATE)){
+            flinchAnimTicks++;
+            if(flinchAnimTicks > this.flinchAnimLength){
+                this.entityData.set(DinoAnimationUtils.IS_FLINCHING_STATE, false);
+                flinchAnimTicks = 0;
+            }
+        }
+    }
+
+    /** Mirrors the age-derived growth stage into the synched boolean flags. */
+    private void syncGrowthStageFlags() {
+        if(this.isBaby() && !this.entityData.get(BABY_DATA_ID)){
+            this.entityData.set(BABY_DATA_ID, true);
+        } else if (!this.isBaby() && this.entityData.get(BABY_DATA_ID)){
+            this.entityData.set(BABY_DATA_ID, false);
+        }
+        if(this.isJuvanile() && !this.entityData.get(JUVENILE_DATA_ID)){
+            this.entityData.set(JUVENILE_DATA_ID, true);
+        } else if (!this.isJuvanile() && this.entityData.get(JUVENILE_DATA_ID)){
+            this.entityData.set(JUVENILE_DATA_ID, false);
+        }
+        if(this.isSubAdult() && !this.entityData.get(SUB_ADULT_DATA_ID)){
+            this.entityData.set(SUB_ADULT_DATA_ID, true);
+        } else if (!this.isSubAdult() && this.entityData.get(SUB_ADULT_DATA_ID)){
+            this.entityData.set(SUB_ADULT_DATA_ID, false);
+        }
+        if(this.age >= 0 && !this.entityData.get(ADULT_DATA_ID)){
+            this.entityData.set(ADULT_DATA_ID, true);
+        } else if (this.age < 0 && this.entityData.get(ADULT_DATA_ID)){
+            this.entityData.set(ADULT_DATA_ID, false);
+        }
+    }
+
+    /**
+     * At cooldown 0 the (gender == 1) partner with a mate attempts breeding; the counter then
+     * counts up to 2000 before resetting to 0.
+     *
+     * <p>TODO(BUG): the initiator check uses {@code getDinoGender() == 1.0F} while other code
+     * treats 2.0 as male and offspring can only roll gender 1.
+     */
+    private void tickBreedingCooldown() {
+        if(this.breedingCoolDown == 0){
+            if(this.getDinoGender() == 1.0F && this.hasMate()) {
+                this.tryBreedWithMate();
+                this.breedingCoolDown++;
+            }
+        }
+        if(this.breedingCoolDown >= 1){
+            this.breedingCoolDown++;
+        }
+        if(this.breedingCoolDown > BREEDING_COOLDOWN_RESET){
+            this.breedingCoolDown = 0;
+        }
+    }
+
+    private void tickStaminaDrain() {
+        if(this.staminaDrainTick >= STAMINA_DRAIN_INTERVAL_TICKS && this.shouldTickStamina()){
+            DinoNeedsUtils.tickStamina(this);
+            if(DinoNeedsUtils.isTired(this) && !BrainUtils.hasMemory(this, MemoryModuleTypeInit.IS_TIRED.get())){
+                BrainUtils.setMemory(this, MemoryModuleTypeInit.IS_TIRED.get(), true);
+            }
+            this.staminaDrainTick = 0;
+        }
+    }
+
+    private void tickRestRecovery() {
+        if(this.isResting() && restTicks >= REST_RECOVERY_INTERVAL_TICKS){
+            if(DinoNeedsUtils.getMaxStamina(this) > DinoNeedsUtils.getCurrentStamina(this)) {
+                float stamina = DinoNeedsUtils.getCurrentStamina(this);
+                float newStamina = stamina + REST_STAMINA_RECOVERY;
+                DinoNeedsUtils.setCurrentStamina(this, newStamina);
+            }
+            restTicks = 0;
+        }
+    }
+
+    // TODO(DEAD): dead branch - socialDrainTick is never incremented (see tick()) and
+    // DinoNeedsUtils.tickSocial() is an empty stub.
+    private void tickSocialDrain() {
+        if(this.socialDrainTick >= SOCIAL_DRAIN_INTERVAL_TICKS){
+            DinoNeedsUtils.tickSocial();
+            this.socialDrainTick = 0;
+        }
+    }
+
+    private void detectNewDay() {
+        if(cachedDayTime != (int) this.level().getDayTime() / DAY_LENGTH){
+            cachedDayTime = (int) (this.level().getDayTime() / DAY_LENGTH);
+            this.isNewDay = true;
+        }
+    }
+
+    /**
+     * Day rollover: bumps the days-without-food/water counters, resets the daily memories,
+     * applies one hunger/thirst tick, and rolls a fresh random hunger/thirst schedule inside the
+     * species' active hours.
+     */
+    private void processNewDay() {
+        boolean eatenToday = Boolean.TRUE.equals(BrainUtils.getMemory(this, MemoryModuleTypeInit.EATEN_TODAY.get()));
+        boolean drankToday = Boolean.TRUE.equals(BrainUtils.getMemory(this, MemoryModuleTypeInit.DRANK_TODAY.get()));
+        if(!eatenToday){
+            if(BrainUtils.hasMemory(this,MemoryModuleTypeInit.DAYS_SINCE_LAST_FED.get())) {
+                daysSincelastAte = BrainUtils.getMemory(this,MemoryModuleTypeInit.DAYS_SINCE_LAST_FED.get());
+            } else { daysSincelastAte = 0; }
+            daysSincelastAte++;
+
+            BrainUtils.setMemory(this, MemoryModuleTypeInit.DAYS_SINCE_LAST_FED.get(), daysSincelastAte);
+        }
+        if(!drankToday){
+            if(BrainUtils.hasMemory(this,MemoryModuleTypeInit.DAYS_SINCE_LAST_DRANK.get())) {
+                daysSincelastDrink = BrainUtils.getMemory(this,MemoryModuleTypeInit.DAYS_SINCE_LAST_DRANK.get());
+            } else { daysSincelastDrink = 0;}
+
+            daysSincelastDrink++;
+
+            BrainUtils.setMemory(this, MemoryModuleTypeInit.DAYS_SINCE_LAST_DRANK.get(), daysSincelastDrink);
+        }
+
+        this.isNewDay = false;
+        BrainUtils.setMemory(this,MemoryModuleTypeInit.MEAL_COUNTER.get(), 0);
+        BrainUtils.setMemory(this, MemoryModuleTypeInit.DRANK_TODAY.get(), false);
+        BrainUtils.setMemory(this, MemoryModuleTypeInit.EATEN_TODAY.get(), false);
+        DinoNeedsUtils.tickThirst(this,this.daysSincelastDrink,this.getDinoBehaviour().dehydrationLimit());
+        DinoNeedsUtils.tickHunger(this,this.daysSincelastAte,this.getDinoBehaviour().starvationLimit());
+
+        long activeStart;
+        long activeEnd;
+
+        if(this.getDinoBehaviour().isNocturnal()){
+            activeStart = NOCTURNAL_ACTIVE_START;
+            activeEnd = NOCTURNAL_ACTIVE_END;
+        } else {
+            activeStart = DIURNAL_ACTIVE_START;
+            activeEnd = DIURNAL_ACTIVE_END;
+        }
+        Random random = new Random();
+
+        for (int i = 0; i < this.getDinoBehaviour().eatRate() - 1; i++) {
+            long hungerTime = random.nextInt((int)activeStart,(int) activeEnd);
+            hungerSchedule.add(hungerTime);
+        }
+        for (int i = 0; i < this.getDinoBehaviour().drinkRate() - 1; i++) {
+            long thirstTime = random.nextInt((int)activeStart,(int) activeEnd);
+            thirstSchedule.add(thirstTime);
+        }
+    }
+
+    /**
+     * TODO(BUG): only one due entry is removed per tick (the last matching index), even though
+     * every due entry triggers a thirst tick on each pass. Same for hunger.
+     */
+    private void processThirstSchedule() {
+        if(!thirstSchedule.isEmpty()) {
+            int toRemove = -1;
+            int i = 0;
+
+            for (long thirstTime : thirstSchedule) {
+                if (this.level().getDayTime() % DAY_LENGTH >= thirstTime) {
+                    toRemove = i;
+                    DinoNeedsUtils.tickThirst(this, this.daysSincelastDrink, this.getDinoBehaviour().dehydrationLimit());
+                }
+                i++;
+            }
+            if(toRemove != -1) {
+                thirstSchedule.remove(toRemove);
+            }
+        }
+    }
+
+    private void processHungerSchedule() {
+        if(!hungerSchedule.isEmpty()) {
+            int toRemove = -1;
+            int i = 0;
+
+            for (long hungerTime : hungerSchedule) {
+                if (this.level().getDayTime() % DAY_LENGTH >= hungerTime) {
+                    toRemove = i;
+                    DinoNeedsUtils.tickHunger(this, this.daysSincelastAte, this.getDinoBehaviour().starvationLimit());
+                }
+                i++;
+            }
+            if(toRemove != -1) {
+                hungerSchedule.remove(toRemove);
+            }
+        }
+    }
+
     Random random = new Random();
 
+    /** Rolls 0–99; above {@value #BREEDING_ATTEMPT_THRESHOLD} both partners enter love mode. */
     public void tryBreedWithMate(){
         int attempt = random.nextInt(0,100);
-        if(attempt > 50) {
+        if(attempt > BREEDING_ATTEMPT_THRESHOLD) {
             this.setInLove(null);
             @Nullable Dinosaur mate = BrainUtils.getMemory(this, MemoryModuleTypeInit.MATE.get());
 
@@ -797,8 +898,14 @@ public abstract class Dinosaur extends TamableAnimal implements FossilRevived, G
     public boolean isAttacking() {return this.entityData.get(DinoAnimationUtils.IS_ATTACKING_STATE);}
     public boolean isIdle(){return !this.isDrinking() && !this.isEating() && !this.isResting() && !this.isRoaring() && !this.isAttacking();}
 
+    /**
+     * Gets the gender; if none has been set, returns female.
+     *
+     * <p>TODO(BUG): gender encoding is inconsistent across the codebase: here 2.0 = male, the
+     * breeding initiator checks {@code == 1.0F}, mother selection checks {@code == 1}, T-Rex
+     * male layers check {@code == 2D}, and offspring can only ever roll gender 1.
+     */
     public String getStringDinoGender() {
-        //Gets Gender and if none has been set then returns as female.
         double geneGender = this.getDinoData().getGeneValue(GeneInit.GENDER.get());
         if(geneGender == 2.0D){
             return "male";
@@ -807,6 +914,8 @@ public abstract class Dinosaur extends TamableAnimal implements FossilRevived, G
     public double getDinoGender(){
       return this.getDinoData().getGeneValue(GeneInit.GENDER.get());
     }
+    // TODO(BUG): nothing ever populates the PLAYER_REPUTATION memory, and the mutators below
+    // return early when the player is *not* in the map - so reputation is permanently inert.
     @Nullable
     public Map<Player,Integer> getPlayerReputationMap(){
         if(BrainUtils.hasMemory(this, MemoryModuleTypeInit.PLAYER_REPUTATION.get())){
@@ -848,6 +957,7 @@ public abstract class Dinosaur extends TamableAnimal implements FossilRevived, G
     public void spawnChildFromBreeding(ServerLevel level, Animal mate) {
         @Nullable Dinosaur dinosaur = (Dinosaur) this.getBreedOffspring(level, mate);
         Dinosaur mother;
+        // TODO(BUG): part of the inconsistent gender encoding (see getStringDinoGender).
         if(this.getDinoGender() == 1){
             mother = this;
         } else mother = (Dinosaur) mate;
@@ -857,6 +967,8 @@ public abstract class Dinosaur extends TamableAnimal implements FossilRevived, G
                 dinosaur.setDinoData(mother.getDinoData());
                 DinoNeedsUtils.setDinoBaseNeeds(dinosaur, mother.getDinoBehaviour());
                 dinosaur.setDinoBehaviour(mother.getDinoBehaviour().toNBT(mother.getDinoBehaviour()));
+                // TODO(BUG): nextInt(1, 2) can only ever return 1, so every offspring gets the
+                // same gender value.
                 dinosaur.getDinoData().setGeneValue(GeneInit.GENDER.get(), random.nextInt(1,2));
                 dinosaur.setBaby(true);
                 dinosaur.setDinoFamilyUuid(this.getFamilyId());
@@ -870,17 +982,17 @@ public abstract class Dinosaur extends TamableAnimal implements FossilRevived, G
     @Override
     public boolean isBaby() {
         int age = this.age;
-        return age <= -18000;
+        return age <= BABY_MAX_AGE;
     }
 
     public boolean isJuvanile(){
         int age = this.age;
-        return age <= -12000 && age > -18000;
+        return age <= JUVENILE_MAX_AGE && age > BABY_MAX_AGE;
     }
 
     public boolean isSubAdult(){
         int age = this.age;
-        return age <= -6000 && age > -12000;
+        return age <= SUB_ADULT_MAX_AGE && age > JUVENILE_MAX_AGE;
     }
 
     public int getGrowthStage(){

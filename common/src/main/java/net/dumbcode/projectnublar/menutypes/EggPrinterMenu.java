@@ -15,6 +15,7 @@ import net.minecraft.world.inventory.Slot;
 import net.minecraft.world.item.ItemStack;
 import org.jetbrains.annotations.Nullable;
 
+/** Menu for the egg printer. Slot indices 0–3 are frozen contracts with the block entity. */
 public class EggPrinterMenu extends AbstractContainerMenu {
     private ContainerData data;
     public EggPrinterMenu(int containerId, Inventory playerInventory) {
@@ -29,6 +30,9 @@ public class EggPrinterMenu extends AbstractContainerMenu {
         this.addSlot(new Slot(container, 0, 15, 110){
             @Override
             public boolean mayPlace(ItemStack pStack) {
+                // TODO(BUG): checks the root-level "Embryo" boolean written by SyringeItem, not
+                // DNAData's "isEmbryo" field inside the compound - the two can disagree. Both the
+                // tag name and the inconsistency are frozen contracts.
                 return pStack.hasTag() && pStack.getTag().contains("Embryo");
             }
         });

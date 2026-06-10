@@ -1,35 +1,31 @@
 package net.dumbcode.projectnublar.block.entity;
 
-import com.google.common.collect.Sets;
+import java.util.Collections;
+import java.util.List;
+import java.util.Set;
+import java.util.stream.Collectors;
 import net.dumbcode.projectnublar.block.api.fence.ConnectableBlockEntity;
 import net.dumbcode.projectnublar.block.api.fence.Connection;
-import net.dumbcode.projectnublar.block.api.sync.SyncingBlockEntity;
 import net.dumbcode.projectnublar.registry.BlockInit;
 import net.dumbcode.projectnublar.util.LineUtils;
 import net.minecraft.core.BlockPos;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.nbt.ListTag;
-import net.minecraft.nbt.NbtUtils;
 import net.minecraft.nbt.Tag;
-import net.minecraft.world.level.Level;
-import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.entity.BlockEntityType;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.phys.shapes.Shapes;
 import net.minecraft.world.phys.shapes.VoxelShape;
 import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.api.distmarker.OnlyIn;
-import org.jetbrains.annotations.Nullable;
-import software.bernie.geckolib.model.data.EntityModelData;
 
-
-import java.lang.constant.Constable;
-import java.util.Collections;
-import java.util.List;
-import java.util.Set;
-import java.util.stream.Collectors;
-
+/**
+ * Block entity for a wire-only fence block. Persists its {@link Connection}s under the frozen
+ * {@code connections} list tag and caches the merged collision shape.
+ */
 public class BlockEntityElectricFence extends BlockEntityElectricFenceBase implements ConnectableBlockEntity {
+
+    private static final String CONNECTIONS_TAG = "connections";
 
     public BlockEntityElectricFence(BlockPos pos, BlockState state) {
         super(BlockInit.ELECTRIC_FENCE_BLOCK_ENTITY.get(), pos, state);
@@ -48,18 +44,17 @@ public class BlockEntityElectricFence extends BlockEntityElectricFenceBase imple
     public void saveData(CompoundTag compound) {
         super.saveData(compound);
         ListTag nbt = new ListTag();
-        int i = 0;
         for (Connection connection : this.fenceConnections) {
             nbt.add(connection.writeToNBT(new CompoundTag()));
         }
-        compound.put("connections", nbt);
+        compound.put(CONNECTIONS_TAG, nbt);
     }
 
     @Override
     public void loadData(CompoundTag compound) {
         super.loadData(compound);
         this.fenceConnections.clear();
-        ListTag nbt = compound.getList("connections", compound.TAG_COMPOUND);
+        ListTag nbt = compound.getList(CONNECTIONS_TAG, Tag.TAG_COMPOUND);
         for (int i = 0; i < nbt.size(); i++) {
             Connection connection = Connection.fromNBT(nbt.getCompound(i), this);
             if(connection.isValid()) {
@@ -107,11 +102,16 @@ public class BlockEntityElectricFence extends BlockEntityElectricFenceBase imple
     }
 
     /**
-     * Breaks the surrounding fence. Used for entities
-     * who "attack" the fence.
+     * Breaks the surrounding fence. Used for entities who "attack" the fence.
+     *
+     * <p>TODO(BUG): the midpoint math relies on integer division ({@code blocks.size() / 2}), so
+     * for even-sized runs the "center" is biased. A pre-existing note asked
+     * for more randomness here, but the real issue is that the whole code should be completely rewritten.
+     * This is extremely unoptimized.
+     * 
      * @param intensity Intensity at which the fence breaks.
      */
-    public void breakFence(int intensity) { // TODO: Add more randomness.
+    public void breakFence(int intensity) {
         for (Connection connection : fenceConnections) {
             for (double offset : connection.getType().getOffsets()) {
                 List<BlockPos> blocks = LineUtils.getBlocksInbetween(connection.getFrom(), connection.getTo(), offset);

@@ -16,6 +16,7 @@ import java.util.Random;
 import java.util.function.Predicate;
 
 
+// TODO(DEAD): not wired into any activity group; turf wars never start. Left unwired on purpose.
 public class StartTurfWar<E extends Dinosaur> extends ExtendedBehaviour<E> {
 
     private Random random = new Random();
@@ -26,7 +27,7 @@ public class StartTurfWar<E extends Dinosaur> extends ExtendedBehaviour<E> {
                 Pair.of(MemoryModuleType.NEAREST_LIVING_ENTITIES, MemoryStatus.VALUE_PRESENT));
     }
 
-    protected Predicate<LivingEntity> canAttackPredicate = ( target) -> target.isAlive();
+    protected Predicate<LivingEntity> canAttackPredicate = LivingEntity::isAlive;
     protected LivingEntity toTarget = null;
     protected MemoryModuleType<? extends LivingEntity> priorityTargetMemory = MemoryModuleType.NEAREST_ATTACKABLE;
 

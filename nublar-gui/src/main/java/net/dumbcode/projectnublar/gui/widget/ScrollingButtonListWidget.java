@@ -60,6 +60,8 @@ public class ScrollingButtonListWidget<T extends GuiEventListener> extends Paren
     @Override
     public boolean mouseScrolled(double pMouseX, double pMouseY, double pDelta) {
         int change = (int) (pDelta * 10);
+        // TODO(BUG): the scroll clamp hardcodes -(count - 10) * 21, assuming ten visible
+        // 21-pixel rows regardless of the widget's actual height; current UX depends on it.
         if (scroll + change <= 0 && scroll + change >= -((buttons.stream().count() - 10) * 21)) {
             buttons.forEach(button -> button.setY(button.getY() + (int) (pDelta * 10)));
             scroll += (int) (pDelta * 10);

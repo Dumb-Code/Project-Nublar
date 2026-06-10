@@ -25,6 +25,8 @@ import java.util.List;
 import java.util.function.Function;
 import java.util.function.Supplier;
 
+// TODO(DEAD): unfinished Fabric port of the Forge FossilItemModel - every method is a stub (no
+// quads, null bake/particle/transforms) and nothing registers it.
 public class FossilModel implements UnbakedModel, BakedModel, FabricBakedModel, IStackSensitive {
     private ItemStack stack = ItemStack.EMPTY;
 

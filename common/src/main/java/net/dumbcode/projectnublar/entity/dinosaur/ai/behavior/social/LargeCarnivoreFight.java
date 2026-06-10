@@ -13,6 +13,12 @@ import net.tslat.smartbrainlib.util.BrainUtils;
 
 import java.util.List;
 
+/**
+ * Turf-war behaviour between two large carnivores (approach, roar exchange, then fight/flee).
+ *
+ * <p>TODO(DEAD): not wired into any activity group - {@code StartTurfWar}/turf-war memories are
+ * never registered into a brain, so this behaviour currently never runs. Left unwired on purpose.
+ */
 public class LargeCarnivoreFight<E extends Dinosaur> extends ExtendedBehaviour<E> {
 
     private static final List<Pair<MemoryModuleType<?>, MemoryStatus>> MEMORY_REQUIREMENTS = ObjectArrayList.of(Pair.of(MemoryModuleTypeInit.INITIATED_TURF_WAR.get(), MemoryStatus.VALUE_PRESENT));
@@ -44,7 +50,6 @@ public class LargeCarnivoreFight<E extends Dinosaur> extends ExtendedBehaviour<E
     @Override
     protected void start(E dinosaur) {
         if(BrainUtils.hasMemory(dinosaur, MemoryModuleTypeInit.INITIATED_TURF_WAR.get())) {
-            System.err.println("turf war started");
             int dinoMember = BrainUtils.getMemory(dinosaur, MemoryModuleTypeInit.TURF_WAR_MEMBER.get());
 
             if (dinoMember == 1) {
@@ -98,12 +103,9 @@ public class LargeCarnivoreFight<E extends Dinosaur> extends ExtendedBehaviour<E
                     int outcome = BrainUtils.getMemory(host, MemoryModuleTypeInit.TURF_WAR_OUTCOME.get());
 
                     if (outcome == 1) {
-                        System.err.println("Turf war ended in fight");
                         doFight(entity);
                     }
                     if (outcome == 2) {
-                        System.err.println("Turf war ended in target flees");
-
                         doThreatDisplayTargetFlees(entity);
                     }
                     if (outcome == 3) {

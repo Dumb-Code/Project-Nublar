@@ -11,7 +11,10 @@ import net.minecraft.world.InteractionHand;
 import net.minecraft.world.InteractionResult;
 import net.minecraft.world.damagesource.DamageSource;
 import net.minecraft.world.damagesource.DamageTypes;
-import net.minecraft.world.entity.*;
+import net.minecraft.world.entity.Entity;
+import net.minecraft.world.entity.EntityDimensions;
+import net.minecraft.world.entity.EntityType;
+import net.minecraft.world.entity.Pose;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.level.Level;
 import org.jetbrains.annotations.NotNull;
@@ -144,7 +147,7 @@ public abstract class PartEntity extends Entity {
     protected boolean isSlowFollow(){
         return false;
     }
-    /** Source: {@link net.minecraft.world.entity.ai.control.MoveControl(float, float, float)} */
+    /** Source: net.minecraft.world.entity.ai.control.MoveControl#rotlerp */
     protected float limitAngle(float sourceAngle, float targetAngle, float maximumChange) {
         float f = Mth.wrapDegrees(targetAngle - sourceAngle);
         if (f > maximumChange) {
@@ -164,6 +167,8 @@ public abstract class PartEntity extends Entity {
 
         return f1;
     }
+    // TODO(BUG): always discards regardless of the requested reason, so parts are never saved
+    // (e.g. UNLOADED_TO_CHUNK becomes DISCARDED).
     @Override
     public void remove(@NotNull RemovalReason reason) {
         super.remove(RemovalReason.DISCARDED);
@@ -239,6 +244,8 @@ public abstract class PartEntity extends Entity {
         return source.is(DamageTypes.FALL) || source.is(DamageTypes.DROWN) || source.is(DamageTypes.IN_WALL) || source.is(DamageTypes.FALLING_BLOCK) || source.is(DamageTypes.LAVA) || source.is(DamageTypeTags.IS_FIRE) || super.isInvulnerableTo(source);
     }
 
+    // TODO(BUG): the logic looks inverted - it reports "continue persisting" when the part is
+    // already removed and bases the no-parent case on isRemoved() too.
     public boolean shouldContinuePersisting() {
         if(this.getParent() != null) {
             return getParent().isAlive() || this.isRemoved();

@@ -19,6 +19,14 @@ import net.minecraft.world.inventory.Slot;
 import net.minecraft.world.item.ItemStack;
 import org.jetbrains.annotations.Nullable;
 
+/**
+ * Menu for the incubator. Slot 0 is the plant-matter input (container index 9), followed by the
+ * egg slots at their stored positions, then the player inventory - hence the menu/container index
+ * offset that {@code IncubatorBlockEntity.updateSlot} compensates for (frozen handshake).
+ *
+ * <p>Note: the constructor reads the block entity from the client level to place the egg
+ * slots (pre-existing client/server mixing).
+ */
 public class IncubatorMenu extends AbstractContainerMenu {
     private BlockPos pos;
     private ContainerData data;

@@ -1,5 +1,3 @@
-
-
 package net.dumbcode.projectnublar.datagen;
 
 import com.mojang.serialization.JsonOps;
@@ -20,8 +18,18 @@ import java.util.List;
 import java.util.Map;
 
 
+/**
+ * Datagen for the {@code gene_data} datapack files: one entry per vanilla entity with its gene
+ * multipliers and per-variant layer colors. All values are frozen behavioral data.
+ *
+ * <p>Note: the provider intentionally writes into the {@code minecraft} namespace (frozen
+ * contract - {@code GeneDataReloadListener} resolves file names as entity ids).
+ *
+ * <p>TODO(DEAD): entries for most hostile/utility mobs (blaze, creeper, zombies, villagers,
+ * golems, illagers, end mobs, etc.) were commented out in the original and have been removed;
+ * those entities simply have no gene data.
+ */
 public class GeneDataProvider extends JsonCodecProvider<GeneData> {
-
 
     public GeneDataProvider(PackOutput output, ExistingFileHelper existingFileHelper) {
         super(output, existingFileHelper, "minecraft", JsonOps.INSTANCE, PackType.SERVER_DATA, "gene_data", GeneData.CODEC, getGeneData());
@@ -42,7 +50,6 @@ public class GeneDataProvider extends JsonCodecProvider<GeneData> {
                 GeneInit.SIZE.get(), 0.5d,
                 GeneInit.HEALTH.get(), 0.5d
         ), Map.of("base", List.of(0xE6C15E, 0x5A3023))));
-//        geneData.put(loc(EntityType.BLAZE), new GeneData(Map.of(), Map.of("base", List.of())));
         geneData.put(loc(EntityType.CAT), new GeneData(Map.of(
                 GeneInit.INTELLIGENCE.get(), 1.5d,
                 GeneInit.TAMABILITY.get(), 1.45d,
@@ -63,7 +70,6 @@ public class GeneDataProvider extends JsonCodecProvider<GeneData> {
         geneData.put(loc(EntityType.COW), new GeneData(Map.of(
                 GeneInit.HERD_SIZE.get(), 1.5d
         ), Map.of("base", List.of())));
-//        geneData.put(loc(EntityType.CREEPER), new GeneData(Map.of(), Map.of("base", List.of())));
         geneData.put(loc(EntityType.DOLPHIN), new GeneData(Map.of(
                 GeneInit.UNDERWATER_CAPACITY.get(), 1.75d,
                 GeneInit.SPEED.get(), 1.35d
@@ -73,21 +79,12 @@ public class GeneDataProvider extends JsonCodecProvider<GeneData> {
                 GeneInit.STRENGTH.get(), 1.25d,
                 GeneInit.INTELLIGENCE.get(), 1.25d
         ), Map.of("base", List.of(0x8A7666))));
-//        geneData.put(loc(EntityType.DROWNED), new GeneData(Map.of(), Map.of("base", List.of())));
-//        geneData.put(loc(EntityType.ELDER_GUARDIAN), new GeneData(Map.of(), Map.of("base", List.of())));
-//        geneData.put(loc(EntityType.ENDER_DRAGON), new GeneData(Map.of(), Map.of("base", List.of())));
-//        geneData.put(loc(EntityType.ENDERMAN), new GeneData(Map.of(), Map.of("base", List.of())));
-//        geneData.put(loc(EntityType.ENDERMITE), new GeneData(Map.of(), Map.of("base", List.of())));
-//        geneData.put(loc(EntityType.EVOKER), new GeneData(Map.of(), Map.of("base", List.of())));
         geneData.put(loc(EntityType.FOX), new GeneData(Map.of(
                 GeneInit.SPEED.get(), 1.7d,
                 GeneInit.INTELLIGENCE.get(), 1.3d
         ), Map.of("base", List.of(0xB2B2B2, 0xE37C21))));
-//        geneData.put(loc(EntityType.GHAST), new GeneData(Map.of(), Map.of("base", List.of())));
-//        geneData.put(loc(EntityType.GIANT), new GeneData(Map.of(), Map.of("base", List.of())));
         geneData.put(loc(EntityType.GLOW_SQUID), new GeneData(Map.of(), Map.of("base", List.of())));
         geneData.put(loc(EntityType.GOAT), new GeneData(Map.of(), Map.of("base", List.of())));
-//        geneData.put(loc(EntityType.GUARDIAN), new GeneData(Map.of(), Map.of("base", List.of())));
         geneData.put(loc(EntityType.HOGLIN), new GeneData(Map.of(
                 GeneInit.HEAT_RESISTANCE.get(), 1.5d,
                 GeneInit.STRENGTH.get(), 1.5d,
@@ -108,15 +105,11 @@ public class GeneDataProvider extends JsonCodecProvider<GeneData> {
                 "gray", List.of(0x5F5F5F),
                 "dark_brown", List.of(0x2F1A0F)
         )));
-//        geneData.put(loc(EntityType.HUSK), new GeneData(Map.of(), Map.of("base", List.of())));
-//        geneData.put(loc(EntityType.ILLUSIONER), new GeneData(Map.of(), Map.of("base", List.of())));
-//        geneData.put(loc(EntityType.IRON_GOLEM), new GeneData(Map.of(), Map.of("base", List.of())));
         geneData.put(loc(EntityType.LLAMA), new GeneData(Map.of(
                 GeneInit.STOMACH_CAPACITY.get(), 1.3d,
                 GeneInit.DEFENSE.get(), 1.25d,
                 GeneInit.TAMABILITY.get(), 1.25d
         ), Map.of("base", List.of(0xB2B2B2))));
-//        geneData.put(loc(EntityType.MAGMA_CUBE), new GeneData(Map.of(), Map.of("base", List.of())));
         geneData.put(loc(EntityType.MOOSHROOM), new GeneData(Map.of(), Map.of(
                 "brown", List.of(0xB68767, 0xB0B0B0),
                 "red", List.of(0xA41012, 0xB0B0B0)
@@ -149,14 +142,10 @@ public class GeneDataProvider extends JsonCodecProvider<GeneData> {
                 "yellow_blue", List.of(0x12CCFD, 0xE8C100),
                 "gray", List.of(0xAFAFAF, 0xE8C100)
         )));
-//        geneData.put(loc(EntityType.PHANTOM), new GeneData(Map.of(), Map.of("base", List.of())));
         geneData.put(loc(EntityType.PIG), new GeneData(Map.of(
                 GeneInit.IMMUNITY.get(), 1.25d,
                 GeneInit.DEFENSE.get(), 1.2d
         ), Map.of("base", List.of(0xB2B2B2))));
-//        geneData.put(loc(EntityType.PIGLIN), new GeneData(Map.of(), Map.of("base", List.of())));
-//        geneData.put(loc(EntityType.PIGLIN_BRUTE), new GeneData(Map.of(), Map.of("base", List.of())));
-//        geneData.put(loc(EntityType.PILLAGER), new GeneData(Map.of(), Map.of("base", List.of())));
         geneData.put(loc(EntityType.POLAR_BEAR), new GeneData(Map.of(
                 GeneInit.SIZE.get(), 1.5d,
                 GeneInit.SPEED.get(), 1.5d,
@@ -181,7 +170,6 @@ public class GeneDataProvider extends JsonCodecProvider<GeneData> {
                 "salt", List.of(0x7F6D58),
                 "evil", List.of(0xB2B2B2)
         )));
-//        geneData.put(loc(EntityType.RAVAGER), new GeneData(Map.of(), Map.of("base", List.of())));
         geneData.put(loc(EntityType.SALMON), new GeneData(Map.of(
                 GeneInit.SIZE.get(), 0.5d,
                 GeneInit.UNDERWATER_CAPACITY.get(), 1.3d,
@@ -191,12 +179,6 @@ public class GeneDataProvider extends JsonCodecProvider<GeneData> {
                 GeneInit.INTELLIGENCE.get(), 0.75d,
                 GeneInit.HERD_SIZE.get(), 1.5d
         ), Map.of("base", List.of(0xB4947D, 0xB2B2B2))));
-//        geneData.put(loc(EntityType.SHULKER), new GeneData(Map.of(), Map.of("base", List.of())));
-//        geneData.put(loc(EntityType.SILVERFISH), new GeneData(Map.of(), Map.of("base", List.of())));
-//        geneData.put(loc(EntityType.SKELETON), new GeneData(Map.of(), Map.of("base", List.of())));
-//        geneData.put(loc(EntityType.SKELETON_HORSE), new GeneData(Map.of(), Map.of("base", List.of())));
-//        geneData.put(loc(EntityType.SLIME), new GeneData(Map.of(), Map.of("base", List.of())));
-//        geneData.put(loc(EntityType.SNOW_GOLEM), new GeneData(Map.of(), Map.of("base", List.of())));
         geneData.put(loc(EntityType.SPIDER), new GeneData(Map.of(
                 GeneInit.NOCTURNAL.get(), 0.75d
         ), Map.of("base", List.of(0x4E443C))));
@@ -205,9 +187,6 @@ public class GeneDataProvider extends JsonCodecProvider<GeneData> {
                 GeneInit.HEALTH.get(), 0.7d,
                 GeneInit.HEALTH_REGEN.get(), 1.25d
         ), Map.of("base", List.of(0x132737, 0x536B7F))));
-//        geneData.put(loc(EntityType.STRAY), new GeneData(Map.of(), Map.of("base", List.of())));
-//        geneData.put(loc(EntityType.STRIDER), new GeneData(Map.of(), Map.of("base", List.of())));
-//        geneData.put(loc(EntityType.TRADER_LLAMA), new GeneData(Map.of(), Map.of("base", List.of())));
         geneData.put(loc(EntityType.TROPICAL_FISH), new GeneData(Map.of(
                 GeneInit.SIZE.get(), 0.5d,
                 GeneInit.UNDERWATER_CAPACITY.get(), 1.3d,
@@ -237,25 +216,12 @@ public class GeneDataProvider extends JsonCodecProvider<GeneData> {
                 GeneInit.SPEED.get(), 0.5d,
                 GeneInit.DEFENSE.get(), 1.5d
         ), Map.of("base", List.of(0xBFB37F, 0x28340A))));
-//        geneData.put(loc(EntityType.VEX), new GeneData(Map.of(), Map.of("base", List.of())));
-//        geneData.put(loc(EntityType.VILLAGER), new GeneData(Map.of(), Map.of("base", List.of())));
-//        geneData.put(loc(EntityType.VINDICATOR), new GeneData(Map.of(), Map.of("base", List.of())));
-//        geneData.put(loc(EntityType.WANDERING_TRADER), new GeneData(Map.of(), Map.of("base", List.of())));
-//        geneData.put(loc(EntityType.WITCH), new GeneData(Map.of(), Map.of("base", List.of())));
-//        geneData.put(loc(EntityType.WITHER), new GeneData(Map.of(), Map.of("base", List.of())));
-//        geneData.put(loc(EntityType.WITHER_SKELETON), new GeneData(Map.of(), Map.of("base", List.of())));
         geneData.put(loc(EntityType.WOLF), new GeneData(Map.of(
                 GeneInit.INTELLIGENCE.get(), 1.75d,
                 GeneInit.TAMABILITY.get(), 2.75d,
                 GeneInit.SPEED.get(), 1.25d,
                 GeneInit.PACK_SIZE.get(),1.75d
         ), Map.of("base", List.of(0xB2B2B2))));
-//        geneData.put(loc(EntityType.ZOGLIN), new GeneData(Map.of(), Map.of("base", List.of())));
-//        geneData.put(loc(EntityType.ZOMBIE), new GeneData(Map.of(), Map.of("base", List.of())));
-//        geneData.put(loc(EntityType.ZOMBIE_HORSE), new GeneData(Map.of(), Map.of("base", List.of())));
-//        geneData.put(loc(EntityType.ZOMBIE_VILLAGER), new GeneData(Map.of(), Map.of("base", List.of())));
-//        geneData.put(loc(EntityType.ZOMBIFIED_PIGLIN), new GeneData(Map.of(), Map.of("base", List.of())));
-//        geneData.put(loc(EntityType.ZOMBIE_VILLAGER), new GeneData(Map.of(), Map.of("base", List.of())));
         return geneData;
     }
 

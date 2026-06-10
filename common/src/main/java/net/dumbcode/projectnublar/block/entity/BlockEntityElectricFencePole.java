@@ -27,7 +27,23 @@ import java.util.Comparator;
 import java.util.List;
 import java.util.Set;
 
+/**
+ * Block entity of a fence-post column base. Holds the pole's energy buffer, distributes power to
+ * connected poles, and caches the rendered rotation/shape. NBT keys {@code rotation_flipped} and
+ * {@code energy} are frozen save contracts.
+ */
 public class BlockEntityElectricFencePole extends BlockEntityElectricFence implements ConnectableBlockEntity, GeoBlockEntity, BotariumEnergyBlock<WrappedBlockEnergyContainer> {
+
+    private static final String ROTATION_FLIPPED_TAG = "rotation_flipped";
+    private static final String ENERGY_TAG = "energy";
+
+    // Behavioral constants
+    private static final int ENERGY_CAPACITY = 350;
+    private static final int ENERGY_MAX_TRANSFER = 350;
+    private static final int POWERED_DRAIN_PER_TICK = 10;
+    /** Above this stored energy the pole shares a 300-energy budget with connected poles. */
+    private static final int DISTRIBUTION_THRESHOLD = 300;
+    private static final int DISTRIBUTION_BUDGET = 300;
 
     private final AnimatableInstanceCache cache = GeckoLibUtil.createInstanceCache(this);
     public boolean flippedAround;
@@ -63,16 +79,15 @@ public class BlockEntityElectricFencePole extends BlockEntityElectricFence imple
 
     @Override
     public void saveData(CompoundTag compound) {
-        compound.putBoolean("rotation_flipped", this.flippedAround);
-        compound.put("energy", this.energyContainer.serialize(new CompoundTag()));
+        compound.putBoolean(ROTATION_FLIPPED_TAG, this.flippedAround);
+        compound.put(ENERGY_TAG, this.energyContainer.serialize(new CompoundTag()));
         super.saveData(compound);
     }
 
-
     @Override
     public void loadData(CompoundTag compound) {
-        this.flippedAround = compound.getBoolean("rotation_flipped");
-        this.energyContainer.deserialize(compound.getCompound("energy"));
+        this.flippedAround = compound.getBoolean(ROTATION_FLIPPED_TAG);
+        this.energyContainer.deserialize(compound.getCompound(ENERGY_TAG));
         super.loadData(compound);
     }
 
@@ -92,7 +107,7 @@ public class BlockEntityElectricFencePole extends BlockEntityElectricFence imple
 
 
     public void tick(Level world, BlockPos blockPos, BlockState pState, BlockEntityElectricFencePole be) {
-        if(this.shouldRefreshNextTick) {
+        if (this.shouldRefreshNextTick) {
             this.shouldRefreshNextTick = false;
             this.triggerModelUpdate();
             this.cachedRotation = this.computeRotation();
@@ -103,43 +118,54 @@ public class BlockEntityElectricFencePole extends BlockEntityElectricFence imple
             this.level.sendBlockUpdated(this.getBlockPos(), this.getBlockState(), this.getBlockState(), 3);
         }
         boolean powered = this.getEnergyStorage().getStoredEnergy() > 0;
-        if(powered) {
+        if (powered) {
             boolean update = false;
             if (this.level.getBlockState(this.getBlockPos()).getValue(ElectricFencePostBlock.POWERED_PROPERTY) != powered) {
                 update = true;
             }
-            getEnergyStorage().internalExtract(10, false);
+            getEnergyStorage().internalExtract(POWERED_DRAIN_PER_TICK, false);
             BlockState state = this.level.getBlockState(this.getBlockPos());
             if (state.getBlock() instanceof ElectricFencePostBlock && state.getValue(((ElectricFencePostBlock) state.getBlock()).getIndexProperty()) == 0) {
                 if (update) {
-                    for (int y = 0; y < ((ElectricFencePostBlock) state.getBlock()).getType().getHeight(); y++) {
-                        BlockPos pos = this.getBlockPos().above(y);
-                        BlockState s = this.level.getBlockState(pos);
-                        if (s.getBlock() == state.getBlock()) { //When placing the blocks can be air
-                            this.level.setBlock(pos, s.setValue(ElectricFencePostBlock.POWERED_PROPERTY, powered), 3);
-                        }
-                    }
+                    updatePoweredBlockstates(state, powered);
                 }
-                //Pass power to other poles connected to this.
-                if (this.getEnergyStorage().getStoredEnergy() > 300) {
-                    Set<WrappedBlockEnergyContainer> storages = Sets.newLinkedHashSet();
-                    for (Connection connection : this.getConnections()) {
-                        BlockEntity te = this.level.getBlockEntity(connection.getPosition().equals(connection.getFrom()) ? connection.getTo() : connection.getFrom());
-                        if (te != null) {
-                            if (te instanceof BlockEntityElectricFencePole e) {
-                                storages.add(e.getEnergyStorage());
-                            }
-                        }
-                    }
-                    List<WrappedBlockEnergyContainer> list = Lists.newArrayList(storages);
-                    list.sort(Comparator.comparing(WrappedBlockEnergyContainer::getStoredEnergy));
-                    for (WrappedBlockEnergyContainer storage : list) {
-                        long sendEnergy = storage.internalInsert(this.getEnergyStorage().internalExtract(300 / list.size(), true), true);
-                        this.getEnergyStorage().internalExtract(sendEnergy, false);
-                        storage.internalInsert(sendEnergy, false);
-                    }
+                if (this.getEnergyStorage().getStoredEnergy() > DISTRIBUTION_THRESHOLD) {
+                    distributePowerToConnectedPoles();
                 }
             }
+        }
+    }
+
+    /** Mirrors the powered flag onto every block of the column. */
+    private void updatePoweredBlockstates(BlockState state, boolean powered) {
+        for (int y = 0; y < ((ElectricFencePostBlock) state.getBlock()).getType().getHeight(); y++) {
+            BlockPos pos = this.getBlockPos().above(y);
+            BlockState s = this.level.getBlockState(pos);
+            if (s.getBlock() == state.getBlock()) { // When placing, the blocks can be air.
+                this.level.setBlock(pos, s.setValue(ElectricFencePostBlock.POWERED_PROPERTY, powered), 3);
+            }
+        }
+    }
+
+    /** Shares a fixed energy budget evenly with the poles at the other ends of our wires. */
+    private void distributePowerToConnectedPoles() {
+        Set<WrappedBlockEnergyContainer> storages = Sets.newLinkedHashSet();
+        for (Connection connection : this.getConnections()) {
+            BlockEntity te = this.level.getBlockEntity(
+                    connection.getPosition().equals(connection.getFrom()) ? connection.getTo() : connection.getFrom());
+            if (te != null) {
+                if (te instanceof BlockEntityElectricFencePole e) {
+                    storages.add(e.getEnergyStorage());
+                }
+            }
+        }
+        List<WrappedBlockEnergyContainer> list = Lists.newArrayList(storages);
+        list.sort(Comparator.comparing(WrappedBlockEnergyContainer::getStoredEnergy));
+        for (WrappedBlockEnergyContainer storage : list) {
+            long sendEnergy = storage.internalInsert(
+                    this.getEnergyStorage().internalExtract(DISTRIBUTION_BUDGET / list.size(), true), true);
+            this.getEnergyStorage().internalExtract(sendEnergy, false);
+            storage.internalInsert(sendEnergy, false);
         }
     }
 
@@ -222,6 +248,9 @@ public class BlockEntityElectricFencePole extends BlockEntityElectricFence imple
 
     @Override
     public WrappedBlockEnergyContainer getEnergyStorage() {
-        return energyContainer == null ? this.energyContainer = new WrappedBlockEnergyContainer(this, new InsertOnlyEnergyContainer(350,350)) : this.energyContainer;
+        return energyContainer == null
+                ? this.energyContainer = new WrappedBlockEnergyContainer(
+                        this, new InsertOnlyEnergyContainer(ENERGY_CAPACITY, ENERGY_MAX_TRANSFER))
+                : this.energyContainer;
     }
 }

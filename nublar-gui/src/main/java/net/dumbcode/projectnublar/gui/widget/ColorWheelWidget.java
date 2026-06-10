@@ -12,9 +12,12 @@ import net.minecraft.network.chat.Component;
 import net.minecraft.resources.ResourceLocation;
 
 import java.awt.*;
+/** HSV color wheel with a draggable blip. */
 public class ColorWheelWidget extends AbstractWidget {
     public static final ResourceLocation COLOR_WHEEL = new ResourceLocation(NublarGuiConstants.MODID, "color_wheel");
     public static final ResourceLocation COLOR_WHEEL_BLIP = new ResourceLocation(NublarGuiConstants.MODID, "textures/gui/color_wheel_blip.png");
+    // TODO(BUG): the center coordinates are cached from the constructor arguments, so
+    // hit-testing goes stale if the widget is ever moved with setX/setY.
     private int centerX;
     private int centerY;
     private int colorWheelBlipLocationX;

@@ -10,6 +10,8 @@ public class HerbivoreDinosaur extends Dinosaur {
         super($$0, $$1, flinchAnimLength);
     }
 
+    // TODO(BUG): calls super.canTarget(...) but ignores the result, reducing herbivores to
+    // revenge-only targeting.
     @Override
     public boolean canTarget(LivingEntity target) {
         super.canTarget(target);

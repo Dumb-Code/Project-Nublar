@@ -14,6 +14,8 @@ import net.tslat.smartbrainlib.util.BrainUtils;
 
 import java.util.List;
 
+// TODO(DEAD): commented out of Dinosaur.getCoreTasks() ("needs to be made more situational");
+// not wired into any activity group. Left unwired on purpose.
 public class ThreatDisplay<E extends Dinosaur> extends DelayedBehaviour<E> {
     private static final List<Pair<MemoryModuleType<?>, MemoryStatus>> MEMORY_REQUIREMENTS = ObjectArrayList.of(Pair.of(MemoryModuleType.NEAREST_LIVING_ENTITIES, MemoryStatus.VALUE_PRESENT));
 

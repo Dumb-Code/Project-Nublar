@@ -4,9 +4,44 @@ import net.dumbcode.projectnublar.Constants;
 import net.minecraft.resources.ResourceLocation;
 
 
+/**
+ * The two built-in fence wire types. Constructor arguments are
+ * (wiresPerPole, poleHeight, poleRadius, halfCableWidth, defaultRotationDegrees, halfSize,
+ * lightLevel); every value is a frozen behavioral/geometry constant.
+ */
 public enum EnumConnectionType implements ConnectionType {
-    LOW_SECURITY(2, 3, 6/16F, 0.75F, 90F, 1/8F, 10),
-    HIGH_SECURITY(1, 8, 1/2F, 2F, 0F, 2/8F, 15);
+    LOW_SECURITY(
+            EnumConnectionType.LOW_SECURITY_WIRE_COUNT,
+            EnumConnectionType.LOW_SECURITY_POLE_HEIGHT,
+            EnumConnectionType.LOW_SECURITY_RADIUS,
+            EnumConnectionType.LOW_SECURITY_HALF_CABLE_WIDTH,
+            EnumConnectionType.LOW_SECURITY_ROTATION_DEGREES,
+            EnumConnectionType.LOW_SECURITY_HALF_SIZE,
+            EnumConnectionType.LOW_SECURITY_LIGHT_LEVEL),
+    HIGH_SECURITY(
+            EnumConnectionType.HIGH_SECURITY_WIRE_COUNT,
+            EnumConnectionType.HIGH_SECURITY_POLE_HEIGHT,
+            EnumConnectionType.HIGH_SECURITY_RADIUS,
+            EnumConnectionType.HIGH_SECURITY_HALF_CABLE_WIDTH,
+            EnumConnectionType.HIGH_SECURITY_ROTATION_DEGREES,
+            EnumConnectionType.HIGH_SECURITY_HALF_SIZE,
+            EnumConnectionType.HIGH_SECURITY_LIGHT_LEVEL);
+
+    private static final int LOW_SECURITY_WIRE_COUNT = 2;
+    private static final int LOW_SECURITY_POLE_HEIGHT = 3;
+    private static final float LOW_SECURITY_RADIUS = 6 / 16F;
+    private static final float LOW_SECURITY_HALF_CABLE_WIDTH = 0.75F;
+    private static final float LOW_SECURITY_ROTATION_DEGREES = 90F;
+    private static final float LOW_SECURITY_HALF_SIZE = 1 / 8F;
+    private static final int LOW_SECURITY_LIGHT_LEVEL = 10;
+
+    private static final int HIGH_SECURITY_WIRE_COUNT = 1;
+    private static final int HIGH_SECURITY_POLE_HEIGHT = 8;
+    private static final float HIGH_SECURITY_RADIUS = 1 / 2F;
+    private static final float HIGH_SECURITY_HALF_CABLE_WIDTH = 2F;
+    private static final float HIGH_SECURITY_ROTATION_DEGREES = 0F;
+    private static final float HIGH_SECURITY_HALF_SIZE = 2 / 8F;
+    private static final int HIGH_SECURITY_LIGHT_LEVEL = 15;
     private final double[] offsets;
     private final int height;
     private final float radius;

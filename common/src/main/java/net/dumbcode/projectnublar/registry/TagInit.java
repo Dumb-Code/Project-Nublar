@@ -6,6 +6,7 @@ import net.minecraft.tags.TagKey;
 import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.item.Item;
 
+/** Item and entity tags used by machines and dinosaur AI. The tag paths are frozen contracts. */
 public class TagInit {
     public static TagKey<Item> BONE_MATTER = TagKey.create(BuiltInRegistries.ITEM.key(), Constants.modLoc("bone_matter"));
     public static TagKey<Item> PLANT_MATTER = TagKey.create(BuiltInRegistries.ITEM.key(), Constants.modLoc("plant_matter"));
