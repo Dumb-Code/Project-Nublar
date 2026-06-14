@@ -43,12 +43,6 @@ import java.util.Set;
  * (delegating to {@link RotatedRayBox} raytraces through {@link DelegateVoxelShape}), the shock
  * collision response, and the wire-repair interactions. All raytrace and bounding-box math is
  * numerically frozen.
- *
- * <p>TODO(DEAD): several loader-specific hooks from the 1.12/Forge original were never ported
- * and their commented-out bodies were removed: ladder climbing ({@code isLadder}), the custom
- * block-highlight renderer ({@code DrawHighlightEvent}), selected-bounding-box logic, hit/destroy
- * particle suppression, and the wire-spool right-click handler (a Forge-only version lives in
- * {@code CommonForgeEvents}).
  */
 public class BlockConnectableBase extends Block {
 
@@ -68,7 +62,7 @@ public class BlockConnectableBase extends Block {
         AABB entityBox = entityIn.getBoundingBox();
         if (te instanceof ConnectableBlockEntity) {
             entityBox = entityBox.inflate(0.1D);
-            for (ConnectionAxisAlignedBB box : createBoundingBox(((ConnectableBlockEntity) te).getConnections(), pos)) {
+            for (ConnectionAxisAlignedBB box : ((ConnectableBlockEntity) te).getOrCreateCollisionBoxes(pos)) {
                 if (entityBox.intersects(box.move(pos)) && box.getConnection().isPowered(worldIn)) {
 
                     Vec3 vec = new Vec3((entityBox.maxX + entityBox.minX) / 2, (entityBox.maxY + entityBox.minY) / 2, (entityBox.maxZ + entityBox.minZ) / 2);
@@ -76,8 +70,6 @@ public class BlockConnectableBase extends Block {
                     vec = vec.normalize();
 
                     if (worldIn instanceof ServerLevel) {
-                        // TODO(DEAD): a dedicated fence damage source and spark particles were
-                        // planned; currently THORNS damage with no particles (preserved).
                         entityIn.hurt(new DamageSource(worldIn.registryAccess().lookup(Registries.DAMAGE_TYPE).get().get(DamageTypes.THORNS).get(), null, null), 1F);
                     }
 
@@ -223,6 +215,9 @@ public class BlockConnectableBase extends Block {
     public static List<ConnectionAxisAlignedBB> createBoundingBox(Set<Connection> fenceConnections, BlockPos pos) {
         List<ConnectionAxisAlignedBB> out = Lists.newArrayList();
         for (Connection connection : fenceConnections) {
+            if (connection.isBroken() || !connection.isValid()) {
+                continue;
+            }
             double[] intersect = connection.getIn();
             double amount = 8;
 
@@ -258,7 +253,7 @@ public class BlockConnectableBase extends Block {
         }
     }
 
-    /** Swing/consume feedback when a wire is placed. TODO(DEAD): place sound never ported. */
+    /** Swing/consume feedback when a wire is placed. */
     public static void placeEffect(Player player, InteractionHand hand, Level worldIn, BlockPos pos) {
         if (player != null) {
             player.swing(hand);
@@ -274,6 +269,9 @@ public class BlockConnectableBase extends Block {
 
     @Override
     public void playerWillDestroy(Level world, BlockPos pos, BlockState state, Player player) {
+        if (world.isClientSide) {
+            return;
+        }
         HitChunk chunk = getHitChunk(player);
         if (chunk != null) {
             chunk.connection().setBroken(true);
@@ -293,6 +291,9 @@ public class BlockConnectableBase extends Block {
 
     @Override
     public InteractionResult use(BlockState state, Level world, BlockPos pos, Player player, InteractionHand hand, BlockHitResult ray) {
+        if (world.isClientSide) {
+            return InteractionResult.SUCCESS;
+        }
         if (ray instanceof DelegateBlockHitResult dbhr && dbhr.hitInfo instanceof HitChunk) {
             HitChunk chunk = (HitChunk) dbhr.hitInfo;
             BlockEntity te = world.getBlockEntity(pos);
@@ -376,7 +377,8 @@ public class BlockConnectableBase extends Block {
                                 List<BlockPos> positions = LineUtils.getBlocksInbetween(connection.getFrom(), connection.getTo(), connection.getOffset());
                                 for (int i = 0; i < positions.size(); i++) {
                                     if (positions.get(i).equals(pos)) {
-                                        Connection con = new Connection(tileentity, connection.getType(), connection.getOffset(), connection.getFrom(), connection.getTo(), positions.get(Math.min(i + 1, positions.size() - 1)), positions.get(Math.max(i - 1, 0)), pos);
+                                        BlockEntity owner = be instanceof BlockEntity blockEntity ? blockEntity : tileentity;
+                                        Connection con = new Connection(owner, connection.getType(), connection.getOffset(), connection.getFrom(), connection.getTo(), positions.get(Math.max(i - 1, 0)), positions.get(Math.min(i + 1, positions.size() - 1)), pos);
                                         double[] in = con.getIn();
                                         double yin = (in[4] + in[5]) / 2D;
                                         if (side == Direction.DOWN == yin > yRef) {
@@ -409,7 +411,7 @@ public class BlockConnectableBase extends Block {
 
         }
         for (Connection connection : newConnections) {
-            connection.setBroken(!connection.lazyEquals(ref));
+            connection.setBrokenSilently(!connection.lazyEquals(ref));
             be.addConnection(connection);
         }
         if (be instanceof BlockEntity) {

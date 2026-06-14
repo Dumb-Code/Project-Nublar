@@ -24,8 +24,8 @@ import java.util.List;
 public class BreakFenceBehaviour<E extends Dinosaur> extends DelayedBehaviour<E> {
     private static final List<Pair<MemoryModuleType<?>, MemoryStatus>> MEMORY_REQUIREMENTS = ObjectArrayList.of(Pair.of(MemoryModuleTypeInit.WANTS_TO_BREAK_FENCE.get(), MemoryStatus.VALUE_PRESENT));
 
-    @Nullable BlockEntityElectricFence beElectricFence;
-    @Nullable BlockEntity beToTest;
+    @Nullable
+    private BlockPos targetFencePos;
 
     public BreakFenceBehaviour(int delayTicks) {
         super(delayTicks);
@@ -33,6 +33,8 @@ public class BreakFenceBehaviour<E extends Dinosaur> extends DelayedBehaviour<E>
 
     @Override
     protected boolean checkExtraStartConditions(ServerLevel level, E entity) {
+        this.targetFencePos = null;
+        double closestDistance = Double.MAX_VALUE;
         if(BrainUtils.hasMemory(entity, SBLMemoryTypes.NEARBY_BLOCKS.get())){
             List<Pair<BlockPos, BlockState>> nearby_blocks = BrainUtils.getMemory(entity, SBLMemoryTypes.NEARBY_BLOCKS.get());
 
@@ -40,20 +42,18 @@ public class BreakFenceBehaviour<E extends Dinosaur> extends DelayedBehaviour<E>
 
             for(Pair<BlockPos,BlockState> blockToTest: nearby_blocks){
                 if (blockToTest.getSecond().is(BlockInit.ELECTRIC_FENCE.get())){
-                  if(level.getBlockEntity(blockToTest.getFirst()) != null) {
-                      BlockPos testPos = blockToTest.getFirst();
-                      beToTest = level.getBlockEntity(blockToTest.getFirst());
-                      if(beToTest != null) {
-                          if(beToTest instanceof BlockEntityElectricFence entityElectricFence && entity.distanceToSqr(testPos.getCenter()) < 2) {
-                              beElectricFence = entityElectricFence;
-                          }
-                      }
-                  }
+                    BlockPos testPos = blockToTest.getFirst();
+                    BlockEntity blockEntity = level.getBlockEntity(testPos);
+                    double distance = entity.distanceToSqr(testPos.getCenter());
+                    if(blockEntity instanceof BlockEntityElectricFence && distance < 2 && distance < closestDistance) {
+                        closestDistance = distance;
+                        this.targetFencePos = testPos;
+                    }
                 }
             }
 
         }
-        return beElectricFence != null;
+        return this.targetFencePos != null;
     }
 
     @Override
@@ -67,14 +67,19 @@ public class BreakFenceBehaviour<E extends Dinosaur> extends DelayedBehaviour<E>
     @Override
     protected void doDelayedAction(E entity) {
         DinoAnimationUtils.setAnimationState(entity, "attack",false);
-        this.beElectricFence.breakFence(10);
-        entity.level().players().forEach(p ->
-                p.sendSystemMessage(Component.literal("WARNING: Fence Destroyed at: " + entity.position() + ", by a: " + entity)));
+        if (entity.level() instanceof ServerLevel level && this.targetFencePos != null) {
+            BlockEntity blockEntity = level.getBlockEntity(this.targetFencePos);
+            if (blockEntity instanceof BlockEntityElectricFence fence && entity.distanceToSqr(this.targetFencePos.getCenter()) < 2) {
+                fence.breakFence(10);
+                entity.level().players().forEach(p ->
+                        p.sendSystemMessage(Component.literal("WARNING: Fence Destroyed at: " + entity.position() + ", by a: " + entity)));
+            }
+        }
     }
 
     @Override
     protected void stop(E entity) {
-        this.beElectricFence = null;
+        this.targetFencePos = null;
     }
 
     @Override

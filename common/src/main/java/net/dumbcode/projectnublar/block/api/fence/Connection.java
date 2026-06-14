@@ -1,10 +1,9 @@
 package net.dumbcode.projectnublar.block.api.fence;
 
-import com.google.common.collect.Lists;
 import com.google.common.primitives.Doubles;
 import com.google.common.primitives.Floats;
-import earth.terrarium.botarium.common.energy.base.BotariumEnergyBlock;
 import net.dumbcode.projectnublar.block.api.geometry.RotatedRayBox;
+import net.dumbcode.projectnublar.block.entity.BlockEntityElectricFenceBase;
 import net.dumbcode.projectnublar.util.LineUtils;
 import net.minecraft.core.BlockPos;
 import net.minecraft.nbt.CompoundTag;
@@ -25,6 +24,7 @@ import org.joml.Vector4f;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+import java.util.Objects;
 import java.util.Optional;
 import java.util.Random;
 import java.util.stream.IntStream;
@@ -75,6 +75,8 @@ public class Connection {
     private final int compared;
 
     private RenderData renderData;
+    private CompiledRenderData compiledRenderData;
+    private int compiledRenderDataState = Integer.MIN_VALUE;
 
     private boolean broken;
 
@@ -96,9 +98,13 @@ public class Connection {
 
     public Connection(BlockEntity internalBlockEntity, ConnectionType type, double offset, BlockPos from, BlockPos to, BlockPos previous, BlockPos next, BlockPos position) {
         this(() -> {
-            Level level = internalBlockEntity.getLevel();
-            if (level != null) {
-                level.sendBlockUpdated(position, Blocks.AIR.defaultBlockState(), internalBlockEntity.getBlockState(), 3);
+            if (internalBlockEntity instanceof BlockEntityElectricFenceBase fence) {
+                fence.onConnectionChanged();
+            } else {
+                Level level = internalBlockEntity.getLevel();
+                if (level != null) {
+                    level.sendBlockUpdated(position, Blocks.AIR.defaultBlockState(), internalBlockEntity.getBlockState(), 3);
+                }
             }
         }, type, offset, from, to, previous, next, position);
     }
@@ -151,10 +157,6 @@ public class Connection {
         this.prevCache = this.genCache(false);
         this.nextCache = this.genCache(true);
 
-        // TODO(BUG): render data is built on both logical sides (a pre-existing note asked to
-        // restrict this to the client via DistExecutor).
-        this.renderData = this.buildRenderData();
-
         VoxelShape collisionShape = Shapes.empty();
         for (BlockConnectableBase.ConnectionAxisAlignedBB bb : BlockConnectableBase.createBoundingBox(Collections.singleton(this), position)) {
             collisionShape = Shapes.or(collisionShape, Shapes.create(bb));
@@ -163,13 +165,30 @@ public class Connection {
     }
 
     public Connection setBroken(boolean broken) {
-        this.broken = broken;
+        if (!this.setBrokenSilently(broken)) {
+            return this;
+        }
         this.reRenderCallback.run();
         return this;
     }
 
     private Connection silentlySetBroken(boolean broken) {
+        this.setBrokenSilently(broken);
+        return this;
+    }
+
+    public boolean setBrokenSilently(boolean broken) {
+        if (this.broken == broken) {
+            return false;
+        }
         this.broken = broken;
+        this.invalidateRenderData();
+        return true;
+    }
+
+    private Connection silentlySetSign(boolean sign) {
+        this.sign = sign;
+        this.invalidateRenderData();
         return this;
     }
 
@@ -208,7 +227,9 @@ public class Connection {
     }
 
     public Connection copy() {
-        return new Connection(this.reRenderCallback, this.type, this.offset, this.from, this.to, this.previous, this.next, this.position).setBroken(this.broken);
+        return new Connection(this.reRenderCallback, this.type, this.offset, this.from, this.to, this.previous, this.next, this.position)
+            .silentlySetBroken(this.broken)
+            .silentlySetSign(this.sign);
     }
 
     private RotatedRayBox genRotatedBox(double length, double yang, double zang) {
@@ -242,7 +263,7 @@ public class Connection {
             NbtUtils.readBlockPos(nbt.getCompound(PREVIOUS_TAG)),
             NbtUtils.readBlockPos(nbt.getCompound(NEXT_TAG)),
             tileEntity.getBlockPos()
-        ).silentlySetBroken(nbt.getBoolean(BROKEN_TAG)).setSign(nbt.getBoolean(SIGN_TAG));
+        ).silentlySetBroken(nbt.getBoolean(BROKEN_TAG)).silentlySetSign(nbt.getBoolean(SIGN_TAG));
     }
 
     public boolean lazyEquals(Connection con) {
@@ -271,72 +292,42 @@ public class Connection {
         return true;
     }
 
-    /**
-     * TODO(BUG): the energy integration is unfinished (pre-existing "todo: energy" notes). The
-     * final {@code return false} means an unbroken, unpowered fence never shocks; whether the
-     * energy loop above ever returns true is part of the current (buggy) behavior and must not
-     * be changed.
-     */
     public boolean isPowered(BlockGetter world) {
-        for (BlockPos pos : LineUtils.getBlocksInbetween(this.from, this.to, this.offset)) {
-            BlockEntity te = world.getBlockEntity(pos);
-            if (te instanceof ConnectableBlockEntity) {
-                if (!this.isContactablePowerAllowed((ConnectableBlockEntity) te)) {
-                    return false;
-                }
-            } else {
-                return false;
-            }
-        }
-
-        for (BlockPos pos : Lists.newArrayList(this.from, this.to)) {
-            BlockEntity te = world.getBlockEntity(pos);
-            if (te instanceof BotariumEnergyBlock<?> wbec && wbec.getEnergyStorage().getStoredEnergy() > 0) {
-                return true;
-            }
-        }
-        return false;
-    }
-
-    private boolean isContactablePowerAllowed(ConnectableBlockEntity connectable) {
-        boolean has = false;
-        for (Connection connection : connectable.getConnections()) {
-            if (connection.lazyEquals(this)) {
-                if (connection.isBroken()) {
-                    return false;
-                }
-                has = true;
-                break;
-            }
-        }
-        return has;
+        return FencePowerService.isPowered(world, this);
     }
 
 
     public CompiledRenderData compileRenderData(BlockGetter world) {
-        List<float[]> out = new ArrayList<>();
-
         boolean pb = this.brokenSide(world, false);
         boolean nb = this.brokenSide(world, true);
+        int state = Objects.hash(this.broken, this.sign, pb, nb);
+        if (this.compiledRenderData != null && this.compiledRenderDataState == state) {
+            return this.compiledRenderData;
+        }
+
+        List<float[]> out = new ArrayList<>();
         if(!this.isBroken()) {
+            RenderData data = this.getRenderData();
             if (nb) {
-                out.add(this.renderData.nextRotated());
+                out.add(data.nextRotated());
                 if (!pb) {
-                    out.add(this.renderData.nextFixed());
+                    out.add(data.nextFixed());
                 }
             }
             if (pb) {
-                out.add(this.renderData.prevRotated());
+                out.add(data.prevRotated());
                 if (!nb) {
-                    out.add(this.renderData.prevFixed());
+                    out.add(data.prevFixed());
                 }
             }
             if (!pb && !nb) {
-                out.add(this.renderData.data());
+                out.add(data.data());
             }
         }
 
-        return new CompiledRenderData(this.isSign(), out);
+        this.compiledRenderDataState = state;
+        this.compiledRenderData = new CompiledRenderData(this.isSign(), List.copyOf(out));
+        return this.compiledRenderData;
     }
 
 
@@ -526,7 +517,12 @@ public class Connection {
     }
 
     public Connection setSign(boolean sign) {
+        if (this.sign == sign) {
+            return this;
+        }
         this.sign = sign;
+        this.invalidateRenderData();
+        this.reRenderCallback.run();
         return this;
     }
 
@@ -539,11 +535,16 @@ public class Connection {
     }
 
     public RenderData getRenderData() {
+        if (renderData == null) {
+            renderData = this.buildRenderData();
+        }
         return renderData;
     }
 
     public void setRenderData(RenderData renderData) {
         this.renderData = renderData;
+        this.compiledRenderData = null;
+        this.compiledRenderDataState = Integer.MIN_VALUE;
     }
 
     public boolean isBroken() {
@@ -588,6 +589,30 @@ public class Connection {
 
     public VoxelShape getCollisionShape() {
         return collisionShape;
+    }
+
+    public void invalidateRenderData() {
+        this.compiledRenderData = null;
+        this.compiledRenderDataState = Integer.MIN_VALUE;
+    }
+
+    @Override
+    public boolean equals(Object object) {
+        if (this == object) {
+            return true;
+        }
+        if (!(object instanceof Connection connection)) {
+            return false;
+        }
+        return Double.compare(connection.offset, this.offset) == 0
+            && this.position.equals(connection.position)
+            && this.from.equals(connection.from)
+            && this.to.equals(connection.to);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(this.position, this.from, this.to, this.offset);
     }
 
     public record SurroundingCache(Vector3f point, RotatedRayBox fixedBox, RotatedRayBox rotatedBox) {

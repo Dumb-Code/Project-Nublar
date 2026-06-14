@@ -1,20 +1,24 @@
 package net.dumbcode.projectnublar.block.entity;
 
-import java.util.Collections;
+import java.util.LinkedHashMap;
+import java.util.LinkedHashSet;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
-import java.util.stream.Collectors;
+import net.dumbcode.projectnublar.block.api.fence.ConnectionType;
 import net.dumbcode.projectnublar.block.api.fence.ConnectableBlockEntity;
 import net.dumbcode.projectnublar.block.api.fence.Connection;
+import net.dumbcode.projectnublar.block.api.fence.FencePowerService;
 import net.dumbcode.projectnublar.registry.BlockInit;
 import net.dumbcode.projectnublar.util.LineUtils;
 import net.minecraft.core.BlockPos;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.nbt.ListTag;
 import net.minecraft.nbt.Tag;
+import net.minecraft.server.level.ServerLevel;
+import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.entity.BlockEntityType;
 import net.minecraft.world.level.block.state.BlockState;
-import net.minecraft.world.phys.shapes.Shapes;
 import net.minecraft.world.phys.shapes.VoxelShape;
 import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.api.distmarker.OnlyIn;
@@ -37,7 +41,7 @@ public class BlockEntityElectricFence extends BlockEntityElectricFenceBase imple
 
     @Override
     public void resetCollidableCache(){
-        this.collidableCache = null;
+        super.resetCollidableCache();
     }
 
     @Override
@@ -56,76 +60,152 @@ public class BlockEntityElectricFence extends BlockEntityElectricFenceBase imple
         this.fenceConnections.clear();
         ListTag nbt = compound.getList(CONNECTIONS_TAG, Tag.TAG_COMPOUND);
         for (int i = 0; i < nbt.size(); i++) {
-            Connection connection = Connection.fromNBT(nbt.getCompound(i), this);
-            if(connection.isValid()) {
-                this.fenceConnections.add(connection);
+            try {
+                Connection connection = Connection.fromNBT(nbt.getCompound(i), this);
+                if(connection.isValid()) {
+                    this.fenceConnections.add(connection);
+                }
+            } catch (RuntimeException ignored) {
+                // Invalid saved geometry is skipped to keep old or corrupted worlds loadable.
             }
         }
 
-        if(this.level != null) {
-            this.triggerModelUpdate();
-        }
+        this.onConnectionChanged();
     }
 
     @Override
     public VoxelShape getOrCreateCollision() {
-        if(this.collidableCache == null) {
-            VoxelShape shape = Shapes.empty();
-            for (Connection connection : this.fenceConnections) {
-                shape = Shapes.or(shape, connection.getCollisionShape());
-            }
-            this.collidableCache = shape;
-        }
-
-        return this.collidableCache;
+        return super.getOrCreateCollision();
     }
 
     @Override
     public void addConnection(Connection connection) {
-        this.fenceConnections.add(connection);
-        this.triggerModelUpdate();
-        this.setChanged();
+        super.addConnection(connection);
     }
 
     @Override
     @OnlyIn(Dist.CLIENT)
     public Set<Connection.CompiledRenderData> compiledRenderData() {
-        return this.getConnections().stream()
-            .map(c -> c.compileRenderData(this.level))
-            .collect(Collectors.toSet());
+        return super.compiledRenderData();
     }
 
 
     @Override
     public Set<Connection> getConnections() {
-        return Collections.unmodifiableSet(this.fenceConnections);
+        return super.getConnections();
     }
 
-    /**
-     * Breaks the surrounding fence. Used for entities who "attack" the fence.
-     *
-     * <p>TODO(BUG): the midpoint math relies on integer division ({@code blocks.size() / 2}), so
-     * for even-sized runs the "center" is biased. A pre-existing note asked
-     * for more randomness here, but the real issue is that the whole code should be completely rewritten.
-     * This is extremely unoptimized.
-     * 
-     * @param intensity Intensity at which the fence breaks.
-     */
+    /** Breaks nearby wire segments around the center of each connected run. */
     public void breakFence(int intensity) {
-        for (Connection connection : fenceConnections) {
-            for (double offset : connection.getType().getOffsets()) {
-                List<BlockPos> blocks = LineUtils.getBlocksInbetween(connection.getFrom(), connection.getTo(), offset);
-                for (int k = 0; k < blocks.size(); k++) {
-                    for (int i = 0; i < connection.getType().getHeight(); i++) {
-                        BlockPos position = blocks.get(k).above(i);
-                        if ((k == blocks.size() / 2 - 1 || k == blocks.size() / 2 + 1) && i < intensity / 2 + 1) {
-                            this.level.destroyBlock(position, true);
-                        } else if (k == blocks.size() / 2 && i < intensity) {
-                            this.level.destroyBlock(position, true);
-                        }
+        if (!(this.level instanceof ServerLevel level) || intensity <= 0) {
+            return;
+        }
+
+        Set<FenceRunTarget> runs = new LinkedHashSet<>();
+        for (Connection connection : this.fenceConnections) {
+            BlockPos fromBase = FencePowerService.getBasePos(level, connection.getFrom());
+            BlockPos toBase = FencePowerService.getBasePos(level, connection.getTo());
+            runs.add(new FenceRunTarget(connection.getType(), fromBase, toBase));
+        }
+
+        Map<BlockPos, Set<RunSegment>> affectedSegments = new LinkedHashMap<>();
+        for (FenceRunTarget run : runs) {
+            collectBreakTargets(run, intensity, affectedSegments);
+        }
+
+        for (Map.Entry<BlockPos, Set<RunSegment>> entry : affectedSegments.entrySet()) {
+            breakConnectionsAt(level, entry.getKey(), entry.getValue());
+        }
+    }
+
+    private void collectBreakTargets(FenceRunTarget run, int intensity, Map<BlockPos, Set<RunSegment>> affectedSegments) {
+        for (double offset : run.type().getOffsets()) {
+            List<BlockPos> baseLayer = LineUtils.getBlocksInbetween(run.fromBase(), run.toBase(), offset);
+            if (baseLayer.isEmpty()) {
+                continue;
+            }
+
+            double center = (baseLayer.size() - 1) / 2.0D;
+            for (int index = 0; index < baseLayer.size(); index++) {
+                double distanceFromCenter = Math.abs(index - center);
+                int verticalLimit = verticalBreakLimit(distanceFromCenter, intensity, run.type().getHeight());
+                if (verticalLimit <= 0) {
+                    continue;
+                }
+
+                for (int y = 0; y < verticalLimit; y++) {
+                    BlockPos from = run.fromBase().above(y);
+                    BlockPos to = run.toBase().above(y);
+                    BlockPos target = baseLayer.get(index).above(y);
+                    if (target.equals(from) || target.equals(to)) {
+                        continue;
                     }
+                    affectedSegments
+                        .computeIfAbsent(target, ignored -> new LinkedHashSet<>())
+                        .add(new RunSegment(from, to, offset));
                 }
             }
+        }
+    }
+
+    private static int verticalBreakLimit(double distanceFromCenter, int intensity, int height) {
+        if (distanceFromCenter <= 0.5D) {
+            return Math.min(height, intensity);
+        }
+        if (distanceFromCenter <= 1.5D) {
+            return Math.min(height, intensity / 2 + 1);
+        }
+        return 0;
+    }
+
+    private static void breakConnectionsAt(ServerLevel level, BlockPos pos, Set<RunSegment> affectedSegments) {
+        BlockEntity blockEntity = level.getBlockEntity(pos);
+        if (!(blockEntity instanceof ConnectableBlockEntity connectable)) {
+            return;
+        }
+
+        boolean changed = false;
+        boolean hasLiveConnection = false;
+        for (Connection connection : connectable.getConnections()) {
+            if (matchesAny(affectedSegments, connection)) {
+                changed |= connection.setBrokenSilently(true);
+            }
+            hasLiveConnection |= !connection.isBroken();
+        }
+
+        if (!changed) {
+            return;
+        }
+
+        if (blockEntity instanceof BlockEntityElectricFenceBase fence) {
+            fence.onConnectionChanged();
+        }
+        blockEntity.setChanged();
+
+        BlockState state = level.getBlockState(pos);
+        if (!hasLiveConnection && state.is(BlockInit.ELECTRIC_FENCE.get())) {
+            level.destroyBlock(pos, true);
+        } else {
+            level.sendBlockUpdated(pos, state, state, 3);
+        }
+    }
+
+    private static boolean matchesAny(Set<RunSegment> affectedSegments, Connection connection) {
+        for (RunSegment segment : affectedSegments) {
+            if (segment.matches(connection)) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    private record FenceRunTarget(ConnectionType type, BlockPos fromBase, BlockPos toBase) {}
+
+    private record RunSegment(BlockPos from, BlockPos to, double offset) {
+        private boolean matches(Connection connection) {
+            return Double.compare(this.offset, connection.getOffset()) == 0
+                && ((this.from.equals(connection.getFrom()) && this.to.equals(connection.getTo()))
+                    || (this.from.equals(connection.getTo()) && this.to.equals(connection.getFrom())));
         }
     }
 }

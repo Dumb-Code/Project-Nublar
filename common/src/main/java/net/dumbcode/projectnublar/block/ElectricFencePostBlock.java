@@ -1,11 +1,11 @@
 package net.dumbcode.projectnublar.block;
 
-import com.google.common.collect.Lists;
 import net.dumbcode.projectnublar.Constants;
 import net.dumbcode.projectnublar.block.api.fence.BlockConnectableBase;
 import net.dumbcode.projectnublar.block.api.fence.ConnectableBlockEntity;
 import net.dumbcode.projectnublar.block.api.fence.Connection;
 import net.dumbcode.projectnublar.block.api.fence.ConnectionType;
+import net.dumbcode.projectnublar.block.entity.BlockEntityElectricFenceBase;
 import net.dumbcode.projectnublar.block.entity.BlockEntityElectricFencePole;
 import net.dumbcode.projectnublar.registry.BlockInit;
 import net.dumbcode.projectnublar.registry.ItemInit;
@@ -41,9 +41,9 @@ import net.minecraft.world.phys.BlockHitResult;
 import net.minecraft.world.phys.shapes.CollisionContext;
 import net.minecraft.world.phys.shapes.Shapes;
 import net.minecraft.world.phys.shapes.VoxelShape;
-import org.apache.commons.lang3.tuple.Pair;
 
 import javax.annotation.Nullable;
+import java.util.ArrayList;
 import java.util.List;
 
 /**
@@ -112,7 +112,7 @@ public class ElectricFencePostBlock extends BlockConnectableBase implements Enti
 
     @Override
     public void onPlace(BlockState state, Level world, BlockPos pos, BlockState old, boolean p_220082_5_) {
-        if (state.getValue(indexProperty) == 0) {
+        if (!world.isClientSide && !state.is(old.getBlock()) && state.getValue(indexProperty) == 0) {
             for (int i = 1; i < this.type.getHeight(); i++) {
                 world.setBlock(pos.above(i), this.defaultBlockState().setValue(indexProperty, i), 3);
             }
@@ -128,12 +128,18 @@ public class ElectricFencePostBlock extends BlockConnectableBase implements Enti
         if (index == 0) {
             ItemStack stack = player.getItemInHand(hand);
             if (stack.isEmpty()) {
+                if (world.isClientSide) {
+                    return InteractionResult.SUCCESS;
+                }
                 BlockEntity te = world.getBlockEntity(pos);
                 if (te instanceof BlockEntityElectricFencePole fencePole) {
                     flipPole(world, pos, fencePole);
                     return InteractionResult.SUCCESS;
                 }
             } else if (stack.getItem() == ItemInit.WIRE_SPOOL.get()) {
+                if (world.isClientSide) {
+                    return InteractionResult.SUCCESS;
+                }
                 // Pre-existing note: this could live on the wire-spool item class instead.
                 handleWireSpoolUse(world, pos, player, stack);
                 return InteractionResult.SUCCESS;
@@ -151,8 +157,8 @@ public class ElectricFencePostBlock extends BlockConnectableBase implements Enti
         fencePole.setChanged();
         for (int y = 0; y < this.type.getHeight(); y++) {
             BlockEntity t = world.getBlockEntity(pos.above(y));
-            if (t != null) {
-                fencePole.triggerModelUpdate();
+            if (t instanceof BlockEntityElectricFencePole pole) {
+                pole.triggerModelUpdate();
             }
         }
     }
@@ -167,10 +173,7 @@ public class ElectricFencePostBlock extends BlockConnectableBase implements Enti
             BlockPos other = NbtUtils.readBlockPos(nbt.getCompound(FENCE_POSITION_TAG));
             double dist = Math.sqrt(other.distSqr(pos));
             if (dist > LIMIT) {
-                if (!world.isClientSide) {
-                    // TODO: "projectnublar.fences.length.toolong" does not exist
-                    player.displayClientMessage(Component.translatable("projectnublar.fences.length.toolong", Math.round(dist), LIMIT), true);
-                }
+                player.displayClientMessage(Component.literal("Fence run is too long (" + Math.round(dist) + "/" + LIMIT + " blocks)"), true);
                 nbt.put(FENCE_POSITION_TAG, NbtUtils.writeBlockPos(pos));
             } else if (world.getBlockState(other).getBlock() == this && !other.equals(pos)) {
                 placeWireRun(world, pos, other, player, stack, dist);
@@ -185,43 +188,17 @@ public class ElectricFencePostBlock extends BlockConnectableBase implements Enti
 
     /** Collects enough spool items across the inventory, then strings every wire of the run. */
     private void placeWireRun(Level world, BlockPos pos, BlockPos other, Player player, ItemStack stack, double dist) {
-        int itemMax;
-        int itemAmount = itemMax = Mth.ceil(dist / ElectricFenceBlock.ITEM_FOLD * this.type.getHeight());
-        int total = 0;
-        boolean full = false;
-        List<Pair<ItemStack, Integer>> stacksFound = Lists.newArrayList();
-
-        if (itemAmount <= stack.getCount()) {
-            total += itemAmount;
-            stacksFound.add(Pair.of(stack, itemAmount));
-            full = true;
-        } else {
-            total += stack.getCount();
-            stacksFound.add(Pair.of(stack, stack.getCount()));
+        int required = Mth.ceil(dist / ElectricFenceBlock.ITEM_FOLD * this.type.getHeight());
+        if (!hasWirePlacementWork(world, pos, other)) {
+            return;
         }
-        itemAmount -= stack.getCount();
 
-        for (ItemStack itemStack : player.getInventory().items) {
-            if (itemStack != stack && itemStack.getItem() == ItemInit.WIRE_SPOOL.get()) {
-                if (itemAmount <= itemStack.getCount()) {
-                    total += itemAmount;
-                    stacksFound.add(Pair.of(itemStack, itemAmount));
-                    full = true;
-                    break;
-                } else {
-                    total += itemStack.getCount();
-                    stacksFound.add(Pair.of(itemStack, itemStack.getCount()));
-                }
-                itemAmount -= itemStack.getCount();
-            }
-        }
-        if (!full) {
-            if (!world.isClientSide) {
-                player.displayClientMessage(Component.translatable("projectnublar.fences.length.notenough", itemMax, total), true);
-            }
+        SpoolInventoryUse inventoryUse = collectWireSpools(player, stack, required);
+        if (!inventoryUse.hasEnough()) {
+            player.displayClientMessage(Component.translatable("projectnublar.fences.length.notenough", required, inventoryUse.totalFound()), true);
         } else {
             if (!player.isCreative()) {
-                stacksFound.forEach(p -> p.getLeft().shrink(p.getRight()));
+                inventoryUse.consume();
             }
             for (double offset : this.type.getOffsets()) {
                 List<BlockPos> positions = LineUtils.getBlocksInbetween(pos, other, offset);
@@ -230,12 +207,21 @@ public class ElectricFencePostBlock extends BlockConnectableBase implements Enti
                     BlockPos other1 = other.above(i);
                     for (int i1 = 0; i1 < positions.size(); i1++) {
                         BlockPos position = positions.get(i1).above(i);
-                        if ((world.getBlockState(position).isAir() || world.getBlockState(position).canBeReplaced(Fluids.EMPTY)) && !(world.getBlockState(position).getBlock() instanceof ElectricFencePostBlock)) {
+                        BlockState targetState = world.getBlockState(position);
+                        if ((targetState.isAir() || targetState.canBeReplaced(Fluids.EMPTY)) && !(targetState.getBlock() instanceof ElectricFencePostBlock)) {
                             world.setBlock(position, BlockInit.ELECTRIC_FENCE.get().defaultBlockState(), 3);
                         }
                         BlockEntity fencete = world.getBlockEntity(position);
                         if (fencete instanceof ConnectableBlockEntity) {
-                            ((ConnectableBlockEntity) fencete).addConnection(new Connection(fencete, this.type, offset, pos1, other1, positions.get(Math.min(i1 + 1, positions.size() - 1)).above(i), positions.get(Math.max(i1 - 1, 0)).above(i), position));
+                            ((ConnectableBlockEntity) fencete).addConnection(new Connection(
+                                fencete,
+                                this.type,
+                                offset,
+                                pos1,
+                                other1,
+                                positions.get(Math.max(i1 - 1, 0)).above(i),
+                                positions.get(Math.min(i1 + 1, positions.size() - 1)).above(i),
+                                position));
                         }
                     }
                 }
@@ -243,59 +229,161 @@ public class ElectricFencePostBlock extends BlockConnectableBase implements Enti
         }
     }
 
-    @Override
-    public void onRemove(BlockState state, Level level, BlockPos pos, BlockState newState, boolean movedByPiston) {
-        BlockEntity blockEntity = level.getBlockEntity(pos);
-        if (blockEntity instanceof BlockEntityElectricFencePole fencePole) {
-            for (Connection connection : fencePole.getConnections()) {
-                BlockPos fromPos = connection.getFrom();
-                if (fromPos.equals(pos)) {
-                    fromPos = connection.getTo();
-                }
-                // TODO(BUG): the "|| true" makes this condition always pass, so the original
-                // same-block check is dead.
-                if (level.getBlockState(fromPos).getBlock() != this || true) {
-                    for (BlockPos blockPos : LineUtils.getBlocksInbetween(connection.getFrom(), connection.getTo(), connection.getOffset())) {
-                        if (blockPos.equals(connection.getTo()) || blockPos.equals(connection.getFrom())) {
-                            BlockEntity be  = level.getBlockEntity(blockPos);
+    private boolean hasWirePlacementWork(Level world, BlockPos pos, BlockPos other) {
+        for (double offset : this.type.getOffsets()) {
+            List<BlockPos> positions = LineUtils.getBlocksInbetween(pos, other, offset);
+            for (int y = 0; y < this.type.getHeight(); y++) {
+                BlockPos from = pos.above(y);
+                BlockPos to = other.above(y);
+                for (BlockPos basePosition : positions) {
+                    BlockPos position = basePosition.above(y);
+                    BlockState targetState = world.getBlockState(position);
+                    if ((targetState.isAir() || targetState.canBeReplaced(Fluids.EMPTY))
+                        && !(targetState.getBlock() instanceof ElectricFencePostBlock)) {
+                        return true;
+                    }
 
-                            if (be instanceof BlockEntityElectricFencePole fencePole1 && fencePole1 != fencePole) {
-                                connection.setBroken(true);
-                            }
-
-                            continue;
-                        }
-
-                        BlockEntity te = level.getBlockEntity(blockPos);
-                        if (te instanceof ConnectableBlockEntity connectableBlockEntity) {
-                            boolean left = false;
-                            for (Connection bitcon : connectableBlockEntity.getConnections()) {
-                                if (connection.lazyEquals(bitcon)) {
-                                    bitcon.setBroken(true);
-                                }
-                                left |= !bitcon.isBroken();
-                            }
-                            if (!left) {
-                                level.setBlock(blockPos, Blocks.AIR.defaultBlockState(), 3);
-                            }
+                    BlockEntity blockEntity = world.getBlockEntity(position);
+                    if (blockEntity instanceof ConnectableBlockEntity connectable) {
+                        Connection existing = findMatchingConnection(connectable, from, to, offset);
+                        if (existing == null || existing.isBroken()) {
+                            return true;
                         }
                     }
                 }
             }
         }
+        return false;
+    }
+
+    @Nullable
+    private static Connection findMatchingConnection(ConnectableBlockEntity connectable, BlockPos from, BlockPos to, double offset) {
+        for (Connection connection : connectable.getConnections()) {
+            if (matchesConnection(connection, from, to, offset)) {
+                return connection;
+            }
+        }
+        return null;
+    }
+
+    private static boolean matchesConnection(Connection connection, BlockPos from, BlockPos to, double offset) {
+        return Double.compare(connection.getOffset(), offset) == 0
+            && ((connection.getFrom().equals(from) && connection.getTo().equals(to))
+                || (connection.getFrom().equals(to) && connection.getTo().equals(from)));
+    }
+
+    private static SpoolInventoryUse collectWireSpools(Player player, ItemStack heldStack, int required) {
+        int remaining = required;
+        int totalFound = 0;
+        List<SpoolStackUse> stacks = new ArrayList<>();
+
+        int fromHeld = Math.min(remaining, heldStack.getCount());
+        if (fromHeld > 0) {
+            stacks.add(new SpoolStackUse(heldStack, fromHeld));
+            totalFound += fromHeld;
+            remaining -= fromHeld;
+        }
+
+        for (ItemStack itemStack : player.getInventory().items) {
+            if (remaining <= 0) {
+                break;
+            }
+            if (itemStack != heldStack && itemStack.getItem() == ItemInit.WIRE_SPOOL.get()) {
+                int fromStack = Math.min(remaining, itemStack.getCount());
+                if (fromStack > 0) {
+                    stacks.add(new SpoolStackUse(itemStack, fromStack));
+                    totalFound += fromStack;
+                    remaining -= fromStack;
+                }
+            }
+        }
+
+        return new SpoolInventoryUse(required, totalFound, stacks);
+    }
+
+    @Override
+    public void onRemove(BlockState state, Level level, BlockPos pos, BlockState newState, boolean movedByPiston) {
+        if (state.is(newState.getBlock())) {
+            super.onRemove(state, level, pos, newState, movedByPiston);
+            return;
+        }
+
+        if (!level.isClientSide && !destroying) {
+            BlockPos base = pos.below(state.getValue(this.indexProperty));
+            breakRunsForRemovedColumn(level, base);
+            removeColumnBlocks(level, pos, state);
+        }
+
+        super.onRemove(state, level, pos, newState, movedByPiston);
+    }
+
+    private void breakRunsForRemovedColumn(Level level, BlockPos base) {
+        List<Connection> columnConnections = new ArrayList<>();
+        for (int y = 0; y < this.type.getHeight(); y++) {
+            BlockEntity blockEntity = level.getBlockEntity(base.above(y));
+            if (blockEntity instanceof BlockEntityElectricFencePole fencePole) {
+                columnConnections.addAll(fencePole.getConnections());
+            }
+        }
+        for (Connection connection : columnConnections) {
+            breakRunForRemovedEndpoint(level, connection);
+        }
+    }
+
+    private void removeColumnBlocks(Level level, BlockPos pos, BlockState state) {
         if (!destroying) {
             destroying = true;
-            int index = state.getValue(indexProperty);
-            for (int i = 1; i < index + 1; i++) {
-                // Pre-existing note: does not verify the block below is part of this column.
-                level.setBlock(pos.below(i), Blocks.AIR.defaultBlockState(), 3);
+            try {
+                int index = state.getValue(indexProperty);
+                BlockPos base = pos.below(index);
+                for (int i = 0; i < this.type.getHeight(); i++) {
+                    BlockPos columnPos = base.above(i);
+                    if (columnPos.equals(pos)) {
+                        continue;
+                    }
+                    BlockState columnState = level.getBlockState(columnPos);
+                    if (columnState.getBlock() == this && columnState.getValue(this.indexProperty) == i) {
+                        level.setBlock(columnPos, Blocks.AIR.defaultBlockState(), 3);
+                    }
+                }
+            } finally {
+                destroying = false;
             }
-            for (int i = 1; i < this.type.getHeight() - index; i++) {
-                level.setBlock(pos.above(i), Blocks.AIR.defaultBlockState(), 3);
-            }
-            destroying = false;
         }
-        super.onRemove(state, level, pos, newState, movedByPiston);
+    }
+
+    private static void breakRunForRemovedEndpoint(Level level, Connection removedConnection) {
+        for (BlockPos blockPos : LineUtils.getBlocksInbetween(removedConnection.getFrom(), removedConnection.getTo(), removedConnection.getOffset())) {
+            BlockEntity blockEntity = level.getBlockEntity(blockPos);
+            if (!(blockEntity instanceof ConnectableBlockEntity connectableBlockEntity)) {
+                continue;
+            }
+
+            boolean changed = false;
+            boolean hasLiveConnection = false;
+            for (Connection connection : connectableBlockEntity.getConnections()) {
+                if (removedConnection.lazyEquals(connection)) {
+                    changed |= connection.setBrokenSilently(true);
+                }
+                hasLiveConnection |= !connection.isBroken();
+            }
+
+            if (!changed) {
+                continue;
+            }
+
+            if (blockEntity instanceof BlockEntityElectricFenceBase fence) {
+                fence.onConnectionChanged();
+            }
+            blockEntity.setChanged();
+
+            BlockState state = level.getBlockState(blockPos);
+            if (!hasLiveConnection && state.is(BlockInit.ELECTRIC_FENCE.get())) {
+                level.setBlock(blockPos, Blocks.AIR.defaultBlockState(), 3);
+            } else {
+                level.sendBlockUpdated(blockPos, state, state, 3);
+            }
+        }
     }
 
     @Override
@@ -331,10 +419,28 @@ public class ElectricFencePostBlock extends BlockConnectableBase implements Enti
     @Nullable
     @Override
     public <T extends BlockEntity> BlockEntityTicker<T> getTicker(Level pLevel, BlockState pState, BlockEntityType<T> pBlockEntityType) {
-        return createTickerHelper(pBlockEntityType, pBlockEntityType, (level, pos, state, be) -> ((BlockEntityElectricFencePole)be).tick(level, pos, state, (BlockEntityElectricFencePole)be));
+        return createTickerHelper(pBlockEntityType, BlockInit.ELECTRIC_FENCE_POST_BLOCK_ENTITY.get(), (level, pos, state, be) -> be.tick(level, pos, state, be));
     }
     @Nullable
     protected static <E extends BlockEntity, A extends BlockEntity> BlockEntityTicker<A> createTickerHelper(BlockEntityType<A> pServerType, BlockEntityType<E> pClientType, BlockEntityTicker<? super E> pTicker) {
         return pClientType == pServerType ? (BlockEntityTicker<A>)pTicker : null;
+    }
+
+    private record SpoolStackUse(ItemStack stack, int amount) {
+        private void consume() {
+            this.stack.shrink(this.amount);
+        }
+    }
+
+    private record SpoolInventoryUse(int required, int totalFound, List<SpoolStackUse> stacks) {
+        private boolean hasEnough() {
+            return this.totalFound >= this.required;
+        }
+
+        private void consume() {
+            for (SpoolStackUse stack : this.stacks) {
+                stack.consume();
+            }
+        }
     }
 }

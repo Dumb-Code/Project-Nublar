@@ -45,6 +45,9 @@ public class CommonForgeEvents {
     @SubscribeEvent
     public static void onRightClick(PlayerInteractEvent.RightClickBlock event) {
         Level world = event.getLevel();
+        if (world.isClientSide) {
+            return;
+        }
         Direction side = event.getFace();
         if (side != null && !event.getItemStack().isEmpty() && event.getItemStack().getItem() == ItemInit.WIRE_SPOOL.get()) {
             BlockEntity tile = world.getBlockEntity(event.getPos().relative(side));
@@ -80,6 +83,9 @@ public class CommonForgeEvents {
         }
         if (ref != null) {
             ref.setBroken(false);
+            if (cb instanceof BlockEntity blockEntity) {
+                blockEntity.setChanged();
+            }
             event.setCanceled(true);
             BlockConnectableBase.placeEffect(event.getEntity(), event.getHand(), event.getLevel(), event.getPos());
         }
@@ -90,6 +96,9 @@ public class CommonForgeEvents {
         for (Connection connection : cb.getConnections()) {
             if (connection.isBroken()) {
                 connection.setBroken(false);
+                if (cb instanceof BlockEntity blockEntity) {
+                    blockEntity.setChanged();
+                }
                 event.setCanceled(true);
                 BlockConnectableBase.placeEffect(event.getEntity(), event.getHand(), event.getLevel(), event.getPos());
                 break;
