@@ -5,6 +5,9 @@ import com.google.common.collect.Sets;
 import net.dumbcode.projectnublar.block.api.geometry.DelegateBlockHitResult;
 import net.dumbcode.projectnublar.block.api.geometry.DelegateVoxelShape;
 import net.dumbcode.projectnublar.block.api.geometry.RotatedRayBox;
+import net.dumbcode.projectnublar.block.entity.BlockEntityElectricFenceBase;
+import net.dumbcode.projectnublar.registry.BlockInit;
+import net.dumbcode.projectnublar.registry.ItemInit;
 import net.dumbcode.projectnublar.util.LineUtils;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
@@ -17,6 +20,7 @@ import net.minecraft.world.damagesource.DamageTypes;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.Item;
+import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.BlockGetter;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.Block;
@@ -35,6 +39,9 @@ import net.minecraft.world.phys.shapes.Shapes;
 import net.minecraft.world.phys.shapes.VoxelShape;
 
 import javax.annotation.Nullable;
+import java.util.ArrayDeque;
+import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
@@ -267,6 +274,143 @@ public class BlockConnectableBase extends Block {
         worldIn.levelEvent(2001, pos, Block.getId(worldIn.getBlockState(pos)));
     }
 
+    public static int breakUnsupportedFloatingConnections(Level world, Iterable<Connection> boundaryConnections, boolean dropItems) {
+        if (world.isClientSide) {
+            return 0;
+        }
+
+        ArrayDeque<Connection> queue = new ArrayDeque<>();
+        for (Connection boundary : boundaryConnections) {
+            enqueueLiveNeighbor(world, boundary, queue, boundary.getPrevious());
+            enqueueLiveNeighbor(world, boundary, queue, boundary.getNext());
+        }
+
+        Set<Connection> checked = new HashSet<>();
+        int brokenCount = 0;
+        while (!queue.isEmpty()) {
+            Connection start = queue.removeFirst();
+            if (start.isBroken() || checked.contains(start)) {
+                continue;
+            }
+
+            List<Connection> component = collectLiveComponent(world, start);
+            checked.addAll(component);
+            if (component.isEmpty() || isAnchoredToFencePost(component)) {
+                continue;
+            }
+
+            List<Connection> brokenConnections = new ArrayList<>();
+            for (Connection connection : component) {
+                if (connection.setBrokenSilently(true)) {
+                    brokenConnections.add(connection);
+                    if (dropItems) {
+                        popResource(world, connection.getPosition(), new ItemStack(ItemInit.WIRE_SPOOL.get()));
+                    }
+                }
+            }
+
+            updateChangedConnectionBlocks(world, brokenConnections);
+            brokenCount += brokenConnections.size();
+            for (Connection brokenConnection : brokenConnections) {
+                enqueueLiveNeighbor(world, brokenConnection, queue, brokenConnection.getPrevious());
+                enqueueLiveNeighbor(world, brokenConnection, queue, brokenConnection.getNext());
+            }
+        }
+        return brokenCount;
+    }
+
+    private static List<Connection> collectLiveComponent(Level world, Connection start) {
+        List<Connection> component = new ArrayList<>();
+        ArrayDeque<Connection> queue = new ArrayDeque<>();
+        Set<Connection> visited = new HashSet<>();
+        queue.add(start);
+
+        while (!queue.isEmpty()) {
+            Connection connection = queue.removeFirst();
+            if (connection.isBroken() || !visited.add(connection)) {
+                continue;
+            }
+
+            component.add(connection);
+            enqueueLiveNeighbor(world, connection, queue, connection.getPrevious());
+            enqueueLiveNeighbor(world, connection, queue, connection.getNext());
+        }
+
+        return component;
+    }
+
+    private static void enqueueLiveNeighbor(Level world, Connection reference, ArrayDeque<Connection> queue, BlockPos neighborPos) {
+        if (neighborPos.equals(reference.getPosition())) {
+            return;
+        }
+
+        Connection neighbor = findMatchingConnection(world, neighborPos, reference);
+        if (neighbor != null && !neighbor.isBroken()) {
+            queue.add(neighbor);
+        }
+    }
+
+    @Nullable
+    private static Connection findMatchingConnection(Level world, BlockPos pos, Connection reference) {
+        BlockEntity blockEntity = world.getBlockEntity(pos);
+        if (!(blockEntity instanceof ConnectableBlockEntity connectable)) {
+            return null;
+        }
+
+        for (Connection connection : connectable.getConnections()) {
+            if (reference.lazyEquals(connection)) {
+                return connection;
+            }
+        }
+        return null;
+    }
+
+    private static boolean isAnchoredToFencePost(List<Connection> component) {
+        for (Connection connection : component) {
+            if (connection.getPosition().equals(connection.getFrom()) || connection.getPosition().equals(connection.getTo())) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    private static void updateChangedConnectionBlocks(Level world, List<Connection> brokenConnections) {
+        Set<BlockPos> changedPositions = new HashSet<>();
+        for (Connection connection : brokenConnections) {
+            changedPositions.add(connection.getPosition());
+        }
+
+        for (BlockPos changedPos : changedPositions) {
+            BlockEntity blockEntity = world.getBlockEntity(changedPos);
+            if (blockEntity instanceof BlockEntityElectricFenceBase fence) {
+                fence.onConnectionChanged();
+            }
+            if (blockEntity != null) {
+                blockEntity.setChanged();
+            }
+
+            BlockState state = world.getBlockState(changedPos);
+            if (!hasLiveConnections(blockEntity) && state.is(BlockInit.ELECTRIC_FENCE.get())) {
+                world.destroyBlock(changedPos, false);
+            } else {
+                world.sendBlockUpdated(changedPos, state, state, 3);
+            }
+        }
+    }
+
+    private static boolean hasLiveConnections(@Nullable BlockEntity blockEntity) {
+        if (!(blockEntity instanceof ConnectableBlockEntity connectable)) {
+            return false;
+        }
+
+        for (Connection connection : connectable.getConnections()) {
+            if (!connection.isBroken()) {
+                return true;
+            }
+        }
+        return false;
+    }
+
     @Override
     public void playerWillDestroy(Level world, BlockPos pos, BlockState state, Player player) {
         if (world.isClientSide) {
@@ -274,7 +418,8 @@ public class BlockConnectableBase extends Block {
         }
         HitChunk chunk = getHitChunk(player);
         if (chunk != null) {
-            chunk.connection().setBroken(true);
+            Connection brokenConnection = chunk.connection();
+            brokenConnection.setBroken(true);
             BlockEntity te = world.getBlockEntity(pos);
             if (te instanceof ConnectableBlockEntity) {
                 for (Connection connection : ((ConnectableBlockEntity) te).getConnections()) {
@@ -284,6 +429,7 @@ public class BlockConnectableBase extends Block {
                 }
                 te.setChanged();
             }
+            breakUnsupportedFloatingConnections(world, List.of(brokenConnection), true);
 
         }
     }
@@ -294,121 +440,149 @@ public class BlockConnectableBase extends Block {
         if (world.isClientSide) {
             return InteractionResult.SUCCESS;
         }
-        if (ray instanceof DelegateBlockHitResult dbhr && dbhr.hitInfo instanceof HitChunk) {
-            HitChunk chunk = (HitChunk) dbhr.hitInfo;
-            BlockEntity te = world.getBlockEntity(pos);
-            if (te instanceof ConnectableBlockEntity) {
-                ConnectableBlockEntity be = (ConnectableBlockEntity) te;
-                Connection con = chunk.connection();
-                double off = chunk.connection().getFrom().getY() + chunk.connection().getOffset();
-                if (chunk.dir().getAxis() == Direction.Axis.Y) {
-                    Connection ref = null;
-                    double yref = chunk.dir() == Direction.DOWN ? Double.MIN_VALUE : Double.MAX_VALUE;
-                    for (Connection connection : be.getConnections()) {
-                        double yoff = connection.getOffset() + connection.getFrom().getY();
-                        if (chunk.dir() == Direction.DOWN) {
-                            if (yoff < off && yoff > yref) {
-                                yref = yoff;
-                                ref = connection;
-                            }
-                        } else {
-                            if (yoff > off && yoff < yref) {
-                                yref = yoff;
-                                ref = connection;
-                            }
-                        }
-                    }
-                    if (ref != null && ref.isBroken()) {
-                        ref.setBroken(false);
-                        te.setChanged();
-                        placeEffect(player, hand, world, pos);
-                        return InteractionResult.SUCCESS;
-                    }
-                } else if (chunk.dir().getAxis() == Direction.Axis.X) {
-                    BlockPos nextPos = chunk.dir() == Direction.WEST == chunk.connection.getCompared() < 0 ? con.getNext() : con.getPrevious();
-                    BlockEntity nextTe = world.getBlockEntity(nextPos);
-                    if (!(nextTe instanceof ConnectableBlockEntity)) {
-                        if (world.getBlockState(nextPos).canBeReplaced(Fluids.EMPTY)) {
-                            world.setBlock(nextPos, this.defaultBlockState(), 3);
-                            nextTe = world.getBlockEntity(nextPos);
-                            if (nextTe instanceof ConnectableBlockEntity && generateConnections(world, nextPos, (ConnectableBlockEntity) nextTe, chunk, null)) {
-                                placeEffect(player, hand, world, pos);
-                            }
 
-                        }
-                    }
-                    if (nextTe instanceof ConnectableBlockEntity) {
-                        for (Connection connection : ((ConnectableBlockEntity) nextTe).getConnections()) {
-                            if (connection.lazyEquals(chunk.connection())) {
-                                connection.setBroken(false);
-                                placeEffect(player, hand, world, pos);
-                                nextTe.setChanged();
-                                return InteractionResult.SUCCESS;
-                            }
-                        }
-                    }
-                }
-                if (player.getItemInHand(hand).getItem() == Item.byBlock(this)) {
-                    return InteractionResult.CONSUME;
-                }
-                con.setSign(!con.isSign());
-                te.setChanged();
-            }
+        HitChunk chunk = getHitChunk(ray);
+        if (chunk == null) {
+            return InteractionResult.SUCCESS;
         }
+
+        BlockEntity blockEntity = world.getBlockEntity(pos);
+        if (!(blockEntity instanceof ConnectableBlockEntity connectable)) {
+            return InteractionResult.SUCCESS;
+        }
+
+        if (tryRepairVerticalConnection(connectable, blockEntity, chunk, player, hand, world, pos)
+            || tryRepairEndpointConnection(world, player, hand, pos, chunk)) {
+            return InteractionResult.SUCCESS;
+        }
+
+        Connection connection = chunk.connection();
+        if (player.getItemInHand(hand).getItem() == Item.byBlock(this)) {
+            return InteractionResult.CONSUME;
+        }
+        connection.setSign(!connection.isSign());
+        blockEntity.setChanged();
         return InteractionResult.SUCCESS;
     }
 
+    @Nullable
+    private static HitChunk getHitChunk(BlockHitResult ray) {
+        if (ray instanceof DelegateBlockHitResult dbhr && dbhr.hitInfo instanceof HitChunk chunk) {
+            return chunk;
+        }
+        return null;
+    }
 
-    public static boolean generateConnections(Level worldIn, BlockPos pos, ConnectableBlockEntity be, @Nullable HitChunk chunk, @Nullable Direction side) {
-        Set<Connection> newConnections = Sets.newLinkedHashSet();
-        double yRef = side == Direction.DOWN ? Double.MIN_VALUE : Double.MAX_VALUE;
-        Connection ref = null;
-        for (int x = -1; x <= 1; x++) {
-            for (int y = -1; y <= 1; y++) {
-                for (int z = -1; z <= 1; z++) {
-                    if (x == 0 && y == 0 && z == 0) {
-                        continue;
-                    }
-                    BlockEntity tileentity = worldIn.getBlockEntity(pos.offset(x, y, z));
-                    if (tileentity instanceof ConnectableBlockEntity) {
-                        ConnectableBlockEntity cbe = (ConnectableBlockEntity) tileentity;
-                        for (Connection connection : cbe.getConnections()) {
-                            if (connection.getPrevious().equals(pos) || connection.getNext().equals(pos)) {
-                                List<BlockPos> positions = LineUtils.getBlocksInbetween(connection.getFrom(), connection.getTo(), connection.getOffset());
-                                for (int i = 0; i < positions.size(); i++) {
-                                    if (positions.get(i).equals(pos)) {
-                                        BlockEntity owner = be instanceof BlockEntity blockEntity ? blockEntity : tileentity;
-                                        Connection con = new Connection(owner, connection.getType(), connection.getOffset(), connection.getFrom(), connection.getTo(), positions.get(Math.max(i - 1, 0)), positions.get(Math.min(i + 1, positions.size() - 1)), pos);
-                                        double[] in = con.getIn();
-                                        double yin = (in[4] + in[5]) / 2D;
-                                        if (side == Direction.DOWN == yin > yRef) {
-                                            yRef = yin;
-                                            ref = con;
-                                        }
-                                        newConnections.add(con);
-                                        break;
-                                    }
-                                }
-                            }
-                        }
-                    }
+    private static boolean tryRepairVerticalConnection(
+        ConnectableBlockEntity connectable,
+        BlockEntity blockEntity,
+        HitChunk chunk,
+        Player player,
+        InteractionHand hand,
+        Level world,
+        BlockPos pos
+    ) {
+        if (chunk.dir().getAxis() != Direction.Axis.Y) {
+            return false;
+        }
+
+        Connection reference = findVerticalRepairTarget(connectable, chunk.connection(), chunk.dir());
+        if (reference == null || !reference.isBroken()) {
+            return false;
+        }
+
+        reference.setBroken(false);
+        blockEntity.setChanged();
+        placeEffect(player, hand, world, pos);
+        return true;
+    }
+
+    @Nullable
+    private static Connection findVerticalRepairTarget(ConnectableBlockEntity connectable, Connection hitConnection, Direction direction) {
+        double hitY = hitConnection.getFrom().getY() + hitConnection.getOffset();
+        double bestY = direction == Direction.DOWN ? Double.MIN_VALUE : Double.MAX_VALUE;
+        Connection bestConnection = null;
+
+        for (Connection connection : connectable.getConnections()) {
+            double connectionY = connection.getFrom().getY() + connection.getOffset();
+            if (direction == Direction.DOWN) {
+                if (connectionY < hitY && connectionY > bestY) {
+                    bestY = connectionY;
+                    bestConnection = connection;
                 }
+            } else if (connectionY > hitY && connectionY < bestY) {
+                bestY = connectionY;
+                bestConnection = connection;
+            }
+        }
+        return bestConnection;
+    }
+
+    private boolean tryRepairEndpointConnection(Level world, Player player, InteractionHand hand, BlockPos pos, HitChunk chunk) {
+        if (chunk.dir().getAxis() != Direction.Axis.X) {
+            return false;
+        }
+
+        BlockPos repairPos = getEndpointRepairPosition(chunk);
+        BlockEntity repairEntity = world.getBlockEntity(repairPos);
+        if (!(repairEntity instanceof ConnectableBlockEntity)) {
+            if (!world.getBlockState(repairPos).canBeReplaced(Fluids.EMPTY)) {
+                return false;
+            }
+
+            world.setBlock(repairPos, this.defaultBlockState(), 3);
+            repairEntity = world.getBlockEntity(repairPos);
+            if (repairEntity instanceof ConnectableBlockEntity connectable
+                && generateConnections(world, repairPos, connectable, chunk, null)) {
+                placeEffect(player, hand, world, pos);
+                return true;
             }
         }
 
-        if (chunk != null) {
-            Direction face = chunk.dir();
-            if (chunk.connection().getCompared() < 0) {
-                face = face.getOpposite();
+        if (repairEntity instanceof ConnectableBlockEntity connectable) {
+            EndpointRepairResult result = repairExistingEndpointConnection(connectable, repairEntity, chunk.connection());
+            if (result.repaired()) {
+                placeEffect(player, hand, world, pos);
             }
-            if (face.getAxis() == Direction.Axis.X) {
-                for (Connection connection : newConnections) {
-                    if (chunk.connection().lazyEquals(connection)) {
-                        ref = connection;
-                    }
-                }
+            if (result.handled()) {
+                return true;
             }
+        }
+        return false;
+    }
 
+    private static BlockPos getEndpointRepairPosition(HitChunk chunk) {
+        boolean hitNegativeLocalEnd = chunk.dir() == Direction.WEST;
+        boolean connectionWasReversed = chunk.connection().getCompared() < 0;
+        return hitNegativeLocalEnd == connectionWasReversed
+            ? chunk.connection().getNext()
+            : chunk.connection().getPrevious();
+    }
+
+    private static EndpointRepairResult repairExistingEndpointConnection(
+        ConnectableBlockEntity connectable,
+        BlockEntity blockEntity,
+        Connection reference
+    ) {
+        for (Connection connection : connectable.getConnections()) {
+            if (!connection.lazyEquals(reference)) {
+                continue;
+            }
+            if (!connection.isBroken()) {
+                return EndpointRepairResult.HANDLED;
+            }
+            connection.setBroken(false);
+            blockEntity.setChanged();
+            return EndpointRepairResult.REPAIRED;
+        }
+        return EndpointRepairResult.MISSED;
+    }
+
+    public static boolean generateConnections(Level worldIn, BlockPos pos, ConnectableBlockEntity be, @Nullable HitChunk chunk, @Nullable Direction side) {
+        Set<Connection> newConnections = collectGeneratedConnections(worldIn, pos, be);
+        Connection ref = selectGeneratedReference(newConnections, chunk, side);
+        if (ref == null) {
+            return false;
         }
         for (Connection connection : newConnections) {
             connection.setBrokenSilently(!connection.lazyEquals(ref));
@@ -417,7 +591,107 @@ public class BlockConnectableBase extends Block {
         if (be instanceof BlockEntity) {
             ((BlockEntity) be).setChanged();
         }
-        return ref != null;
+        return true;
+    }
+
+    private static Set<Connection> collectGeneratedConnections(Level worldIn, BlockPos pos, ConnectableBlockEntity target) {
+        Set<Connection> connections = Sets.newLinkedHashSet();
+        for (int x = -1; x <= 1; x++) {
+            for (int y = -1; y <= 1; y++) {
+                for (int z = -1; z <= 1; z++) {
+                    if (x == 0 && y == 0 && z == 0) {
+                        continue;
+                    }
+                    BlockEntity neighborEntity = worldIn.getBlockEntity(pos.offset(x, y, z));
+                    if (neighborEntity instanceof ConnectableBlockEntity neighbor) {
+                        addGeneratedConnectionsFromNeighbor(connections, pos, target, neighborEntity, neighbor);
+                    }
+                }
+            }
+        }
+        return connections;
+    }
+
+    private static void addGeneratedConnectionsFromNeighbor(
+        Set<Connection> connections,
+        BlockPos pos,
+        ConnectableBlockEntity target,
+        BlockEntity neighborEntity,
+        ConnectableBlockEntity neighbor
+    ) {
+        for (Connection connection : neighbor.getConnections()) {
+            if (connection.getPrevious().equals(pos) || connection.getNext().equals(pos)) {
+                addGeneratedConnection(connections, pos, target, neighborEntity, connection);
+            }
+        }
+    }
+
+    private static void addGeneratedConnection(
+        Set<Connection> connections,
+        BlockPos pos,
+        ConnectableBlockEntity target,
+        BlockEntity neighborEntity,
+        Connection source
+    ) {
+        List<BlockPos> positions = LineUtils.getBlocksInbetween(source.getFrom(), source.getTo(), source.getOffset());
+        for (int index = 0; index < positions.size(); index++) {
+            if (!positions.get(index).equals(pos)) {
+                continue;
+            }
+
+            BlockEntity owner = target instanceof BlockEntity blockEntity ? blockEntity : neighborEntity;
+            connections.add(new Connection(
+                owner,
+                source.getType(),
+                source.getOffset(),
+                source.getFrom(),
+                source.getTo(),
+                positions.get(Math.max(index - 1, 0)),
+                positions.get(Math.min(index + 1, positions.size() - 1)),
+                pos));
+            return;
+        }
+    }
+
+    @Nullable
+    private static Connection selectGeneratedReference(Set<Connection> connections, @Nullable HitChunk chunk, @Nullable Direction side) {
+        Connection reference = selectVerticalReference(connections, side);
+        if (chunk == null) {
+            return reference;
+        }
+
+        Direction face = chunk.dir();
+        if (chunk.connection().getCompared() < 0) {
+            face = face.getOpposite();
+        }
+        if (face.getAxis() != Direction.Axis.X) {
+            return reference;
+        }
+
+        for (Connection connection : connections) {
+            if (chunk.connection().lazyEquals(connection)) {
+                return connection;
+            }
+        }
+        return reference;
+    }
+
+    @Nullable
+    private static Connection selectVerticalReference(Set<Connection> connections, @Nullable Direction side) {
+        double yRef = side == Direction.DOWN ? Double.MIN_VALUE : Double.MAX_VALUE;
+        Connection reference = null;
+        for (Connection connection : connections) {
+            double y = connection.getCenter().y;
+            if (isBetterVerticalReference(side, y, yRef)) {
+                yRef = y;
+                reference = connection;
+            }
+        }
+        return reference;
+    }
+
+    private static boolean isBetterVerticalReference(@Nullable Direction side, double y, double yRef) {
+        return side == Direction.DOWN ? y > yRef : y < yRef;
     }
 
     public static void setCollidableClient(boolean client) {
@@ -435,6 +709,12 @@ public class BlockConnectableBase extends Block {
 
     public record ChunkedInfo(AABB aabb, Connection connection) {
 
+    }
+
+    private record EndpointRepairResult(boolean handled, boolean repaired) {
+        private static final EndpointRepairResult MISSED = new EndpointRepairResult(false, false);
+        private static final EndpointRepairResult HANDLED = new EndpointRepairResult(true, false);
+        private static final EndpointRepairResult REPAIRED = new EndpointRepairResult(true, true);
     }
 
 

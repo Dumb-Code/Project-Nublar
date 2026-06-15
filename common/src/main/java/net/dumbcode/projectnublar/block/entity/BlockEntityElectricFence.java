@@ -1,10 +1,12 @@
 package net.dumbcode.projectnublar.block.entity;
 
+import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import net.dumbcode.projectnublar.block.api.fence.BlockConnectableBase;
 import net.dumbcode.projectnublar.block.api.fence.ConnectionType;
 import net.dumbcode.projectnublar.block.api.fence.ConnectableBlockEntity;
 import net.dumbcode.projectnublar.block.api.fence.Connection;
@@ -166,9 +168,11 @@ public class BlockEntityElectricFence extends BlockEntityElectricFenceBase imple
 
         boolean changed = false;
         boolean hasLiveConnection = false;
+        List<Connection> brokenConnections = new ArrayList<>();
         for (Connection connection : connectable.getConnections()) {
-            if (matchesAny(affectedSegments, connection)) {
-                changed |= connection.setBrokenSilently(true);
+            if (matchesAny(affectedSegments, connection) && connection.setBrokenSilently(true)) {
+                changed = true;
+                brokenConnections.add(connection);
             }
             hasLiveConnection |= !connection.isBroken();
         }
@@ -188,6 +192,8 @@ public class BlockEntityElectricFence extends BlockEntityElectricFenceBase imple
         } else {
             level.sendBlockUpdated(pos, state, state, 3);
         }
+
+        BlockConnectableBase.breakUnsupportedFloatingConnections(level, brokenConnections, true);
     }
 
     private static boolean matchesAny(Set<RunSegment> affectedSegments, Connection connection) {

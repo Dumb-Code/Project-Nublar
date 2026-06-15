@@ -189,7 +189,8 @@ public class ElectricFencePostBlock extends BlockConnectableBase implements Enti
     /** Collects enough spool items across the inventory, then strings every wire of the run. */
     private void placeWireRun(Level world, BlockPos pos, BlockPos other, Player player, ItemStack stack, double dist) {
         int required = Mth.ceil(dist / ElectricFenceBlock.ITEM_FOLD * this.type.getHeight());
-        if (!hasWirePlacementWork(world, pos, other)) {
+        List<WirePlacement> placements = this.createWirePlacements(pos, other);
+        if (!hasWirePlacementWork(world, placements)) {
             return;
         }
 
@@ -200,66 +201,84 @@ public class ElectricFencePostBlock extends BlockConnectableBase implements Enti
             if (!player.isCreative()) {
                 inventoryUse.consume();
             }
-            for (double offset : this.type.getOffsets()) {
-                List<BlockPos> positions = LineUtils.getBlocksInbetween(pos, other, offset);
-                for (int i = 0; i < this.type.getHeight(); i++) {
-                    BlockPos pos1 = pos.above(i);
-                    BlockPos other1 = other.above(i);
-                    for (int i1 = 0; i1 < positions.size(); i1++) {
-                        BlockPos position = positions.get(i1).above(i);
-                        BlockState targetState = world.getBlockState(position);
-                        if ((targetState.isAir() || targetState.canBeReplaced(Fluids.EMPTY)) && !(targetState.getBlock() instanceof ElectricFencePostBlock)) {
-                            world.setBlock(position, BlockInit.ELECTRIC_FENCE.get().defaultBlockState(), 3);
-                        }
-                        BlockEntity fencete = world.getBlockEntity(position);
-                        if (fencete instanceof ConnectableBlockEntity) {
-                            ((ConnectableBlockEntity) fencete).addConnection(new Connection(
-                                fencete,
-                                this.type,
-                                offset,
-                                pos1,
-                                other1,
-                                positions.get(Math.max(i1 - 1, 0)).above(i),
-                                positions.get(Math.min(i1 + 1, positions.size() - 1)).above(i),
-                                position));
-                        }
-                    }
-                }
+            for (WirePlacement placement : placements) {
+                placeWireConnection(world, placement);
             }
         }
     }
 
     private boolean hasWirePlacementWork(Level world, BlockPos pos, BlockPos other) {
-        for (double offset : this.type.getOffsets()) {
-            List<BlockPos> positions = LineUtils.getBlocksInbetween(pos, other, offset);
-            for (int y = 0; y < this.type.getHeight(); y++) {
-                BlockPos from = pos.above(y);
-                BlockPos to = other.above(y);
-                for (BlockPos basePosition : positions) {
-                    BlockPos position = basePosition.above(y);
-                    BlockState targetState = world.getBlockState(position);
-                    if ((targetState.isAir() || targetState.canBeReplaced(Fluids.EMPTY))
-                        && !(targetState.getBlock() instanceof ElectricFencePostBlock)) {
-                        return true;
-                    }
+        return hasWirePlacementWork(world, this.createWirePlacements(pos, other));
+    }
 
-                    BlockEntity blockEntity = world.getBlockEntity(position);
-                    if (blockEntity instanceof ConnectableBlockEntity connectable) {
-                        Connection existing = findMatchingConnection(connectable, from, to, offset);
-                        if (existing == null || existing.isBroken()) {
-                            return true;
-                        }
-                    }
+    private boolean hasWirePlacementWork(Level world, List<WirePlacement> placements) {
+        for (WirePlacement placement : placements) {
+            BlockState targetState = world.getBlockState(placement.position());
+            if (canPlaceWireBlock(targetState)) {
+                return true;
+            }
+
+            BlockEntity blockEntity = world.getBlockEntity(placement.position());
+            if (blockEntity instanceof ConnectableBlockEntity connectable) {
+                Connection existing = findMatchingConnection(connectable, placement);
+                if (existing == null || existing.isBroken()) {
+                    return true;
                 }
             }
         }
         return false;
     }
 
+    private List<WirePlacement> createWirePlacements(BlockPos pos, BlockPos other) {
+        List<WirePlacement> placements = new ArrayList<>();
+        for (double offset : this.type.getOffsets()) {
+            List<BlockPos> positions = LineUtils.getBlocksInbetween(pos, other, offset);
+            for (int y = 0; y < this.type.getHeight(); y++) {
+                BlockPos from = pos.above(y);
+                BlockPos to = other.above(y);
+                for (int index = 0; index < positions.size(); index++) {
+                    placements.add(new WirePlacement(
+                        offset,
+                        from,
+                        to,
+                        positions.get(Math.max(index - 1, 0)).above(y),
+                        positions.get(Math.min(index + 1, positions.size() - 1)).above(y),
+                        positions.get(index).above(y)));
+                }
+            }
+        }
+        return placements;
+    }
+
+    private void placeWireConnection(Level world, WirePlacement placement) {
+        BlockState targetState = world.getBlockState(placement.position());
+        if (canPlaceWireBlock(targetState)) {
+            world.setBlock(placement.position(), BlockInit.ELECTRIC_FENCE.get().defaultBlockState(), 3);
+        }
+
+        BlockEntity fenceBlockEntity = world.getBlockEntity(placement.position());
+        if (fenceBlockEntity instanceof ConnectableBlockEntity connectable) {
+            connectable.addConnection(new Connection(
+                fenceBlockEntity,
+                this.type,
+                placement.offset(),
+                placement.from(),
+                placement.to(),
+                placement.previous(),
+                placement.next(),
+                placement.position()));
+        }
+    }
+
+    private static boolean canPlaceWireBlock(BlockState state) {
+        return !(state.getBlock() instanceof ElectricFencePostBlock)
+            && (state.isAir() || state.canBeReplaced(Fluids.EMPTY));
+    }
+
     @Nullable
-    private static Connection findMatchingConnection(ConnectableBlockEntity connectable, BlockPos from, BlockPos to, double offset) {
+    private static Connection findMatchingConnection(ConnectableBlockEntity connectable, WirePlacement placement) {
         for (Connection connection : connectable.getConnections()) {
-            if (matchesConnection(connection, from, to, offset)) {
+            if (matchesConnection(connection, placement.from(), placement.to(), placement.offset())) {
                 return connection;
             }
         }
@@ -443,4 +462,12 @@ public class ElectricFencePostBlock extends BlockConnectableBase implements Enti
             }
         }
     }
+
+    private record WirePlacement(
+        double offset,
+        BlockPos from,
+        BlockPos to,
+        BlockPos previous,
+        BlockPos next,
+        BlockPos position) {}
 }

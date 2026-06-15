@@ -1,7 +1,5 @@
 package net.dumbcode.projectnublar.block.api.fence;
 
-import com.google.common.primitives.Doubles;
-import com.google.common.primitives.Floats;
 import net.dumbcode.projectnublar.block.api.geometry.RotatedRayBox;
 import net.dumbcode.projectnublar.block.entity.BlockEntityElectricFenceBase;
 import net.dumbcode.projectnublar.util.LineUtils;
@@ -17,9 +15,7 @@ import net.minecraft.world.phys.AABB;
 import net.minecraft.world.phys.Vec3;
 import net.minecraft.world.phys.shapes.Shapes;
 import net.minecraft.world.phys.shapes.VoxelShape;
-import org.apache.commons.lang3.tuple.Pair;
 import org.joml.Vector3f;
-import org.joml.Vector4f;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -27,7 +23,6 @@ import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.Random;
-import java.util.stream.IntStream;
 
 
 /**
@@ -56,6 +51,22 @@ public class Connection {
     private static final String NEXT_TAG = "next";
     private static final String PREVIOUS_TAG = "previous";
     private static final String BROKEN_TAG = "broken";
+
+    private static final int START_X = 0;
+    private static final int END_X = 1;
+    private static final int START_Z = 2;
+    private static final int END_Z = 3;
+    private static final int START_Y = 4;
+    private static final int END_Y = 5;
+    private static final int UV_COUNT = 12;
+    private static final int RENDER_DATA_LENGTH = 39;
+    private static final int VERTEX_DATA_LENGTH = 24;
+    private static final double TEXTURE_PIXEL = 1D / 64D;
+    // The loose wire end pivots at the straight half. Keep the bend visible without
+    // letting the prism cut back into the intact segment near the shared center.
+    private static final double BROKEN_WIRE_MAX_BEND_ANGLE = Math.PI / 7D;
+    private static final double BROKEN_WIRE_MIN_BEND = 0.25D;
+    private static final double BROKEN_WIRE_SIDE_BEND = 0.9D;
 
     private final Runnable reRenderCallback;
     private final ConnectionType type;
@@ -144,24 +155,23 @@ public class Connection {
         this.random = new Random(this.getPosition().asLong() * (long) (this.getOffset() * 1000));
         this.in = intercept;
         double w = this.type.getCableWidth();
-        this.xzlen = Math.sqrt((this.in[1] - this.in[0]) * (this.in[1] - this.in[0]) + (this.in[3] - this.in[2]) * (this.in[3] - this.in[2]));
-        this.fullLen = Math.sqrt(this.xzlen * this.xzlen + (this.in[5] - this.in[4]) * (this.in[5] - this.in[4]));
+        this.xzlen = Math.sqrt(this.xDelta() * this.xDelta() + this.zDelta() * this.zDelta());
+        this.fullLen = Math.sqrt(this.xzlen * this.xzlen + this.yDelta() * this.yDelta());
 
-        this.center = new Vec3((this.in[0] + this.in[1]) / 2, (this.in[4] + this.in[5]) / 2, (this.in[2] + this.in[3]) / 2);
+        this.center = new Vec3(
+            (this.in[START_X] + this.in[END_X]) / 2,
+            (this.in[START_Y] + this.in[END_Y]) / 2,
+            (this.in[START_Z] + this.in[END_Z]) / 2);
         this.rayBox = new RotatedRayBox.Builder(new AABB(0, -w, -w, -this.fullLen, w, w))
-            .origin(this.in[0], this.in[4], this.in[2])
-            .rotate(Math.atan((this.in[5] - this.in[4]) / this.xzlen), 0, 0, 1)
-            .rotate(this.in[1] == this.in[0] ? Math.PI * 1.5D : Math.atan((this.in[3] - this.in[2]) / (this.in[1] - this.in[0])), 0, 1, 0)
+            .origin(this.in[START_X], this.in[START_Y], this.in[START_Z])
+            .rotate(this.verticalRotation(), 0, 0, 1)
+            .rotate(this.horizontalRotation(), 0, 1, 0)
             .build();
 
         this.prevCache = this.genCache(false);
         this.nextCache = this.genCache(true);
 
-        VoxelShape collisionShape = Shapes.empty();
-        for (BlockConnectableBase.ConnectionAxisAlignedBB bb : BlockConnectableBase.createBoundingBox(Collections.singleton(this), position)) {
-            collisionShape = Shapes.or(collisionShape, Shapes.create(bb));
-        }
-        this.collisionShape = collisionShape;
+        this.collisionShape = this.createCollisionShape();
     }
 
     public Connection setBroken(boolean broken) {
@@ -193,36 +203,14 @@ public class Connection {
     }
 
     private SurroundingCache genCache(boolean next) {
-        Vec3 point = new Vec3((next ? 1 : -1) * this.fullLen / 2, 0, 0);
         double w = this.type.getCableWidth();
         RotatedRayBox fixedBox = new RotatedRayBox.Builder(new AABB(0, -w, -w, -this.fullLen / 2, w, w))
-            .origin(next ? this.center.x : this.in[0], next ? this.center.y : this.in[4], next ? this.center.z : this.in[2])
-            .rotate(Math.atan((this.in[5] - this.in[4]) / this.xzlen), 0, 0, 1)
-            .rotate(this.in[1] == this.in[0] ? Math.PI * 1.5D : Math.atan((this.in[3] - this.in[2]) / (this.in[1] - this.in[0])), 0, 1, 0)
+            .origin(next ? this.center.x : this.in[START_X], next ? this.center.y : this.in[START_Y], next ? this.center.z : this.in[START_Z])
+            .rotate(this.verticalRotation(), 0, 0, 1)
+            .rotate(this.horizontalRotation(), 0, 1, 0)
             .build();
-        double yang = (this.random.nextFloat() - 0.5F) * Math.PI / 3F;
-        double zang = (this.random.nextFloat() - 0.5F) * Math.PI / 3F;
-        RotatedRayBox rotatedBox = this.genRotatedBox((next ? 1 : -1) * this.fullLen / 2, yang, zang);
-
-        Vector4f vec4 = new Vector4f(new Vector3f((float) point.x, (float) point.y, (float) point.z),1.0f);
-        vec4.mul(rotatedBox.getBackwards());
-        point = new Vec3(vec4.x(), vec4.y(), vec4.z());
-
-        AABB aabb = new AABB(this.position);
-        Vec3 centerVec = new Vec3(this.center.x, this.center.y, this.center.z);
-        Vec3 vec3d = new Vec3(point.x, point.y, point.z).add(centerVec);
-        if (!aabb.contains(vec3d)) { //Point outside of bounding box. Cant happen for selction box reasons
-            Optional<Vec3> clip = aabb.clip(centerVec, vec3d);
-            if (clip.isPresent()) {
-                double dist = clip.get().distanceTo(centerVec) * (next ? 1 : -1);
-                rotatedBox = this.genRotatedBox(dist, yang, zang);
-                point = new Vec3(dist, 0, 0);
-
-                vec4 = new Vector4f(new Vector3f((float)point.x, (float)point.y, (float)point.z), 1.0f);
-                vec4.mul(rotatedBox.getBackwards());
-                point = new Vec3(vec4.x(), vec4.y(), vec4.z());
-            }
-        }
+        Vec3 point = this.clipBrokenPointToBlock(this.buildBrokenPoint(next));
+        RotatedRayBox rotatedBox = this.genRotatedBox(point, next);
         return new SurroundingCache(new Vector3f((float)point.x, (float)point.y, (float)point.z), fixedBox, rotatedBox);
     }
 
@@ -232,13 +220,158 @@ public class Connection {
             .silentlySetSign(this.sign);
     }
 
-    private RotatedRayBox genRotatedBox(double length, double yang, double zang) {
+    private RotatedRayBox genRotatedBox(Vec3 point, boolean next) {
         double w = this.type.getCableWidth();
+        Vec3 rotationVector = next ? point : point.scale(-1D);
+        double length = point.length() * (next ? 1D : -1D);
         return new RotatedRayBox.Builder(new AABB(0, -w, -w, length, w, w))
             .origin(this.center.x, this.center.y, this.center.z)
-            .rotate((this.in[1] == this.in[0] ? Math.PI * 1.5D : Math.atan((this.in[3] - this.in[2]) / (this.in[1] - this.in[0]))) + yang, 0, 1, 0)
-            .rotate(Math.atan((this.in[5] - this.in[4]) / this.xzlen) + zang, 0, 0, 1)
+            .rotate(horizontalRotation(rotationVector), 0, 1, 0)
+            .rotate(verticalRotation(rotationVector), 0, 0, 1)
             .build();
+    }
+
+    private Vec3 buildBrokenPoint(boolean next) {
+        Vec3 outward = this.halfWireVector(next);
+        double outwardLength = outward.length();
+        if (outwardLength <= 1.0E-5D) {
+            return outward;
+        }
+
+        Vec3 axis = outward.scale(1D / outwardLength);
+        Vec3 away = this.awayFromOtherWires(axis);
+        Vec3 side = normalize(cross(axis, away));
+
+        double maximumLateral = outwardLength * Math.sin(BROKEN_WIRE_MAX_BEND_ANGLE);
+        double awayAmount = maximumLateral * (BROKEN_WIRE_MIN_BEND + this.random.nextFloat() * (1D - BROKEN_WIRE_MIN_BEND));
+        double sideAmount = maximumLateral * (this.random.nextFloat() * 2D - 1D) * BROKEN_WIRE_SIDE_BEND;
+        Vec3 lateral = away.scale(awayAmount).add(side.scale(sideAmount));
+
+        double lateralLength = lateral.length();
+        if (lateralLength > maximumLateral && lateralLength > 1.0E-5D) {
+            lateral = lateral.scale(maximumLateral / lateralLength);
+            lateralLength = maximumLateral;
+        }
+        double axial = Math.sqrt(Math.max(0D, outwardLength * outwardLength - lateralLength * lateralLength));
+        return axis.scale(axial).add(lateral);
+    }
+
+    private Vec3 awayFromOtherWires(Vec3 axis) {
+        double verticalDirection = this.verticalBendDirection();
+        if (verticalDirection == 0D) {
+            return this.randomPerpendicular(axis);
+        }
+
+        Vec3 away = new Vec3(0D, verticalDirection, 0D);
+        away = away.subtract(axis.scale(away.dot(axis)));
+        if (away.length() <= 1.0E-5D) {
+            return this.randomPerpendicular(axis);
+        }
+        return normalize(away);
+    }
+
+    private Vec3 randomPerpendicular(Vec3 axis) {
+        Vec3 first = this.perpendicularTo(axis);
+        Vec3 second = normalize(cross(axis, first));
+        double angle = this.random.nextDouble() * Math.PI * 2D;
+        return first.scale(Math.cos(angle)).add(second.scale(Math.sin(angle)));
+    }
+
+    private Vec3 perpendicularTo(Vec3 axis) {
+        Vec3 fallback = Math.abs(axis.y) < 0.9D ? new Vec3(0D, 1D, 0D) : new Vec3(1D, 0D, 0D);
+        fallback = fallback.subtract(axis.scale(fallback.dot(axis)));
+        if (fallback.length() <= 1.0E-5D) {
+            return new Vec3(0D, 0D, 1D);
+        }
+        return normalize(fallback);
+    }
+
+    private Vec3 clipBrokenPointToBlock(Vec3 point) {
+        AABB aabb = new AABB(this.position);
+        Vec3 centerVec = new Vec3(this.center.x, this.center.y, this.center.z);
+        Vec3 end = point.add(centerVec);
+        if (aabb.contains(end)) {
+            return point;
+        }
+        Optional<Vec3> clip = aabb.clip(centerVec, end);
+        return clip.map(vec3 -> vec3.subtract(centerVec)).orElse(point);
+    }
+
+    private double verticalBendDirection() {
+        double[] offsets = this.type.getOffsets();
+        if (offsets.length <= 1) {
+            return 0D;
+        }
+
+        double centerOffset = 0D;
+        for (double typeOffset : offsets) {
+            centerOffset += typeOffset;
+        }
+        centerOffset /= offsets.length;
+
+        if (Math.abs(this.offset - centerOffset) <= 1.0E-5D) {
+            return 0D;
+        }
+        if (this.offset > centerOffset) {
+            return 1D;
+        }
+        return -1D;
+    }
+
+    private Vec3 halfWireVector(boolean next) {
+        return new Vec3(this.xDelta(), this.yDelta(), this.zDelta()).scale(next ? 0.5D : -0.5D);
+    }
+
+    private static Vec3 normalize(Vec3 vector) {
+        double length = vector.length();
+        if (length <= 1.0E-5D) {
+            return Vec3.ZERO;
+        }
+        return vector.scale(1D / length);
+    }
+
+    private static Vec3 cross(Vec3 first, Vec3 second) {
+        return new Vec3(
+            first.y * second.z - first.z * second.y,
+            first.z * second.x - first.x * second.z,
+            first.x * second.y - first.y * second.x);
+    }
+
+    private VoxelShape createCollisionShape() {
+        VoxelShape shape = Shapes.empty();
+        for (BlockConnectableBase.ConnectionAxisAlignedBB bb : BlockConnectableBase.createBoundingBox(Collections.singleton(this), this.position)) {
+            shape = Shapes.or(shape, Shapes.create(bb));
+        }
+        return shape;
+    }
+
+    private double horizontalRotation() {
+        return this.xDelta() == 0D ? Math.PI * 1.5D : Math.atan(this.zDelta() / this.xDelta());
+    }
+
+    private static double horizontalRotation(Vec3 vector) {
+        return vector.x == 0D ? Math.PI * 1.5D : Math.atan(vector.z / vector.x);
+    }
+
+    private double verticalRotation() {
+        return this.xzlen == 0D ? 0D : Math.atan(this.yDelta() / this.xzlen);
+    }
+
+    private static double verticalRotation(Vec3 vector) {
+        double horizontalLength = Math.sqrt(vector.x * vector.x + vector.z * vector.z);
+        return horizontalLength == 0D ? 0D : Math.atan(vector.y / horizontalLength);
+    }
+
+    private double xDelta() {
+        return this.in[END_X] - this.in[START_X];
+    }
+
+    private double yDelta() {
+        return this.in[END_Y] - this.in[START_Y];
+    }
+
+    private double zDelta() {
+        return this.in[END_Z] - this.in[START_Z];
     }
 
     public CompoundTag writeToNBT(CompoundTag nbt) {
@@ -267,7 +400,9 @@ public class Connection {
     }
 
     public boolean lazyEquals(Connection con) {
-        return this.getFrom().equals(con.getFrom()) && this.getTo().equals(con.getTo()) && this.offset == con.offset;
+        return this.getFrom().equals(con.getFrom())
+            && this.getTo().equals(con.getTo())
+            && Double.compare(this.offset, con.offset) == 0;
     }
 
     public BlockPos getMin() {
@@ -279,9 +414,9 @@ public class Connection {
     }
 
     public boolean brokenSide(BlockGetter world, boolean next) {
-        BlockEntity te = world.getBlockEntity(next == this.compared < 0 ? this.previous : this.next);
-        if (te instanceof ConnectableBlockEntity) {
-            ConnectableBlockEntity fe = (ConnectableBlockEntity) te;
+        BlockPos adjacentPos = next == this.compared < 0 ? this.previous : this.next;
+        BlockEntity te = world.getBlockEntity(adjacentPos);
+        if (te instanceof ConnectableBlockEntity fe) {
             for (Connection fenceConnection : fe.getConnections()) {
                 if (this.lazyEquals(fenceConnection) && fenceConnection.isBroken()) {
                     return true;
@@ -298,186 +433,256 @@ public class Connection {
 
 
     public CompiledRenderData compileRenderData(BlockGetter world) {
-        boolean pb = this.brokenSide(world, false);
-        boolean nb = this.brokenSide(world, true);
-        int state = Objects.hash(this.broken, this.sign, pb, nb);
+        boolean previousBroken = this.brokenSide(world, false);
+        boolean nextBroken = this.brokenSide(world, true);
+        int state = Objects.hash(this.broken, this.sign, previousBroken, nextBroken);
         if (this.compiledRenderData != null && this.compiledRenderDataState == state) {
             return this.compiledRenderData;
         }
 
-        List<float[]> out = new ArrayList<>();
-        if(!this.isBroken()) {
-            RenderData data = this.getRenderData();
-            if (nb) {
-                out.add(data.nextRotated());
-                if (!pb) {
-                    out.add(data.nextFixed());
-                }
-            }
-            if (pb) {
-                out.add(data.prevRotated());
-                if (!nb) {
-                    out.add(data.prevFixed());
-                }
-            }
-            if (!pb && !nb) {
-                out.add(data.data());
-            }
+        this.compiledRenderDataState = state;
+        this.compiledRenderData = new CompiledRenderData(
+            this.isSign(),
+            this.collectRenderData(previousBroken, nextBroken));
+        return this.compiledRenderData;
+    }
+
+    private List<float[]> collectRenderData(boolean previousBroken, boolean nextBroken) {
+        if (this.isBroken() || previousBroken && nextBroken) {
+            return List.of();
         }
 
-        this.compiledRenderDataState = state;
-        this.compiledRenderData = new CompiledRenderData(this.isSign(), List.copyOf(out));
-        return this.compiledRenderData;
+        List<float[]> out = new ArrayList<>();
+        RenderData data = this.getRenderData();
+        if (nextBroken) {
+            out.add(data.nextRotated());
+            if (!previousBroken) {
+                out.add(data.nextFixed());
+            }
+        }
+        if (previousBroken) {
+            out.add(data.prevRotated());
+            if (!nextBroken) {
+                out.add(data.prevFixed());
+            }
+        }
+        if (!previousBroken && !nextBroken) {
+            out.add(data.data());
+        }
+        return List.copyOf(out);
     }
 
 
     private RenderData buildRenderData() {
-        double halfthick = this.type.getCableWidth() / 2F;
+        RenderGeometry geometry = this.createRenderGeometry();
+        SegmentRenderData previous = this.buildSegmentRenderData(geometry, SegmentEnd.PREVIOUS);
+        SegmentRenderData next = this.buildSegmentRenderData(geometry, SegmentEnd.NEXT);
+        return new RenderData(
+            this.buildMainRenderData(geometry),
+            previous.fixed(),
+            next.fixed(),
+            previous.rotated(),
+            next.rotated());
+    }
 
-        double posdist = this.distance(this.from, this.to.getX() + 0.5F, this.to.getZ() + 0.5F);
-        double yrange = posdist == 0 ? 1 : (this.to.getY() - this.from.getY()) / posdist;
-        double tangrad = this.in[1] == this.in[0] ? Math.PI / 2D : Math.atan((this.in[2] - this.in[3]) / (this.in[1] - this.in[0]));
-        double xcomp = halfthick * Math.sin(tangrad);
-        double zcomp = halfthick * Math.cos(tangrad);
-        double tangrady = posdist == 0 ? Math.PI / 2D : Math.atan((this.to.getY() - this.from.getY()) / posdist);
-        double yxzcomp = Math.sin(tangrady);
-        double[] ct = new double[]{
-            this.in[0] - xcomp + yxzcomp * zcomp, this.in[2] - zcomp - yxzcomp * xcomp,
-            this.in[1] - xcomp + yxzcomp * zcomp, this.in[3] - zcomp - yxzcomp * xcomp,
-            this.in[1] + xcomp + yxzcomp * zcomp, this.in[3] + zcomp - yxzcomp * xcomp,
-            this.in[0] + xcomp + yxzcomp * zcomp, this.in[2] + zcomp - yxzcomp * xcomp
-        };
-        double[] cb = new double[]{
-            this.in[0] - xcomp - yxzcomp * zcomp, this.in[2] - zcomp + yxzcomp * xcomp,
-            this.in[1] - xcomp - yxzcomp * zcomp, this.in[3] - zcomp + yxzcomp * xcomp,
-            this.in[1] + xcomp - yxzcomp * zcomp, this.in[3] + zcomp + yxzcomp * xcomp,
-            this.in[0] + xcomp - yxzcomp * zcomp, this.in[2] + zcomp + yxzcomp * xcomp
-        };
-        double[] cent = new double[]{
-            (ct[0] + ct[2]) / 2D,
-            (ct[1] + ct[3]) / 2D,
-            (ct[4] + ct[6]) / 2D,
-            (ct[5] + ct[7]) / 2D
-        };
-        double[] cenb = new double[]{
-            (cb[0] + cb[2]) / 2D,
-            (cb[1] + cb[3]) / 2D,
-            (cb[4] + cb[6]) / 2D,
-            (cb[5] + cb[7]) / 2D
-        };
-        double ytop = yrange * this.distance(this.from, this.in[0], this.in[2]) - this.position.getY() + this.from.getY();
-        double ybot = yrange * this.distance(this.from, this.in[1], this.in[3]) - this.position.getY() + this.from.getY();
-        double len = Math.sqrt(Math.pow(ct[0] == ct[2] ? ct[1] - ct[3] : ct[0] - ct[2], 2) + (ytop - ybot) * (ytop - ybot)) / (halfthick * 32F);
-        double yThick = halfthick * Math.cos(tangrady);
-        double x = -this.position.getX();
-        double y = this.offset;
-        double z = -this.position.getZ();
+    private RenderGeometry createRenderGeometry() {
+        double halfThickness = this.type.getCableWidth() / 2F;
+        double postDistance = this.distance(this.from, this.to.getX() + 0.5F, this.to.getZ() + 0.5F);
+        double yRange = postDistance == 0 ? 1 : (this.to.getY() - this.from.getY()) / postDistance;
+        double horizontalAngle = this.in[END_X] == this.in[START_X]
+            ? Math.PI / 2D
+            : Math.atan((this.in[START_Z] - this.in[END_Z]) / (this.in[END_X] - this.in[START_X]));
+        double xThickness = halfThickness * Math.sin(horizontalAngle);
+        double zThickness = halfThickness * Math.cos(horizontalAngle);
+        double verticalAngle = postDistance == 0 ? Math.PI / 2D : Math.atan((this.to.getY() - this.from.getY()) / postDistance);
+        double verticalSkew = Math.sin(verticalAngle);
 
-        float worldWidth = this.type.getCableWidth() * 32;
-        double uvLen = (Math.sqrt(
-            Math.pow(this.in[0]-this.in[1], 2)
-                + Math.pow(this.in[2]-this.in[3], 2)
-                + Math.pow(this.in[4]-this.in[5], 2)
-        )) / worldWidth;
+        PlanarQuad top = new PlanarQuad(
+            this.in[START_X] - xThickness + verticalSkew * zThickness, this.in[START_Z] - zThickness - verticalSkew * xThickness,
+            this.in[END_X] - xThickness + verticalSkew * zThickness, this.in[END_Z] - zThickness - verticalSkew * xThickness,
+            this.in[END_X] + xThickness + verticalSkew * zThickness, this.in[END_Z] + zThickness - verticalSkew * xThickness,
+            this.in[START_X] + xThickness + verticalSkew * zThickness, this.in[START_Z] + zThickness - verticalSkew * xThickness);
+        PlanarQuad bottom = new PlanarQuad(
+            this.in[START_X] - xThickness - verticalSkew * zThickness, this.in[START_Z] - zThickness + verticalSkew * xThickness,
+            this.in[END_X] - xThickness - verticalSkew * zThickness, this.in[END_Z] - zThickness + verticalSkew * xThickness,
+            this.in[END_X] + xThickness - verticalSkew * zThickness, this.in[END_Z] + zThickness + verticalSkew * xThickness,
+            this.in[START_X] + xThickness - verticalSkew * zThickness, this.in[START_Z] + zThickness + verticalSkew * xThickness);
 
-        Pair<float[], float[]> prevRenderCache = this.genRenderCache(x, y, z, false, new double[]{ct[0], ct[1], cent[0], cent[1], cent[2], cent[3], ct[6], ct[7]}, new double[]{cb[0], cb[1], cenb[0], cenb[1], cenb[2], cenb[3], cb[6], cb[7]}, yThick, uvLen, worldWidth, ytop, ybot);
-        Pair<float[], float[]> nextRenderCache = this.genRenderCache(x, y, z, true, new double[]{cent[0], cent[1], ct[2], ct[3], ct[4], ct[5], cent[2], cent[3]}, new double[]{cenb[0], cenb[1], cb[2], cb[3], cb[4], cb[5], cenb[2], cenb[3]}, yThick, uvLen, worldWidth, ytop, ybot);
+        double startY = yRange * this.distance(this.from, this.in[START_X], this.in[START_Z]) - this.position.getY() + this.from.getY();
+        double endY = yRange * this.distance(this.from, this.in[END_X], this.in[END_Z]) - this.position.getY() + this.from.getY();
+        double worldWidth = this.type.getCableWidth() * 32F;
+        double uvLength = Math.sqrt(square(this.in[START_X] - this.in[END_X])
+            + square(this.in[START_Z] - this.in[END_Z])
+            + square(this.in[START_Y] - this.in[END_Y])) / worldWidth;
 
-        int maximumTexSize = (int) Math.min(64, Math.ceil(Math.max(uvLen * 16, worldWidth) * 2));
-        double[] uvs = IntStream.range(0, 12).mapToDouble(i -> this.random.nextInt(65 - maximumTexSize) / 64F).toArray();
-        float[] main = Floats.toArray(Doubles.asList(
-            ct[0] + x, ytop + yThick + y, ct[1] + z,
-            ct[2] + x, ybot + yThick + y, ct[3] + z,
-            ct[6] + x, ytop + yThick + y, ct[7] + z,
-            ct[4] + x, ybot + yThick + y, ct[5] + z,
-            cb[0] + x, ytop - yThick + y, cb[1] + z,
-            cb[2] + x, ybot - yThick + y, cb[3] + z,
-            cb[6] + x, ytop - yThick + y, cb[7] + z,
-            cb[4] + x, ybot - yThick + y, cb[5] + z,
-            uvs[0], uvs[1],
-            uvs[2], uvs[3],
-            uvs[4], uvs[5],
-            uvs[6], uvs[7],
-            uvs[8], uvs[9],
-            uvs[10], uvs[11],
-            uvLen/2F, 1F/64F, 1F/64F
-        ));
-        return new RenderData(main, prevRenderCache.getLeft(), nextRenderCache.getLeft(), prevRenderCache.getRight(), nextRenderCache.getRight());
+        return new RenderGeometry(
+            top,
+            bottom,
+            startY,
+            endY,
+            halfThickness * Math.cos(verticalAngle),
+            uvLength,
+            worldWidth,
+            -this.position.getX(),
+            this.offset,
+            -this.position.getZ());
     }
 
     private double distance(BlockPos from, double x, double z) {
         return Math.sqrt((from.getX() + 0.5F - x) * (from.getX() + 0.5F - x) + (from.getZ() + 0.5F - z) * (from.getZ() + 0.5F - z));
     }
 
-    private Pair<float[], float[]> genRenderCache(double x, double y, double z, boolean next, double[] ct, double[] cb, double yThick, double len, double worldWidth, double ytop, double ybot) {
-        Vector3f point = next ? this.nextCache.point : this.prevCache.point;
-        double ycenter = ybot + (ytop - ybot) / 2D;
-        int maximumTexSize = (int) Math.min(64, Math.ceil(Math.max(len * 16, worldWidth) * 2));
-        double[] uvs = IntStream.range(0, 12).mapToDouble(i -> this.random.nextInt(65 - maximumTexSize) / 64F).toArray();
-        float[] rotated;
-        if (next) {
-            ytop = ycenter;
-            rotated = Floats.toArray(Doubles.asList(
-                x + ct[0] + point.x(), y + ycenter + yThick + point.y(), z + ct[1] + point.z(),
-                x + ct[0], y + ycenter + yThick, z + ct[1],
-                x + ct[6] + point.x(), y + ycenter + yThick + point.y(), z + ct[7] + point.z(),
-                x + ct[6], y + ycenter + yThick, z + ct[7],
+    private SegmentRenderData buildSegmentRenderData(RenderGeometry geometry, SegmentEnd end) {
+        PlanarQuad rotatedTop = getHalf(geometry.top(), end);
+        PlanarQuad rotatedBottom = getHalf(geometry.bottom(), end);
+        SegmentEnd fixedEnd = end.opposite();
+        PlanarQuad fixedTop = getHalf(geometry.top(), fixedEnd);
+        PlanarQuad fixedBottom = getHalf(geometry.bottom(), fixedEnd);
+        double centerY = geometry.centerY();
+        int textureSize = textureMaxSize(geometry.uvLength(), geometry.worldWidth());
 
-                x + cb[0] + point.x(), y + ycenter - yThick + point.y(), z + cb[1] + point.z(),
-                x + cb[0], y + ycenter - yThick, z + cb[1],
-                x + cb[6] + point.x(), y + ycenter - yThick + point.y(), z + cb[7] + point.z(),
-                x + cb[6], y + ycenter - yThick, z + cb[7],
+        float[] rotated = this.buildRotatedSegmentRenderData(
+            geometry,
+            rotatedTop,
+            rotatedBottom,
+            end,
+            this.randomUvs(textureSize));
+        float[] fixed = packStraightRenderData(
+            geometry,
+            fixedTop,
+            fixedBottom,
+            fixedEnd == SegmentEnd.PREVIOUS ? geometry.startY() : centerY,
+            fixedEnd == SegmentEnd.PREVIOUS ? centerY : geometry.endY(),
+            this.randomUvs(textureSize),
+            geometry.uvLength() / 4D);
+        return new SegmentRenderData(fixed, rotated);
+    }
 
-                uvs[0], uvs[1],
-                uvs[2], uvs[3],
-                uvs[4], uvs[5],
-                uvs[6], uvs[7],
-                uvs[8], uvs[9],
-                uvs[10], uvs[11],
-                len/4F, 1F/64F, 1F/64F
-            ));
-        } else {
-            ybot = ycenter;
-            rotated = Floats.toArray(Doubles.asList(
-                x + ct[2], y + ycenter + yThick, z + ct[3],
-                x + ct[2] + point.x(), y + ycenter + yThick + point.y(), z + ct[3] + point.z(),
-                x + ct[4], y + ycenter + yThick, z + ct[5],
-                x + ct[4] + point.x(), y + ycenter + yThick + point.y(), z + ct[5] + point.z(),
+    private static PlanarQuad getHalf(PlanarQuad quad, SegmentEnd end) {
+        return end == SegmentEnd.NEXT ? quad.nextHalf() : quad.previousHalf();
+    }
 
-                x + cb[2], y + ycenter - yThick, z + cb[3],
-                x + cb[2] + point.x(), y + ycenter - yThick + point.y(), z + cb[3] + point.z(),
-                x + cb[4], y + ycenter - yThick, z + cb[5],
-                x + cb[4] + point.x(), y + ycenter - yThick + point.y(), z + cb[5] + point.z(),
+    private float[] buildMainRenderData(RenderGeometry geometry) {
+        return packStraightRenderData(
+            geometry,
+            geometry.top(),
+            geometry.bottom(),
+            geometry.startY(),
+            geometry.endY(),
+            this.randomUvs(textureMaxSize(geometry.uvLength(), geometry.worldWidth())),
+            geometry.uvLength() / 2D);
+    }
 
-                uvs[0], uvs[1],
-                uvs[2], uvs[3],
-                uvs[4], uvs[5],
-                uvs[6], uvs[7],
-                uvs[8], uvs[9],
-                uvs[10], uvs[11],
-                len/4F, 1F/64F, 1F/64F
-            ));
+    private float[] buildRotatedSegmentRenderData(RenderGeometry geometry, PlanarQuad top, PlanarQuad bottom, SegmentEnd end, double[] uvs) {
+        Vector3f point = end == SegmentEnd.NEXT ? this.nextCache.point : this.prevCache.point;
+        double centerY = geometry.centerY();
+        return end == SegmentEnd.NEXT
+            ? packNextRotatedRenderData(geometry, top, bottom, point, centerY, uvs)
+            : packPreviousRotatedRenderData(geometry, top, bottom, point, centerY, uvs);
+    }
+
+    private static float[] packStraightRenderData(
+        RenderGeometry geometry,
+        PlanarQuad top,
+        PlanarQuad bottom,
+        double startY,
+        double endY,
+        double[] uvs,
+        double textureLength
+    ) {
+        double x = geometry.xOffset();
+        double y = geometry.yOffset();
+        double z = geometry.zOffset();
+        double yThickness = geometry.yThickness();
+        return packRenderData(new double[] {
+            top.startLeftX() + x, startY + yThickness + y, top.startLeftZ() + z,
+            top.endLeftX() + x, endY + yThickness + y, top.endLeftZ() + z,
+            top.startRightX() + x, startY + yThickness + y, top.startRightZ() + z,
+            top.endRightX() + x, endY + yThickness + y, top.endRightZ() + z,
+            bottom.startLeftX() + x, startY - yThickness + y, bottom.startLeftZ() + z,
+            bottom.endLeftX() + x, endY - yThickness + y, bottom.endLeftZ() + z,
+            bottom.startRightX() + x, startY - yThickness + y, bottom.startRightZ() + z,
+            bottom.endRightX() + x, endY - yThickness + y, bottom.endRightZ() + z
+        }, uvs, textureLength, TEXTURE_PIXEL, TEXTURE_PIXEL);
+    }
+
+    private static float[] packNextRotatedRenderData(
+        RenderGeometry geometry,
+        PlanarQuad top,
+        PlanarQuad bottom,
+        Vector3f point,
+        double centerY,
+        double[] uvs
+    ) {
+        double x = geometry.xOffset();
+        double y = geometry.yOffset();
+        double z = geometry.zOffset();
+        double yThickness = geometry.yThickness();
+        return packRenderData(new double[] {
+            top.startLeftX() + x + point.x(), centerY + yThickness + y + point.y(), top.startLeftZ() + z + point.z(),
+            top.startLeftX() + x, centerY + yThickness + y, top.startLeftZ() + z,
+            top.startRightX() + x + point.x(), centerY + yThickness + y + point.y(), top.startRightZ() + z + point.z(),
+            top.startRightX() + x, centerY + yThickness + y, top.startRightZ() + z,
+            bottom.startLeftX() + x + point.x(), centerY - yThickness + y + point.y(), bottom.startLeftZ() + z + point.z(),
+            bottom.startLeftX() + x, centerY - yThickness + y, bottom.startLeftZ() + z,
+            bottom.startRightX() + x + point.x(), centerY - yThickness + y + point.y(), bottom.startRightZ() + z + point.z(),
+            bottom.startRightX() + x, centerY - yThickness + y, bottom.startRightZ() + z
+        }, uvs, geometry.uvLength() / 4D, TEXTURE_PIXEL, TEXTURE_PIXEL);
+    }
+
+    private static float[] packPreviousRotatedRenderData(
+        RenderGeometry geometry,
+        PlanarQuad top,
+        PlanarQuad bottom,
+        Vector3f point,
+        double centerY,
+        double[] uvs
+    ) {
+        double x = geometry.xOffset();
+        double y = geometry.yOffset();
+        double z = geometry.zOffset();
+        double yThickness = geometry.yThickness();
+        return packRenderData(new double[] {
+            top.endLeftX() + x, centerY + yThickness + y, top.endLeftZ() + z,
+            top.endLeftX() + x + point.x(), centerY + yThickness + y + point.y(), top.endLeftZ() + z + point.z(),
+            top.endRightX() + x, centerY + yThickness + y, top.endRightZ() + z,
+            top.endRightX() + x + point.x(), centerY + yThickness + y + point.y(), top.endRightZ() + z + point.z(),
+            bottom.endLeftX() + x, centerY - yThickness + y, bottom.endLeftZ() + z,
+            bottom.endLeftX() + x + point.x(), centerY - yThickness + y + point.y(), bottom.endLeftZ() + z + point.z(),
+            bottom.endRightX() + x, centerY - yThickness + y, bottom.endRightZ() + z,
+            bottom.endRightX() + x + point.x(), centerY - yThickness + y + point.y(), bottom.endRightZ() + z + point.z()
+        }, uvs, geometry.uvLength() / 4D, TEXTURE_PIXEL, TEXTURE_PIXEL);
+    }
+
+    private static float[] packRenderData(double[] vertices, double[] uvs, double textureLength, double textureHeight, double textureDepth) {
+        float[] data = new float[RENDER_DATA_LENGTH];
+        for (int i = 0; i < VERTEX_DATA_LENGTH; i++) {
+            data[i] = (float) vertices[i];
         }
-        uvs = IntStream.range(0, 12).mapToDouble(i -> this.random.nextInt(65 - maximumTexSize) / 64F).toArray();
-        float[] fixed =
-            Floats.toArray(Doubles.asList(
-                x + ct[0], y + ytop + yThick, z + ct[1],
-                x + ct[2], y + ybot + yThick, z + ct[3],
-                x + ct[6], y + ytop + yThick, z + ct[7],
-                x + ct[4], y + ybot + yThick, z + ct[5],
-                x + cb[0], y + ytop - yThick, z + cb[1],
-                x + cb[2], y + ybot - yThick, z + cb[3],
-                x + cb[6], y + ytop - yThick, z + cb[7],
-                x + cb[4], y + ybot - yThick, z + cb[5],
-                uvs[0], uvs[1],
-                uvs[2], uvs[3],
-                uvs[4], uvs[5],
-                uvs[6], uvs[7],
-                uvs[8], uvs[9],
-                uvs[10], uvs[11],
-                len/4F, 1F/64F, 1F/64F
-            ));
-        return Pair.of(fixed, rotated);
+        for (int i = 0; i < UV_COUNT; i++) {
+            data[VERTEX_DATA_LENGTH + i] = (float) uvs[i];
+        }
+        data[VERTEX_DATA_LENGTH + UV_COUNT] = (float) textureLength;
+        data[VERTEX_DATA_LENGTH + UV_COUNT + 1] = (float) textureHeight;
+        data[VERTEX_DATA_LENGTH + UV_COUNT + 2] = (float) textureDepth;
+        return data;
+    }
+
+    private double[] randomUvs(int maximumTextureSize) {
+        double[] uvs = new double[UV_COUNT];
+        int randomBound = 65 - maximumTextureSize;
+        for (int i = 0; i < uvs.length; i++) {
+            uvs[i] = this.random.nextInt(randomBound) / 64F;
+        }
+        return uvs;
+    }
+
+    private static int textureMaxSize(double uvLength, double worldWidth) {
+        return (int) Math.min(64, Math.ceil(Math.max(uvLength * 16D, worldWidth) * 2D));
+    }
+
+    private static double square(double value) {
+        return value * value;
     }
 
     public Runnable getReRenderCallback() {
@@ -613,6 +818,70 @@ public class Connection {
     @Override
     public int hashCode() {
         return Objects.hash(this.position, this.from, this.to, this.offset);
+    }
+
+    private enum SegmentEnd {
+        PREVIOUS,
+        NEXT;
+
+        private SegmentEnd opposite() {
+            return this == NEXT ? PREVIOUS : NEXT;
+        }
+    }
+
+    private record PlanarQuad(
+        double startLeftX,
+        double startLeftZ,
+        double endLeftX,
+        double endLeftZ,
+        double endRightX,
+        double endRightZ,
+        double startRightX,
+        double startRightZ
+    ) {
+        private PlanarQuad section(double startT, double endT) {
+            return new PlanarQuad(
+                lerp(this.startLeftX, this.endLeftX, startT),
+                lerp(this.startLeftZ, this.endLeftZ, startT),
+                lerp(this.startLeftX, this.endLeftX, endT),
+                lerp(this.startLeftZ, this.endLeftZ, endT),
+                lerp(this.startRightX, this.endRightX, endT),
+                lerp(this.startRightZ, this.endRightZ, endT),
+                lerp(this.startRightX, this.endRightX, startT),
+                lerp(this.startRightZ, this.endRightZ, startT));
+        }
+
+        private static double lerp(double start, double end, double t) {
+            return start + (end - start) * t;
+        }
+
+        private PlanarQuad previousHalf() {
+            return this.section(0D, 0.5D);
+        }
+
+        private PlanarQuad nextHalf() {
+            return this.section(0.5D, 1D);
+        }
+    }
+
+    private record RenderGeometry(
+        PlanarQuad top,
+        PlanarQuad bottom,
+        double startY,
+        double endY,
+        double yThickness,
+        double uvLength,
+        double worldWidth,
+        double xOffset,
+        double yOffset,
+        double zOffset
+    ) {
+        private double centerY() {
+            return this.endY + (this.startY - this.endY) / 2D;
+        }
+    }
+
+    private record SegmentRenderData(float[] fixed, float[] rotated) {
     }
 
     public record SurroundingCache(Vector3f point, RotatedRayBox fixedBox, RotatedRayBox rotatedBox) {

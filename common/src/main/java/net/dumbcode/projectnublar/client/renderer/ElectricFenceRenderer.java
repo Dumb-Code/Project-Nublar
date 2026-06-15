@@ -33,18 +33,22 @@ public class ElectricFenceRenderer extends GeoBlockRenderer<BlockEntityElectricF
 
     @Override
     public void actuallyRender(PoseStack poseStack, BlockEntityElectricFencePole animatable, BakedGeoModel model, RenderType renderType, MultiBufferSource bufferSource, VertexConsumer buffer, boolean isReRender, float partialTick, int packedLight, int packedOverlay, float red, float green, float blue, float alpha) {
-        if(animatable.getBlockState().getValue(((ElectricFencePostBlock)animatable.getBlockState().getBlock()).getIndexProperty()) == 0) {
-            poseStack.pushPose();
-            double rotation = animatable.getCachedRotation();
-            poseStack.translate(0.5, 0.5, 0.5);
-            if(animatable.isFlippedAround()) {
-                poseStack.mulPose(Axis.YP.rotationDegrees((float) rotation));
-            } else {
-                poseStack.mulPose(Axis.YP.rotationDegrees((float) rotation ));
-            }
-            poseStack.translate(-0.5, -0.5, -0.5);
-            super.actuallyRender(poseStack, animatable, model, renderType, bufferSource, buffer, isReRender, partialTick, packedLight, packedOverlay, red, green, blue, alpha);
-            poseStack.popPose();
+        if (!isBasePole(animatable)) {
+            return;
         }
+
+        poseStack.pushPose();
+        poseStack.translate(0.5, 0.5, 0.5);
+        poseStack.mulPose(Axis.YP.rotationDegrees((float) animatable.getCachedRotation()));
+        poseStack.translate(-0.5, -0.5, -0.5);
+        super.actuallyRender(poseStack, animatable, model, renderType, bufferSource, buffer, isReRender, partialTick, packedLight, packedOverlay, red, green, blue, alpha);
+        poseStack.popPose();
+    }
+
+    private static boolean isBasePole(BlockEntityElectricFencePole pole) {
+        if (!(pole.getBlockState().getBlock() instanceof ElectricFencePostBlock post)) {
+            return false;
+        }
+        return pole.getBlockState().getValue(post.getIndexProperty()) == 0;
     }
 }
