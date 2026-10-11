@@ -10,6 +10,7 @@ import net.dumbcode.projectnublar.client.widget.GeneSlider;
 import net.dumbcode.projectnublar.init.EntityInit;
 import net.dumbcode.projectnublar.init.GeneInit;
 import net.minecraft.network.chat.Component;
+import net.dumbcode.projectnublar.entity.dinosaur.Dinosaur;
 import net.minecraft.world.entity.EntityType;
 
 import java.util.HashMap;
@@ -22,6 +23,11 @@ public class CommonClientClass {
     private static final Map<Genes.Gene,  BiFunction<SequencerScreen, DinoData, GeneHolder>> GENE_WIDGET = new HashMap<>();
     private static final Map<EntityType<?>, List<DinoLayer>> LAYER_REGISTRY = new HashMap<>();
     private static final Map<String, List<DinoLayer>> LAYER_REGISTRY_NEW = new HashMap<>();
+    /**
+     * Layer lists for male animals of species whose male art is a different set of layers from the female art.
+     * A species with no entry here uses its {@link #LAYER_REGISTRY} list for both genders.
+     */
+    private static final Map<EntityType<?>, List<DinoLayer>> MALE_LAYER_REGISTRY = new HashMap<>();
 
     public static  BiFunction<SequencerScreen, DinoData,GeneHolder> getGeneWidget(Genes.Gene gene) {
         for(Genes.Gene g : GENE_WIDGET.keySet()) {
@@ -124,7 +130,23 @@ public class CommonClientClass {
                 new DinoLayer("claws",-1),
                 new DinoLayer("nostrils",-1),
                 new DinoLayer("eyes",-1),
-                new DinoLayer("eyelids",-1)
+                // Eyelids show only while the animal rests: resting is the one sleep-like state synced to the client.
+                new DinoLayer("eyelids",-1).visibleWhen(Dinosaur::isResting)
+        ));
+        // The male has its own art: base.png (the base pass) and then these layers, bottom to top.
+        // Each colour channel mirrors the female layer with the same role (see the comment on each line).
+        MALE_LAYER_REGISTRY.put(EntityInit.GALLIMIMUS.get(),List.of(
+                new DinoLayer("speckle",1),      // as female body-darkness (proposed)
+                new DinoLayer("green",2),        // as female peach (proposed)
+                new DinoLayer("belly",2),        // as female belly
+                new DinoLayer("tail",1),         // as female tail-darkness (proposed)
+                new DinoLayer("pattern",2),      // as female brown (proposed)
+                new DinoLayer("body-stripes",3), // as female body-stripes
+                new DinoLayer("mouth",-1),
+                new DinoLayer("claws",-1),
+                new DinoLayer("nostrils",-1),
+                new DinoLayer("eyes",-1),
+                new DinoLayer("eyelids",-1).visibleWhen(Dinosaur::isResting)
         ));
     }
     public static List<DinoLayer> getDinoLayers(EntityType<?> type){
@@ -132,6 +154,16 @@ public class CommonClientClass {
             return List.of(new DinoLayer("base", 0));
         }
         return LAYER_REGISTRY.get(type);
+    }
+    /**
+     * Returns the layer list for one gender of a species. Males use their own list when the species registers one;
+     * otherwise both genders share {@link #getDinoLayers(EntityType)}.
+     */
+    public static List<DinoLayer> getDinoLayers(EntityType<?> type, boolean male){
+        if(male && MALE_LAYER_REGISTRY.containsKey(type)){
+            return MALE_LAYER_REGISTRY.get(type);
+        }
+        return getDinoLayers(type);
     }
     public static void registerGeneWidgets() {
         registerGeneWidget(GeneInit.AGGRESSION.get() , (screen, meep)->new GeneSlider(screen.leftPos() + 235, screen.topPos() + 50, 100, 20, Component.empty(), Component.literal("%"), -100, 100, 0, true, (slider, value) -> {

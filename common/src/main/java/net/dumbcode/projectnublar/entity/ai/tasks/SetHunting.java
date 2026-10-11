@@ -41,10 +41,6 @@ public class SetHunting<E extends Dinosaur> extends ExtendedBehaviour<E> {
     @Override
     protected boolean checkExtraStartConditions(ServerLevel level, E entity) {
 
-        if(entity.hasGroup()){
-            return false;
-        }
-
         //Check for feeder first before starting hunt
         if(BrainUtils.hasMemory(entity, MemoryModuleTypeInit.HAS_FOUND_FEEDER.get())){
             BlockEntity block = level.getBlockEntity(BrainUtils.getMemory(entity,MemoryModuleTypeInit.HAS_FOUND_FEEDER.get()));

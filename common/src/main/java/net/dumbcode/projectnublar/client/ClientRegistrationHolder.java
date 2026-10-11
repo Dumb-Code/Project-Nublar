@@ -11,6 +11,8 @@ import net.dumbcode.projectnublar.client.screen.GeneratorScreen;
 import net.dumbcode.projectnublar.client.screen.IncubatorScreen;
 import net.dumbcode.projectnublar.client.screen.ProcessorScreen;
 import net.dumbcode.projectnublar.client.screen.SequencerScreen;
+import net.dumbcode.projectnublar.client.model.DinosaurGeoModel;
+import net.dumbcode.projectnublar.entity.dinosaur.Dinosaur;
 import net.dumbcode.projectnublar.entity.dinosaur.DinosaurPart;
 import net.dumbcode.projectnublar.init.BlockInit;
 import net.dumbcode.projectnublar.init.EntityInit;
@@ -29,7 +31,6 @@ import net.minecraft.resources.ResourceLocation;
 import org.jetbrains.annotations.Nullable;
 import software.bernie.geckolib.cache.object.GeoBone;
 import software.bernie.geckolib.model.DefaultedBlockGeoModel;
-import software.bernie.geckolib.model.DefaultedEntityGeoModel;
 import software.bernie.geckolib.renderer.GeoBlockRenderer;
 
 public class ClientRegistrationHolder {
@@ -41,12 +42,12 @@ public class ClientRegistrationHolder {
                 return null;
             }
         });
-        EntityRenderers.register(EntityInit.TYRANNOSAURUS_REX.get(), (context) -> new TyrannosaurusRenderer(context, new DefaultedEntityGeoModel<>(Constants.modLoc("tyrannosaurus_rex"))));
-        EntityRenderers.register(EntityInit.VELOCIRAPTOR.get(), (context) -> new VelociraptorRenderer(context, new DefaultedEntityGeoModel<>(Constants.modLoc("velociraptor"))));
-        EntityRenderers.register(EntityInit.DILOPHOSAURUS.get(), (context) -> new DilophosaurusRenderer(context, new DefaultedEntityGeoModel<>(Constants.modLoc("dilophosaurus"))));
-        EntityRenderers.register(EntityInit.TRICERATOPS.get(), (context) -> new TriceratopsRenderer(context, new DefaultedEntityGeoModel<>(Constants.modLoc("triceratops"))));
-        EntityRenderers.register(EntityInit.BRACHIOSAURUS.get(), (context) -> new BrachiosaurusRenderer(context, new DefaultedEntityGeoModel<>(Constants.modLoc("brachiosaurus"))));
-        EntityRenderers.register(EntityInit.GALLIMIMUS.get(), (context) -> new GallimimusRenderer(context, new DefaultedEntityGeoModel<>(Constants.modLoc("gallimimus"))));
+        EntityRenderers.register(EntityInit.TYRANNOSAURUS_REX.get(), (context) -> new TyrannosaurusRenderer(context, new DinosaurGeoModel(Constants.modLoc("tyrannosaurus_rex"))));
+        EntityRenderers.register(EntityInit.VELOCIRAPTOR.get(), (context) -> new VelociraptorRenderer(context, new DinosaurGeoModel(Constants.modLoc("velociraptor"))));
+        EntityRenderers.register(EntityInit.DILOPHOSAURUS.get(), (context) -> new DilophosaurusRenderer(context, new DinosaurGeoModel(Constants.modLoc("dilophosaurus"))));
+        EntityRenderers.register(EntityInit.TRICERATOPS.get(), (context) -> new TriceratopsRenderer(context, new DinosaurGeoModel(Constants.modLoc("triceratops"))));
+        EntityRenderers.register(EntityInit.BRACHIOSAURUS.get(), (context) -> new BrachiosaurusRenderer(context, new DinosaurGeoModel(Constants.modLoc("brachiosaurus"))));
+        EntityRenderers.register(EntityInit.GALLIMIMUS.get(), (context) -> new GallimimusRenderer(context, new GallimimusBaseModel()));
     }
 
     public static void menuScreens() {
@@ -60,7 +61,6 @@ public class ClientRegistrationHolder {
         Minecraft.getInstance().getTextureManager().register(Constants.modLoc("textures/entity/dilophosaurus.png"), createDiloTexture());
         Minecraft.getInstance().getTextureManager().register(Constants.modLoc("textures/entity/triceratops.png"), createTrikeTexture());
         Minecraft.getInstance().getTextureManager().register(Constants.modLoc("textures/entity/brachiosaurus.png"), createBrachTexture());
-        Minecraft.getInstance().getTextureManager().register(Constants.modLoc("textures/entity/gallimimus.png"), createGalliTexture());
     }
 
     public static void registerBlockEntityRenderers() {
@@ -105,5 +105,24 @@ public class ClientRegistrationHolder {
     public static AbstractTexture createDiloTexture() {return Minecraft.getInstance().getTextureManager().getTexture(Constants.modLoc("textures/entity/dilophosaurus/male/dilophosaurus.png"));}
     public static AbstractTexture createTrikeTexture() {return Minecraft.getInstance().getTextureManager().getTexture(Constants.modLoc("textures/entity/triceratops/male/triceratops.png"));}
     public static AbstractTexture createBrachTexture() {return Minecraft.getInstance().getTextureManager().getTexture(Constants.modLoc("textures/entity/brachiosaurus/male/brachiosaurus.png"));}
-    public static AbstractTexture createGalliTexture() {return Minecraft.getInstance().getTextureManager().getTexture(Constants.modLoc("textures/entity/gallimimus/male/gallimimus.png"));}
+
+    /**
+     * Base pass model for Gallimimus. Draws the plain per-gender {@code base.png}, not the composite {@code gallimimus.png}.
+     * The composite already contains every marking. The colour layers (CommonClientClass) draw those markings again,
+     * so the old alias to {@code male/gallimimus.png} doubled them. It also gave female animals the male base.
+     */
+    private static class GallimimusBaseModel extends DinosaurGeoModel {
+        private static final ResourceLocation MALE_BASE = Constants.modLoc("textures/entity/gallimimus/male/base.png");
+        private static final ResourceLocation FEMALE_BASE = Constants.modLoc("textures/entity/gallimimus/female/base.png");
+
+        GallimimusBaseModel() {
+            super(Constants.modLoc("gallimimus"));
+        }
+
+        @Override
+        public ResourceLocation getTextureResource(Dinosaur animatable) {
+            // Same rule as Dinosaur.getStringDinoGender: gene value 2.0 is male, anything else female.
+            return animatable.getDinoGender() == 2.0D ? MALE_BASE : FEMALE_BASE;
+        }
+    }
 }

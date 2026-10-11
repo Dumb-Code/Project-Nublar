@@ -27,16 +27,16 @@ public class EntityInit {
     public static final List<AttributesRegister<?>> attributeSuppliers = new ArrayList<>();
 
     //Carnivores
-    public static final DeferredSupplier<EntityType<TyrannosaurusRexEntity>> TYRANNOSAURUS_REX = registerEntity("tyrannosaurus_rex", ()-> EntityType.Builder.of(TyrannosaurusRexEntity::new, MobCategory.MONSTER).sized(1,3), Dinosaur::createAttributes);
-    public static final DeferredSupplier<EntityType<VelociraptorEntity>> VELOCIRAPTOR = registerEntity("velociraptor", () -> EntityType.Builder.of(VelociraptorEntity::new, MobCategory.MONSTER).sized(0.6F,0.6F), Dinosaur::createAttributes);
-    public static final DeferredSupplier<EntityType<DilophosaurusEntity>> DILOPHOSAURUS = registerEntity("dilophosaurus", () -> EntityType.Builder.of(DilophosaurusEntity::new, MobCategory.MONSTER).sized(1,1), Dinosaur::createAttributes);
+    public static final DeferredSupplier<EntityType<TyrannosaurusRexEntity>> TYRANNOSAURUS_REX = registerEntity("tyrannosaurus_rex", ()-> EntityType.Builder.of(TyrannosaurusRexEntity::new, MobCategory.MONSTER).sized(1,3).clientTrackingRange(10),Dinosaur::createAttributes);
+    public static final DeferredSupplier<EntityType<VelociraptorEntity>> VELOCIRAPTOR = registerEntity("velociraptor", () -> EntityType.Builder.of(VelociraptorEntity::new, MobCategory.MONSTER).sized(0.6F,0.6F).clientTrackingRange(10),Dinosaur::createAttributes);
+    public static final DeferredSupplier<EntityType<DilophosaurusEntity>> DILOPHOSAURUS = registerEntity("dilophosaurus", () -> EntityType.Builder.of(DilophosaurusEntity::new, MobCategory.MONSTER).sized(1,1).clientTrackingRange(10),Dinosaur::createAttributes);
 
     //Herbivores
-    public static final DeferredSupplier<EntityType<TriceratopsEntity>> TRICERATOPS = registerEntity("triceratops", ()-> EntityType.Builder.of(TriceratopsEntity::new, MobCategory.MONSTER).sized(2,3), Dinosaur::createAttributes);
-    public static final DeferredSupplier<EntityType<BrachiosaurusEntity>> BRACHIOSAURUS = registerEntity("brachiosaurus", ()-> EntityType.Builder.of(BrachiosaurusEntity::new, MobCategory.MONSTER).sized(2,3), Dinosaur::createAttributes);
+    public static final DeferredSupplier<EntityType<TriceratopsEntity>> TRICERATOPS = registerEntity("triceratops", ()-> EntityType.Builder.of(TriceratopsEntity::new, MobCategory.MONSTER).sized(2,3).clientTrackingRange(10),Dinosaur::createAttributes);
+    public static final DeferredSupplier<EntityType<BrachiosaurusEntity>> BRACHIOSAURUS = registerEntity("brachiosaurus", ()-> EntityType.Builder.of(BrachiosaurusEntity::new, MobCategory.MONSTER).sized(2,3).clientTrackingRange(10),Dinosaur::createAttributes);
 
     //Omnivores
-    public static final DeferredSupplier<EntityType<GallimimusEntity>> GALLIMIMUS = registerEntity("gallimimus", ()-> EntityType.Builder.of(GallimimusEntity::new, MobCategory.MONSTER).sized(2,3), Dinosaur::createAttributes);
+    public static final DeferredSupplier<EntityType<GallimimusEntity>> GALLIMIMUS = registerEntity("gallimimus", ()-> EntityType.Builder.of(GallimimusEntity::new, MobCategory.MONSTER).sized(1.2F, 2.6F).clientTrackingRange(10),Dinosaur::createAttributes);
 
 
    // public static final DeferredSupplier<EntityType<TyrannosaurInteractionEntity>> INTERACTION_ENTITY = registerEntity("carnivore_pack",()->EntityType.Builder.of(TyrannosaurInteractionEntity::new, MobCategory.MISC));

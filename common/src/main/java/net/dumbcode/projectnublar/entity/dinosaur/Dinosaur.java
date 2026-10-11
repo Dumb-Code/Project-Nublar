@@ -19,6 +19,7 @@ import net.dumbcode.projectnublar.entity.ai.tasks.*;
 import net.dumbcode.projectnublar.entity.api.FossilRevived;
 import net.dumbcode.projectnublar.entity.ai.sensors.NearestWaterSourceSensor;
 import net.dumbcode.projectnublar.init.*;
+import net.dumbcode.projectnublar.util.DinoAnimationLengths;
 import net.dumbcode.projectnublar.util.DinoAnimationUtils;
 import net.dumbcode.projectnublar.util.DinoNeedsUtils;
 import net.minecraft.core.BlockPos;
@@ -36,6 +37,7 @@ import net.minecraft.world.entity.*;
 import net.minecraft.world.entity.ai.Brain;
 import net.minecraft.world.entity.ai.attributes.AttributeSupplier;
 import net.minecraft.world.entity.ai.attributes.Attributes;
+import net.minecraft.world.entity.ai.control.BodyRotationControl;
 import net.minecraft.world.entity.ai.memory.MemoryModuleType;
 import net.minecraft.world.entity.ai.navigation.PathNavigation;
 import net.minecraft.world.entity.animal.Animal;
@@ -52,6 +54,23 @@ import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.phys.Vec3;
 import net.tslat.smartbrainlib.api.SmartBrainOwner;
 import net.tslat.smartbrainlib.api.core.BrainActivityGroup;
+import net.dumbcode.projectnublar.entity.ai.behaviour.social.ChallengeGroupLeader;
+import net.dumbcode.projectnublar.entity.ai.behaviour.social.DinoGroup;
+import net.dumbcode.projectnublar.entity.ai.behaviour.social.FollowFormation;
+import net.dumbcode.projectnublar.entity.ai.behaviour.social.HerdLeading;
+import net.dumbcode.projectnublar.entity.ai.behaviour.social.HerdNeeds;
+import net.dumbcode.projectnublar.entity.ai.behaviour.social.GroupManager;
+import net.dumbcode.projectnublar.entity.ai.behaviour.social.HerdMoveControl;
+import net.dumbcode.projectnublar.entity.ai.behaviour.social.HerdState;
+import net.dumbcode.projectnublar.entity.ai.behaviour.social.JoinGroup;
+import net.dumbcode.projectnublar.entity.ai.behaviour.social.LeaderJourney;
+import net.dumbcode.projectnublar.entity.ai.behaviour.social.RunGait;
+import net.dumbcode.projectnublar.entity.ai.behaviour.social.TurnEasing;
+import net.dumbcode.projectnublar.entity.ai.behaviour.actions.ThreatDisplay;
+import net.dumbcode.projectnublar.entity.dinosaur.animation.AnimationChoice;
+import net.dumbcode.projectnublar.entity.dinosaur.animation.DinoAnimator;
+import net.dumbcode.projectnublar.entity.dinosaur.animation.DinoOneShots;
+import net.dumbcode.projectnublar.entity.dinosaur.animation.OneShotAction;
 import net.tslat.smartbrainlib.api.core.SmartBrainProvider;
 import net.tslat.smartbrainlib.api.core.behaviour.FirstApplicableBehaviour;
 import net.tslat.smartbrainlib.api.core.behaviour.OneRandomBehaviour;
@@ -70,7 +89,6 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.joml.Vector3f;
 import software.bernie.geckolib.animatable.GeoEntity;
-import software.bernie.geckolib.constant.DefaultAnimations;
 import software.bernie.geckolib.core.animatable.GeoAnimatable;
 import software.bernie.geckolib.core.animatable.instance.AnimatableInstanceCache;
 import software.bernie.geckolib.core.animation.*;
@@ -95,9 +113,35 @@ public abstract class Dinosaur extends TamableAnimal implements FossilRevived, G
     public static EntityDataAccessor<Boolean> SUB_ADULT_DATA_ID = SynchedEntityData.defineId(Dinosaur.class, EntityDataSerializers.BOOLEAN);
     public static EntityDataAccessor<Boolean> ADULT_DATA_ID = SynchedEntityData.defineId(Dinosaur.class, EntityDataSerializers.BOOLEAN);
     public static EntityDataAccessor<Boolean> SHOULD_TICK_STAMINA = SynchedEntityData.defineId(Dinosaur.class, EntityDataSerializers.BOOLEAN);
+    /** Mirror of {@link GroupManager#isLeader} for the client, which has no group data. Server writes it once a second. */
+    public static final EntityDataAccessor<Boolean> GROUP_LEADER = SynchedEntityData.defineId(Dinosaur.class, EntityDataSerializers.BOOLEAN);
     public static final EntityDataAccessor<Vector3f> DINOSAUR_HEAD_POS = SynchedEntityData.defineId(Dinosaur.class, EntityDataSerializers.VECTOR3);
+    /** The one-shot action the server plays ({@link OneShotAction#id}); one channel for call, sentry and startled (fix P10). */
+    public static final EntityDataAccessor<Byte> ONE_SHOT = SynchedEntityData.defineId(Dinosaur.class, EntityDataSerializers.BYTE);
+    /**
+     * The animal's herd travels: its group is in TRAVEL, the journey's pauses included (P13b, ruling 3b). Set by
+     * the server each tick ({@link #customServerAiStep}); the client then plays only the main idle
+     * ({@code AnimationChoice.mainIdleOnly}).
+     */
+    public static final EntityDataAccessor<Boolean> HERD_TRAVELS = SynchedEntityData.defineId(Dinosaur.class, EntityDataSerializers.BOOLEAN);
+    /**
+     * Largest change of body yaw per tick, in degrees ({@link #setYRot}): the top rate of the eased turn
+     * ({@code TurnEasing}, playtest 4 fix P12b). A turn from rest starts slower (2, 4, 6, 8 degrees in its first
+     * ticks, then this rate; P13b) and slows again near its end. Herd steering uses the same value, so the direction
+     * it plans is the direction the body can actually turn to.
+     */
+    public static final float MAX_TURN_PER_TICK = 10F;
+    /**
+     * The {@code MOVEMENT_SPEED} attribute every dinosaur spawns with. Herd steering derives its walk floor
+     * from it ({@code GroundSpeed}): the ground speed is 0.135 x modifier^2 blocks per tick at this value.
+     */
+    public static final double BASE_MOVEMENT_SPEED = 0.25D;
 
+    /** Client: chooses the animations (fix P10). Before {@link #cache}: the controllers refer to it. */
+    private final DinoAnimator animator = new DinoAnimator(this);
     public final AnimatableInstanceCache cache = GeckoLibUtil.createInstanceCache(this);
+    /** Server: the one-shot animation triggers (fix P10). */
+    private final DinoOneShots oneShots = new DinoOneShots(this);
     protected @Nullable DinoBehaviourData cachedBehaviourData;
     private DinoDietData dietData;
     public  DinosaurPart head;
@@ -111,6 +155,12 @@ public abstract class Dinosaur extends TamableAnimal implements FossilRevived, G
     private int socialDrainTick;
     private int breedingCoolDown = 500;
     private int flinchAnimLength;
+    /** Server, eased turning ({@link #setYRot}): this tick's signed yaw change, and the tick it was made in. */
+    private float turnRate;
+    private int turnTick = Integer.MIN_VALUE;
+    /** Server, eased turning: the rate and the yaw the current tick's turn started from. */
+    private float turnRateIn;
+    private float turnYawIn;
     public DinosaurPart[] subEntities;
     private int cachedDayTime;
     public boolean isNewDay;
@@ -120,12 +170,21 @@ public abstract class Dinosaur extends TamableAnimal implements FossilRevived, G
     public Dinosaur(EntityType<? extends Dinosaur> $$0, Level $$1, int flinchAnimLength) {
         super($$0, $$1);
         this.flinchAnimLength = flinchAnimLength;
+        // Walk up one-block rises like a horse. With the default 0.6, a body 2 or more blocks wide never
+        // gets close enough to its next path point to trigger MoveControl's jump, so it stalls at the step.
+        this.setMaxUpStep(1.0F);
+        // Herd members steer round each other and never step inside a hard minimum (HerdMoveControl: context
+        // steering masks and the guard). Vanilla pushing stays on as a backstop for overlaps from spawning,
+        // shoves and teleports (turning it off made members stack in playtest 2).
+        this.moveControl = new HerdMoveControl(this);
     }
     //ANIMATION
     @Override
     public void registerControllers(AnimatableManager.ControllerRegistrar controllers) {
-        controllers.add(DefaultAnimations.genericWalkController(this));
-        controllers.add(new AnimationController<GeoAnimatable>(this, "dino_controller",0,this::animationPredicate));
+        // Walk or run from the real ground speed (fix P10; GeckoLib's generic walk controller only walks).
+        // Blends instead of snaps between animations (fix P12a).
+        controllers.add(new AnimationController<GeoAnimatable>(this, "movement", DinoAnimator.MOVEMENT_TRANSITION_TICKS, this.animator::movement));
+        controllers.add(new AnimationController<GeoAnimatable>(this, "dino_controller", DinoAnimator.MAIN_TRANSITION_TICKS, this.animator::main));
         controllers.add(new AnimationController<GeoAnimatable>(this, "dino_secondary_Controller",0,this::animationPredicateAmbient));
     }
     private <T extends GeoAnimatable> PlayState animationPredicateAmbient(AnimationState<T> state) {
@@ -139,68 +198,51 @@ public abstract class Dinosaur extends TamableAnimal implements FossilRevived, G
     protected void tickDeath() {
     }
 
+    /** The colour layers drawn for this animal. Depends on gender, because a species may register a separate male set. */
     public List<DinoLayer> getLayers() {
-        return CommonClientClass.getDinoLayers(this.getType());
+        return CommonClientClass.getDinoLayers(this.getType(), isMale());
     };
 
+    /**
+     * Whether the body moved at running speed on its last tick: the run animation's threshold ({@link RunGait},
+     * without its hysteresis). Fix P10: this replaces the old running flag, which a chase set and nothing cleared.
+     */
     public boolean isRunning(){
-        return this.entityData.get(DinoAnimationUtils.IS_RUNNING_STATE);
+        double dx = this.getX() - this.xo;
+        double dz = this.getZ() - this.zo;
+        return RunGait.running(false, Math.sqrt(dx * dx + dz * dz), this.getAttributeBaseValue(Attributes.MOVEMENT_SPEED));
     }
     public boolean isFlinching(){
         return this.entityData.get(DinoAnimationUtils.IS_FLINCHING_STATE);
+    }
+
+    /**
+     * How long the flinch state lasts: a positive species value, else the species' flinch animation length
+     * (fix P10; the Gallimimus passes 0, which showed its flinch for one tick).
+     */
+    private int flinchTicks() {
+        return AnimationChoice.flinchTicks(this.flinchAnimLength, DinoAnimationLengths.lengthTicks(this.getType(), AnimationChoice.FLINCH));
+    }
+
+    /** The one-shot action (call, sentry, startled) the server plays now, from the synced {@link #ONE_SHOT}. */
+    public OneShotAction oneShot() {
+        return OneShotAction.byId(this.entityData.get(ONE_SHOT));
+    }
+
+    /** The animal's herd travels, from the synced {@link #HERD_TRAVELS} (both sides; the server sets it). */
+    public boolean herdTravels() {
+        return this.entityData.get(HERD_TRAVELS);
+    }
+
+    /** Server side: the one-shot triggers and the journey-start call of this animal. */
+    public DinoOneShots oneShots() {
+        return this.oneShots;
     }
 
     public void resetParts(float scale) {}
     public void removeParts() {}
     public void updateParts(){}
     public void updatePart(@Nullable final DinosaurPart part, @NotNull final Dinosaur parent) {}
-
-    private <T extends GeoAnimatable> PlayState animationPredicate(AnimationState<T> state) {
-        if(this.isDeadOrDying()){
-            return state.setAndContinue(DinoAnimationUtils.DEAD_ANIM);
-        }
-        if(this.isFlinching()){
-            return state.setAndContinue(DinoAnimationUtils.FLINCH_ANIM);
-        }
-
-        /// TO-DO: Fix running animation
-
-        if(!this.isResting() && !this.shouldTickStamina() && (this.isRunning() || this.isSwimming() || state.isMoving())){
-            this.entityData.set(SHOULD_TICK_STAMINA, true);
-        } else if (this.shouldTickStamina() && !state.isMoving() && !this.isRunning() && !this.isSwimming()) {
-            this.entityData.set(SHOULD_TICK_STAMINA, false);
-        }
-        if(this.isRoaring()){
-            return state.setAndContinue(DinoAnimationUtils.ROARING_ANIM);
-        }
-
-        if(this.isAttacking()){
-            return state.setAndContinue(DinoAnimationUtils.ATTACK_ANIM);
-        }
-        if(this.isSitting()){
-            return state.setAndContinue(DinoAnimationUtils.REST_ANIM);
-        }
-        if(this.isRising()){
-            return state.setAndContinue(DinoAnimationUtils.GETTING_UP_ANIM);
-        }
-        if(this.isResting()) {
-            return state.setAndContinue(DinoAnimationUtils.REST_IDLE_ANIM);
-        }
-        if(this.isDrinking()) {
-            return state.setAndContinue(DinoAnimationUtils.DRINKING_ANIM);
-        }
-        if (this.isEating()) {
-            return  state.setAndContinue(DinoAnimationUtils.EATING_ANIM);
-        }
-        if (this.isInWater() && state.isMoving()){
-            return state.setAndContinue(DinoAnimationUtils.SWIM_ANIM);
-        }
-        if(!state.isMoving() && this.isIdle()){
-            return state.setAndContinue(DinoAnimationUtils.IDLE_ANIM);
-        }
-
-        return PlayState.STOP;
-    }
 
     //MAIN DATA GETTERS
     public DinoData getDinoData() {
@@ -249,6 +291,9 @@ public abstract class Dinosaur extends TamableAnimal implements FossilRevived, G
         this.entityData.define(SUB_ADULT_DATA_ID, false);
         this.entityData.define(ADULT_DATA_ID, true);
         this.entityData.define(SHOULD_TICK_STAMINA, true);
+        this.entityData.define(GROUP_LEADER, false);
+        this.entityData.define(ONE_SHOT, OneShotAction.NONE.id());
+        this.entityData.define(HERD_TRAVELS, false);
 
         this.entityData.define(DinoAnimationUtils.IS_EATING_STATE, false);
         this.entityData.define(DinoAnimationUtils.IS_DRINKING_STATE, false);
@@ -260,7 +305,6 @@ public abstract class Dinosaur extends TamableAnimal implements FossilRevived, G
         this.entityData.define(DinoAnimationUtils.IS_FLINCHING_STATE, false);
         this.entityData.define(DinoAnimationUtils.IS_DEAD_STATE, false);
         this.entityData.define(DinoAnimationUtils.IS_SWIMMING_STATE, false);
-        this.entityData.define(DinoAnimationUtils.IS_RUNNING_STATE, false);
         this.entityData.define(DinoAnimationUtils.LOOKING_LEFT_STATE, false);
         this.entityData.define(DinoAnimationUtils.LOOKING_RIGHT_STATE, false);
         this.entityData.define(DinoAnimationUtils.TURNING_RIGHT_STATE, false);
@@ -459,23 +503,36 @@ public abstract class Dinosaur extends TamableAnimal implements FossilRevived, G
     }
 
 
+    /**
+     * Eased turning (playtest 4 fix P12b, motion cause 3): on the server every yaw change ramps in and out
+     * ({@link TurnEasing#yawStep}), at most {@link #MAX_TURN_PER_TICK} per tick, instead of a constant 10
+     * degrees per tick that started and stopped hard. Several calls in one tick all start from the yaw and the
+     * rate the tick began with, so they do not add up. The client takes the yaw as given: it only lerps toward
+     * the server's eased yaw, and a clamp there cut merged lerp steps (motion report, section 7). Before the
+     * first tick (spawn, load from disk) the yaw is set as given.
+     */
     @Override
     public void setYRot(float yRot) {
-        float currentYaw = super.getYRot();
-        float delta = Mth.wrapDegrees(yRot - currentYaw);
-
-        float maxTurn = 10.0F;
-
-            if (delta > maxTurn) {
-                delta = maxTurn;
-                super.setYRot(currentYaw + delta);
-            } else if (delta < -maxTurn) {
-                delta = -maxTurn;
-                super.setYRot(currentYaw + delta);
-            } else {
-                super.setYRot(yRot);
-            }
+        if (this.firstTick || this.level().isClientSide()) {
+            super.setYRot(yRot);
+            return;
+        }
+        if (this.turnTick != this.tickCount) {
+            // The first change this tick: carry last tick's rate if the body turned then, else start from rest.
+            this.turnRateIn = this.turnTick == this.tickCount - 1 ? this.turnRate : 0F;
+            this.turnYawIn = super.getYRot();
+            this.turnTick = this.tickCount;
+        }
+        this.turnRate = TurnEasing.yawStep(Mth.wrapDegrees(yRot - this.turnYawIn), this.turnRateIn);
+        super.setYRot(this.turnYawIn + this.turnRate);
     }
+
+    /** Eased body yaw (playtest 4 fix P12b): {@link DinoBodyRotationControl}. */
+    @Override
+    protected BodyRotationControl createBodyControl() {
+        return new DinoBodyRotationControl(this);
+    }
+
     //BRAIN
 
     @Override
@@ -490,10 +547,47 @@ public abstract class Dinosaur extends TamableAnimal implements FossilRevived, G
         return (double)(this.getBbWidth() * 3.0F * this.getBbWidth() * 3.0F + entity.getBbWidth());
     }
 
+    /**
+     * Clears the home restriction the leash set. While leashed, vanilla restricts the animal to 5 blocks round
+     * the holder every tick ({@code PathfinderMob.tickLeash}), and nothing in vanilla clears it when the leash
+     * comes off: it stayed until the animal reloaded, and {@code LandRandomPos} kept every 32-64 block journey
+     * target inside it (playtest 1, R1). Nothing in this mod restricts a dinosaur, so the restriction left when
+     * a leash comes off is the leash's.
+     */
+    @Override
+    public void dropLeash(boolean broadcastPacket, boolean dropLeash) {
+        boolean wasLeashed = this.isLeashed();
+        super.dropLeash(broadcastPacket, dropLeash);
+        if (wasLeashed && !this.isLeashed()) {
+            this.clearRestriction();
+        }
+    }
+
     @Override
     protected void customServerAiStep() {
         super.customServerAiStep();
+        // Before the brain: no behaviour starts from the walk of a leader that lost or took the lead (L1, L2).
+        HerdLeading.settleLeaderChange(this);
         this.tickBrain(this);
+        // Stamina drains only while the animal moves under its own power: a navigation path, a wanted
+        // position in the move control or herd steering, and the body actually moving (playtest 2 fix P8a: a
+        // member the guard holds in a jam, speed 0, does not tire and lie down there). Not velocity alone: a
+        // shove from a herd mate is velocity too. The server owns stamina, so it decides here; the animation
+        // predicate runs on the client only.
+        boolean selfPropelled = this.getMoveControl() instanceof HerdMoveControl herd ? herd.isSelfPropelled()
+                : this.getNavigation().isInProgress() || this.getMoveControl().hasWanted();
+        this.entityData.set(SHOULD_TICK_STAMINA, selfPropelled || this.isSwimming());
+        // Once a second is enough for the client's leader crown.
+        if (this.tickCount % 20 == 0) {
+            this.entityData.set(GROUP_LEADER, GroupManager.isLeader(this));
+        }
+        // The leader records its trail and reports whether the herd travels (no-op for non-leaders).
+        HerdLeading.tick(this);
+        // P13b (ruling 3b): after the leader's tick, so a journey that starts or ends this tick shows at once.
+        // One group look-up per animal per tick (two hash look-ups, no allocation); the value is sent only when
+        // it changes.
+        DinoGroup group = GroupManager.groupOf(this);
+        this.entityData.set(HERD_TRAVELS, group != null && group.state() == HerdState.TRAVEL);
 
     }
 
@@ -531,10 +625,14 @@ public abstract class Dinosaur extends TamableAnimal implements FossilRevived, G
                 //    .whenStopping(dinosaur -> dinosaur.entityData.set(IS_ROARING_STATE,false)),
                 new MoveToWalkTarget<>().stopIf((entity) -> (entity instanceof Dinosaur dinosaur) && (dinosaur.isResting() || dinosaur.isDrinking() || dinosaur.isDeadOrDying())) ,
                 new SetHunting<>(),
-                new SetWalkTargetToWaterSource<>().closeEnoughWhen((entity, pos)-> 3),
-                new WalkToNearestFeeder<>().closeEnoughWhen((entity, pos) -> 3) ,
-                new SetWalkTargetToFoodItem<>().predicate(Dinosaur::canTargetFoodItem),
-                new FollowParent<>().parentPredicate((baby, parent)-> baby instanceof Dinosaur dino && dino.isFamily(parent) && !parent.isBaby())
+                // Lead decision 8: a travelling follower leaves the line only for a critical need (HerdNeeds).
+                new SetWalkTargetToWaterSource<>().closeEnoughWhen((entity, pos)-> 3).startCondition(HerdNeeds::mayLeaveForNeeds),
+                new WalkToNearestFeeder<>().closeEnoughWhen((entity, pos) -> 3).startCondition(HerdNeeds::mayLeaveForNeeds),
+                new SetWalkTargetToFoodItem<>().predicate(Dinosaur::canTargetFoodItem).startCondition(HerdNeeds::mayLeaveForNeeds),
+                new FollowParent<>().parentPredicate((baby, parent)-> baby instanceof Dinosaur dino && dino.isFamily(parent) && !parent.isBaby()),
+                new JoinGroup<>(),
+                new ThreatDisplay<>(34),
+                new FollowFormation<>()
         );
     }
 
@@ -544,18 +642,25 @@ public abstract class Dinosaur extends TamableAnimal implements FossilRevived, G
         return BrainActivityGroup.idleTasks(
                 new FirstApplicableBehaviour(
                 //        new Panic<>(),
-                        new Drink<>(100)
+                        // Lead decision 8: a travelling follower stops to drink or eat only for a critical need (HerdNeeds).
+                        new Drink<>(100).startCondition(HerdNeeds::mayLeaveForNeeds)
                                 .whenStarting(dinosaur -> DinoAnimationUtils.setAnimationState(dinosaur,"drink",true))
                                 .whenStopping(dinosaur ->  DinoAnimationUtils.setAnimationState(dinosaur,"drink",false)),
-                        new EatFromMeatFeeder<>(20)
+                        new EatFromMeatFeeder<>(20).startCondition(HerdNeeds::mayLeaveForNeeds)
                                 .whenStarting(dinosaur -> DinoAnimationUtils.setAnimationState(dinosaur,"eat",true))
                                 .whenStopping(dinosaur ->  DinoAnimationUtils.setAnimationState(dinosaur,"eat",false)),
-                        new Eat<>(69)
+                        new Eat<>(69).startCondition(HerdNeeds::mayLeaveForNeeds)
                                 .whenStarting(dinosaur -> DinoAnimationUtils.setAnimationState(dinosaur,"eat",true))
                                 .whenStopping(dinosaur ->  DinoAnimationUtils.setAnimationState(dinosaur,"eat",false)),
-                        new Rest<>(69)
+                        // Plan review decision 17: on a roaming journey a follower lies down only when stamina is critical,
+                        // or at normal tiredness while the leader rests (P13a); the leader's rest pauses the journey (HerdNeeds).
+                        new Rest<>(69).startCondition(HerdNeeds::mayRest)
                                 .whenStarting(dinosaur -> DinoAnimationUtils.setAnimationState(dinosaur,"sit",true))
-                                .whenStopping(dinosaur -> DinoAnimationUtils.setAnimationState(dinosaur,"rest",false)),
+                                // Both flags: a rest that stops before it switches sit -> rest left "sit" on (fix P10).
+                                .whenStopping(dinosaur -> {
+                                    DinoAnimationUtils.setAnimationState(dinosaur, "sit", false);
+                                    DinoAnimationUtils.setAnimationState(dinosaur, "rest", false);
+                                }),
                         new GettingUpFromRestBehaviour<>(69)
                                 .whenStarting(dinosaur -> DinoAnimationUtils.setAnimationState(dinosaur,"getup",true))
                                 .whenStopping(dinosaur ->DinoAnimationUtils.setAnimationState(dinosaur,"getup",false)),
@@ -566,9 +671,15 @@ public abstract class Dinosaur extends TamableAnimal implements FossilRevived, G
                                 .dontAvoidWater()
                                 .setRadius(40.0D)
                                 .stopIf(dino -> BrainUtils.hasMemory(dino, MemoryModuleType.ATTACK_TARGET)),
-                new OneRandomBehaviour<>(
-                        new SetRandomWalkTarget<>().dontAvoidWater().setRadius(10.0, 4.0).walkTargetPredicate((dinosaur, pos)-> !BrainUtils.hasMemory(dinosaur, MemoryModuleTypeInit.BRAIN_OVERRIDE.get()))
-                )));
+                new ChallengeGroupLeader<>(),
+                // The leader grazes in short moves and sets off on journeys every few minutes (LeaderJourney);
+                // HerdLeading runs the journey and sets the herd state.
+                new LeaderJourney<>(),
+                // Animals without a group wander on their own, as before. Followers move with FollowFormation.
+                new SetRandomWalkTarget<Dinosaur>().dontAvoidWater().setRadius(10, 4)
+                        .walkTargetPredicate((dinosaur, pos) -> !BrainUtils.hasMemory(dinosaur, MemoryModuleTypeInit.BRAIN_OVERRIDE.get()))
+                        .startCondition(dinosaur -> dinosaur.isIdle() && !dinosaur.hasGroup())
+                ));
     }
 
     @Override
@@ -576,8 +687,7 @@ public abstract class Dinosaur extends TamableAnimal implements FossilRevived, G
         return BrainActivityGroup.fightTasks(
                 new InvalidateAttackTarget<>()
                         .invalidateIf((entity, target) -> (target instanceof Player pl && (pl.isCreative() || pl.isSpectator())) || target.isDeadOrDying()),
-                new SetWalkTargetToAttackTarget<>().speedMod((owner, target) -> 1.5f)
-                        .whenStarting(dinosaur -> DinoAnimationUtils.setAnimationState((Dinosaur) dinosaur,"run",true)),
+                new SetWalkTargetToAttackTarget<>().speedMod((owner, target) -> 1.5f),
                 new BreakFenceBehaviour<>(20),
                 new AnimatableMeleeAttack<>(20)
                         .whenStarting(dinosaur -> DinoAnimationUtils.setAnimationState((Dinosaur) dinosaur,"attack",true))
@@ -592,10 +702,16 @@ public abstract class Dinosaur extends TamableAnimal implements FossilRevived, G
 
         if(this.entityData.get(DinoAnimationUtils.IS_FLINCHING_STATE)){
             flinchAnimTicks++;
-            if(flinchAnimTicks > this.flinchAnimLength){
+            if(flinchAnimTicks > this.flinchTicks()){
                 this.entityData.set(DinoAnimationUtils.IS_FLINCHING_STATE, false);
                 flinchAnimTicks = 0;
             }
+        }
+
+        if (level().isClientSide()) {
+            this.animator.clientTick();
+        } else {
+            this.oneShots.serverTick();
         }
 
         if(!level().isClientSide() && !this.isDeadOrDying()) {
@@ -781,7 +897,7 @@ public abstract class Dinosaur extends TamableAnimal implements FossilRevived, G
     public static AttributeSupplier.Builder createAttributes() {
         return Monster.createMonsterAttributes()
                 .add(Attributes.FOLLOW_RANGE, 35)
-                .add(Attributes.MOVEMENT_SPEED, .25)
+                .add(Attributes.MOVEMENT_SPEED, BASE_MOVEMENT_SPEED)
                 .add(Attributes.ATTACK_DAMAGE, 3)
                 .add(Attributes.ARMOR, 2)
                 .add(Attributes.SPAWN_REINFORCEMENTS_CHANCE)
@@ -820,6 +936,10 @@ public abstract class Dinosaur extends TamableAnimal implements FossilRevived, G
         if(geneGender == 2.0D){
             return "male";
         } else return "female";
+    }
+    /** Same rule as {@link #getStringDinoGender()}: gene value 2.0 is male, anything else female. */
+    public boolean isMale() {
+        return this.getDinoGender() == 2.0D;
     }
     public double getDinoGender(){
       return this.getDinoData().getGeneValue(GeneInit.GENDER.get());
@@ -932,20 +1052,27 @@ public abstract class Dinosaur extends TamableAnimal implements FossilRevived, G
         } else return null;
     }
 
-    public @Nullable UUID getGroupId() {
-        if(BrainUtils.hasMemory(this, MemoryModuleTypeInit.GROUP_UUID.get())){
-            return BrainUtils.getMemory(this, MemoryModuleTypeInit.GROUP_UUID.get());
-        } else return null;
-    }
     public boolean hasGroup() {
-        if(BrainUtils.hasMemory(this,MemoryModuleTypeInit.HAS_GROUP.get())) {
-            return Boolean.TRUE.equals(BrainUtils.getMemory(this, MemoryModuleTypeInit.HAS_GROUP.get()));
-        } else return false;
+        return GroupManager.groupOf(this) != null;
     }
+
     public boolean isGroupLeader() {
-        if(BrainUtils.hasMemory(this, MemoryModuleTypeInit.IS_GROUP_LEADER.get())){
-            return Boolean.TRUE.equals(BrainUtils.getMemory(this, MemoryModuleTypeInit.IS_GROUP_LEADER.get()));
-        } else return false;
+        return this.level().isClientSide() ? this.entityData.get(GROUP_LEADER) : GroupManager.isLeader(this);
+    }
+
+    // A dead dinosaur is never removed (tickDeath is empty, the carcass stays), so leave the group on death.
+    @Override
+    public void die(DamageSource source) {
+        GroupManager.leave(this);
+        super.die(source);
+    }
+
+    @Override
+    public void remove(RemovalReason reason) {
+        if (reason.shouldDestroy() || reason == RemovalReason.CHANGED_DIMENSION) {
+            GroupManager.leave(this);
+        }
+        super.remove(reason);
     }
 
     @Override

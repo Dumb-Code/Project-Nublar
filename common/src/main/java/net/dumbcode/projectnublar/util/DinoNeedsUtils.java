@@ -1,6 +1,7 @@
 package net.dumbcode.projectnublar.util;
 
 import net.dumbcode.projectnublar.api.DinoBehaviourData;
+import net.dumbcode.projectnublar.entity.ai.behaviour.social.RunGait;
 import net.dumbcode.projectnublar.entity.dinosaur.CarnivoreDinosaur;
 import net.dumbcode.projectnublar.entity.dinosaur.Dinosaur;
 import net.dumbcode.projectnublar.init.*;
@@ -226,12 +227,9 @@ public class DinoNeedsUtils {
 
     public static void tickStamina(Dinosaur dinosaur){
         float currentStamina = dinosaur.getEntityData().get(STAMINA);
-        float staminaDecrease = (float) dinosaur.getDinoBehaviour().staminaDrain();
+        // P13b (ruling Q3): a walk drains 0.75 of the species' drain, a run twice it (as before).
+        float staminaDecrease = (float) RunGait.staminaDrain(dinosaur.getDinoBehaviour().staminaDrain(), dinosaur.isRunning());
         float newCurrentValue;
-
-        if(dinosaur.isRunning()){
-            staminaDecrease = staminaDecrease * 2;
-        }
 
         newCurrentValue = currentStamina - staminaDecrease;
         if (newCurrentValue <= 0) {

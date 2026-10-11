@@ -26,6 +26,12 @@ legacyForge {
     runs {
         client {
             client()
+            // Lets `/test runall` run this mod's GameTests in a creative world.
+            systemProperty 'forge.enabledGameTestNamespaces', project.mod_id
+        }
+        gameTestServer {
+            type = "gameTestServer"
+            systemProperty 'forge.enabledGameTestNamespaces', project.mod_id
         }
         data {
             data()
