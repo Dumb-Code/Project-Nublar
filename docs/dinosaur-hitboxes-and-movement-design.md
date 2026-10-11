@@ -1,16 +1,16 @@
 # Dinosaur hitboxes and movement design
 
-> **Location:** this is the authoritative copy, moved from the herd-leader worktree into `docs/` on 2026-10-10 so the project plan (modules B26 and B27) does not depend on the worktree. The research notes, the superseded reports and the uncommitted herd code it cites still live in the worktree (`.claude/worktrees/herd-leader-sample`). Links to them work while the worktree exists.
+> **Location:** this is the authoritative copy, moved from the herd-leader worktree into `docs/` on 2026-10-10 so the project plan (modules B26 and B27) does not depend on the worktree. The research notes, the superseded reports, the ledger and the herd code it cites were copied from the worktree into the main checkout on the same day, uncommitted.
 
 > **Status:** Consolidated 2026-10-10. This page is the one current design for dinosaur hitboxes, movement, anti-clipping and IK. The target is Minecraft 26.2 on NeoForge and Fabric, with GeckoLib 5.
 >
 > **This page supersedes these documents.** They stay in this folder as history. Nobody edits them.
 >
-> - [Multipart entity hitbox systems.md](../.claude/worktrees/herd-leader-sample/reports/Multipart%20entity%20hitbox%20systems.md) (round 1 survey, 2026-10-09)
-> - [Multipart entity hitbox systems (STE-MC).md](../.claude/worktrees/herd-leader-sample/reports/Multipart%20entity%20hitbox%20systems%20(STE-MC).md) (style copy of round 1)
-> - [Multipart hitbox hybrid design.md](../.claude/worktrees/herd-leader-sample/reports/Multipart%20hitbox%20hybrid%20design.md) (round 2 design, with the lead's decisions)
-> - [Multipart hitbox hybrid design review.md](../.claude/worktrees/herd-leader-sample/reports/Multipart%20hitbox%20hybrid%20design%20review.md) (adversarial review, 22 findings)
-> - [Gallimimus hitbox mockup.html](../.claude/worktrees/herd-leader-sample/reports/Gallimimus%20hitbox%20mockup.html) (replaced by the layouts page)
+> - [Multipart entity hitbox systems.md](../reports/Multipart%20entity%20hitbox%20systems.md) (round 1 survey, 2026-10-09)
+> - [Multipart entity hitbox systems (STE-MC).md](../reports/Multipart%20entity%20hitbox%20systems%20(STE-MC).md) (style copy of round 1)
+> - [Multipart hitbox hybrid design.md](../reports/Multipart%20hitbox%20hybrid%20design.md) (round 2 design, with the lead's decisions)
+> - [Multipart hitbox hybrid design review.md](../reports/Multipart%20hitbox%20hybrid%20design%20review.md) (adversarial review, 22 findings)
+> - [Gallimimus hitbox mockup.html](../reports/Gallimimus%20hitbox%20mockup.html) (replaced by the layouts page)
 >
 > **Companion page:** [Dinosaur hitbox layouts.html](dinosaur-hitbox-layouts.html) draws the part layouts of all six species. It stays current.
 >
@@ -389,7 +389,7 @@ The movement box is the field standard. Alex's Caves sauropods move on 5 × 8 an
 | Herd spacing | Whole scaled model (the capsule) | Yes |
 | Per-species change | A config value can change either choice | — |
 
-Today's herd `ClearanceBox` takes the larger of the hitbox and the model width. For Brachiosaurus and Triceratops, that is about 3.5 blocks, against a 2 × 3 hitbox. It refreshes every 100 ticks (5 s) ([ClearanceBox.java](../.claude/worktrees/herd-leader-sample/common/src/main/java/net/dumbcode/projectnublar/entity/ai/behaviour/social/ClearanceBox.java)). The split replaces that single box.
+Today's herd `ClearanceBox` takes the larger of the hitbox and the model width. For Brachiosaurus and Triceratops, that is about 3.5 blocks, against a 2 × 3 hitbox. It refreshes every 100 ticks (5 s) ([ClearanceBox.java](../common/src/main/java/net/dumbcode/projectnublar/entity/ai/behaviour/social/ClearanceBox.java)). The split replaces that single box.
 
 A box narrower than 1.0 plans with a one-column footprint. That gives the Gallimimus more slack in 2-wide gaps (inference).
 
@@ -465,7 +465,7 @@ True clearance (the largest free square at a tile) finds a path for any agent si
 - Never cancel a rotation in `setYRot`. CustomHitboxLib does this, and its own FAQ warns that it confuses the pathfinder ([CHL FAQ](https://github.com/gawrmonster/CustomHitboxLib/blob/17585f5d8ca9180e98f10485b6d94363d1c4d196/wiki/FAQ.md)).
 - A follower that stops to turn loses its place in its slot. Add hysteresis to slot assignment, or use the soft gate for followers in open ground.
 
-**Today.** `Dinosaur.setYRot` clamps every yaw change to 10°/tick (200°/s). Vanilla `MoveControl` sets forward speed in the same tick that it turns. The `HerdMoveControl` guard sets speed 0 when the box 0.6 blocks ahead does not fit. At journey speed, a 90° turn covers 0.77 blocks of arc that no probe tests. The guard fires on that arc at trunks ([HerdMoveControl.java](../.claude/worktrees/herd-leader-sample/common/src/main/java/net/dumbcode/projectnublar/entity/ai/behaviour/social/HerdMoveControl.java)).
+**Today.** `Dinosaur.setYRot` clamps every yaw change to 10°/tick (200°/s). Vanilla `MoveControl` sets forward speed in the same tick that it turns. The `HerdMoveControl` guard sets speed 0 when the box 0.6 blocks ahead does not fit. At journey speed, a 90° turn covers 0.77 blocks of arc that no probe tests. The guard fires on that arc at trunks ([HerdMoveControl.java](../common/src/main/java/net/dumbcode/projectnublar/entity/ai/behaviour/social/HerdMoveControl.java)).
 
 **Limit.** Turning in place removes the forward chord, not the tail sweep. An adult Gallimimus that turns about its centre sweeps a radius of about 2.95 blocks. An adult Brachiosaurus sweeps about 11.7 blocks with its tail. The corner test covers that sweep.
 
@@ -482,9 +482,9 @@ True clearance (the largest free square at a tile) finds a path for any agent si
 - If no route passes, accept the clipping. The neck and tail bend handles what it can.
 - For sauropod lengths only, try a small local search in a 16 × 16 block window with 8 headings. A three-point reverse turn is the alternative.
 
-Place the test in `FenceAwareNodeEvaluator` neighbour generation, or in a post-pass over the `Path` in `FenceAwareNavigation.createPath`. Read blocks through `BodyFit`, the one herd block reader in the [herd-movement redesign spec](../.claude/worktrees/herd-leader-sample/docs/superpowers/specs/2026-10-08-herd-movement-redesign.md). The cost is O(r²) column reads per sharp node. Few nodes are sharp, so this is cheap next to A* (estimate).
+Place the test in `FenceAwareNodeEvaluator` neighbour generation, or in a post-pass over the `Path` in `FenceAwareNavigation.createPath`. Read blocks through `BodyFit`, the one herd block reader in the [herd-movement redesign spec](../docs/superpowers/specs/2026-10-08-herd-movement-redesign.md). The cost is O(r²) column reads per sharp node. Few nodes are sharp, so this is cheap next to A* (estimate).
 
-**Follower spine danger term.** Followers use context steering, not the planner. `HerdMoveControl.evaluate` probes only the clearance box at 1, 2 and 3 blocks ahead ([HerdMoveControl.java](../.claude/worktrees/herd-leader-sample/common/src/main/java/net/dumbcode/projectnublar/entity/ai/behaviour/social/HerdMoveControl.java), L742-828). So the design adds one danger term:
+**Follower spine danger term.** Followers use context steering, not the planner. `HerdMoveControl.evaluate` probes only the clearance box at 1, 2 and 3 blocks ahead ([HerdMoveControl.java](../common/src/main/java/net/dumbcode/projectnublar/entity/ai/behaviour/social/HerdMoveControl.java), L742-828). So the design adds one danger term:
 
 1. Take the previous heading and the 4 deep-probed headings.
 2. For each heading, compute the head cell and the tail-tip cell after a turn to that heading.
@@ -583,7 +583,7 @@ One per-species `BlockFilter` answers pass, break or solid for each block state.
 | # | Code path | Use |
 |---|---|---|
 | 1 | `Entity.collide` | One mixin on both loaders |
-| 2 | `BodyFit` | Fit, stand, ground and side-room tests ([BodyFit.java](../.claude/worktrees/herd-leader-sample/common/src/main/java/net/dumbcode/projectnublar/entity/ai/behaviour/social/BodyFit.java)) |
+| 2 | `BodyFit` | Fit, stand, ground and side-room tests ([BodyFit.java](../common/src/main/java/net/dumbcode/projectnublar/entity/ai/behaviour/social/BodyFit.java)) |
 | 3 | Node evaluator | Block typing for paths |
 | 4 | Sweep shortcut | The box sweep |
 | 5 | IK bend | The neck and tail bend test |
@@ -672,7 +672,7 @@ Both are in [Movement](#corner-test-and-the-follower-danger-term). They reduce h
 | Detail by distance | Full IK within 16 blocks of the player. None past 32 blocks. |
 | Raycasts | Pass `CollisionContext.empty()`, never an entity. No `Arrow` allocation per raycast. |
 
-The frame rate matters here. With 20 Gallimimus on screen, colour layers already cost about 80 % of the frame, at about 26 fps ([herd-movement handoff](../.claude/worktrees/herd-leader-sample/docs/superpowers/handoffs/2026-10-09-herd-movement-handoff.md)).
+The frame rate matters here. With 20 Gallimimus on screen, colour layers already cost about 80 % of the frame, at about 26 fps ([herd-movement handoff](../docs/superpowers/handoffs/2026-10-09-herd-movement-handoff.md)).
 
 ### GeckoLib 5 delta updater
 
@@ -687,7 +687,7 @@ An absolute bone write would fight the controller. A per-tick delta with no part
 
 ### CHAOS branch code status
 
-The CHAOS branch IK code is part of the mod. The team uses it together with its sources: Mowzie's Mobs, the Cymaera `minecraft-spider` repo and others that apply. Credit is given as the Mowzie's Mobs terms require. The lead handles licence questions. The audit is [chaos_ik_audit.md](../.claude/worktrees/herd-leader-sample/research_notes/CHAOS%20branch%20IK%20audit/chaos_ik_audit.md).
+The CHAOS branch IK code is part of the mod. The team uses it together with its sources: Mowzie's Mobs, the Cymaera `minecraft-spider` repo and others that apply. Credit is given as the Mowzie's Mobs terms require. The lead handles licence questions. The audit is [chaos_ik_audit.md](../research_notes/CHAOS%20branch%20IK%20audit/chaos_ik_audit.md).
 
 | Item | Fact from the audit | Effect on this design |
 |---|---|---|
@@ -752,7 +752,7 @@ Fabric API has no multipart API, and no issue proposes one. Two public mods show
 
 ### Blockers in the worktree today
 
-The [herd-movement handoff](../.claude/worktrees/herd-leader-sample/docs/superpowers/handoffs/2026-10-09-herd-movement-handoff.md) records three blockers:
+The [herd-movement handoff](../docs/superpowers/handoffs/2026-10-09-herd-movement-handoff.md) records three blockers:
 
 - The GameTests live in the Forge module.
 - The Fabric build fails.
@@ -1003,9 +1003,9 @@ No-teleport stuck handling is background evidence, not a precedent. Alex's Caves
 - The herd `ClearanceBox` uses the larger of the hitbox and the model width.
 - `FenceAwareNavigation` overrides only `createPathFinder`.
 - The `HerdMoveControl` guard stops the animal when the box 0.6 blocks ahead does not fit.
-- `HerdSpacing` and `HerdBodies` space mates by centre distance ([HerdSpacing.java](../.claude/worktrees/herd-leader-sample/common/src/main/java/net/dumbcode/projectnublar/entity/ai/behaviour/social/HerdSpacing.java), [HerdBodies.java](../.claude/worktrees/herd-leader-sample/common/src/main/java/net/dumbcode/projectnublar/entity/ai/behaviour/social/HerdBodies.java)).
+- `HerdSpacing` and `HerdBodies` space mates by centre distance ([HerdSpacing.java](../common/src/main/java/net/dumbcode/projectnublar/entity/ai/behaviour/social/HerdSpacing.java), [HerdBodies.java](../common/src/main/java/net/dumbcode/projectnublar/entity/ai/behaviour/social/HerdBodies.java)).
 - `BodyFit` reads blocks through `noCollision`.
-- The worktree investigation recorded these values for the Gallimimus at width 1.2 ([playtest2-geometry-investigation.md](../.claude/worktrees/herd-leader-sample/.superpowers/sdd/2026-10-08-herd-movement-redesign/playtest2-geometry-investigation.md)):
+- The worktree investigation recorded these values for the Gallimimus at width 1.2 ([playtest2-geometry-investigation.md](../.superpowers/sdd/2026-10-08-herd-movement-redesign/playtest2-geometry-investigation.md)):
   - tolerance 0.6 from `node + 0.5`
   - aim point `node + 1.0`
   - up to 1.1 blocks of slop off the node line
@@ -1039,7 +1039,7 @@ On 2026-10-10, the team checked the vanilla claims against the project's own too
 | `NodeEvaluator.prepare` | L27-29 | Footprint `floor(bbWidth + 1)` |
 | `Entity.refreshDimensions` | L2843-2861 | Fix-up move only up to 4.0 blocks, skipped for `noPhysics` |
 
-The same sources match these rules for w = 1.2: the corner-cut rules (`canCutCorner`, `shouldTargetNextNodeInDirection`), the `MoveControl.tick` turn with `rotlerp(…, 90)` and the diagonal-step rule (`isDiagonalValid`). The earlier `javap` figures in [progress.md](../.claude/worktrees/herd-leader-sample/.superpowers/sdd/2026-10-08-herd-movement-redesign/progress.md) also hold. The third-party 1.20.1 mirror agrees, with different line numbers.
+The same sources match these rules for w = 1.2: the corner-cut rules (`canCutCorner`, `shouldTargetNextNodeInDirection`), the `MoveControl.tick` turn with `rotlerp(…, 90)` and the diagonal-step rule (`isDiagonalValid`). The earlier `javap` figures in [progress.md](../.superpowers/sdd/2026-10-08-herd-movement-redesign/progress.md) also hold. The third-party 1.20.1 mirror agrees, with different line numbers.
 
 ## Corrections log
 
@@ -1074,20 +1074,20 @@ This log resolves review M7 (body text that conflicted with the Decisions).
 
 **Research notes** (from this folder):
 
-- [Multipart entity hitbox systems](../.claude/worktrees/herd-leader-sample/research_notes/Multipart%20entity%20hitbox%20systems/): round 1 notes on each studied mod
-- [Multipart hitbox hybrid design](../.claude/worktrees/herd-leader-sample/research_notes/Multipart%20hitbox%20hybrid%20design/): round 2 notes on sources, movement, hit detection and project fit
-- [Ender dragon part placement](../.claude/worktrees/herd-leader-sample/research_notes/Ender%20dragon%20part%20placement/placement_26_2.md): part IDs, the level-wide list and placement on 26.2
-- [CHAOS branch IK audit](../.claude/worktrees/herd-leader-sample/research_notes/CHAOS%20branch%20IK%20audit/chaos_ik_audit.md): the IK code on `1.20.1-CHAOS`
+- [Multipart entity hitbox systems](../research_notes/Multipart%20entity%20hitbox%20systems/): round 1 notes on each studied mod
+- [Multipart hitbox hybrid design](../research_notes/Multipart%20hitbox%20hybrid%20design/): round 2 notes on sources, movement, hit detection and project fit
+- [Ender dragon part placement](../research_notes/Ender%20dragon%20part%20placement/placement_26_2.md): part IDs, the level-wide list and placement on 26.2
+- [CHAOS branch IK audit](../research_notes/CHAOS%20branch%20IK%20audit/chaos_ik_audit.md): the IK code on `1.20.1-CHAOS`
 
 **Pages in this folder:**
 
 - [Dinosaur hitbox layouts.html](dinosaur-hitbox-layouts.html): the part layouts of all six species
-- [Multipart hitbox hybrid design review.md](../.claude/worktrees/herd-leader-sample/reports/Multipart%20hitbox%20hybrid%20design%20review.md): the review, with full evidence per finding
+- [Multipart hitbox hybrid design review.md](../reports/Multipart%20hitbox%20hybrid%20design%20review.md): the review, with full evidence per finding
 
 **Project documents:**
 
-- [Herd-movement redesign spec](../.claude/worktrees/herd-leader-sample/docs/superpowers/specs/2026-10-08-herd-movement-redesign.md)
-- [Herd-movement handoff](../.claude/worktrees/herd-leader-sample/docs/superpowers/handoffs/2026-10-09-herd-movement-handoff.md)
+- [Herd-movement redesign spec](../docs/superpowers/specs/2026-10-08-herd-movement-redesign.md)
+- [Herd-movement handoff](../docs/superpowers/handoffs/2026-10-09-herd-movement-handoff.md)
 
 **Key external citations:**
 

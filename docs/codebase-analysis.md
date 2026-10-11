@@ -1038,7 +1038,7 @@ The rewrite does not have these items:
 - the mood system
 - egg laying and the egg entity
 - dinosaur drops
-- a working multipart system
+- a working multipart system (designed: Beta modules B26 and B27, section 11.9)
 - the drill extractor
 - the skeletal builder
 - pylons
@@ -1232,7 +1232,7 @@ The board marks sound as complete for the six Beta species. The mod has sounds f
 | #64 Spinning on block edges | The analysis found no cause |
 | #63 De-rendering | The render scale is up to 3.5x. The placeholder bounding box does not scale `[inf]` |
 | #62 Datapack config | No code calls the getters. The keys in `periods.json` do not match. Only Forge has the listeners |
-| #61 Hitboxes | The hitboxes are placeholders with a constant size. Multipart is a stub |
+| #61 Hitboxes | The hitboxes are placeholders with a constant size. Multipart is a stub. Designed for Beta modules B26 and B27 (section 11.9) |
 | #60 Dilophosaurus lag | 14 layers. Each layer draws two times |
 | #59 Gallimimus | Five animations are missing |
 | #49 Gene editing limits | The server has no range check |
@@ -1266,7 +1266,7 @@ The board marks sound as complete for the six Beta species. The mod has sounds f
 10. Give each species its own stats.
     - The Tyrannosaurus card has exact values (section 7.8).
     - The other species have only temperament ratings (section 7.3).
-11. Scale hitboxes with growth and size. Complete the multipart system.
+11. Scale hitboxes with growth and size. Complete the multipart system. The design is in [dinosaur-hitboxes-and-movement-design.md](dinosaur-hitboxes-and-movement-design.md) (Beta modules B26 and B27).
 12. Connect the behaviours that exist.
     - Connect mating, `ThreatDisplay`, retaliation and the social need.
     - Turf wars are not in Beta (section 11.10).
@@ -1595,6 +1595,25 @@ The immunity gene stays in Beta. The design document says that immunity is resis
 - Section 11.16 has interim values for the five other species. They are a proposal in this document only.
 - Playtests set the final values.
 
+**Hitboxes (decided 2026-10-09 and 2026-10-10).** The full design is in [dinosaur-hitboxes-and-movement-design.md](dinosaur-hitboxes-and-movement-design.md). It is the spec for Beta modules B26 and B27.
+
+- The movement box covers the render-scaled torso and legs. It grows smoothly through the 26.2 `scale` attribute.
+- Hit parts cover the visible body. Each part has a square footprint and sits on a per-species spine:
+  - one head part
+  - a chain of neck parts
+  - two torso parts
+  - one part per leg
+  - a chain of tail parts
+- A Gallimimus has 12 parts. The proposed layouts for all six species are in the design and in [dinosaur-hitbox-layouts.html](dinosaur-hitbox-layouts.html). The project lead reviewed the Gallimimus layout only.
+- The parent box takes no hits. No species has arm parts, and the Dilophosaurus frill has no part.
+- Damage multipliers: head ×1.5, neck ×1.25, torso ×1.0, legs ×1.0, tail ×0.5.
+- Parts never block movement.
+- An explosion near a part hurts the animal. A sweep or a splash potion reaches the animal when any part is in range.
+- Parts follow the real animations. A build step bakes the animation files into tables inside the mod jar. A synced pose state tells both sides which animation plays.
+- The neck and the tail bend away from blocks (server-side IK). The feet sit on the ground (client-side IK).
+- Eating and drinking count only when the head touches the source. The animal must be able to reach it.
+
+
 ### 11.10 Needs and behaviour
 
 **Needs in Beta:** hunger, thirst, stamina and sleep, the social need, and stress.
@@ -1636,6 +1655,25 @@ The immunity gene stays in Beta. The design document says that immunity is resis
 - A dominance value selects the leader. Size, age and the aggression gene set the value.
 - In a contest for rank, the animals make threats, as `ThreatDisplay` does. The contest does no damage.
 - `StartTurfWar` and `LargeCarnivoreFight` are code for a contest between two animals. No brain uses that code.
+
+**Herd travel and large-body movement (decided 2026-10-09 and 2026-10-10).** The full design is in [dinosaur-hitboxes-and-movement-design.md](dinosaur-hitboxes-and-movement-design.md). The herd code specs are in `docs/superpowers/`.
+
+- A wide animal reaches each path node and does not spin.
+- In tight ground, an animal turns in place before it walks. In open ground, it slows while it turns.
+- Herd mates keep space along the whole body, from snout to tail tip.
+- The herd travels as a wedge. In a corridor, it walks in single file.
+- In single file, a follower's chest stays behind the tail tip ahead. In a corridor, and for a herd that would outgrow its trail, the herd uses the tighter spacing of today's code. Each species has config values for this.
+- The leader's trail grows with the herd. An animal past the end of the trail follows the animal ahead of it.
+- A stuck animal tries cheap fixes first. The last fix moves it to a clear spot nearby, also when a player is near.
+- Leaves:
+  - Large species (Brachiosaurus, Triceratops and adult Tyrannosaurus) break leaves with the torso, above a growth stage set per species.
+  - The other species pass through leaves.
+  - Player-placed leaves break too.
+- Large species break logs only when they charge.
+- With `mobGriefing` off, every species passes through leaves, and logs stay solid.
+- A tag lists the blocks that dinosaurs can break.
+- An adult Brachiosaurus stays in open ground.
+
 
 **Breeding:**
 
@@ -1762,6 +1800,7 @@ The immunity gene stays in Beta. The design document says that immunity is resis
 - **Animation details.** On 2026-10-06 the project lead answered "not decided" for two items. The plan does not build them (decision D14).
   - animation speed that follows body size
   - look-around clips on the second animation controller
+- **Neck reach IK.** It waits until the eating and drinking animations exist. The Gallimimus has neither ([dinosaur-hitboxes-and-movement-design.md](dinosaur-hitboxes-and-movement-design.md)).
 
 ### 11.15 Systems in Beta that have no code
 
@@ -2026,6 +2065,13 @@ Points for gameplay:
 - On 2026-10-06 the project lead selected Balm as the replacement, for energy and fluid storage only. Balm has builds for Fabric and NeoForge on 26.2. Architectury, Common Networking and Forge Config API Port stay for the other functions.
 - Common Storage Lib is the successor of Botarium from the same team. On 2026-10-06 it had builds for 1.21 and 1.21.1 only. The port plan compares it with Balm again on the day the port starts.
 - The project lead gave this rule: do not write an internal solution when a library gives the same function.
+- On 2026-10-10 the project lead confirmed the rule for the libraries that the mod already depends on:
+  - Where SmartBrainLib 2, GeckoLib 5 or Balm gives a hook for a need, the mod calls the library through its API.
+  - The mod does not copy library code. It does not write a second version of a library feature.
+  - Examples: SmartBrainLib 2 ticks the brain, `onlyScanIf` gates sensors, and the built-in sensors and behaviours cover nearby entities, attack targets, flee, follow and breeding. GeckoLib 5 gives triggered animations, additive controllers, bone updaters and scaling from the scale attribute.
+  - The mod has its own code only where no hook exists, for example stamina chases, scent trails, dominance, nests and herd formation. That code uses the base classes of the library.
+  - Where a library does not have a feature, for example animation LOD in GeckoLib 5, the mod uses the extension points of the library. The mod does not fork the library.
+  - The project plan has this rule in its global constraints. The source is `reports/Reference mod survey for Beta.md`.
 - These versions need Java 25. The mod uses Java 17 at this time.
 - The MultiLoader Template has a branch for each of these versions. Its modules are `common`, `fabric` and `neoforge`.
 - From version 26.1, the game code has no obfuscation. Parchment mappings are not available and are not necessary.
@@ -2051,9 +2097,236 @@ Points for gameplay:
 
 ---
 
-## 12. Open questions
+## 12. Reference mod surveys
 
-### 12.1 Answered on 2026-10-05
+Two surveys read other mods for patterns that Nublar can use. Each survey has a full report in `reports/` and a folder of research notes in `research_notes/`. This section gives the results that matter for the plan. The reports have the evidence, the clean-room specifications and the repository facts.
+
+The surveys use the same labels as the reports:
+
+- `[v]`: The survey checked the item in source at the commit that the notes name.
+- `[doc]`: The item comes from a README, a wiki, a changelog or a store page.
+- `[inf]`: The item is an inference.
+
+A cost figure without `[v]` is an estimate. Nobody profiled a 26.2 build.
+
+### 12.1 Entity and creature mods (2026-10-10)
+
+Full report: [Reference mod survey for Beta](../reports/Reference%20mod%20survey%20for%20Beta.md). Notes: `research_notes/Reference mod survey for Beta/` (13 files).
+
+The survey rated 135 techniques from creature mods against modules B11 to B27. The main results:
+
+- Nublar's own code causes most of the cost. Three block-scanning sensors cost about 22 ms per tick at 100 dinosaurs, with aligned spikes near 440 ms (estimate). A feeder registry, a remembered water source and gated, jittered SmartBrainLib 2 sensors cut this cost below 0.1 ms.
+- SmartBrainLib 2 ticks the brain itself. The manual brain tick must go, or every brain ticks two times.
+- Per-tick machine packets, fence line walks and colour layers are the next costs. The colour layers use about 80 % of each frame with 20 Gallimimus. The layer bake fixes it.
+- The mods agree on vanilla idioms: commands like a wolf, eggs like a turtle, group retaliation like a bee and a 5-minute breeding cooldown.
+- No surveyed creature mod implements twelve Nublar features, for example chance-based detection, scent trails, stamina-limited chases and wire-health fences. Vanilla classes supply most of their parts.
+- The survey gave 27 clean-room specifications (S1 to S27) and six open items (O1 to O6).
+- On 2026-10-10 the project lead made one rule from the survey. Where SmartBrainLib 2, GeckoLib 5 or Balm gives a hook, the mod uses the hook (section 11.17).
+
+### 12.2 Optimization and technology mods (2026-10-10)
+
+Full report: [Optimization and tech mod survey for Beta](../reports/Optimization%20and%20tech%20mod%20survey%20for%20Beta.md). Notes: `research_notes/Optimization and tech mod survey/` (11 files).
+
+The survey read about 90 repositories in two groups:
+
+- Optimization mods: render, culling, server tick, memory, chunk, network and log mods (Sodium, Lithium, EntityCulling, ImmediatelyFast, FerriteCore, C2ME, Immersive Optimization and others).
+- Technology mods: Create and its add-ons, Mekanism, Immersive Engineering, Powah and Refined Storage 2.
+- Vehicle, transit and security mods: Automobility, MTR, SecurityCraft, CC: Tweaked and others.
+- Content mods: Quark, Tinkers' Construct and Ad Astra.
+
+It rated 167 techniques against modules B00 to B25 and the backlog. It gives 15 clean-room specifications (T1 to T15) and 15 open items (O7 to O21).
+
+#### Main result
+
+The optimization mods make vanilla cheaper. They do not remove the costs of a mod:
+
+- Lithium does not speed up SmartBrainLib 2 brains `[v]`.
+- Lithium cannot let a hopper sleep next to a modded container `[v]`.
+- The block-entity bakers (EnhancedBlockEntities, BetterBlockEntities) skip modded block entities `[v]`.
+- Immersive Optimization skips whole ticks of far entities. Code that counts ticks then runs slow `[v]`.
+
+As a result, Nublar must remove its own costs. Three rules carry most of the gain:
+
+1. Still things use static geometry. Fence posts, wires and idle machines draw from the chunk mesh or a block model, not from a block-entity renderer each frame.
+2. One network object runs each power grid. Posts, pylons and conduits do not tick.
+3. Work happens only on change. Timers use game time, not tick counts.
+
+#### Top changes
+
+| Rank | Change | Module | In-game effect |
+| --- | --- | --- | --- |
+| 1 | Fence posts and wire segments as block models in the chunk mesh. A block-entity renderer only for sparks and a breaking wire | B15 | 900 wire block entities cost no per-frame work `[inf]` |
+| 2 | One power network object per connected group. Merge on connect. Flood again on break. Energy stays on the block entities | B14, B15 | 60 posts make one energy call per tick, not 60 tick methods |
+| 3 | Game time for every deadline. Queues that accept gaps. A distance band inside the brain | B17, B25, B26 | Needs and herds stay correct when a server slows far animals |
+| 4 | Exact culling boxes for dinosaurs, machines and wire spans | B09, B12, B15, B16 | A Brachiosaurus neck does not vanish at the screen edge |
+| 5 | Named machine issues, fault smoke and a hover box | B12, B14 | The incubator says "No bedding" |
+| 6 | Save data and sync data apart. Coalesced sync. Active look off after 60 ticks | B12, B14 | A few small packets per state change |
+| 7 | Client-only effects in `aiStep` or server events, not in `tick` | B16, B25 | Off-screen animals still make sounds |
+| 8 | Genome and drives as compact `StreamCodec` data. `DinoData` gets `equals` | P2, B06, B16 | A 100-species drive syncs about 2.4 KB `[inf]` |
+| 9 | Small block states. Light and path types from the state only | B01, B12, B15 | The fossil set stays near 4,600 states |
+| 10 | Tour rules: stop for a tag list, horn after a delay, redstone hold, dwell and announcements | B22 | The Explorer waits for a Triceratops and names each stop |
+| 11 | Standard item, energy and fluid capabilities with per-side rules | B12, B14, B20 | CC: Tweaked, Refined Storage, Mekanism and Create work with no compat code |
+| 12 | Pooled ambient sound. Particles on events only | B12, B15, B16 | A long fence hums with a few sound instances |
+
+#### 26.2 availability
+
+A compat item can ship only when the other mod has a 26.2 build. The survey checked Modrinth and GitHub on 2026-10-10.
+
+| Group | On 26.2 | Not on 26.2 |
+| --- | --- | --- |
+| Libraries | Balm 26.2.0.9, GeckoLib 5.5.6, SmartBrainLib 2.0.3, Architectury, Common Network, Forge Config API Port, Team Reborn Energy 5.0.0 | Common Storage Lib (1.21.1), Flywheel (26.1.2), Ponder (26.1) |
+| Optimization | Sodium, Iris, Sodium Extra, Lithium, EntityCulling, ImmediatelyFast, MoreCulling, FerriteCore, Immersive Optimization, Particle Core, LambDynamicLights. Fabric only: C2ME, Krypton, VMP, Nvidium | Embeddium, ModernFix (26.1.2), VulkanMod |
+| Technology | CC: Tweaked (both loaders), SecurityCraft (NeoForge), Alternate Current, Create Fly (a separate Fabric rewrite of Create) | Official Create, Mekanism files (26.2 branch only), Immersive Engineering, Refined Storage 2 (26.1.2), Powah (26.1.2), Simple Radio, Automobility, MTR, Quark, Tinkers' Construct, Ad Astra |
+
+Results for compat:
+
+- Every optimization duty applies from the first port build.
+- An optional CC: Tweaked peripheral can ship with Beta on both loaders.
+- Create exists on 26.2 only as Create Fly on Fabric. The Create compat items wait.
+- Ponder, Refined Storage 2 and ModernFix need a 26.2 release before a test.
+
+#### Platform first
+
+The lead's rule applies: where the platform or a library that the mod uses covers a need, the mod uses it. Balm stays the bridge for energy and fluid storage only. Architectury, Common Networking and Forge Config API Port stay for the other functions. All three have 26.2 builds.
+
+| Need | What covers it | What Nublar writes |
+| --- | --- | --- |
+| Energy on machines and generators | Balm. It bridges to the NeoForge 26.2 `EnergyHandler` and, when Team Reborn Energy is present, to Fabric `[v]` | Rules for which blocks give and which accept |
+| Fence and pylon network | Nothing `[v]` | The network object (T1) |
+| Items in and out of machines | Vanilla `Container` and `WorldlyContainer`, wrapped by both loaders `[v]` | Rules for each face |
+| Fluids | Balm `FluidTank`, or the loader fluid APIs | Nothing more |
+| Item data | Vanilla data components with codecs | The component records |
+| Level and chunk data | `SavedData` and data attachments | The data records |
+| Packets | `CustomPacketPayload` with `StreamCodec` through Common Networking | Payloads and server checks |
+| Render boxes | NeoForge `getRenderBoundingBox` on the renderer. Fabric has none. Vanilla `shouldRenderOffScreen` is the coarse fallback `[v]` | The box values |
+| Static fence geometry | Block models. NeoForge model data and `AddSectionGeometryEvent`. Fabric `emitQuads` with `RenderDataBlockEntity`. Sodium supports all of them `[v]` | One shared `FenceVisual` record and two small loader adapters |
+| Tracking range | Vanilla `EntityType.Builder` values `[v]` | Values per species and vehicle |
+| Track following | Vanilla `BaseRailBlock`, `RailShape`, `AbstractMinecart.exits` `[v]` | The rail-follow mode of the Explorer |
+| GameTests | Vanilla, NeoForge and Fabric test hooks `[v]` | Tests in `common` |
+
+#### Rules for the mod's own code
+
+Server:
+
+- Posts, pylons and conduits have no ticker. Machines return early when idle. Recipe lookups run only on a slot change.
+- Timers use game time. `FallbackBudget` and the tick-count timers in `Dinosaur` must change (section 12.2, "Defects").
+- Dinosaurs and vehicles do not override `canCollideWith`. Only the tour vehicle overrides `canBeCollidedWith`. Path types come from the block state only.
+- Each "is a player near" radius stays at 128 blocks or less.
+- Periodic work has an offset per object, so many posts never check in the same tick.
+
+Client:
+
+- Fence geometry has three tiers: a static model, slow state in model data, and effects as particles.
+- Idle machines show a static model. The GeckoLib renderer draws only while a machine works.
+- All renderers of one texture use one shared render type. The mod has no OpenGL calls, no GLFW calls and no core shader.
+- Bioluminescence is an emissive layer, not a moving light source.
+- Each wire draws one time, from one end, with 4 to 6 segments.
+
+Memory and network:
+
+- Cosmetic randomness stays out of block states. The fossil look comes from the position seed.
+- The fossil set has few blocks with properties, not one block for each host stone, quality and piece.
+- Per-level stores use `SavedData` or attachments. No static field holds a world, an entity or a block entity.
+- Payloads stay under the vanilla limits: 32,767 bytes from a client and 1 MiB from the server.
+- Wire changes travel as small events. Wire health travels in 3 or 4 bands.
+- Tracking range follows body size: 8 chunks for small species, 10 for T. rex and Triceratops, 12 for Brachiosaurus (proposal).
+
+Worldgen:
+
+- Lookup maps are immutable and built on the main thread.
+- Features use only the `RandomSource` that the generator gives. They place blocks only inside their region and make no drops.
+- Digsite maps use the vanilla exploration map function and trade, so any async-locate mod covers them.
+
+#### Compatibility duties
+
+| Mod | The mod must | The mod must not |
+| --- | --- | --- |
+| Sodium, Iris | Give exact render boxes. Keep model data immutable | Set `shouldRenderOffScreen` on repeated block entities. Call OpenGL. Ship a core shader |
+| EntityCulling | Override `getBoundingBoxForCulling`. Put client effects in `aiStep` | Put client-only logic in `tick`. Mark a non-cube block as full and opaque |
+| ImmediatelyFast | Share render types. Bake the colour layers | Rely on submit order inside one render type |
+| Chloride | Keep game logic out of renderers | Rely on rendering for sounds or effects |
+| Lithium | Follow the collision and path-type rules. Call `setChanged` only on change | Give a block a path type that depends on a block entity |
+| Immersive Optimization | Use game time. Mark the tour vehicle as always ticking | Opt out the dinosaurs |
+| FerriteCore | Use the vanilla property types | Reflect into block-state internals |
+| C2ME, ScalableLux | Follow the worldgen rules. Emit light with `lightLevel` | Use `level.getRandom()` in a feature. Change light every tick |
+| Krypton, PacketFixer | Use platform payloads | Touch the Netty pipeline. Depend on raised limits |
+| Particle Core | Spawn particles on events with their own random | Read entities in a particle tick |
+| Alternate Current | Keep `getSignal` a block-state read | Keep order-dependent static state |
+
+#### Technology gameplay fit
+
+| Module | What fits | What conflicts |
+| --- | --- | --- |
+| B12 Machines | Named issues and a warning tab (Mekanism). Smoke and a dark look on a fault (Create). A hover box. One chip-speed curve with one config value. Parts without block entities | Factory lanes, a face-by-face side screen, seven upgrade cards, a walled multiblock |
+| B14 Power | A network object with merge and split (Mekanism, IE, RS2, Create). One "energy per fuel tick" constant. Generator comparator output. A chunk-reload GameTest | Rotational speed as a second unit (Create). Wire loss and path search (IE). Exploding generators |
+| B15 Fences | Geometry tiers. Health bands. Wire events. A per-tier config table. Spool messages that name the failure. A switch that flips the network. Decorative fences with no block entity. Shock that follows the grid (IE), after a lead decision | Unbreakable reinforced blocks. Laser tripwires |
+| B20 Feeders | Adaptive polling. One code path for player, hopper and dispenser bait. Diet arrays cached on reload. Free automation through item capabilities | An "any item" filter. A POI type |
+| B21 Maps | Vanilla map function and trade. A spacing rule. Digsite changes stored as differences from a seed value | A Nublar structure search on the server thread |
+| B22 Vehicles and tours | Stop for a tag list, horn after a delay, redstone hold, dwell and announcements (Automobility, MTR). No dinosaur boarding. A server speed clamp. A track on `BaseRailBlock` | Vehicles as data on a thread (MTR). Hitbox entities, drifting, boost pads, fuel, upgrades. Physics ships |
+| Park security (backlog) | A camera view that shows "no signal" outside loaded chunks. An alarm from vanilla sounds. Keycards as data components, later | A live picture on a block. Forced chunks. Sentries. Reinforced blocks |
+| B00 Config | A `features` section: a disabled feature does not tick, but its content stays registered. Id redirects. Caps in config | A reflection-based module engine |
+| B07 Genes | One rebuild function for derived stats with a version stamp | — |
+| Release 1 | Ponder scenes or a guide book in the order of progression (optional) | — |
+
+Optional compat: a CC: Tweaked peripheral for fence state and a park summary can ship with Beta. A Create shaft-to-energy adapter, Create recipes and Ponder scenes wait for 26.2 builds.
+
+#### Defects in the code
+
+The researchers found these defects. Each row gives the effect in the game first.
+
+| Effect in the game | Location |
+| --- | --- |
+| A powered fence post top makes a shadow instead of light `[inf]` | `J/block/ElectricFencePostBlock.java:275-276` (`getLightBlock`) |
+| Every fence post ticks on both sides every tick | `J/block/ElectricFencePostBlock.java:300-305` |
+| A rare crash or hang when two threads read a machine shape | `J/block/api/MultiEntityBlock.java:35,83` |
+| Client memory grows while wires show | `J/block/api/MathUtils.java:121,133` |
+| A genome change sends the whole genome as NBT, also when nothing changed | `J/init/DataSerializerInit.java:14-24`. `DinoData` has no `equals` |
+| Hundreds of wire blocks do useless work on each neighbour change | `J/block/ElectricFenceBlock.java:88-91` |
+| 100 animals near feeders print about 100 log lines per second | 12 print statements in 6 files, for example `NearestFeederSensor.java:68` |
+| A far herd member never gets a fallback path when a server slows far animals | `FallbackBudget.java:30` |
+| Far animals recover stamina and lose needs too slowly when a server slows them | Tick-count timers in `Dinosaur.java:581,723,760-765` |
+| A Brachiosaurus neck vanishes at the screen edge | `EntityInit.java:36` (`sized(2, 3)`) |
+| All six species are hostile mobs with one tracking range of 160 blocks | `EntityInit.java:30-39` |
+| A wire vanishes when both posts are off screen | `ElectricWireRenderer.java:25-45` |
+| 300 posts submit 300 or more renders each frame `[inf]` | `ENTITYBLOCK_ANIMATED` on fence and machine blocks |
+| Each colour wheel allocates 640 KB of native memory | `ColorWheelWidget.java:45,110` |
+
+One note claimed a leak in `FallbackBudget`. It is false: `forget(UUID)` exists, and `DinoGroup.java:205` calls it `[v]`.
+
+#### Corrections to earlier records
+
+- Driverless vehicles have precedents. The earlier survey said that none exists. Automobility's Autopilot and MTR trains run with no driver.
+- Balm has a 26.2 branch, version 26.2.0.9 from 2026-09-25. One note saw only 26.3 because its clone had one branch.
+- Balm bridges to the NeoForge 26.2 `EnergyHandler`, not to `IEnergyStorage`. NeoForge marks the old interface for removal. On Fabric, Balm exposes energy only when the player installs Team Reborn Energy.
+- All six species set `clientTrackingRange(10)` and `MobCategory.MONSTER` in the code.
+
+#### Open items O7 to O21
+
+Each item has a default that ships if the lead does not answer.
+
+| Id | Question | Default |
+| --- | --- | --- |
+| O7 | What powers a fence when its generator's chunk is not loaded? | Only loaded generators count. No chunk tickets |
+| O8 | How long does a fence stay live after fuel ends? | A buffer of the post buffers, as a config value |
+| O9 | Does a shock follow the grid's energy and drain the grid? | No. Fixed damage per tier |
+| O10 | Which blocks accept energy from other mods' cables? | Generators give, machines accept, fences are closed |
+| O11 | What stops the Explorer, how many seats, boarding while moving, a timed Tour Station? | Dinosaurs and players stop it. Jeep 2 seats, Explorer 4. Boarding at stops only. No Tour Station |
+| O12 | What happens when a vehicle meets an electric fence? | It stops. No shock |
+| O13 | Hover box always on, or with an item? A power meter block? | Always on. No meter block |
+| O14 | What does the control room have in Beta? | Switch block, comparator outputs, alarm block |
+| O15 | Which systems can a server owner turn off? | Vehicles, herd travel, fence wire health, breeding |
+| O16 | Are gene definitions datapack JSON in Beta? | No. JSON after Beta |
+| O17 | Where do species and piece of a fossil live? Opacity steps? | One block per host stone and species. 4 opacity steps |
+| O18 | What is the largest DNA drive? | 150 entries. Test at 1,000 |
+| O19 | What distance does the game guarantee for a digsite? | 1,600 blocks, the vanilla `/locate` radius |
+| O20 | Does the roadmap include optional compat modules? | CC: Tweaked after B15. Create and Ponder wait for builds |
+| O21 | Do vanilla and decorative fences hold dinosaurs? | Yes, as walls |
+
+---
+
+## 13. Open questions
+
+### 13.1 Answered on 2026-10-05
 
 | Question | Answer | Section |
 | --- | --- | --- |
@@ -2074,14 +2347,14 @@ Points for gameplay:
 | Are park decorations in Beta? | The enclosure marker and the park signs stay after Beta. The three voltage signs for fences are in Beta | 8.6 |
 | Do the boards or the asset repository hold tasks or assets that change this list? | The analysis read the three GitHub boards and made an inventory of the asset repository. The Trello board is out of date | 8.5, 8.6 |
 
-### 12.2 Open
+### 13.2 Open
 
 1. Licence: LGPLv3 or CC0? On 2026-10-05 the project lead answered "still choosing". The decision comes before the first public release.
 2. Section 11.14 lists the decisions that stay open after the design discussion.
 
 ---
 
-## 13. Sources
+## 14. Sources
 
 - `Dumb-Code/Project-Nublar`, branches at 67bf1b5, 55e1968, aa9d047, 4244f62 and 97023cf.
 - GitHub issues #1, #6 and #65, and the lists of open and closed issues.

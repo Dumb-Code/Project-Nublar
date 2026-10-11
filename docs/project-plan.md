@@ -33,6 +33,13 @@ Every module's requirements include these lines.
   2. Keep the codebase as light as feasibly possible: optimized, efficient, performant, and following the basics of OOP. No speculative abstractions, no utility layer for one caller, no new dependency when the JDK or Minecraft already has it. Measure before optimizing, but never leave known per-tick waste.
   3. Review your own work as an adversary would, but do not add or remove code for the sake of it. Think carefully before every change.
   4. A human must be able to pick up wherever you left off: read, modify, extend, continue or rewrite the work without you. Javadoc, a short package note and tests that explain intent are how that happens.
+- Use the libraries that the mod already depends on. Where SmartBrainLib 2, GeckoLib 5 or Balm gives a hook for a need, call the library through its API. Do not copy library code into Project Nublar, and do not write a second version of a library feature (section 11.17). Examples:
+  - SmartBrainLib 2 ticks the brain. Delete the manual brain tick.
+  - Gate sensors with `onlyScanIf` and set a scan rate for each entity. Do not write an always-on block scan.
+  - Use the built-in sensors and behaviours for nearby entities, players, hurt-by, attack targets, flee, follow and breeding.
+  - Use GeckoLib 5 triggered animations, additive controllers and bone updaters. GeckoLib 5 applies the scale attribute to the model.
+  - Write Nublar code only where no hook exists, for example stamina chases, scent trails, dominance, nests and herd formation. Build that code on the library's base classes. Where a library lacks a feature, such as animation LOD in GeckoLib 5, use the library's extension points. Do not fork the library.
+  - Source: [Reference mod survey for Beta.md](../reports/Reference%20mod%20survey%20for%20Beta.md), decided by the project lead on 2026-10-10.
 - Every network packet from the client validates its payload on the server: menu open, slot range, value range.
 - Datagen output in `common/src/generated/resources` is regenerated, never hand-edited, and regenerated in the same commit as the provider change.
 
