@@ -455,12 +455,12 @@ Sources: `J/client/screen/SequencerScreen.java` and `J/menutypes/SequencerMenu.j
 
 ### 5.1 Fences
 
-- Low-security posts are 3 blocks high and have 2 wires. High-security posts are 8 blocks high and have 1 wire (`J/block/api/EnumConnectionType.java:8-9`).
+- Low-security posts are 3 blocks high and have 2 wires per block of height, 6 wires in total. High-security posts are 8 blocks high and have 1 wire per block, 8 wires in total (`J/block/api/EnumConnectionType.java:8-9`). The original 1.12.2 fence has the same counts.
 - The wire spool links posts that are up to 15 blocks apart (`J/block/ElectricFencePostBlock.java:133-200`).
 - A powered wire gives 1 THORNS damage and knockback (`J/block/api/BlockConnectableBase.java:75-111`).
 - `BlockConnectableBase.java` has 171 lines of code in comments. Ladder climbing is one example.
 - `ElectricFencePostBlock.java:224` has a forced `|| true` from commit 511c1d8.
-- Only Forge can restore a wire with a right-click (`F/event/CommonForgeEvents.java:39-75`).
+- A right-click on a broken wire stub restores it on both loaders (common code). Only Forge restores a wire when a player uses the spool on a block face next to it (`F/event/CommonForgeEvents.java:39-75`).
 
 TODO comments in the fence code:
 
@@ -477,10 +477,10 @@ The `rft/adversing` branch rewrites this area (section 2.3).
 
 ### 5.2 Reference: the original fence design
 
-These points are from the wiki article and the 2019 demo video:
+These points are from the wiki article and the 2019 demo video. A feature-by-feature comparison with the 1.12.2 code and the rewrite is in `research_notes/Fence parity 1.12.2/`, and plan module B15 makes that comparison its parity baseline (2026-10-10):
 
 - Wire runs between poles go in all directions and can incline.
-- Each connection has 16 small collision boxes in each block.
+- Each connection has 16 small collision boxes in each block. The rewrite uses 8.
 - Player ray tracing rotates the ray into the axis of the wire. The rewrite ports this as `RotatedRayBox`.
 - A player can break one wire in a block and leave the other wires.
 - A broken wire bends at the break. Spark particles appear at the break point.
@@ -1722,34 +1722,41 @@ The immunity gene stays in Beta. The design document says that immunity is resis
 - The burn times are config values. Playtests set the final values.
 - The project lead did not select a rule that burns fuel only when a machine or a fence uses power.
 
-**Containment:**
+**Fence parity (decided by the project lead on 2026-10-10):** the fence is functionally 1:1 with the original 1.12.2 fence. Where an earlier answer in this section changed the original, the original wins. Plan module B15 lists the 32 parity rows (F1 to F32). The evidence is in `research_notes/Fence parity 1.12.2/`.
 
-- A live wire keeps animals away. Animals test a fence that has no power.
-- A starved animal attacks a live fence also. An animal with high stress does the same.
-- Intelligent animals notice when a fence has no power.
-- Each electric shock can stop the escape attempt of a stressed animal. The chance is a config value. A starved animal does not stop. The project lead decided this on 2026-10-06.
-- The design has no rule that matches a fence type to an animal size. Wire health gives that effect (see "Damage and access").
+**Containment (1.12.2 behaviour):**
+
+- A live wire shocks any entity for ½ ♥ (1 HP) of electric damage. The damage ignores armor and pushes the entity back from the wire. The value is the same for both fence types.
+- Only a Tyrannosaurus breaks a fence, and only an unpowered one. It looks within 10 blocks, at a 50 % chance per check, and breaks the fence once.
+- Any living entity can climb an unpowered wire like a ladder. Players, mobs and dinosaurs can all climb it.
+- Mobs always path around wires and posts.
+- Intelligent animals notice when a fence has no power (special gene, section 11.6).
 
 **Fence types:**
 
-- A high-security fence is stronger than a low-security fence. It also gives more damage.
+- A low-security post is 3 blocks high with 6 wires. A high-security post is 8 blocks high with 8 wires.
 - Height stops tall animals and animals that jump.
 - The overhanging fence is not in Beta.
 
 **Damage and access:**
 
-- Wires break one at a time. The wire spool restores a broken wire.
-- A large animal can make a post fall.
-- Each wire has health. A hit decreases that health by the attack damage of the animal.
-- As a result, a strong animal breaks a wire faster than a weak animal.
-- A high-security wire has more health than a low-security wire.
-- A high-security post is more difficult to make fall than a low-security post.
-- Wire health and post strength are config values. Playtests set them.
-- A live wire also hurts players.
-- A switch or a redstone signal stops the power to a fence section.
+- A player breaks one wire at a time, at once. The cut ends hang bent and spark.
+- The wire spool restores a broken wire in four ways. Each repair uses 1 spool.
+- A post holds 350 FE and uses 10 FE per tick. Power spreads from post to post, so post lamps light along the fence one after another.
+- A switch or a redstone signal stops the power to a fence section. This adds to the original.
 - A player can fill a feeder and stay out of the paddock.
 - Gates are not in Beta.
-- Beta has the three voltage signs for fences. Their art is in the asset repository (section 8.5).
+- Beta has the three voltage signs. They hang on wires, as in the original. Their art is in the asset repository (section 8.5).
+
+**Superseded on 2026-10-10 by fence parity:**
+
+- A high-security fence gives more damage than a low-security fence.
+- Each wire has health. A strong animal breaks a wire faster than a weak animal.
+- A large animal can make a post fall.
+- Every animal tests a fence that has no power. A starved or stressed animal attacks a live fence also.
+- An electric shock can stop the escape attempt of a stressed animal (decided on 2026-10-06).
+
+The fence keeps one addition to the original: posts, the wire spool and the fence remover have survival recipes (section 11.8). The original fence items were in the creative tab only.
 
 ### 11.12 Feeders, tablet, plants, vehicles and guns
 
