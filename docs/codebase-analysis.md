@@ -54,7 +54,14 @@ State today:
 
 Section 11 gives the design that the project lead set for Beta. Section 11.15 lists the Beta systems that have no code.
 
-The project plan that executes section 11 is a separate file, [project-plan.md](project-plan.md). On the shared page it is the tab "Beta and Release 1 project plan".
+The project plan that executes section 11 is the tab "Beta and Release 1 project plan" on the shared page, with three sub-tabs. That tab set is the master copy:
+
+- the roadmap: milestones, art status per milestone, and the decisions that wait on the lead
+- Feature specs: each feature in player terms
+- Art list: every art asset by species, machine and block
+- Engineering backlog: work packages per milestone, with the recipe table and the Decisions register
+
+The repository mirrors them in [project-plan.md](project-plan.md) and [plan/](plan/).
 
 ---
 
@@ -1064,6 +1071,15 @@ The original had 38 packet classes. The rewrite has 3.
 
 ### 8.5 Asset repository
 
+**Replaced on 2026-10-12.** The Art list of the project plan ([plan/art-list.md](plan/art-list.md)) replaces this inventory. It lists every Beta art asset by species, machine and block, with a status for each. A second read of the tree on 2026-10-12 corrected these items:
+
+- Parasaurolophus, Compsognathus and Microceratus have no animation files in the repository. Each animation folder holds one placeholder text file.
+- Microceratus and Mosasaurus have `.dcm` and `.tbl` models.
+- No Triceratops file is named `drink2`, `eat2` or `call2`.
+- The mod already has 8 Gallimimus male layers. Its Brachiosaurus and Dilophosaurus male files are copies of the female files.
+
+The text below is the inventory of 2026-10-05.
+
 The analysis read the file tree of the private repository `Dumb-Code/ProjectNublar-Assets` on 2026-10-05. It used the GitHub API and did not clone the repository. The tree has 3,718 files.
 
 Limits of this inventory:
@@ -1242,6 +1258,8 @@ The board marks sound as complete for the six Beta species. The mod has sounds f
 
 ## 10. Pending work, in the suggested order
 
+**Replaced on 2026-10-12.** The project plan replaces this list. Its milestones are the order of work. This list stays as the record of 2026-10-04. Where the two differ, the plan applies.
+
 1. Integrate the three branches (section 2.6).
 2. Clean the repository and add CI (section 3.5).
 3. Add fossils for each Beta species.
@@ -1371,6 +1389,38 @@ In a second pass on the same date, the project lead answered eight interpretatio
 - A special piece is also a crafting ingredient or a trade item.
 - After Beta, the pieces assemble into a skeleton exhibit.
 
+**M1 open items, decided by the project lead on 2026-10-12:**
+
+- Claude drafts the depth and the biomes of the five species other than Tyrannosaurus. The basis is the formation, age and biome cards of GitHub project board #4 ("Programming"). The draft states that basis, and the project lead reviews it.
+- The Fortune chance of one tier higher is +5% to +10% per Fortune level. It is a config value. Playtests set the final value.
+- Random opacity (15% to 100%) and random rotation of the ore overlay are in Beta.
+- The four quality names stay: fragmented, poor, common and pristine.
+- Tyrannosaurus has a neck piece. A Tyrannosaurus skeleton cluster can hold a neck.
+- The fossil pouch collects fossils from any inventory slot. It merges equal fossils: same species, piece and quality.
+- The player can put fossils into the pouch by hand. The pouch refuses all other items.
+- Hoppers and the fossil processor can pull fossils out of the pouch.
+
+**M1 follow-ups, decided by the project lead on 2026-10-12:**
+
+- The fossil pouch also takes amber. It refuses all other items (D145).
+
+**Superseded on 2026-10-12 by the M2 open-items pass:**
+
+- The pouch refuses all items other than fossils. (Now the pouch takes fossils and amber.)
+
+**M4 and follow-up open items, decided by the project lead on 2026-10-12:**
+
+- A special piece gives 1.5 times the DNA of a bone of the same quality. This is a config value (D01).
+- Special pieces are for DNA and trades only. No recipe uses a special piece.
+- If no species is valid for a depth and biome, the species of the nearest depth band applies (D02).
+- The ore overlay has 4 fade levels: 15%, 43%, 72% and 100% opacity (D31).
+- A fossil needs no jacket step. The broken ore drops the fossil (D74).
+
+**Superseded on 2026-10-12 by the M4 and follow-up pass:**
+
+- A special piece is also a crafting ingredient or a trade item. (Now it is a trade item only. No recipe uses it.)
+- Random opacity (15% to 100%) of the ore overlay. (Now the overlay has 4 fade levels.)
+
 **State of `fossils-1.20.1` against this design.** The analysis read this code on 2026-10-05. It did not run the code.
 
 - `FossilFeature.java:117-119` rolls one quality for each vein. Each block in the vein gets that quality.
@@ -1397,10 +1447,31 @@ The branch does not have these items of the design:
 
 In play on the branch, each chunk has fossils and processing time is the only limit. The design also puts effort in the knowledge of where to dig.
 
+**Final open items and draft reviews, decided by the project lead on 2026-10-13:**
+
+- The project lead accepts the draft of fossil generation. The depth bands:
+  - Tyrannosaurus y 40 to 75. The band of 2026-10-05 stays.
+  - Velociraptor y 45 to 70, Gallimimus y 50 to 72, Triceratops y 55 to 75. An older Cretaceous species lies deeper.
+  - Brachiosaurus y 35 to 55.
+  - Dilophosaurus y −20 to 30. It is the only Beta fossil in deepslate.
+- The project lead calls the Dilophosaurus Triassic. Board #4 dates it 201.3 to 182.7 Ma, the earliest Jurassic. This question stays open (D254).
+- The project lead accepts the table of biome groups and percentages. It has 9 groups. Jungle, savanna, snowy biomes, ocean, mushroom fields and the deep dark have no Beta fossils.
+- Each species that is valid at a place has an equal share in the rarity formula.
+- Fortune adds a tier-up chance of 7.5 % for each level. Fortune III adds 22.5 %.
+- Each species has a pelvis piece. The Tyrannosaurus pelvis has its own art. The artist draws one generic pelvis set for the other species.
+- A test tube shows its DNA % in the tooltip only, not on the icon.
+
+**Last open items, decided by the project lead on 2026-10-13 (Z-8):**
+
+- The Dilophosaurus uses the Jurassic period rarity, 2.8 (D254). Its fossils stay at y −20 to 30.
+
+**Superseded on 2026-10-13 by the last open items (Z-8):**
+
+- The project lead calls the Dilophosaurus Triassic. This question stays open (D254). (Now the Dilophosaurus uses the Jurassic rarity, 2.8.)
+
 ### 11.2 Amber, live animals and remains
 
 - Amber does not show its species when it drops.
-- The fossil processor shows the species on the DNA tube.
 - Each amber has a random DNA yield of 80% or less. Amber has no quality tiers.
 - In Beta, the fossil processor processes amber. The drill extractor of the design document is not in Beta.
 - An amber keeps the depth and biome where it generated. It has no species until the processor runs.
@@ -1416,6 +1487,47 @@ In play on the branch, each chunk has fossils and processing time is the only li
   - a sample from an egg
 - Fresh material gives much more DNA than a fossil.
 - Trace fossils and generic fossils are not in Beta.
+
+**M1 open items, decided by the project lead on 2026-10-12:**
+
+- A DNA tube from amber starts Unidentified. The tube hides the species.
+- The player joins an Identification Tag and an Unidentified tube in a crafting grid. The result is the Identified tube, which shows the species. The crafting uses up the tag.
+- The tag identifies amber tubes only. A tube from a fossil and a DNA syringe show their species at once.
+- A turtle in love mode gives an embryo, as a chicken and a parrot do.
+- A syringe draw does 1 HP of damage, with no cooldown. Draws can kill the animal.
+
+**Superseded on 2026-10-12 by the M1 open-items pass:**
+
+- The fossil processor shows the species on the DNA tube. (Now an Identification Tag reveals the species of an amber tube.)
+
+**M2 open items, decided by the project lead on 2026-10-12:**
+
+- A syringe draw from a live dinosaur gives 25% to 50% of its genome (D04).
+- Remains (fresh bones and tissue) give 50% in the fossil processor (D04).
+- A sample from an egg does not hurt the egg (D03).
+
+**M4 and follow-up open items, decided by the project lead on 2026-10-12:**
+
+- An embryo draw has no effect on the animal. The animal stays in love mode and takes no damage (D144).
+
+**Final open items and draft reviews, decided by the project lead on 2026-10-13:**
+
+- One item, the "Embryo Syringe", holds the embryo of each donor: a chicken, a parrot or a turtle. The tooltip names the donor, for example "Embryo Syringe (Turtle)".
+- The syringe draw has no sound of its own. This is the reading of the asker, because the project lead did not select the option.
+
+**Last open items, decided by the project lead on 2026-10-13 (Z-8):**
+
+- Beta has no Identification Tag. The project lead: "the amber tube does not receive a species ID, the contained DNA only gets identified once it gets sequenced."
+  - An amber tube stays Unidentified, and it hides the species.
+  - The sequencer adds the DNA to the drive entry of the species. The drive entry shows the species.
+  - The DNA state "Identified" now happens only on the sequencer drive.
+- The syringe draw plays an existing vanilla sound. The project lead accepts the reading of the asker.
+
+**Superseded on 2026-10-13 by the last open items (Z-8):**
+
+- The player joins an Identification Tag and an Unidentified tube in a crafting grid. The result is the Identified tube, which shows the species. The crafting uses up the tag. (Now Beta has no tag. Only sequencing identifies amber DNA.)
+- The tag identifies amber tubes only. (Now no tag exists.)
+- An Identification Tag reveals the species of an amber tube (M1 pass). (Now the sequencer drive shows the species after sequencing.)
 
 ### 11.3 Digsites, maps and traders
 
@@ -1436,6 +1548,46 @@ In play on the branch, each chunk has fossils and processing time is the only li
   - fossils, amber and special pieces, as purchases and as sales
   - tools and parts
 
+**M4 and follow-up open items, decided by the project lead on 2026-10-12:**
+
+- Any lab machine is the workstation of the paleontologist: the fossil processor, the sequencer, the egg printer or the incubator. The mod adds no workstation block (D209).
+- Paleontologists are the main sellers of digsite maps. Cartographers and wandering traders also sell them. This is the reading of the asker, because the project lead selected both options (D210).
+- The Paleo-Illager has its own skin on the vindicator model. The artist makes it (D211).
+- A mix of pillagers and vindicators guards a Paleo-Illager site (D211).
+- A friendly digsite camp has an iron golem. A Paleo-Illager site has no golem (D212).
+- A builder of the team makes new digsite structures. The 2020 builds are not used (D213).
+- Paleontologists give fossil pieces to iron golems in Beta. This is a joke from the 2020 board (D214).
+- Claude drafts the trade list and the prices. The project lead reviews the draft (D215).
+- The paleobotanist villager ships in Release 1 with the plants (D10).
+- The project lead did not decide the search distance of a map (D33). The plan keeps 1,600 blocks.
+
+**Superseded on 2026-10-12 by the M4 and follow-up pass:**
+
+- The paleontologist is a new villager profession with a workstation. (Now any lab machine is its workstation.)
+
+**Final open items and draft reviews, decided by the project lead on 2026-10-13:**
+
+- A digsite map finds a digsite within 1,000 blocks (D33).
+- The project lead accepts the draft of the trades with changes:
+  - Maps cost the vanilla price. A Digsite Map costs 14 emeralds and a compass. A species map costs more.
+  - All other goods cost 25 % more than in the draft.
+  - The paleontologist also sells chips, the hard drive, the gold filter and lab machine parts. With these trades, a player can skip the gold gate of the first lab.
+  - A paleontologist sells fossils of local species only: species whose fossils generate near the village.
+  - Cartographers and wandering traders also sell species maps, at a higher price than the paleontologist.
+  - The Hero of the Village gift of a paleontologist is test tubes or a syringe.
+- An iron golem drops its fossil piece when it dies. The project lead accepts that players can make fossil farms.
+- The builder of the team also makes the lab house of the paleontologist.
+
+**Superseded on 2026-10-13 by the final pass:**
+
+- The project lead did not decide the search distance of a map (D33). The plan keeps 1,600 blocks. (Now the distance is 1,000 blocks.)
+
+**Last open items, decided by the project lead on 2026-10-13 (Z-8):**
+
+- A paleontologist offers 2 random trades for each level, as a vanilla villager does.
+- The lab house of the paleontologist spawns at the normal rate of a village house.
+- The trade that sold the Identification Tag leaves Beta with the tag.
+
 ### 11.4 Fossil processor
 
 - One run always gives one DNA tube. Extraction does not fail.
@@ -1446,6 +1598,25 @@ In play on the branch, each chunk has fossils and processing time is the only li
 - The result keeps its decimals. A result of 1.25% stays 1.25%, and a run has no minimum.
 - The rounding rule is a config value. Playtests set it.
 
+**M1 open items, decided by the project lead on 2026-10-12:**
+
+- Filter durability is the same as in the original: iron 150 runs, gold 250 runs, diamond 500 runs. These are config values.
+- Water per run is a config value. Playtests set it.
+- The processor takes the three shared chips (section 11.8).
+- The project lead did not decide whether a netherite tank is in Beta for the processor.
+
+**M4 and follow-up open items, decided by the project lead on 2026-10-12:**
+
+- Beta has no netherite tank for the processor (D143). Beta has no extra tiers.
+
+**Superseded on 2026-10-12 by the M4 and follow-up pass:**
+
+- The project lead did not decide whether a netherite tank is in Beta for the processor. (Now Beta has no netherite processor tank.)
+
+**Final open items and draft reviews, decided by the project lead on 2026-10-13:**
+
+- By-products: about 70 % sand or gravel, 25 % nuggets and 1 % diamond. So about 1 run in 100 gives a diamond. These are config values.
+
 ### 11.5 Sequencer and storage
 
 - Each sample adds its percent to the species entry. The maximum is 100%.
@@ -1454,6 +1625,26 @@ In play on the branch, each chunk has fossils and processing time is the only li
 - The data is on the drive item. A drive has no capacity limit.
 - The SSD is faster than the hard drive. It has no other difference.
 - The DNA server block is not in Beta.
+
+**M1 open items, decided by the project lead on 2026-10-12:**
+
+- A sequencing run uses up the DNA of the sample. The empty tube or syringe returns to the player for reuse.
+- The monitor glows while the sequencer works. A lit texture on the monitor shows it.
+- The rings on the sequencer screen turn once every 20 seconds.
+- The project lead did not decide whether the Ender SSD is in Beta.
+
+**M4 and follow-up open items, decided by the project lead on 2026-10-12:**
+
+- The Ender SSD is not in Beta (D142).
+- Tests use drives with 1,000 entries. A player has no entry limit (D32).
+
+**Superseded on 2026-10-12 by the M4 and follow-up pass:**
+
+- The project lead did not decide whether the Ender SSD is in Beta. (Now the Ender SSD is not in Beta.)
+
+**Final open items and draft reviews, decided by the project lead on 2026-10-13:**
+
+- The card of a vanilla animal shows the time period "Modern" and the real diet of the animal. Each vanilla animal has a data entry.
 
 ### 11.6 Gene editing
 
@@ -1522,6 +1713,7 @@ The immunity gene stays in Beta. The design document says that immunity is resis
 - The table "Vanilla Animal DNA Effects" is the source for the gene values (section 7.5).
 - Where the code and the table differ, the table value replaces the code value.
 - Frog, camel, sniffer, armadillo, nautilus and the wolf variants get entries after the port (section 11.17).
+- Allay, strider, tadpole, happy ghast and sulfur cube give no usable DNA. The project lead decided this on 2026-10-10 (register D64).
 - Villager DNA gives each gene a random value each time a player uses it. This effect is in Beta.
 
 **Appearance:**
@@ -1543,6 +1735,111 @@ The immunity gene stays in Beta. The design document says that immunity is resis
 - Diet genes, quirks and donor palette shifts are in Beta.
 - Hybrids are not in Beta.
 
+**M1 open items, decided by the project lead on 2026-10-12:**
+
+- From 50%, the player can move the donor sliders. The gene sliders unlock at 70%.
+- The primary and secondary colour swatch swap of the 2022 video stays.
+- The risk panel is a strip under the effect panel in both views. The synthesis tab shows a one-line summary.
+- Attack and defense edits need 90% of the base dinosaur. This rule comes from the design document.
+- The number of clones limits the edits. Each 3 clones that hatch give one more edit slot. This rule comes from the design document.
+- The hard drive stores the clone count. A player who shares the drive shares its edit slots.
+
+**M1 follow-ups, decided by the project lead on 2026-10-12:**
+
+- The clone count counts hatches. Each egg records its drive.
+- After a hatch, the drive adds the hatch to its count the next time the drive is in a sequencer.
+- The project lead did not decide the starting edit slots of a new drive (D140).
+
+**M2 open items, decided by the project lead on 2026-10-12:**
+
+- Special genes need DNA of the base dinosaur: 1 special gene at 50%, 2 at 75% and 3 at 100% (D51). This rule comes from the design document.
+- Velociraptors have hyper intelligence by default (D43). The Special Genes document wins.
+- Thermal detection is for Tyrannosaurus, Velociraptor and Dilophosaurus. Bioluminescence is for all six species (D42).
+- The project lead did not decide which species can have camouflage.
+- The gender swapping gene works only in a group of one gender, with no animal of the other gender.
+- Bioluminescence uses one glow mask for each species, 6 textures in total. All skin sets of a species use its mask.
+- A new basic gene, Lower Threshold Stress, increases the stress threshold of the species. Calm animals, for example the cat and the sheep, are donors. It is a number gene, not a special gene.
+- The scent gene (RC9, D48) has no use, because Beta has no scent (section 11.10).
+- Lysine contingency:
+  - A full lysine reserve lasts 3 in-game days (72,000 ticks).
+  - An animal with an empty reserve falls into a coma. It dies 1 in-game day (24,000 ticks) later. These are config values.
+  - Food with much lysine, for example chicken and eggs, adds to the reserve.
+  - The project lead did not decide whether a "Lysine Pills" item is in Beta.
+- Each quirk plays at a random time every 2 to 5 minutes (2,400 to 6,000 ticks). This is a config value.
+- A young animal gets each quirk of a parent at a 50% chance. Each parent that has the quirk gives one roll.
+- Gene effects (D112). In the list, I is the intelligence value of the animal. Playtests tune all of these values.
+  - Intelligence: the search radius is × (0.75 + 0.05 × I). The retry delay is ÷ the same factor. Detection gets + I points.
+  - A smart animal stops sooner when it cannot reach a target. Its memory of failed targets is × (1 + 0.05 × I).
+  - Aggression of +50% or more makes a species that is neutral when fed into a species that warns and attacks.
+  - Tamability: the trust threshold is ÷ (1 + gene %). The minimum is a quarter of the base threshold.
+  - Nocturnal: a value below ±50% moves the edges of the sleep window by up to 2 hours (2,000 ticks). At ±50%, the window moves a full step (D49).
+  - A standing animal retreats from an attacker with more than 2 × its threat.
+  - Heat resistance decreases the path cost near fire, lava and magma blocks.
+
+**M4 and follow-up open items, decided by the project lead on 2026-10-12:**
+
+- A new hard drive starts with 2 edit slots. Each 3 clones that hatch from it add one more (D140).
+- The stat trade-offs are five pairs. They grow with the donor share and the number of edits (D45):
+  - more speed gives less maximum health
+  - more strength gives more hunger
+  - more size gives less speed and more hunger
+  - more defense gives less speed
+  - more health gives slower regeneration.
+- Abnormal behaviour is a separate list. A risky genome can roll one entry at the hatch (D44):
+  - stresses easily (threshold −20)
+  - day and night flipped
+  - loner (maximum group 1)
+  - more aggressive (+30%). The animal still warns before it attacks.
+- A strong jump edit can clear the low-security fence of 3 blocks. High-security fences still hold. The jump limit stays below the height of a high fence (D47).
+- Mob variants change the colour only (D65). Green parrot DNA gives a raptor a green colour shift. No skin has the name "Delta" (D67).
+- The cosmetic extras of the older design document stay: turtle DNA gives a greener skin, and rabbit DNA increases the albino chance. The stat numbers come from the new table only (D68).
+- Gene effects are in code for Beta. Data-pack editing of genes comes after Beta (D30).
+- The incubator has no sex lever. Gender comes only from the gene rule (D73).
+- Camouflage is for Tyrannosaurus, Velociraptor and Dilophosaurus (D42).
+- Every Dilophosaurus has poison from the hatch, as every Velociraptor has hyper intelligence (D181).
+- The gene "Lower Threshold Stress" has the new name "Stress Tolerance". It increases the stress threshold.
+- Lysine comes from food only. Beta has no "Lysine Pills" item (D170).
+- When the nocturnal gene moves a diurnal species to cathemeral, the species gets windows of its own. Claude drafts them for each herbivore, and the project lead reviews the draft (D182).
+
+**Superseded on 2026-10-12 by the M4 and follow-up pass:**
+
+- The project lead did not decide the starting edit slots of a new drive (D140). (Now a new drive has 2 edit slots.)
+- The project lead did not decide which species can have camouflage. (Now Tyrannosaurus, Velociraptor and Dilophosaurus.)
+- A new basic gene, Lower Threshold Stress. (Now the gene has the name Stress Tolerance.)
+- The project lead did not decide whether a "Lysine Pills" item is in Beta. (Now Beta has no such item.)
+
+**Final open items and draft reviews, decided by the project lead on 2026-10-13:**
+
+- The range of a gene slider grows with the DNA %. It is ±10 % of the species base at 70 %, and it grows in a line to ±30 % at 100 %. At 80 % it is ±17 %.
+- To pick a donor, the player clicks an empty donor row. Then the player clicks an animal in the DNA list on the right. The slider of the row sets the share.
+- The project lead accepts the risk curve of Claude. Playtests tune it:
+  - incubation failure = 25 % × (donor share ÷ 50 %)² + 2 % for each edit
+  - abnormal behaviour = 10 % × (donor share ÷ 50 %)² + 1 % for each edit
+  - trade-off strength = 20 % + 60 % × (donor share ÷ 50 %)² + 5 % for each edit, at most 100 %
+  - Example: a 40 % bee donor with no edits gives 16 %, 6 % and 58 %.
+- An unsigned value in the donor table is an increase (D66).
+- A young gets the abnormal behaviour of one parent with a chance of 50 %.
+- The project lead accepts the draft of skin sets by biome for the Tyrannosaurus, the Triceratops, the Gallimimus, the Brachiosaurus and the Dilophosaurus.
+- Velociraptor:
+  - From fossils, a raptor of a Nublar biome is Nublar, with the Nublar crest. A raptor of a Sorna biome is Sorna, with the Sorna crest.
+  - Both quill sets belong to the Sorna genome. A male Sorna clone gets "with quills" or "with arm quills" at random.
+  - Mixed looks come only from a Nublar and Sorna pair that breeds, or from advanced gene editing after the player unlocks both sets. The mixed looks are Nublar with quills, Nublar with the Sorna crest and Sorna with the Nublar crest.
+  - The rule for the crest and the quills of a young from a mixed pair stays open (D249).
+
+**Last open items, decided by the project lead on 2026-10-13 (Z-8):**
+
+- A young of a Nublar and Sorna pair gets each trait from a random parent. Each trait has its own roll: the base skin set, the crest and the quills (D249).
+- Gene effects (D112):
+  - Camouflage only makes an animal hard to see. A camouflaged ambusher waits as long as one without camouflage.
+  - Llama DNA: a tame animal carries a few items for its owner, like a llama with a chest.
+  - Llama DNA: the animal can spit. The spit gives a small knockback and no damage.
+  - The cocoa allergy of the parrot is not in Beta.
+
+**Superseded on 2026-10-13 by the last open items (Z-8):**
+
+- Diet genes, quirks and donor palette shifts are in Beta. The quirks include the cocoa allergy of the parrot. (Now the cocoa allergy is not in Beta. The other quirks stay.)
+- The rule for the crest and the quills of a young from a mixed pair stays open (D249). (Now each trait comes from a random parent.)
+
 ### 11.7 Synthesis, egg printer, incubator and hatch
 
 - The bird embryo joins the DNA in synthesis.
@@ -1550,7 +1847,7 @@ The immunity gene stays in Beta. The design document says that immunity is resis
 - The egg printer takes that syringe and bone meal. It gives the unincubated egg.
 - The design removes the crafting recipe for the unincubated egg.
 - The incubator holds 3, 6 or 9 eggs.
-- The incubator needs power, a bulb and plant matter. Incubation stops if one of them is absent.
+- The incubator needs power and plant matter. Incubation stops if one of them is absent. The built-in lamp is the base bulb (2026-10-12).
 - The player puts each egg on the bed. The arm turns the eggs.
 - An egg with no heat or no plant matter for too long dies.
 - The player puts the incubated egg on the ground. It hatches there.
@@ -1561,7 +1858,54 @@ The immunity gene stays in Beta. The design document says that immunity is resis
 - The tooltip does not show the rolled variation. The project lead decided this on 2026-10-06.
 - The machine time for one dinosaur is about 50 minutes at the base tier.
 - The project lead said that this time is "about right".
-- Incubation time is different for each species. Playtests set the final times.
+
+**M1 open items, decided by the project lead on 2026-10-12:**
+
+- Synthesis: the amounts of water, sugar, bone matter and plant matter per run come from the 2022 video (7:20 to 7:35). They are config values. Playtests set them.
+- A bone block counts as 9 bone meal.
+- Plant matter is an item tag list in the config: leaves, saplings, wheat, kelp, grass and flowers, also from other mods.
+- Cancel gives back the bird-embryo syringe and the ingredients that the run did not use. A cancelled run uses no DNA from the drive.
+- The diamond chip also makes synthesis faster. Its time is not set.
+- Egg printer: a failed print kills the embryo. The egg on the platform breaks with an effect. The player gets a cracked artificial egg, the bone meal and the empty syringe.
+- The artificial egg stays in the game only as this failed-print result.
+- An idle printer shows a ghost egg outline. During a print, the platform shows the egg model of the species with the printed texture.
+- Incubator: the built-in lamp is the base bulb. The incubator runs with no bulb item.
+- While it incubates, the incubator gives light. The light level is 9 with the base lamp, 11 warm, 13 warmer and 15 hot.
+- Each egg turns every 5 minutes. The arm visits every egg. The arm moves at an even speed, as in the original.
+- An egg that stalls for 5 minutes dies. This is a config value.
+- Plant matter drains per incubator, not per egg. The rate is a config value. Playtests set it.
+- In Beta, incubation takes 30 minutes for every species. Playtests tune this time.
+- Egg models: Brachiosaurus `round`, Tyrannosaurus `tyrannosaurus`, Triceratops `tall_3`, Gallimimus `normal`, Velociraptor and Dilophosaurus `velociraptor`. These are folders of the asset repository.
+- A natural (bred) egg has the colours of its species on that model.
+- The placed egg is an entity, not a block. Dinosaurs can push it.
+- The shake starts at once when the player places the egg. The baby comes out 60 seconds after placing.
+- Before the hatch, the egg shakes for 60 seconds in 3 stages. While it incubates, an egg rocks about 4 degrees at a random time every 30 to 90 seconds. The egg in the claw does not rock.
+- A lab egg uses a lab hatch rate of its species. The species data holds it, apart from the nest rate of the species card. These are config values. Playtests tune them.
+
+**Superseded on 2026-10-12 by the M1 open-items pass:**
+
+- The incubator needs power, a bulb and plant matter. Incubation stops if one of them is absent. (Now the built-in lamp is the base bulb. Incubation stops without power or plant matter.)
+- Incubation time is different for each species. (Set aside for Beta: every species takes 30 minutes.)
+
+**M4 and follow-up open items, decided by the project lead on 2026-10-12:**
+
+- The start values of the lab hatch rate depend on the size of the species. Small species (Velociraptor, Dilophosaurus, Gallimimus) start at 95%. Large species (Tyrannosaurus, Triceratops, Brachiosaurus) start at 75%. These are config values (D147).
+- A hatchling has no owner. It stays wild until a player tames it (D17).
+- A bred young gets its genome when the egg is laid. The egg stores the mix of the parents, and a player can take a sample of it. A small variation rolls at the hatch (D71).
+
+**Final open items and draft reviews, decided by the project lead on 2026-10-13:**
+
+- The egg printer uses 16 bone meal for each egg, so a stack prints 4 eggs.
+- The lamps of the egg printer glow while it prints.
+- The uncracked artificial egg sprite leaves the mod. The cracked artificial egg stays as the failed print.
+- The claw of the incubator opens while the arm reaches, closes on the egg and opens at release. The fingers are separate bones, so the claw needs no new art.
+- The incubator has no water-bottle input.
+- A printed egg has one texture for each egg model, 5 in total. Code adds a tint for each species.
+- A natural egg in a nest waits 3 in-game days (72,000 ticks) after the female lays it. Then the shake of 60 seconds starts. Lab eggs do not wait.
+
+**Last open items, decided by the project lead on 2026-10-13 (Z-8):**
+
+- A natural egg that fails to hatch cracks open. It drops tissue, a DNA source for the fossil processor. Then it vanishes (D255).
 
 ### 11.8 Machine framework
 
@@ -1570,11 +1914,81 @@ The immunity gene stays in Beta. The design document says that immunity is resis
 - Upgrades change the look of the machine. Dye changes the colour of the sequencer.
 - A faster chip uses more power.
 - A machine with no power stops. A machine that does no work uses no power.
-- The project lead did not select a limit on the number of upgrades.
 - A player changes between linked machines with tabs and stays in the screen.
 - The mod has its own power conduit. Energy cables of other mods must also work.
 - Each machine, part and upgrade has a recipe from vanilla materials.
 - No part comes only from loot or trade.
+
+**M1 open items, decided by the project lead on 2026-10-12:**
+
+- A machine takes at most 3 upgrades, as the design document says. No machine has more than 3 upgrade slots today, so the limit has no effect now.
+- No upgrade blocks a different upgrade. Some upgrades cost more power as their drawback. The project lead did not name these upgrades.
+- No upgrade gets a new model part. The processor tanks and the sequencer chip cubes use parts that exist. Every other upgrade changes the texture of a bone that exists.
+- When the player replaces an upgrade, the old upgrade comes back.
+- The tabs show every machine on one conduit or generator network.
+- Three shared chips (iron, gold, diamond) fit the processor, the sequencer and the egg printer.
+- The part names come from the 2022 video: Base, Needle, Platform and Body.
+- Claude drafts every recipe from vanilla materials. The project lead reviews the draft. The project lead did not decide three points: whether iron gates the first lab, which recipes take special pieces, and the emerald tank.
+- The advancements include the first fully upgraded machine.
+- Machine sounds (the asker's reading of the answer): each machine uses its own sound where one exists. It uses a generic lab sound for the rest. The artist also makes sounds of its own for each machine.
+- Generators get their own sounds. As a style reference for the artist, the project lead suggests the machinery sounds of Jurassic World Evolution 2 and 3.
+- The basic generator shows a glowing flame and smoke while it burns. It gives light level 13.
+- The power conduit is a thin cable block.
+- Claude drafts the generator output and the machine draw from the section 11.11 target. The project lead reviews the draft.
+
+**Superseded on 2026-10-12 by the M1 open-items pass:**
+
+- The project lead did not select a limit on the number of upgrades. (Now the limit is 3 per machine.)
+
+**M1 follow-ups, decided by the project lead on 2026-10-12:**
+
+- The advancements also include the first amber, the first 50% genome, the first edit and the first embryo (D148).
+
+**M4 and follow-up open items, decided by the project lead on 2026-10-12:**
+
+- The base machines need some gold. As a result, the first lab comes after a trip to deep mines or to the Nether. The recipe draft follows this rule.
+- No recipe uses a special piece.
+- Beta has no emerald tank, no netherite processor tank and no Ender SSD.
+- The control room in Beta has the fence switch only. Alarms, cameras and the status board come after Beta (D28).
+- Machines and feeders give no comparator output. This is the reading of the asker for D27 and D28.
+
+**Superseded on 2026-10-12 by the M4 and follow-up pass:**
+
+- The project lead did not decide three points: whether iron gates the first lab, which recipes take special pieces, and the emerald tank. (Now some gold gates the first lab, no recipe takes special pieces, and Beta has no emerald tank.)
+
+**Final open items and draft reviews, decided by the project lead on 2026-10-13:**
+
+- The project lead accepts the recipe draft with changes:
+  - The lab costs a third less: about 45 iron and 4 gold ingots. Each machine has 1 gold ingot in its precision part.
+  - The player crafts each upgrade fresh. A higher tier does not use up the lower tier.
+  - A larger feeder uses the feeder below it as an ingredient.
+  - Copper is the metal for wiring. The wire spool uses iron and copper.
+  - The hot bulb uses blaze powder. The SSD and the leveling sensor use nether quartz. The large container stays at the gold tier.
+  - The netherite tank of the sequencer stays (300 %, `_Cloning Process.docx`). No other recipe uses netherite.
+  - Each craft gives 3 test tubes, 1 identification tag or 16 power conduits.
+  - The recipe book unlocks the lab parts when the player picks up the first fossil or amber.
+  - Ids change: `coal_generator` to `basic_generator`, `iron_plant_tank_ugprade` to `iron_plant_tank_upgrade`, and the two carnivore feeders to `small_carnivore_feeder` and `large_carnivore_feeder`.
+  - A new wrench item changes the variation of a vehicle. No draft exists yet for its recipe, or for the recipes of the vehicles, the track block and the stop marker (D250).
+- Power: only chips and bulbs cost more power. Each run of the iron, gold or diamond tier costs 5, 10 or 15 % more energy. Filters, the leveling sensor, containers and tanks cost no extra power.
+
+**Last open items, decided by the project lead on 2026-10-13 (Z-8):**
+
+- The four machines alone cost about 45 iron and 4 gold ingots. Each machine has 1 gold ingot in its precision part.
+- The whole first setup costs about 60 iron. It adds the basic generator, the hard drive, the iron filter and a syringe to the four machines.
+- The project lead set the recipes of the vehicle parts, the wrench, the tour track and the stop marker (D250). Section 11.12 has the vehicle rules.
+- Beta has no identification tag, so it has no recipe for the tag.
+
+**Superseded on 2026-10-13 by the last open items (Z-8):**
+
+- The lab costs a third less: about 45 iron and 4 gold ingots. The plan read this sum as the whole first lab, with about 28 for the four machines. (Now the four machines alone cost about 45, and the whole first setup costs about 60.)
+- No draft exists yet for the recipes of the wrench, the vehicles, the track block and the stop marker (D250). (Now the project lead set each recipe.)
+- Each craft gives 1 identification tag. (Now Beta has no tag.)
+
+**Lab part recipes, decided by the project lead on 2026-10-13:**
+
+- The project lead approved the grids of all 17 machine parts (D256). No lab part uses a stone material. Quartz slabs replace smooth stone.
+- The four machines cost about 50 iron, 4 gold ingots and 14 quartz slabs. This replaces the Z-8 sum of about 45 iron.
+- The first lab needs nether quartz, so the player must go to the Nether. The project lead accepts this gate.
 
 ### 11.9 Dinosaurs
 
@@ -1613,6 +2027,57 @@ The immunity gene stays in Beta. The design document says that immunity is resis
 - The neck and the tail bend away from blocks (server-side IK). The feet sit on the ground (client-side IK).
 - Eating and drinking count only when the head touches the source. The animal must be able to reach it.
 
+**M2 open items, decided by the project lead on 2026-10-12:**
+
+- Growth and remains:
+  - The project lead accepted the growth times of section 11.16. In in-game days, they are:
+    - Velociraptor 29, Dilophosaurus 31 and Gallimimus 31
+    - Triceratops 47, Brachiosaurus 57 and Tyrannosaurus 45
+  - The contentment effects of section 11.10 change the growth rate.
+  - Each species uses the size ratios of the Tyrannosaurus. A hatchling is 8% and an infant is 32% of the adult height.
+  - A carcass stays for 1 in-game day (24,000 ticks). Then it decays.
+  - The special drops are only the raptor toe claw, the Triceratops horn and the Tyrannosaurus tooth. No other species drops teeth.
+  - The project lead accepted the hit-part layouts of the other five species: Tyrannosaurus 13 parts, Triceratops 12, Brachiosaurus 17, Velociraptor 12 and Dilophosaurus 11.
+  - Playtests tune the growth times and the size ratios.
+- Looks:
+  - Albino and melanistic morphs are tints of the normal layers. They need no new textures.
+  - The Velociraptor Sorna variant uses its own JP3 model and the Sorna list of 21 clips (D90).
+  - In Beta: both Velociraptor quill sets (D94) and the Dilophosaurus JWD skin (D89).
+  - Not in Beta: the Big Eatie and Little Eatie looks of the Tyrannosaurus (D87).
+  - Not in Beta: the Jurassic World looks of the Tyrannosaurus, Velociraptor and Triceratops.
+  - The Dilophosaurus JPTG skin has one body for both genders. The female is larger than the male. The male tint is fainter and less vivid than the female tint. The note of the lead was cut off, so "than the female" is a reading.
+  - Claude drafts a table for each species that maps biomes to skin sets. The project lead reviews the draft.
+- Sounds and clips:
+  - The project lead sources the dinosaur sounds from Jurassic World Evolution 3.
+  - Until then, shared sounds are placeholders. A placeholder sound still counts as missing on the art list. The shared carnivore eat sound stays.
+  - Each species gets its own yawn, sneeze and snort sounds. Hatchlings get their own sounds, not adult sounds at a higher pitch.
+  - The Velociraptor threat screech is separate from its pack call. It has its own clip and sounds.
+  - These animations each need their own clip: Brachiosaurus rest, sit and sleep, Triceratops sit, and the Dilophosaurus roar for older and young animals. Until then, the current clips are placeholders.
+  - Every species gets the extra clips of the Tyrannosaurus card: startled, shake body, scratch and speak.
+  - Below 30% health, a limp replaces the walk (D92). This is a config value. Each species needs a new limp clip on the art list. Until then, the Tyrannosaurus and the Triceratops use their "injured" clip.
+- Visual effects: the F2.3 effect list stays, with two changes.
+  - The Gallimimus gets blood drips and a bloody mouth.
+  - Screen shake is for the Tyrannosaurus, the Triceratops and the Brachiosaurus.
+
+**Superseded on 2026-10-12 by the M2 open-items pass:**
+
+- The special drops are the raptor toe claw, the Triceratops horn and teeth. (Now only the Tyrannosaurus drops a tooth.)
+- The project lead reviewed the Gallimimus layout only. (Now the project lead accepted the layouts of all six species.)
+
+**M4 and follow-up open items, decided by the project lead on 2026-10-12:**
+
+- The skin layers are textures that the CPU bakes. The mod has no core shader, so the skins work with shader packs (D69).
+- The analysis measures the Brachiosaurus movement on 26.2 first. The mod changes vanilla code only if the tests show lag (D70).
+- Raptors leap now with the current pounce clip. A clip with a crouch before the leap goes on the art list for later (D53).
+- Stalking uses the walk clip at half speed until crouch art exists (D59).
+
+
+**Final open items and draft reviews, decided by the project lead on 2026-10-13:**
+
+- Bloody claw overlays are for all carnivores: the Tyrannosaurus, the Velociraptor and the Dilophosaurus.
+- The project lead accepts the warning sounds: Tyrannosaurus roar, Velociraptor screech (apart from the pack call), Dilophosaurus hoot with the frill open. Also Triceratops snort for domination, Brachiosaurus bellow and Gallimimus alarm screech.
+- The snort has no clip. It plays over the idle or the sniff clip.
+- Only the Tyrannosaurus and the Velociraptor play a nesting clip. The other species play an idle clip.
 
 ### 11.10 Needs and behaviour
 
@@ -1622,7 +2087,7 @@ The immunity gene stays in Beta. The design document says that immunity is resis
 
 **Results of a need that the park does not supply:**
 
-- The animal attacks fences to escape.
+- The animal does not attack fences. Only a Tyrannosaurus breaks a fence, and only an unpowered one, at any need level (fence parity F29, 2026-10-10).
 - The animal becomes aggressive.
 - The animal loses health and dies.
 - After an animal satisfies a need, a cooldown starts. During the cooldown, the animal does not look for that need again.
@@ -1706,6 +2171,173 @@ The immunity gene stays in Beta. The design document says that immunity is resis
 - Distance and activity set a 25 to 85% chance that an animal detects a player.
 - Vision that needs movement is not in Beta.
 
+**M2 open items, decided by the project lead on 2026-10-12:**
+
+- Contentment (D109, D110):
+  - A content animal grows 10% faster and heals 25% faster. A distressed animal grows 25% slower and heals at half rate.
+  - The project lead did not decide an effect for an uneasy animal. The default is no effect.
+  - The seven parts of the score and their weights: hunger 20, thirst 20, rest 10, company 15, stress 15, health 10 and safety 10.
+  - The score is never more than the worst part + 50.
+  - The bands are at 70 and 40, with a hysteresis of 5.
+  - The hover box shows the score within 24 blocks. The project lead did not decide whether the box shows text only.
+  - Playtests tune these values.
+- Active hours (D97, D98):
+  - Tyrannosaurus, Velociraptor and Dilophosaurus are cathemeral. Each species has two sleep windows of its own. Triceratops, Brachiosaurus and Gallimimus are diurnal.
+  - Tyrannosaurus: 22:00 to 03:00 and 13:00 to 15:00 (ticks 16,000 to 21,000 and 7,000 to 9,000). This proposal is the config default. Playtests tune it.
+  - Velociraptor: 02:00 to 05:00 and 12:00 to 14:30 (ticks 20,000 to 23,000 and 6,000 to 8,500).
+  - Dilophosaurus: 08:00 to 11:00 and 14:00 to 16:00 (ticks 2,000 to 5,000 and 8,000 to 10,000).
+  - At the hatch, each animal rolls a fixed offset of up to ±30 minutes (500 ticks). A herd or a pack uses the offset of its leader, so the group sleeps together.
+  - The old label "dawn and dusk" was wrong. The old values were midnight and noon.
+- Stress (D13, D88, D99, D103):
+  - Each species has one stress threshold in its species data. The default is 50. Males and females use the same threshold. A higher stress value is worse.
+  - An animal is uneasy from 20 below its threshold. An uneasy animal sits half as often and calls 2 times as often.
+  - A stressed animal never sits and calls 3 times as often.
+  - Stress changes by one step every minute (1,200 ticks).
+  - Stress of 100 does no damage.
+  - Playtests tune these values.
+- Thirst (D104): an animal searches for water at 75% thirst and runs to water at 25%. At 0 thirst, it loses 1 HP (½ ♥) every 40 ticks (2 seconds).
+- Aggressive animals (D102):
+  - The notice range is 50% larger, and the warning cooldown is half.
+  - A species that stands attacks a player also outside its personal space, after a warning.
+  - A species that flees still flees.
+- Lost sleep (D105): an animal that misses a sleep window is "Tired".
+  - Its rest part stays at 50 or less until its next full sleep.
+  - Its stamina regenerates at half rate.
+  - Each missed window adds one stress step.
+- Need cooldown: after an animal eats or drinks, the cooldown is 3 minutes (3,600 ticks). The project lead asked for more than 1 minute. The 3 minutes are a Claude default for the project lead to review. It is a config value.
+- Diet:
+  - Gallimimus is an omnivore. It eats plants and small meat (dropped meat and eggs). It uses both feeders.
+  - Food value uses five food tiers by item tag, as the plan says. The clade chunks of issue #6 are not used.
+  - The hunger and thirst values of each species are in section 11.16.
+- Feeding spots (D111):
+  - Each eater has a gap of 0.5 blocks.
+  - An animal eats for at most 30 seconds while others wait.
+  - Waiting animals stand in a ring 6 blocks from the food.
+  - Between groups and species, the animal that waited longest eats first.
+  - The claim times (100 and 200 ticks) and the food position of a herd stay plan defaults. They stay open.
+- Groups:
+  - The social need (D52) stays open.
+  - A herd above its maximum size divides into two herds. Each herd has its own leader. Crowding causes no stress (D106).
+  - The project lead did not decide the time after which an animal alone becomes urgent.
+  - Play (D107): content young animals chase each other with the current clips, for example run and the raptor pounce. Play does no damage. No species has a play clip.
+  - A pack that loses its leader first flees to a safe place. Then the two members with the highest dominance compete for leader.
+  - A pack below its minimum size flees from large threats.
+  - A lone pack member searches for a different pack in range. If it finds none, it is lonely.
+- Calls (D101): Tyrannosaurus about every 5 minutes. Velociraptor and Gallimimus about every 1 minute. Triceratops, Brachiosaurus and Dilophosaurus every 2 to 3 minutes. Playtests tune these values.
+- Tame and young animals (D108):
+  - A tame animal keeps its daily rhythm. It sleeps in its window and calls. It does not follow its owner while it sleeps.
+  - The "stay" command stops only journeys, social moves and breeding. The animal still eats, drinks and sleeps where it stays.
+  - A baby takes one more nap each day and sleeps longer at night. It calls 2 times as often as an adult.
+- Breeding (D79, D20):
+  - Claude drafts the clutch size and the nest hatch rate for each species, with the basis. The project lead reviews the draft.
+  - From mating to laying takes 1 in-game day (24,000 ticks).
+  - One nest block serves all species.
+  - A bred animal is male or female at a 50% chance each.
+  - Breeding has no cap.
+- Warnings and defence:
+  - The Brachiosaurus defends itself. After a roar warning, it attacks with a tail whip and a stomp (D13, D50).
+  - The Dilophosaurus warns with its "intimidate" clip, converted from the repository. If the player stays, it spits.
+  - A roar scares passive mobs and villagers near the animal for a few seconds.
+  - Villagers flee from loose carnivores, as they flee from zombies (D19).
+- Detection:
+  - Beta has no scent. Animals detect by sight and sound only. A predator that loses sight of its target searches the last spot where it saw the target. D16 has no use.
+  - The detection chance follows the activity of the player: sneak 25%, walk or stand 40%, sprint, jump or hit 60%, and loud 85%.
+  - Loud means a weapon, block breaking, a vehicle or other noise. Playtests tune these values.
+- Personal space:
+  - Each animal has a circle around it. Body size sets the radius. A noticed player inside the circle gets a warning, then an attack.
+  - The defaults include Tyrannosaurus 10 blocks and Velociraptor 6 blocks. These are config values.
+  - Young provoke always: a noticed player near a baby provokes its parents at any distance where they can see the player.
+  - The detection range stays separate from personal space.
+  - The project lead did not decide on a home territory or on the paddock as a territory.
+- Taming:
+  - Trust increases while the player is near a calm animal. Hand-feeding (right-click with its food) gives a large increase.
+  - Trust increases only while stress is below 20. The project lead dropped the rule of zero stress.
+
+**Superseded on 2026-10-12 by the M2 open-items pass:**
+
+- Creatures leave scent points that fade. Predators follow the points (decided on 2026-10-05). (Now Beta has sight and sound only.)
+- A carnivore attacks a player in its territory. (Now each animal has a personal space, and young provoke always. Home territory stays open.)
+- The Brachiosaurus flees from a threat (plan default D13). (Now it defends with a tail whip and a stomp after a roar warning.)
+- The stress threshold is 60 for males and 50 for females (design document). (Now each species has one threshold.)
+
+**M4 and follow-up open items, decided by the project lead on 2026-10-12:**
+
+- Threat (D13): each carnivore compares its own threat, plus the total threat of its pair or pack, with the threat of the attacker. It stands unless the attacker has more than 2 times that threat. This applies to Tyrannosaurus, Velociraptor and Dilophosaurus.
+- A species that flees, for example the Gallimimus, flees when a noticed player comes into its personal space. It gives no warning (D218).
+- An animal rolls to notice each player in range every 10 seconds (200 ticks) (D15).
+- A tame animal on "stay" can walk to food and water. Then it goes back to its spot.
+- Stress: each active cause adds 2 stress each minute. Playtests tune this value.
+- Lost sleep adds no stress. Lost sleep only keeps the rest part at 50 or less and halves the stamina regeneration. The stress causes stay food, water and company.
+- An animal alone becomes urgent after 3 in-game days (72,000 ticks) (D106).
+- The uneasy contentment band has no effect (D109).
+- The hover box shows icons only (D149): the name, a coloured face for the band and an icon for the worst need. It shows no band words. The art list has 3 faces and 7 need icons.
+- Hunts and packs:
+  - A Tyrannosaurus pair hunts as a team. One chases, and one goes around to stop the prey. A Dilophosaurus group hunts together (D54).
+  - A pack stops when the leader stops, the target is lost, or less than half of the pack still chases (D55).
+  - A pack makes a journey only when it is hungry, to find prey. At other times it wanders in its home area (D56).
+  - A pack adds its strength: the sum of its adults, at most 4 times the leader. A pack attacks prey that a lone hunter avoids (D58).
+  - A hungry Velociraptor or Dilophosaurus hides in cover near paths and jumps out at prey (D60).
+  - A starving carnivore can eat its own species, but never its own group or family (D62).
+- An animal avoids the place where it was hurt for a full in-game day (24,000 ticks), as a soft path cost (D61).
+- Alarm calls cross species. Each herbivore that hears an alarm becomes alert and reacts by its own rule. Groups never mix (D63).
+- A herd member can leave the herd for a need. A thirsty or hungry member goes to drink or eat, then it comes back. Fight chases are also exceptions (D36).
+- A herd in a fence selects journey targets inside its paddock only (D40).
+- Breeding has two more gates: full health, and no young of its own under half its size within 16 blocks (D72).
+- No species is easier for a new player (D76). Beta has no endgame. It is a sandbox (D77).
+- The project lead did not decide the social need (D52) or a home territory (D166).
+
+**Superseded on 2026-10-12 by the M4 and follow-up pass:**
+
+- Lost sleep: each missed window adds one stress step (M2 pass). (Now lost sleep adds no stress.)
+- The project lead did not decide an effect for an uneasy animal. (Now the uneasy band has no effect.)
+- The project lead did not decide whether the box shows text only. (Now the box shows icons only.)
+- The project lead did not decide the time after which an animal alone becomes urgent. (Now the time is 3 in-game days.)
+- The "stay" command lets the animal eat, drink and sleep where it stays. (Now it walks to food and water, then it goes back to its spot.)
+
+**Final open items and draft reviews, decided by the project lead on 2026-10-13:**
+
+- Loneliness is part of stress (D52). It has no bar of its own:
+  - Below the group minimum, stress rises over time.
+  - The hover box shows "lonely" when loneliness is the main cause.
+  - The company part of contentment reads the group size.
+  - "Alone" becomes urgent after 3 in-game days.
+- Nests:
+  - No nest model exists. The female builds a nest from vanilla blocks of her surroundings: leaves in a forest, sand in a desert, gravel near water.
+  - She plays her nesting clip or an idle clip. Then she lays egg entities in the nest.
+  - With mobGriefing off, or with no room, she lays the eggs on the ground.
+  - The nest blocks stay after the hatch, and the pair uses the nest again. The nest size follows the egg class.
+  - The breeding gate "nest" is a built nest or a free place to lay eggs.
+- Eggs count as young. Parents that see a player near their eggs warn and attack. Beta has no home territory (D166).
+- A claim on a feeder spot ends after 5 seconds if the animal did not arrive. A claim on a plant block ends after 10 seconds (D111).
+- Herd meals: the herd goes to one food source together. Each member claims its own spot there. A member with no spot waits up to 30 seconds. Then it can use other food in the herd area. All members regroup after the meal.
+- Need cooldown: 5 minutes (6,000 ticks) after an animal eats or drinks, unless the need is urgent (D160).
+- The safety part of contentment recovers 2 minutes after a hit. The memory of the place stays for 1 in-game day (D61).
+- A herd member leaves a journey for a need only at the urgent band, below 25 % (D36).
+- Personal space by body size: Tyrannosaurus 10, Brachiosaurus 10, Triceratops 8, Dilophosaurus 6, Velociraptor 6 and Gallimimus 5 blocks. Playtests tune them.
+- The project lead accepts the clutch sizes of the draft. Young do not count toward group size until they are adult.
+- Windows of a herbivore that the nocturnal gene shifts (config start values):
+  - Triceratops 00:00 to 04:00 and 11:00 to 13:00
+  - Brachiosaurus 01:00 to 04:00 and 15:00 to 16:00
+  - Gallimimus 23:00 to 03:00 and 09:30 to 11:00.
+- A shifted member keeps its own window, also in a herd. This is an exception to "the group sleeps together".
+
+**Superseded on 2026-10-13 by the final pass:**
+
+- Needs in Beta include the social need, a need of its own. (Now loneliness is part of stress, with no bar of its own.)
+- One nest block serves all species. (Now the female builds a nest from vanilla blocks of her surroundings.)
+- Need cooldown: 3 minutes, a Claude default. (Now 5 minutes.)
+- A thirsty or hungry member leaves the herd for a need. (Now it leaves only at the urgent band.)
+- The project lead did not decide the social need (D52) or a home territory (D166). (Now loneliness is part of stress, and Beta has no home territory.)
+
+**Last open items, decided by the project lead on 2026-10-13 (Z-8):**
+
+- The nocturnal window is 10:00 to 18:00 (4,000 to 12,000 ticks, 8 hours). This is the same total as a diurnal sleep (D252).
+- A failed natural egg cracks open, drops tissue and vanishes (D255).
+
+**Superseded on 2026-10-13 by the last open items (Z-8):**
+
+- The nocturnal window is 06:00 to 18:00 (0 to 12,000 ticks), a plan value. (Now 10:00 to 18:00.)
+
 ### 11.11 Power and fences
 
 **Power:**
@@ -1758,6 +2390,80 @@ The immunity gene stays in Beta. The design document says that immunity is resis
 
 The fence keeps one addition to the original: posts, the wire spool and the fence remover have survival recipes (section 11.8). The original fence items were in the creative tab only.
 
+**M2 open items, decided by the project lead on 2026-10-12:**
+
+- A hyper-intelligent animal that notices an unpowered fence walks to the dead section and climbs out (D46). This resolves RC23.
+- This rule is an exception to fence parity that the project lead approved. In the original, only the Tyrannosaurus walked to fences (F29).
+
+**Superseded on 2026-10-12 by the M2 open-items pass:**
+
+- Intelligent animals notice when a fence has no power. (Now a hyper-intelligent animal also walks to the dead section and climbs out.)
+
+**M3 open items, decided by the project lead on 2026-10-12:**
+
+- The voltage sign uses the empty-hand click of the original fence (F18). Each next click shows another of the three looks. The sign has no item and no recipe.
+- The fence gets three sounds that the original fence did not have:
+  - a hum near a live fence
+  - a zap when a live wire gives a shock
+  - a snap when a Tyrannosaurus breaks a wire.
+- The artist draws 12 fill stages for the icon of the wire spool.
+- The four fence kinds of the film (Perimeter, Large Carnivore, Small Carnivore, Light Herbivore) are not in Beta. Beta has the two posts of the original fence.
+- A shock does ½ ♥ (1 HP) and ignores armor, as in the original. A shock uses no energy.
+- A live fence stops a vehicle like a wall and gives the driver one shock.
+- Vanilla fences and walls hold dinosaurs with normal collision. Dinosaurs cannot break them.
+- The large generator has a screen of its own: fuel slots, a flame, an energy bar and the line status. Its green and red lights blink while it runs.
+- Playtests tune the values of the large generator. Claude drafts start values for review: 4 times the output of the basic generator, and fuel that lasts 2 times longer. That runs about 50 posts.
+- The player links a pylon to a pylon or to a post with the wire spool, at a distance of 32 blocks or less. A pylon also feeds the nearest post within 4 blocks. A pylon hums.
+- The grid remembers power. While the chunk of a generator is not loaded, its fence keeps its last power state. When the chunk loads, the generator burns fuel for the time that passed. The mod does not force chunks to load.
+- When the fuel ends, the fence uses the buffer of its posts (350 FE each), so it fades over some seconds.
+- Energy cables of other mods connect to generators and machines only. Posts, pylons and conduits do not connect to them.
+- The hover box is always on, and a client setting can hide it. Beta has no comparator output and no power meter block.
+- The project lead did not decide the look of the switch block or the decorative fence variants.
+
+**Superseded on 2026-10-12 by the M3 open-items pass:**
+
+- The fence keeps one addition to the original: survival recipes. (Now the fence has four additions: survival recipes, the switch, the three fence sounds and the climb-out of a hyper-intelligent animal at a dead section.)
+- Only a loaded generator powers a fence (survey default O7, section 12.2). (Now the grid remembers power while the chunk of a generator is not loaded.)
+- Generators give a comparator signal (survey default O13, section 12.2). (Now Beta has no comparator output.)
+- A vehicle stops at an electric fence and gets no shock (survey default O12). (Now a live fence also gives the driver one shock.)
+
+**M4 and follow-up open items, decided by the project lead on 2026-10-12:**
+
+- An empty-hand click on a wire hangs the voltage sign (F18). More empty-hand clicks on the wire show look 1, 2, 3, then 1 again. A sneak-click removes the sign. A click on a post still turns the post (F7).
+- The icon of the wire spool shows the 10 stages of the asset repository, not 12. This is a change from the original fence (F22) for art reasons.
+- The fence switch looks like a vanilla lever on a metal post plate. It is a small new model (D186).
+- Beta has no decorative fences.
+
+**Superseded on 2026-10-12 by the M4 and follow-up pass:**
+
+- The artist draws 12 fill stages for the icon of the wire spool. (Now the icon shows the 10 stages of the asset repository.)
+- The project lead did not decide the look of the switch block or the decorative fence variants. (Now the switch is a lever on a post plate, and Beta has no decorative fences.)
+
+**Final open items and draft reviews, decided by the project lead on 2026-10-13:**
+
+- The project lead accepts the draft of the power numbers:
+  - The basic generator makes 200 FE per tick. The large generator makes 800 FE per tick, 4 times as much, and its fuel lasts 2 times longer.
+  - Energy cables of other mods can take the full output of a generator.
+  - A machine draws 20 FE per tick at base tier. Each run of a faster chip or bulb costs 5, 10 or 15 % more energy.
+  - The diamond chip makes synthesis take 2 minutes.
+- Overload: when the demand is more than the supply, the generator trips. It stays off until the player removes load or adds a generator. The project lead: "the player has to build another generator, this is a gameplay decision."
+- One feed point carries about 31 posts. A large fence needs more feed points: pylons or generators.
+- A conduit network has no capacity limit.
+- A generator with no fuel runs about 5 seconds on its buffer. Then the lamps go dark post by post over about 2 seconds. A developer decides whether the catch-up burn after a chunk load makes energy.
+- Pylon design:
+  - The pylon head sits on top of the fence pole block. One pole block serves as a fence pole or a pylon pole.
+  - The player sets the height of each pole. Whether a pole with fence wires keeps the parity height stays open (D253).
+  - A pylon cable behaves like a fence wire, in any direction and on any slope. One cable costs ceil(length ÷ 20) spools. The height does not count.
+- The fence gets a power-up hum and a power-down click.
+
+**Last open items, decided by the project lead on 2026-10-13 (Z-8):**
+
+- Only a pole that the player uses as a pylon takes any height. A fence post keeps the heights of the original fence: 3 blocks (low) and 8 blocks (high). Fence parity holds (D253).
+
+**Superseded on 2026-10-13 by the last open items (Z-8):**
+
+- The player sets the height of each pole. Whether a pole with fence wires keeps the parity height stays open (D253). (Now only a pylon pole takes any height.)
+
 ### 11.12 Feeders, tablet, plants, vehicles and guns
 
 - Beta has a carnivore feeder and a herbivore feeder. This answers the question about the feeder on `1.20.1-ai`.
@@ -1780,6 +2486,104 @@ The fence keeps one addition to the original: posts, the wire spool and the fenc
 - The player sets stops on the track. The Ford Explorer stops at each one.
 - The Ford Explorer can do the tour with no driver.
 - Some guns are in Beta. The kinds of gun are not decided (section 11.14).
+
+**M3 open items, decided by the project lead on 2026-10-12:**
+
+- Seven feeders are in Beta. Each feeder is a block of its own.
+  - Feeder 1 is the small carnivore feeder. Feeder 2 is the large carnivore feeder, with more feeding spots.
+  - Feeders 5, 3, 4 and 6 are the low, medium, tall and very tall herbivore feeders. Feeder 5 serves the Triceratops and the Gallimimus. Feeder 6 serves the Brachiosaurus.
+  - The live bait feeder is Feeder 1 with a pole and a chain. This is new art.
+  - The fish feeder is not in Beta.
+- Each feeder model is a hatch in the ground. When the hatch is shut, only its lid is above the ground, and the food waits below it.
+- The shaft below the hatch is virtual. Only the hatch is a block. The player does not dig, and the feeder does not clear blocks.
+- The hatch opens on a timer. The doors slide apart, and the food rises. The hatch closes after the feeding. An empty feeder always closes.
+- Each herbivore feeder lifts its food to a different height, for the reach of its species.
+- The gauge of a feeder stores the food up to 100 %. The slots hold the food above 100 %.
+- A herbivore feeder takes leaves, saplings, crops, produce, grass, ferns, seagrass, kelp and hay bales. A hay bale counts as 9 wheat.
+- Beta has three feeder screens: one for the four herbivore feeders, one for the two carnivore feeders, and one for the live bait feeder.
+- The player leads a vanilla animal to the live bait feeder and right-clicks. The feeder keeps the animal in a pen and counts each type.
+- The live bait feeder puts out one animal at a time on its chain. The player sets the interval: 2, 5, 10 or 20 minutes.
+- A small carnivore hunts a chicken, a rabbit, a pig or a sheep. A large carnivore also hunts a cow, a horse or a goat. The hunt decreases stress and counts as a hunt.
+- Each feeder has its own recipe, and a taller feeder costs more. Claude drafts all park recipes from vanilla materials, and the project lead reviews them.
+- The park advancements are the first paddock, the first feeder fill, the first live bait hunt and the first large generator.
+- The project lead did not decide the timer interval of the food feeders. The project lead also did not select a release of live bait on hunger or on a redstone signal.
+
+**Superseded on 2026-10-12 by the M3 open-items pass:**
+
+- Beta has a carnivore feeder and a herbivore feeder. (Now Beta has two carnivore feeders, four herbivore feeders and the live bait feeder.)
+- The feeder releases the animal when a carnivore is hungry. (Now the feeder releases one animal at a set interval.)
+- The plan read the feeder models as raised trays, a cage for live bait and plant columns up to 8.7 blocks high. (Now each model is a hatch in the ground, and most of its height is a shaft below the ground.)
+
+**M4 and follow-up open items, decided by the project lead on 2026-10-12:**
+
+Feeders:
+
+- Each feeder screen has buttons for the timer interval: 2, 5, 10 or 20 minutes (D194).
+- An opening lasts until all animals finish eating. The hatch closes when no animal eats for 5 seconds. An empty feeder always closes.
+- The live bait feeder releases on its interval only. It does not release on hunger or on a redstone signal (D200).
+- Feeders 3 (medium) and 4 (tall) ship in Beta. Each herbivore that reaches the food can eat from them.
+
+Vehicles:
+
+- All variations ship. The Jeep has 3 (roll bar, soft top, open), and the Explorer has 4. Each vehicle has one item. Dye on a vehicle moves it to its next variation (D204).
+- Code moves the parts. The wheels turn with the speed, and the front wheels steer. The doors open when a player gets in or out, if the model has doors. No vehicle has clips (D205).
+- Vehicles use no fuel (D07). Attacks from dinosaurs damage a vehicle. A wrecked vehicle stops and drops parts. Iron repairs it (D206).
+- A slow vehicle pushes mobs and players to the side with no damage. A fast vehicle hurts what it hits, more at a higher speed. A config value sets the speed limit (D75). This is the reading of the asker, because the project lead selected both options.
+- The tour track is a visible road-marker block (D207).
+- At a stop, the Explorer plays a chime. The riders see "Stop 2 of 4" and the name of the stop. The player gives each stop its name, as with an anvil (D208).
+- The Explorer stops at the stop markers and for anything on the track, and it honks. It has 4 seats. A player can get in at any time, also while it moves (D25).
+- The project lead did not decide a timed Tour Station. The plan keeps it out of Beta.
+
+**Superseded on 2026-10-12 by the M4 and follow-up pass:**
+
+- The project lead did not decide the timer interval of the food feeders. The project lead also did not select a release of live bait on hunger or on a redstone signal. (Now each feeder screen has interval buttons, and the live bait feeder releases on its interval only.)
+
+**Final open items and draft reviews, decided by the project lead on 2026-10-13:**
+
+Feeders:
+
+- Each feeder gets a close clip from the artist. Until then, code can play the open clip in reverse.
+- Code draws the chain of the live bait feeder from the pole to the animal, like a lead.
+
+Vehicles:
+
+- Dye changes the colours of a vehicle (a tint), and the vehicle uses up the dye. A new wrench item changes the variation.
+- Vehicle damage, wrecks and repair wait for a later release. The rules for hits stay: a slow vehicle pushes, and a fast vehicle hurts.
+- Beta has no Tour Station. The player starts each tour by hand.
+
+**Superseded on 2026-10-13 by the final pass:**
+
+- Dye on a vehicle moves it to its next variation (D204). (Now a wrench changes the variation, and dye changes the colours.)
+- Attacks from dinosaurs damage a vehicle. A wrecked vehicle stops and drops parts. Iron repairs it (D206). (Now vehicle damage waits for a later release.)
+- The project lead did not decide a timed Tour Station. The plan keeps it out of Beta. (Now Beta has no Tour Station.)
+
+**Last open items, decided by the project lead on 2026-10-13 (Z-8):**
+
+- The player assembles each vehicle from parts, like a lab machine. The order:
+  1. the chassis
+  2. 4 wheels, one at a time
+  3. the engine
+  4. the body
+  5. the seats
+  6. for the Explorer only, the tour computer.
+- Every part except the body serves both vehicles. The Jeep body and the Explorer body decide the vehicle.
+- Each placed part shows on the model. The basis is the asset repository: each vehicle "without wheels" and the Explorer `Wheels.bbmodel`.
+- The finished vehicle becomes the vehicle that a player can drive.
+- The wrench changes the variation of an assembled vehicle. Dye tints the colours. Vehicle damage stays out of Beta.
+- Recipes, all from vanilla materials:
+  - wrench: 3 iron on a diagonal and 1 copper
+  - chassis: a minecart and 4 iron
+  - wheel: a slime block and 1 iron. One craft gives 4 wheels.
+  - engine: a piston, a furnace, 4 iron and redstone
+  - seats: 5 leather
+  - Jeep body: about 10 iron and 1 glass pane. Explorer body: about 20 iron, with a block of iron, and 3 glass panes.
+  - tour computer: a comparator, 2 redstone and 1 gold
+  - tour track: 6 iron, 1 redstone and 2 smooth stone. One craft gives 16, like a powered rail.
+  - stop marker: a tour track and a redstone lamp. The lamp lights while the Explorer stands at the marker. An anvil-style field names the stop.
+
+**Superseded on 2026-10-13 by the last open items (Z-8):**
+
+- All variations ship. Each vehicle has one item (D204). (Now the player assembles each vehicle from parts.)
 
 ### 11.13 Not in Beta
 
@@ -1808,6 +2612,14 @@ The fence keeps one addition to the original: posts, the wire spool and the fenc
   - animation speed that follows body size
   - look-around clips on the second animation controller
 - **Neck reach IK.** It waits until the eating and drinking animations exist. The Gallimimus has neither ([dinosaur-hitboxes-and-movement-design.md](dinosaur-hitboxes-and-movement-design.md)).
+- **Items that stayed open after the final pass of 2026-10-13.** The project lead answered each one later on 2026-10-13 (Z-8). The plan register holds each answer.
+  - the rest of the gene effect sizes (D112)
+  - the crest and the quills of a young from a Nublar and Sorna pair (D249)
+  - the recipes of the vehicles, the track block, the stop marker and the wrench (D250)
+  - the length of the nocturnal window (D252) and the height of a fence pole with wires (D253)
+  - the period of the Dilophosaurus (D254) and what a failed natural egg leaves (D255).
+- **Only guns and the two animation details stay open.** The asset repository question about the T. rex sounds waits for the artist (D91).
+- **Claude drafts.** The project lead reviewed all seven drafts on 2026-10-13 and accepted each with changes.
 
 ### 11.15 Systems in Beta that have no code
 
@@ -1818,9 +2630,9 @@ The fence keeps one addition to the original: posts, the wire spool and the fenc
 - the power conduit, pylons, the large generator and machine tabs
 - recipes for machines, parts and upgrades
 - gene effects, variation for each animal, edit risk, skin variants and special genes
-- herds, packs, pack hunting, grazing, breeding and taming
-- scent trails, detection levels and stress
-- the herbivore feeder and the fence switch
+- packs, pack hunting, block grazing, breeding and taming. Herds and herd grazing have 1.20.1 code on `kash's-slop`, which the lead has not committed (herd work)
+- detection levels and stress. Scent trails left Beta on 2026-10-12 (section 11.10)
+- the herbivore feeders, the live bait feeder and the fence switch
 - vehicles, the tour track and guns
 
 This scope is larger than the code on each branch.
@@ -2024,10 +2836,41 @@ Points for gameplay:
 | Energy | `max_stamina` | |
 | Damage | `attack_damage` | |
 | Defense | `resistance` | Sets the armor attribute (`DinoNeedsUtils.java:212`) |
-| Group size | `group_size` | One number. No code reads it |
+| Group size | `group_size` | One number. The herd work reads it as the group capacity (`JoinGroup`). The Gallimimus file holds the herd test value 20 |
 | Speed | `speed_multiplier` | A comment disables the speed line (`DinoNeedsUtils.java:210`). The unit is different from the card |
 
 - The Tyrannosaurus file has placeholder values also. Its card gives 155, 203, 16, 12 and a group size of 1 to 2.
+
+**M2 open items, decided by the project lead on 2026-10-12:**
+
+- The values of the first table stay the working values (D12).
+- The project lead accepted the growth times of the draft table. Playtests tune them.
+- The project lead accepted the hunger and thirst rows of the draft table, with one change. Gallimimus gets about 40 hunger and 35 thirst, below Triceratops. Playtests tune these values.
+- The render-scale targets are the interim heights until the real cards arrive (D11): Triceratops 3.0 blocks (scale 1.32) and Brachiosaurus 12.5 blocks (scale 1.61).
+- Claude drafts the egg clutch and the nest hatch rate for each species (section 11.10). The other rows of the draft table stay a draft.
+
+**Superseded on 2026-10-12 by the M2 open-items pass:**
+
+- The values below are a draft for review. The project lead did not approve them. (Now the project lead accepted the growth, hunger and thirst rows.)
+- The draft table gives Gallimimus 67 hunger and 58 thirst. (Now about 40 and 35.)
+
+**Final open items and draft reviews, decided by the project lead on 2026-10-13:**
+
+- The project lead accepts the clutch sizes of the draft. Velociraptor 8 to 13, Dilophosaurus 12 to 24, Gallimimus 15 to 30. Triceratops 15 to 25, Brachiosaurus 15 to 30. The Tyrannosaurus keeps 12 to 24.
+- Each nest hatch rate of the draft goes up by a quarter. Tyrannosaurus 6 %, Velociraptor 25 %, Dilophosaurus 16 %. Gallimimus 15 %, Triceratops 11 %, Brachiosaurus 6 %.
+
+**Superseded on 2026-10-13 by the final pass:**
+
+- The Tyrannosaurus card values stay: a hatch success of 5 %. (Now 6 %. This is a flag for the project lead.)
+- No source gives a large clutch or a hatch rate for the other five species. Those values are not set. (Now the clutch draft sets them.)
+
+**Last open items, decided by the project lead on 2026-10-13 (Z-8):**
+
+- The project lead accepts a nest hatch rate of 6 % for the Tyrannosaurus. The rate of the species card, 5 %, goes up by a quarter, as for the other species.
+
+**Superseded on 2026-10-13 by the last open items (Z-8):**
+
+- The Tyrannosaurus nest hatch rate of 6 % is a flag for the project lead. (Now the project lead accepts 6 %.)
 
 ### 11.17 Config, platform and repository
 
@@ -2106,7 +2949,7 @@ Points for gameplay:
 
 ## 12. Reference mod surveys
 
-Two surveys read other mods for patterns that Nublar can use. Each survey has a full report in `reports/` and a folder of research notes in `research_notes/`. This section gives the results that matter for the plan. The reports have the evidence, the clean-room specifications and the repository facts.
+Three surveys read other mods for patterns that Nublar can use. Each survey has a full report in `reports/` and a folder of research notes in `research_notes/`. This section gives the results that matter for the plan. The reports have the evidence, the clean-room specifications and the repository facts.
 
 The surveys use the same labels as the reports:
 
@@ -2328,6 +3171,32 @@ Each item has a default that ships if the lead does not answer.
 | O19 | What distance does the game guarantee for a digsite? | 1,600 blocks, the vanilla `/locate` radius |
 | O20 | Does the roadmap include optional compat modules? | CC: Tweaked after B15. Create and Ponder wait for builds |
 | O21 | Do vanilla and decorative fences hold dinosaurs? | Yes, as walls |
+
+### 12.3 JurassiCraft 3 (2026-10-11)
+
+Full report: [JurassiCraft 3 survey for Beta](../reports/JurassiCraft%203%20survey%20for%20Beta.md). Notes: `research_notes/JurassiCraft 3 survey/` (5 files).
+
+The survey studied JurassiCraft 3.0.14 (JC3) clean-room. JC3 is a Jurassic Park mod on NeoForge 26.1.2 with 129 species, a cloning chain, vehicles, fences and feeders. The survey rated 147 techniques against modules B00 to B27 and P2: 29 adopt, 36 adapt, 39 defer and 43 drop. It gives 23 clean-room specifications (J1 to J23) and 7 open items (O22 to O28).
+
+The main results:
+
+- JC3 confirms many plan items: a server-owned pose state, part ids from a reserved block, part buckets per chunk section, edge-only machine sync, strict species data and natural spawning off.
+- JC3 keeps its cost low with small gates, not with a brain. A need search waits longer after each failure, skips failed targets for 600 ticks and wakes early only when a nearby chunk changes. Paths for big bodies have a node cap, one failed search per tick and a column cache.
+- A world clock that counts skipped night time lets animals grow with no per-tick age work.
+- JC3 has none of Nublar's signature systems: stamina chases, stress, dominance, scent, hearing, herd travel, real power, fence parity, gene editing beyond colour and driverless tours.
+- JC3 draws creature colours in one pass with a core shader. This conflicts with rule OC6 and the bake spec. Open item O22 asks the lead. A presized-set mixin on a vanilla method conflicts with B25.5 (open item O23).
+- The five notes disagreed in 28 places. The report settles each against the source. For example, the fence power flood covers a 16-block radius on every neighbour update with no debounce, and `processing_time` counts ticks.
+
+#### Top changes
+
+| Rank | Change | Module | In-game effect |
+| --- | --- | --- | --- |
+| 1 | Need searches with back-off to 600 ticks, a 64-slot failed-target list and a dirty-chunk wake | B17, B20, B25 | A hungry animal with no food in reach costs almost nothing, and reacts at once to dropped food |
+| 2 | Growth clock that counts skipped time, with a birth stamp | B16 | Animals grow through a skipped night. No age packet per tick |
+| 3 | Node cap, one failed search per tick and a column cache for large bodies | B26 | A Brachiosaurus path visits about 200 nodes, not 1,024 |
+| 4 | Part index self-checks: count check, foreign parts indexed, verify switch | B27, B25 | A missed part heals on the next query |
+| 5 | Pose flags and event ticks: exclusive, hold, server and client events | B27, B16, B19 | A roar is never cut off. Sounds need no packet |
+| 6 | Movement keys from the vanilla input, one small packet for extra keys | B22 | The Jeep needs no drive packet of its own |
 
 ---
 
