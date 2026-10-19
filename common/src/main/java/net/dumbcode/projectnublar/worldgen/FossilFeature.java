@@ -66,18 +66,20 @@ public class FossilFeature extends Feature<FossilConfiguration> {
 
         int width = 2 * (Mth.ceil(veinHalfLength) + boundingRadius);
         int height = 2 * (2 + boundingRadius);
+        // The species is chosen by the depth of the vein origin, which the height placement keeps inside a period band
+        String period = FossilsConfig.getPeriod(blockpos.getY());
 
         for(int x = minX; x <= minX + width; ++x) {
             for(int z = minZ; z <= minZ + width; ++z) {
                 if (minY <= worldgenlevel.getHeight(Heightmap.Types.OCEAN_FLOOR_WG, x, z)) {
-                    return this.doPlace(worldgenlevel, randomsource, fossilConfiguration, startX, endX, StartZ, endZ, startY, endY, minX, minY, minZ, width, height);
+                    return this.doPlace(worldgenlevel, randomsource, fossilConfiguration, period, startX, endX, StartZ, endZ, startY, endY, minX, minY, minZ, width, height);
                 }
             }
         }
 
         return false;
     }
-    protected boolean doPlace(WorldGenLevel level, RandomSource random, FossilConfiguration config, double minX, double maxX, double minZ, double maxZ, double minY, double maxY, int x, int y, int z, int width, int height) {
+    protected boolean doPlace(WorldGenLevel level, RandomSource random, FossilConfiguration config, String period, double minX, double maxX, double minZ, double maxZ, double minY, double maxY, int x, int y, int z, int width, int height) {
         int i = 0;
         BitSet bitset = new BitSet(width * height * width);
         BlockPos.MutableBlockPos blockpos$mutableblockpos = new BlockPos.MutableBlockPos();
@@ -128,9 +130,9 @@ public class FossilFeature extends Feature<FossilConfiguration> {
         }
 
         // One quality and one species per vein
-        Quality quality = pickQuality(random);
-        Optional<Map.Entry<ResourceLocation, FossilsConfig.SpeciesFossils>> species = pickSpecies(random, FossilsConfig.getPeriod(y));
-        if (species.isEmpty() || !FossilCollection.COLLECTIONS.containsKey(species.get().getKey())) {
+        Optional<Quality> quality = pickQuality(random);
+        Optional<Map.Entry<ResourceLocation, FossilsConfig.SpeciesFossils>> species = pickSpecies(random, period);
+        if (quality.isEmpty() || species.isEmpty() || !FossilCollection.COLLECTIONS.containsKey(species.get().getKey())) {
             return false;
         }
         LinkedHashMap<String, Integer> pieceWeights = FossilUtils.pieceWeights(species.get().getValue());
@@ -179,7 +181,7 @@ public class FossilFeature extends Feature<FossilConfiguration> {
                                                         // One piece per block; no target for that piece places nothing here
                                                         FossilConfiguration.TargetBlockState target = targetsByPiece.get(pickPiece(random, pieceWeights));
                                                         if (target != null && canPlaceOre(blockstate, bulksectionaccess::getBlockState, random, config, target, blockpos$mutableblockpos)) {
-                                                            levelchunksection.setBlockState(localX, localY, localZ, target.state.setValue(FossilBlock.QUALITY, quality), false);
+                                                            levelchunksection.setBlockState(localX, localY, localZ, target.state.setValue(FossilBlock.QUALITY, quality.get()), false);
                                                             ++i;
                                                         }
                                                     }
@@ -198,11 +200,19 @@ public class FossilFeature extends Feature<FossilConfiguration> {
         return i > 0;
     }
 
-    /** Picks the vein's quality by the configured quality weights. */
-    static Quality pickQuality(RandomSource random) {
+    /**
+     * Picks the vein's quality by the configured quality weights.
+     *
+     * @return empty when the weights add up to 0 or less, so a config value never crashes chunk generation
+     */
+    static Optional<Quality> pickQuality(RandomSource random) {
         List<Quality> qualities = List.of(Quality.values());
         ToIntFunction<Quality> weight = q -> FossilsConfig.getQuality(q.getName()).weight().get();
-        return FossilRolls.pickWeighted(random.nextInt(FossilRolls.totalWeight(qualities, weight)), qualities, weight);
+        int total = FossilRolls.totalWeight(qualities, weight);
+        if (total <= 0) {
+            return Optional.empty();
+        }
+        return Optional.of(FossilRolls.pickWeighted(random.nextInt(total), qualities, weight));
     }
 
     /**
