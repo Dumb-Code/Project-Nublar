@@ -413,8 +413,12 @@ public class Connection {
         return this.compared >= 0 ? this.to : this.from;
     }
 
+    /**
+     * Whether the wire on one side of this block is broken or missing. The next side is the {@code to} side, the
+     * same side the render data calls next.
+     */
     public boolean brokenSide(BlockGetter world, boolean next) {
-        BlockPos adjacentPos = next == this.compared < 0 ? this.previous : this.next;
+        BlockPos adjacentPos = sideNeighbour(next, this.previous, this.next);
         BlockEntity te = world.getBlockEntity(adjacentPos);
         if (te instanceof ConnectableBlockEntity fe) {
             for (Connection fenceConnection : fe.getConnections()) {
@@ -425,6 +429,11 @@ public class Connection {
             return false;
         }
         return true;
+    }
+
+    /** The neighbour on the next ({@code to}) side when {@code nextSide} is true, else the one on the previous side. */
+    static BlockPos sideNeighbour(boolean nextSide, BlockPos previous, BlockPos next) {
+        return nextSide ? next : previous;
     }
 
     public boolean isPowered(BlockGetter world) {
