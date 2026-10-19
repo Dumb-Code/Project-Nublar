@@ -16,7 +16,7 @@ import net.minecraft.world.level.block.state.BlockBehaviour;
 
 /**
  * The fossil and amber block variants registered for one species, indexed as
- * stone block -> quality -> piece (fossils) and stone block -> amber block (amber).
+ * stone block, then quality, then piece (fossils) and stone block, then amber block (amber).
  *
  * <p>The registered block id formulas {@code {qualityPrefix}{stone}_{entityPath}_{piece}_fossil}
  * and {@code {stone}_{entity}_amber} are frozen registry contracts.

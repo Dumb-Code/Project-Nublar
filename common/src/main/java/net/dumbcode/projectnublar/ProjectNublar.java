@@ -29,7 +29,7 @@ import org.apache.commons.lang3.StringUtils;
  * initialization) order and must not be changed.
  */
 public class ProjectNublar {
-    /** Period name -> biome name -> weighted fossil ids, filled by the fossil config reload listener. */
+    /** Period name, then biome name, then the weighted fossil ids; filled by the fossil config reload listener. */
     public static Map<String, Map<String, SimpleWeightedRandomList.Builder<String>>>
             WEIGHTED_PERIOD_BIOME_FOSSIL_MAP = new HashMap<>();
 
