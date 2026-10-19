@@ -144,20 +144,21 @@ public class FossilsConfig {
     /** The fossil settings of one species. */
     public static class SpeciesFossils {
         private final ForgeConfigSpec.ConfigValue<String> pieces;
-        private final ForgeConfigSpec.ConfigValue<List<String>> specialPieces;
-        private final ForgeConfigSpec.ConfigValue<List<Integer>> specialWeights;
+        private final ForgeConfigSpec.ConfigValue<List<? extends String>> specialPieces;
+        private final ForgeConfigSpec.ConfigValue<List<? extends Integer>> specialWeights;
         private final ForgeConfigSpec.IntValue weight;
-        private final ForgeConfigSpec.ConfigValue<List<String>> periods;
-        private final ForgeConfigSpec.ConfigValue<List<String>> biomes;
+        private final ForgeConfigSpec.ConfigValue<List<? extends String>> periods;
+        private final ForgeConfigSpec.ConfigValue<List<? extends String>> biomes;
 
         SpeciesFossils(ForgeConfigSpec.Builder builder, String setName, List<String> specialPieces,
                        List<Integer> specialWeights, int weight, List<String> periods, List<ResourceLocation> biomes) {
             this.pieces = builder.comment("The pieces that make up this fossil").define("pieces", setName);
-            this.specialPieces = builder.comment("optional field to include if a species has a special identifiable fossil type").define("special_pieces", specialPieces);
-            this.specialWeights = builder.comment("The weights of the special pieces").define("special_weights", specialWeights);
+            this.specialPieces = builder.comment("optional field to include if a species has a special identifiable fossil type").defineList("special_pieces", specialPieces,
+                    o -> o instanceof String s && FossilPieces.byName(s) != null);
+            this.specialWeights = builder.comment("The weights of the special pieces").defineList("special_weights", specialWeights, o -> o instanceof Integer);
             this.weight = builder.comment("the lower the number the more rare the fossil; (weight / total weights) = percentage chance this fossil type generating").defineInRange("weight", weight, 0, Integer.MAX_VALUE);
-            this.periods = builder.comment("The time period that this fossil type belongs to").define("periods", periods);
-            this.biomes = builder.comment("all acceptable biomes for this fossil to generate in").define("biomes", biomes.stream().map(ResourceLocation::toString).toList());
+            this.periods = builder.comment("The time period that this fossil type belongs to").defineList("periods", periods, o -> o instanceof String);
+            this.biomes = builder.comment("all acceptable biomes for this fossil to generate in").defineList("biomes", biomes.stream().map(ResourceLocation::toString).toList(), o -> o instanceof String);
         }
 
         /** The name of the piece set of this species. */
@@ -165,11 +166,11 @@ public class FossilsConfig {
             return pieces;
         }
 
-        public ForgeConfigSpec.ConfigValue<List<String>> getSpecialPieces() {
+        public ForgeConfigSpec.ConfigValue<List<? extends String>> getSpecialPieces() {
             return specialPieces;
         }
 
-        public ForgeConfigSpec.ConfigValue<List<Integer>> getSpecialWeights() {
+        public ForgeConfigSpec.ConfigValue<List<? extends Integer>> getSpecialWeights() {
             return specialWeights;
         }
 
@@ -177,11 +178,11 @@ public class FossilsConfig {
             return weight;
         }
 
-        public ForgeConfigSpec.ConfigValue<List<String>> getPeriods() {
+        public ForgeConfigSpec.ConfigValue<List<? extends String>> getPeriods() {
             return periods;
         }
 
-        public ForgeConfigSpec.ConfigValue<List<String>> getBiomes() {
+        public ForgeConfigSpec.ConfigValue<List<? extends String>> getBiomes() {
             return biomes;
         }
     }
