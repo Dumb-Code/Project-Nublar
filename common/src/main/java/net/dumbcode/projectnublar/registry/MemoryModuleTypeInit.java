@@ -100,10 +100,8 @@ public class MemoryModuleTypeInit {
             MEMORIES.register("dino_pack_leader", () -> new MemoryModuleType<>(Optional.empty()));
     public static final DeferredSupplier<MemoryModuleType<Boolean>> IS_GROUP_LEADER =
             MEMORIES.register("is_pack_leader", () -> new MemoryModuleType<>(Optional.empty()));
-    // TODO(BUG): HAS_GROUP registers the same id "is_pack_leader" as IS_GROUP_LEADER above,
-    // which is a registry id collision. The id string is a frozen save contract.
     public static final DeferredSupplier<MemoryModuleType<Boolean>> HAS_GROUP =
-            MEMORIES.register("is_pack_leader", () -> new MemoryModuleType<>(Optional.empty()));
+            MEMORIES.register("has_group", () -> new MemoryModuleType<>(Optional.empty()));
     public static final DeferredSupplier<MemoryModuleType<Float>> HUNTING_RANGE =
             MEMORIES.register("hunting_range", () -> new MemoryModuleType<>(Optional.empty()));
 
