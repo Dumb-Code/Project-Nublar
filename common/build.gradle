@@ -28,7 +28,11 @@ dependencies {
     implementation "earth.terrarium.botarium:botarium-forge-1.20.1:2.3.4"
    // modImplementation "dev.architectury:architectury:$rootProject.architectury_api_version"
     compileOnly "dev.architectury:architectury-forge:$rootProject.architectury_api_version"
+    testCompileOnly 'org.junit.jupiter:junit-jupiter-api:5.10.2'
 }
+
+// Unit tests may use Minecraft value classes (for example Vec3); the main compile classpath holds Minecraft.
+sourceSets.test.compileClasspath += sourceSets.main.compileClasspath
 
 configurations {
     commonJava {
