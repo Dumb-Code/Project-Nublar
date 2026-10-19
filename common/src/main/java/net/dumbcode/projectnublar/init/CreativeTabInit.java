@@ -5,7 +5,6 @@ import dev.architectury.registry.registries.DeferredSupplier;
 import net.dumbcode.projectnublar.Constants;
 import net.dumbcode.projectnublar.api.*;
 import net.dumbcode.projectnublar.entity.dinosaur.Dinosaur;
-import net.minecraft.client.Minecraft;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.core.registries.Registries;
 import net.minecraft.nbt.CompoundTag;
@@ -149,7 +148,7 @@ public class CreativeTabInit {
                                     output.accept(stack);
                                 });
                             } else {
-                                if(BuiltInRegistries.ENTITY_TYPE.get(entry).create(Minecraft.getInstance().level) instanceof LivingEntity) {
+                                if (LivingEntity.class.isAssignableFrom(BuiltInRegistries.ENTITY_TYPE.get(entry).getBaseClass())) {
                                     ItemStack stack = new ItemStack(ItemInit.SYRINGE.get());
                                     DNAData dnaData = new DNAData();
                                     dnaData.setEntityType(BuiltInRegistries.ENTITY_TYPE.get(entry));
