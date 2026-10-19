@@ -21,3 +21,9 @@ build
 # other
 eclipse
 run
+
+# Not source: crash logs, data-run output, the datagen cache, agent config
+hs_err_pid*.log
+forge/dataRun/
+common/src/generated/resources/.cache/
+.ai/
