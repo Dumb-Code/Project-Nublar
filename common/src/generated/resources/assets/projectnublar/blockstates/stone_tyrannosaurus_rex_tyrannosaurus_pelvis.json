@@ -1,0 +1,16 @@
+{
+  "variants": {
+    "quality=common": {
+      "model": "projectnublar:block/stone_tyrannosaurus_rex_tyrannosaurus_pelvis_common"
+    },
+    "quality=fragmented": {
+      "model": "projectnublar:block/stone_tyrannosaurus_rex_tyrannosaurus_pelvis_fragmented"
+    },
+    "quality=poor": {
+      "model": "projectnublar:block/stone_tyrannosaurus_rex_tyrannosaurus_pelvis_poor"
+    },
+    "quality=pristine": {
+      "model": "projectnublar:block/stone_tyrannosaurus_rex_tyrannosaurus_pelvis_pristine"
+    }
+  }
+}

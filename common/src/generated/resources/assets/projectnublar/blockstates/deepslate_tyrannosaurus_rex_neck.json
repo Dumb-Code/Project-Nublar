@@ -1,0 +1,16 @@
+{
+  "variants": {
+    "quality=common": {
+      "model": "projectnublar:block/deepslate_tyrannosaurus_rex_neck_common"
+    },
+    "quality=fragmented": {
+      "model": "projectnublar:block/deepslate_tyrannosaurus_rex_neck_fragmented"
+    },
+    "quality=poor": {
+      "model": "projectnublar:block/deepslate_tyrannosaurus_rex_neck_poor"
+    },
+    "quality=pristine": {
+      "model": "projectnublar:block/deepslate_tyrannosaurus_rex_neck_pristine"
+    }
+  }
+}

@@ -3,13 +3,13 @@ package net.dumbcode.projectnublar.datagen;
 import net.dumbcode.projectnublar.Constants;
 import net.dumbcode.projectnublar.api.fossil.FossilCollection;
 import net.dumbcode.projectnublar.api.fossil.Quality;
-import net.dumbcode.projectnublar.block.AmberBlock;
 import net.dumbcode.projectnublar.block.FossilBlock;
 import net.dumbcode.projectnublar.registry.BlockInit;
 import net.minecraft.data.PackOutput;
 import net.minecraft.world.level.block.Block;
 import net.minecraftforge.client.model.generators.BlockModelBuilder;
 import net.minecraftforge.client.model.generators.BlockStateProvider;
+import net.minecraftforge.client.model.generators.ConfiguredModel;
 import net.minecraftforge.common.data.ExistingFileHelper;
 import net.minecraftforge.registries.ForgeRegistries;
 
@@ -22,10 +22,8 @@ public class ModBlockStateProvider extends BlockStateProvider {
     protected void registerStatesAndModels() {
 
         FossilCollection.COLLECTIONS.values().forEach(fossilCollection -> {
-            fossilCollection.fossilBlocks().forEach((base, pieces) ->
-                    pieces.values().forEach(block -> fossilBlock(base.getBlock(), (FossilBlock) block.get())));
-            fossilCollection.amberBlocks().forEach((base, block) ->
-                    amberBlock(base.getBlock(), (AmberBlock) block.get()));
+            fossilCollection.blocks().forEach(block -> fossilBlock((FossilBlock) block.get()));
+            fossilCollection.amberBlocks().forEach((base, block) -> amberBlock(base.getBlock(), block.get()));
         });
         simpleBlock(BlockInit.CARNIVORE_FEEDER_ONE.get(), models().getBuilder("block/carnivore_feeder_one").texture("particle",modLoc("block/feeder/meat/feeder_one/empty")));
         simpleBlock(BlockInit.PROCESSOR.get(), models().getBuilder("block/processor").texture("particle", modLoc("block/processor")));
@@ -42,28 +40,32 @@ public class ModBlockStateProvider extends BlockStateProvider {
         String name = getName(block);
         return models().cubeBottomTop(name, modLoc("block/" + name + "_side"), modLoc("block/" + name + "_bottom"), modLoc("block/" + name + "_top"));
     }
-    protected void fossilBlock(Block base, FossilBlock block) {
-        try {
-            simpleBlock(block, models()
-                    .withExistingParent(getName(block), modLoc("block/fossil_base"))
-                    .texture("0", blockTexture(base))
-                    .texture("1", modLoc(block.getFossilPiece().texturePath(Quality.COMMON)))
-                    .renderType("cutout")
-            );
-        } catch (Exception ignored) {
-        }
+    /**
+     * One model per quality, named {@code block/<block id>_<quality>}: the host stone with the
+     * piece's overlay for that quality on top. The block state picks the model by quality.
+     */
+    protected void fossilBlock(FossilBlock block) {
+        getVariantBuilder(block).forAllStates(state -> {
+            Quality quality = state.getValue(FossilBlock.QUALITY);
+            return ConfiguredModel.builder()
+                    .modelFile(models()
+                            .withExistingParent(getName(block) + "_" + quality.getName(), modLoc("block/fossil_base"))
+                            .texture("0", blockTexture(block.getBase().getBlock()))
+                            .texture("1", modLoc(block.getFossilPiece().texturePath(quality)))
+                            .renderType("cutout"))
+                    .build();
+        });
     }
-    protected void amberBlock(Block base, AmberBlock block) {
-        try {
-            simpleBlock(block, models()
-                    .withExistingParent(getName(block), modLoc("block/fossil_base"))
-                    .texture("0", blockTexture(base))
-                    .texture("1", modLoc("block/fossil_overlay/amber/amber"))
-                    .renderType("cutout")
-            );
-        } catch (Exception ignored) {
-        }
+
+    /** The host stone with the amber overlay on top. */
+    protected void amberBlock(Block base, Block block) {
+        simpleBlock(block, models()
+                .withExistingParent(getName(block), modLoc("block/fossil_base"))
+                .texture("0", blockTexture(base))
+                .texture("1", modLoc("block/fossil_overlay/amber/amber"))
+                .renderType("cutout"));
     }
+
     protected String getName(Block item) {
         return ForgeRegistries.BLOCKS.getKey(item).getPath();
     }
