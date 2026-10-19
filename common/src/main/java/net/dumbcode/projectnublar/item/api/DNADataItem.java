@@ -1,7 +1,7 @@
 package net.dumbcode.projectnublar.item.api;
 
-import net.dumbcode.projectnublar.api.DNAData;
-import net.dumbcode.projectnublar.api.DinoData;
+import net.dumbcode.projectnublar.api.dinosaur.DNAData;
+import net.dumbcode.projectnublar.api.dinosaur.DinoData;
 import net.minecraft.network.chat.Component;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;

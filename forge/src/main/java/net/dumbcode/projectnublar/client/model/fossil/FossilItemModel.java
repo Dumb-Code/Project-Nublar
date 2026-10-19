@@ -2,8 +2,8 @@ package net.dumbcode.projectnublar.client.model.fossil;
 
 import com.mojang.math.Transformation;
 import net.dumbcode.projectnublar.Constants;
-import net.dumbcode.projectnublar.api.DNAData;
-import net.dumbcode.projectnublar.api.FossilPiece;
+import net.dumbcode.projectnublar.api.dinosaur.DNAData;
+import net.dumbcode.projectnublar.api.fossil.FossilPiece;
 import net.dumbcode.projectnublar.client.model.api.IStackSensitive;
 import net.dumbcode.projectnublar.client.model.api.StackSensitiveItemOverrides;
 import net.minecraft.client.Minecraft;

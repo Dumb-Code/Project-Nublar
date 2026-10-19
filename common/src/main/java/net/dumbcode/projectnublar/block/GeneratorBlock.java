@@ -1,6 +1,6 @@
 package net.dumbcode.projectnublar.block;
 
-import net.dumbcode.projectnublar.block.api.MultiBlock;
+import net.dumbcode.projectnublar.block.api.multiblock.MultiBlock;
 import net.dumbcode.projectnublar.block.entity.BlockEntityElectricFencePole;
 import net.dumbcode.projectnublar.block.entity.GeneratorBlockEntity;
 import net.minecraft.core.BlockPos;

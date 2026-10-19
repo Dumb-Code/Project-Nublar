@@ -1,10 +1,11 @@
 package net.dumbcode.projectnublar.item;
 
 import net.dumbcode.projectnublar.Constants;
-import net.dumbcode.projectnublar.entity.ai.behaviour.social.DinoGroup;
-import net.dumbcode.projectnublar.entity.ai.behaviour.social.Dominance;
-import net.dumbcode.projectnublar.entity.ai.behaviour.social.GroupManager;
-import net.dumbcode.projectnublar.entity.ai.behaviour.social.HerdTimings;
+import net.dumbcode.projectnublar.api.dinosaur.DNAData;
+import net.dumbcode.projectnublar.entity.dinosaur.ai.behavior.social.DinoGroup;
+import net.dumbcode.projectnublar.entity.dinosaur.ai.behavior.social.Dominance;
+import net.dumbcode.projectnublar.entity.dinosaur.ai.behavior.social.GroupManager;
+import net.dumbcode.projectnublar.entity.dinosaur.ai.behavior.social.HerdTimings;
 import net.dumbcode.projectnublar.entity.dinosaur.Dinosaur;
 import net.dumbcode.projectnublar.util.DebugFlags;
 import net.dumbcode.projectnublar.util.DinoNeedsUtils;

@@ -2,8 +2,8 @@ package net.dumbcode.projectnublar.block.entity;
 
 import earth.terrarium.botarium.common.energy.base.BotariumEnergyBlock;
 import earth.terrarium.botarium.common.energy.impl.WrappedBlockEnergyContainer;
-import net.dumbcode.projectnublar.block.api.SyncingContainerBlockEntity;
-import net.dumbcode.projectnublar.init.BlockInit;
+import net.dumbcode.projectnublar.block.api.sync.SyncingContainerBlockEntity;
+import net.dumbcode.projectnublar.registry.BlockInit;
 import net.minecraft.core.BlockPos;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.chat.Component;

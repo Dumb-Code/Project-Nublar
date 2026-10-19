@@ -1,8 +1,8 @@
 package net.dumbcode.projectnublar.mixin;
 
 import net.dumbcode.projectnublar.block.ElectricFencePostBlock;
-import net.dumbcode.projectnublar.block.api.ConnectableBlockEntity;
-import net.dumbcode.projectnublar.block.api.ConnectionType;
+import net.dumbcode.projectnublar.block.api.fence.ConnectableBlockEntity;
+import net.dumbcode.projectnublar.block.api.fence.ConnectionType;
 import net.dumbcode.projectnublar.block.entity.BlockEntityElectricFence;
 import net.dumbcode.projectnublar.block.entity.BlockEntityElectricFencePole;
 import net.dumbcode.projectnublar.client.ProjectNublarModelData;

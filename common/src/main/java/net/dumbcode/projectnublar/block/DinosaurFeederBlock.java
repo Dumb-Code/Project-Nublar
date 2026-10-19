@@ -1,8 +1,8 @@
 package net.dumbcode.projectnublar.block;
 
 import net.dumbcode.projectnublar.block.entity.DinosaurFeederBlockEntity;
-import net.dumbcode.projectnublar.init.BlockInit;
-import net.dumbcode.projectnublar.init.TagInit;
+import net.dumbcode.projectnublar.registry.BlockInit;
+import net.dumbcode.projectnublar.registry.TagInit;
 import net.minecraft.core.BlockPos;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.InteractionResult;

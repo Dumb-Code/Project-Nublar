@@ -1,7 +1,7 @@
 package net.dumbcode.projectnublar.client.screen;
 
 import net.dumbcode.projectnublar.Constants;
-import net.dumbcode.projectnublar.client.widget.FluidRenderWidget;
+import net.dumbcode.projectnublar.gui.widget.FluidRenderWidget;
 import net.dumbcode.projectnublar.menutypes.ProcessorMenu;
 import net.minecraft.ChatFormatting;
 import net.minecraft.client.gui.GuiGraphics;

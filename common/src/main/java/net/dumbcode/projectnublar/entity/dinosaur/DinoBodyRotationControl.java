@@ -1,6 +1,6 @@
 package net.dumbcode.projectnublar.entity.dinosaur;
 
-import net.dumbcode.projectnublar.entity.ai.behaviour.social.TurnEasing;
+import net.dumbcode.projectnublar.entity.dinosaur.ai.behavior.social.TurnEasing;
 import net.minecraft.util.Mth;
 import net.minecraft.world.entity.Mob;
 import net.minecraft.world.entity.ai.control.BodyRotationControl;

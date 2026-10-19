@@ -1,6 +1,6 @@
 package net.dumbcode.projectnublar.entity.dinosaur.animation;
 
-import net.dumbcode.projectnublar.entity.ai.behaviour.social.RunGait;
+import net.dumbcode.projectnublar.entity.dinosaur.ai.behavior.social.RunGait;
 
 /**
  * Stand, walk or run for the leg animation, and the leg cycle rate (fix P12a). Pure; one per animal, fed once per

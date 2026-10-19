@@ -1,7 +1,7 @@
 package net.dumbcode.projectnublar.block;
 
-import net.dumbcode.projectnublar.api.FossilPiece;
-import net.dumbcode.projectnublar.api.Quality;
+import net.dumbcode.projectnublar.api.fossil.FossilPiece;
+import net.dumbcode.projectnublar.api.fossil.Quality;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.DropExperienceBlock;

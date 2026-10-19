@@ -1,9 +1,9 @@
 package net.dumbcode.projectnublar.block;
 
-import net.dumbcode.projectnublar.block.api.MultiEntityBlock;
+import net.dumbcode.projectnublar.block.api.multiblock.MultiEntityBlock;
 import net.dumbcode.projectnublar.block.entity.ProcessorBlockEntity;
 import net.dumbcode.projectnublar.client.ModShapes;
-import net.dumbcode.projectnublar.init.BlockInit;
+import net.dumbcode.projectnublar.registry.BlockInit;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.world.level.BlockGetter;

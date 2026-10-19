@@ -1,7 +1,7 @@
 package net.dumbcode.projectnublar.datagen;
 
 import net.dumbcode.projectnublar.Constants;
-import net.dumbcode.projectnublar.init.FeatureInit;
+import net.dumbcode.projectnublar.registry.FeatureInit;
 
 import net.minecraft.core.HolderLookup;
 import net.minecraft.core.HolderSet;

@@ -15,9 +15,12 @@ legacyForge {
 }
 
 dependencies {
+    api project(":nublar-gui")
+
     compileOnly group: 'org.spongepowered', name: 'mixin', version: '0.8.5'
     implementation group: 'com.google.code.findbugs', name: 'jsr305', version: '3.0.1'
     compileOnly group: 'org.jetbrains',name:'annotations',version: '24.1.0'
+    compileOnlyApi 'net.minecraftforge:mergetool-api:1.0'
 
     implementation "fuzs.forgeconfigapiport:forgeconfigapiport-common:${project.forge_config_api_port_version}"
     implementation 'com.moandjiezana.toml:toml4j:0.7.2'

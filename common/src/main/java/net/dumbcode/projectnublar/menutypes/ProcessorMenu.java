@@ -1,7 +1,7 @@
 package net.dumbcode.projectnublar.menutypes;
 
-import net.dumbcode.projectnublar.init.ItemInit;
-import net.dumbcode.projectnublar.init.MenuTypeInit;
+import net.dumbcode.projectnublar.registry.ItemInit;
+import net.dumbcode.projectnublar.registry.MenuTypeInit;
 import net.dumbcode.projectnublar.item.ComputerChipItem;
 import net.dumbcode.projectnublar.item.FilterItem;
 import net.dumbcode.projectnublar.item.TankItem;
@@ -17,6 +17,11 @@ import net.minecraft.world.inventory.Slot;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
 
+/**
+ * Menu for the processor. Machine slots are added in the (frozen) order 0, 1, 12, 13, 14, 2,
+ * then the nine output container slots (3–11), then the player inventory; the menu slot order
+ * therefore does not match the container indices.
+ */
 public class ProcessorMenu extends AbstractContainerMenu {
     ContainerData data;
 
@@ -91,6 +96,13 @@ public class ProcessorMenu extends AbstractContainerMenu {
     public int getDataSlot(int slot) {
         return data.get(slot);
     }
+
+    /**
+     * TODO(BUG): broken control flow. After the {@code if (i < 15)}/else pair,
+     * a separate water/filter/tank/chip/test-tube chain runs for every slot index
+     * (machine slots included), {@code slot.onTake} fires even when nothing was moved, and the
+     * method always returns EMPTY so vanilla's shift-click loop never repeats.
+     */
     @Override
     public ItemStack quickMoveStack(Player player, int i) {
             Slot slot = this.slots.get(i);

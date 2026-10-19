@@ -6,7 +6,7 @@ import net.dumbcode.projectnublar.api.loot.functions.AmberItemFunction;
 import net.dumbcode.projectnublar.api.loot.functions.FossilItemFunction;
 import net.dumbcode.projectnublar.block.AmberBlock;
 import net.dumbcode.projectnublar.block.FossilBlock;
-import net.dumbcode.projectnublar.init.BlockInit;
+import net.dumbcode.projectnublar.registry.BlockInit;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.data.loot.BlockLootSubProvider;
 import net.minecraft.world.flag.FeatureFlags;

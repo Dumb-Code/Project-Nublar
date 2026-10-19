@@ -1,11 +1,11 @@
 package net.dumbcode.projectnublar.entity.dinosaur.animation;
 
-import net.dumbcode.projectnublar.entity.ai.behaviour.social.DinoGroup;
-import net.dumbcode.projectnublar.entity.ai.behaviour.social.GroupManager;
-import net.dumbcode.projectnublar.entity.ai.behaviour.social.HerdState;
+import net.dumbcode.projectnublar.entity.dinosaur.ai.behavior.social.DinoGroup;
+import net.dumbcode.projectnublar.entity.dinosaur.ai.behavior.social.GroupManager;
+import net.dumbcode.projectnublar.entity.dinosaur.ai.behavior.social.HerdState;
 import net.dumbcode.projectnublar.entity.dinosaur.CarnivoreDinosaur;
 import net.dumbcode.projectnublar.entity.dinosaur.Dinosaur;
-import net.dumbcode.projectnublar.init.MemoryModuleTypeInit;
+import net.dumbcode.projectnublar.registry.MemoryModuleTypeInit;
 import net.dumbcode.projectnublar.util.DinoAnimationLengths;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.ai.memory.MemoryModuleType;

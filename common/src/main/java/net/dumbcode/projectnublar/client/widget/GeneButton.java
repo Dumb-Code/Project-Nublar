@@ -1,6 +1,6 @@
 package net.dumbcode.projectnublar.client.widget;
 
-import net.dumbcode.projectnublar.api.Genes;
+import net.dumbcode.projectnublar.api.gene.Genes;
 import net.dumbcode.projectnublar.client.CommonClientClass;
 import net.dumbcode.projectnublar.client.screen.SequencerScreen;
 import net.minecraft.client.Minecraft;

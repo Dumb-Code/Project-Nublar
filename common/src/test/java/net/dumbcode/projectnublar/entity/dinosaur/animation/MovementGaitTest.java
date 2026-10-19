@@ -1,6 +1,6 @@
 package net.dumbcode.projectnublar.entity.dinosaur.animation;
 
-import net.dumbcode.projectnublar.entity.ai.behaviour.social.RunGait;
+import net.dumbcode.projectnublar.entity.dinosaur.ai.behavior.social.RunGait;
 import net.dumbcode.projectnublar.entity.dinosaur.Dinosaur;
 import org.junit.jupiter.api.Test;
 

@@ -1,8 +1,8 @@
 package net.dumbcode.projectnublar.datagen;
 
 import net.dumbcode.projectnublar.Constants;
-import net.dumbcode.projectnublar.init.ItemInit;
-import net.dumbcode.projectnublar.init.TagInit;
+import net.dumbcode.projectnublar.registry.ItemInit;
+import net.dumbcode.projectnublar.registry.TagInit;
 import net.minecraft.core.HolderLookup;
 import net.minecraft.core.registries.Registries;
 import net.minecraft.data.PackOutput;

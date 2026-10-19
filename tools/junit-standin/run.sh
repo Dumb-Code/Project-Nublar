@@ -5,6 +5,7 @@ set -e
 ROOT="$(pwd)"
 OUT="$ROOT/build/junit-standin"
 CP="$(cygpath -w "$ROOT/common/build/classes/java/main")"
+CP="$CP;$(cygpath -w "$ROOT/nublar-gui/build/classes/java/main")"
 
 # Minecraft with the dev mappings the common module compiles against.
 MC=$(ls ~/.gradle/caches/fabric-loom/minecraftMaven/net/minecraft/minecraft-merged/*/minecraft-merged-*.jar | head -1)

@@ -4,11 +4,14 @@ package net.dumbcode.projectnublar.client.widget;
 
 
 
-import net.dumbcode.projectnublar.api.DinoData;
-import net.dumbcode.projectnublar.api.Genes;
+import net.dumbcode.projectnublar.api.dinosaur.DinoData;
+import net.dumbcode.projectnublar.api.gene.Genes;
 import net.dumbcode.projectnublar.client.CommonClientClass;
 import net.dumbcode.projectnublar.client.renderer.layer.DinoLayer;
 import net.dumbcode.projectnublar.client.screen.SequencerScreen;
+import net.dumbcode.projectnublar.gui.widget.DinoColorPickerWidget;
+import net.dumbcode.projectnublar.gui.widget.FilteredSelectionWidget;
+import net.dumbcode.projectnublar.gui.widget.ParentWidget;
 import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.gui.components.Renderable;
 import net.minecraft.network.chat.Component;
