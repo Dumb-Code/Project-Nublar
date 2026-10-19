@@ -1367,9 +1367,8 @@ In a second pass on the same date, the project lead answered eight interpretatio
 
 - The working default is the ladder of the Tyrannosaurus card: fragmented 5%, poor 7.5%, common 10%, pristine 30%.
 - The yields must stay in the config. Playtests set the final values.
-- With these yields and an iron filter, the 50% threshold needs about 25 to 30 fossils.
-- With a diamond filter, the 50% threshold needs about 7 fossils.
-- The project lead said that these quantities are "about right".
+- The filter adds a boost on top of the yield: iron ×1.15, gold ×1.20, diamond ×1.25. A worn filter keeps a quarter of its boost (lead, 2026-10-13, D257).
+- With these yields and an iron filter, the 50% threshold needs about 6 fossils. The lead chose this pacing on 2026-10-13. It replaces the earlier "25 to 30 fossils" pacing.
 
 **Player effort:**
 
@@ -2612,14 +2611,9 @@ Vehicles:
   - animation speed that follows body size
   - look-around clips on the second animation controller
 - **Neck reach IK.** It waits until the eating and drinking animations exist. The Gallimimus has neither ([dinosaur-hitboxes-and-movement-design.md](dinosaur-hitboxes-and-movement-design.md)).
-- **Items that stayed open after the final pass of 2026-10-13.** The project lead answered each one later on 2026-10-13 (Z-8). The plan register holds each answer.
-  - the rest of the gene effect sizes (D112)
-  - the crest and the quills of a young from a Nublar and Sorna pair (D249)
-  - the recipes of the vehicles, the track block, the stop marker and the wrench (D250)
-  - the length of the nocturnal window (D252) and the height of a fence pole with wires (D253)
-  - the period of the Dilophosaurus (D254) and what a failed natural egg leaves (D255).
-- **Only guns and the two animation details stay open.** The asset repository question about the T. rex sounds waits for the artist (D91).
-- **Claude drafts.** The project lead reviewed all seven drafts on 2026-10-13 and accepted each with changes.
+- **The T. rex sounds.** The asset repository question waits for the artist (D91).
+
+The Decisions register in the plan holds every answered item.
 
 ### 11.15 Systems in Beta that have no code
 
@@ -2630,7 +2624,7 @@ Vehicles:
 - the power conduit, pylons, the large generator and machine tabs
 - recipes for machines, parts and upgrades
 - gene effects, variation for each animal, edit risk, skin variants and special genes
-- packs, pack hunting, block grazing, breeding and taming. Herds and herd grazing have 1.20.1 code on `kash's-slop`, which the lead has not committed (herd work)
+- packs, pack hunting, block grazing, breeding and taming. Herds and herd grazing have 1.20.1 code on `kash's-slop`, committed on 2026-10-11 in 582fbb0 (herd work)
 - detection levels and stress. Scent trails left Beta on 2026-10-12 (section 11.10)
 - the herbivore feeders, the live bait feeder and the fence switch
 - vehicles, the tour track and guns
@@ -3152,25 +3146,7 @@ One note claimed a leak in `FallbackBudget`. It is false: `forget(UUID)` exists,
 
 #### Open items O7 to O21
 
-Each item has a default that ships if the lead does not answer.
-
-| Id | Question | Default |
-| --- | --- | --- |
-| O7 | What powers a fence when its generator's chunk is not loaded? | Only loaded generators count. No chunk tickets |
-| O8 | How long does a fence stay live after fuel ends? | A buffer of the post buffers, as a config value |
-| O9 | Does a shock follow the grid's energy and drain the grid? | No. Fixed damage per tier |
-| O10 | Which blocks accept energy from other mods' cables? | Generators give, machines accept, fences are closed |
-| O11 | What stops the Explorer, how many seats, boarding while moving, a timed Tour Station? | Dinosaurs and players stop it. Jeep 2 seats, Explorer 4. Boarding at stops only. No Tour Station |
-| O12 | What happens when a vehicle meets an electric fence? | It stops. No shock |
-| O13 | Hover box always on, or with an item? A power meter block? | Always on. No meter block |
-| O14 | What does the control room have in Beta? | Switch block, comparator outputs, alarm block |
-| O15 | Which systems can a server owner turn off? | Vehicles, herd travel, fence wire health, breeding |
-| O16 | Are gene definitions datapack JSON in Beta? | No. JSON after Beta |
-| O17 | Where do species and piece of a fossil live? Opacity steps? | One block per host stone and species. 4 opacity steps |
-| O18 | What is the largest DNA drive? | 150 entries. Test at 1,000 |
-| O19 | What distance does the game guarantee for a digsite? | 1,600 blocks, the vanilla `/locate` radius |
-| O20 | Does the roadmap include optional compat modules? | CC: Tweaked after B15. Create and Ponder wait for builds |
-| O21 | Do vanilla and decorative fences hold dinosaurs? | Yes, as walls |
+The lead answered all 15 items. Decisions register rows D21 to D35 hold the answers.
 
 ### 12.3 JurassiCraft 3 (2026-10-11)
 
@@ -3200,37 +3176,7 @@ The main results:
 
 ---
 
-## 13. Open questions
-
-### 13.1 Answered on 2026-10-05
-
-| Question | Answer | Section |
-| --- | --- | --- |
-| Which fossil quality ladder applies? | Fragmented, poor, common and pristine, with yields of 5, 7.5, 10 and 30%. This ladder is the working default | 11.1 |
-| Which editing thresholds apply? | Edit at 70%. The gender selection is sure at 80% | 11.6 |
-| Which dinosaurs are in Beta? | The five dinosaurs of the design document and Gallimimus. Pteranodon is not in Beta | 11.9 |
-| Does the carnivore feeder stay in the mod? | Yes. Beta also has a herbivore feeder | 11.12 |
-| Which synthesis output does the design intend? | A syringe with a dinosaur embryo. The egg printer makes the unincubated egg | 11.7 |
-| Do cards exist for the other species? | The cards exist on the project board. Four have no text and one has no stats | 8.6 |
-| Config format: datapack JSON or TOML? | Both. TOML for the global balance numbers and datapack JSON for the data of each species | 11.17 |
-| Is Fabric necessary for Beta? | Yes. Fabric and NeoForge must be playable at the Beta release | 11.17 |
-| Is a port to 1.21.x planned before Beta or after Beta? | Before the new Beta systems. The target is Minecraft 26.2 | 11.17 |
-| Does a saved world or a released build depend on the current block ids? | No. Only test worlds exist, and the team can discard them | 11.17 |
-| Does the gene data follow the new table now, or after a port? | The new table replaces the code values. The animals that 1.20.1 does not have get entries after the port | 11.6 |
-| Are the seven park-system diagrams design targets or background reference? | Background reference for Beta, and targets for the time after Beta | 11.17 |
-| Which Tyrannosaurus fossil depth does the design intend? | The default is y 40 to 75, which joins the two ranges. Playtests set the final range | 11.1 |
-| Which source applies where the art task board and section 11 differ? | Section 11 applies for plants, the frog, the goat, the skeletal builder, the petrified tree and the park machines | 8.6 |
-| Are park decorations in Beta? | The enclosure marker and the park signs stay after Beta. The three voltage signs for fences are in Beta | 8.6 |
-| Do the boards or the asset repository hold tasks or assets that change this list? | The analysis read the three GitHub boards and made an inventory of the asset repository. The Trello board is out of date | 8.5, 8.6 |
-
-### 13.2 Open
-
-1. Licence: LGPLv3 or CC0? On 2026-10-05 the project lead answered "still choosing". The decision comes before the first public release.
-2. Section 11.14 lists the decisions that stay open after the design discussion.
-
----
-
-## 14. Sources
+## 13. Sources
 
 - `Dumb-Code/Project-Nublar`, branches at 67bf1b5, 55e1968, aa9d047, 4244f62 and 97023cf.
 - GitHub issues #1, #6 and #65, and the lists of open and closed issues.

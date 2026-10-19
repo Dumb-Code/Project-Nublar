@@ -386,15 +386,7 @@ Guard young has no own activity. A sensor that sees a player near a baby writes 
 
 ## Open items for the lead
 
-These five items are real gaps that the plan and section 11 do not answer. Each has a default that ships as a config value or a data field if the lead does not answer.
-
-| Id | Module | Question | Default if unanswered | Why it matters |
-|---|---|---|---|---|
-| A1 | B00, B17 | Which species data field holds the sleep and activity window? Plan B00 deletes `DinoBehaviourData` and its `nocturnal` flag, and the B00 field list has no replacement | Add `activity_window` (diurnal, nocturnal, cathemeral) to species data. Interim values from today's configs: Tyrannosaurus, Velociraptor and Dilophosaurus nocturnal, the others diurnal | `Rest`, `LeaderJourney` and `FollowFormation` read the flag today `[v]`. Without a field the herd sleeps at the wrong time after B00 |
-| A2 | B17 | Does REST switch by `SmartBrainSchedule.byDaytime` or by a rest-window memory? | `byDaytime` built per species, with AVOID and FIGHT in the schedule-ignoring set. A GameTest checks that an urgent need still wins at night. Fall back to a memory if it does not | The library rule prefers the schedule. The notes do not show how a schedule ranks against a met activity `[inf]` |
-| A3 | B17, B24 | Which existing clips may the idle pool play as brain acts? | All clips that `AnimationChoice` already lists for IDLE, plus `speak` for greetings. No new clips. D14 stays unbuilt | Idle variety depends on clips. Spare clips (`sneeze`, `spit`, `speak`) exist for some species only |
-| A4 | B19 | Do calm animals turn their head toward a still player within 8 blocks? | Yes for herbivores, by SBL `SetPlayerLookTarget`. No approach. Carnivores look only after detection | Without it animals ignore visitors. An approach rule near carnivores needs care |
-| A5 | B17 | Does a herbivore that is not hungry play a cosmetic graze at its herd spot? | Yes, with no block removed, for species with an eat clip (Triceratops, Brachiosaurus). The Gallimimus waits for an eat clip | Section 11.10 decides block eating when hungry. It is silent on idle grazing |
+The plan took up items A1 to A5. The lead settled the activity windows (A1) and idle grazing (A5). Work package F2.0 in the Engineering backlog holds all five.
 
 ## Sources
 

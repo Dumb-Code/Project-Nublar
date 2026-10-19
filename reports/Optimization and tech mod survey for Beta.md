@@ -922,25 +922,7 @@ These facts differ from the earlier survey, the plan, a note, a store page or a 
 
 ## Open items for the lead
 
-These 15 items are real design gaps. Each has a default that ships as a config value or a documented rule if the lead does not answer. They continue the earlier survey's O1 to O6. This list merges duplicates across notes. Questions that a module owner can settle are in "New items for the plan" instead.
-
-| Id | Module | Question | Default if unanswered | Why it matters |
-| --- | --- | --- | --- | --- |
-| O7 | B14 | What powers a fence when its generator's chunk is not loaded? | The network counts only loaded generators. Fences with no loaded supply show unpowered. No chunk tickets. Docs tell players to keep generators near paddocks | A player at one end of a big park can lose a far fence |
-| O8 | B14 | How long does a fence stay live after fuel ends? | A buffer equal to the sum of post buffers (350 FE each today), as a config value. The fence fades over seconds | An instant outage and a slow fade feel different |
-| O9 | B15 | Does shock strength follow the grid's energy, and does a shock drain the grid (T3)? | No. Fixed `fences.damage.<tier>`. Shocks draw no energy | It turns weak grids into a real danger and gives the large generator a role |
-| O10 | B14 | Which Nublar blocks accept energy from, or give energy to, other mods' cables? | Generators give. Machines accept. Posts, pylons and conduits are closed to outside cables | A Mekanism cable next to a post could drain a fence |
-| O11 | B22 | What stops the Explorer, how many seats each vehicle has, may a player board a moving Explorer, and is a timed Tour Station in Beta? | Stops for all dinosaurs and players (tag). Jeep 2 seats, Explorer 4. Boarding only at a stop. No Tour Station: the driver starts the loop | It sets the tour's feel and its acceptance test |
-| O12 | B22, B15 | What happens when a vehicle meets an electric fence? | Vanilla collision stops it. No shock to the vehicle or riders | The fence design does not say |
-| O13 | B12, B14 | Is the hover box always on, or shown only with a worn item? Is a power meter block in Beta? | Always on, with a client switch. No meter block. Generators give comparator output | It decides B12 and B14 UI work |
-| O14 | Backlog | What does the control room have in Beta: status board, alarms, cameras, ownership? Camera route: a camera entity with mixins, or the player's body moved to the camera? | Beta has the switch block, comparator outputs and the alarm block (T14). Cameras, status board and ownership wait. A later camera shows "no signal" outside loaded chunks | It decides whether security gets a module |
-| O15 | B00 | Which systems may a server owner turn off? | `vehicles`, `herd_travel`, `fence_wire_health`, `breeding`, all on | It fixes the `features` list and the guard points |
-| O16 | B07 | Are gene definitions datapack JSON in Beta? | No. Java registry in Beta with the rebuild function (B07.1). JSON after Beta | JSON needs a codec framework (M) |
-| O17 | B01 | Where do species and piece of a fossil live, and how many opacity steps does the overlay have? | One block per host stone and species. Piece, quality and biome group as properties, about 4,600 states in total. Opacity in 4 steps by weighted model variants | It sets the block count and the state count |
-| O18 | B06 | What is the largest DNA drive the design expects? | Design for 150 entries. Test at 1,000 | A drive of 10,000 entries reaches the 1 MiB payload limit |
-| O19 | B21 | Which distance does the game guarantee for a digsite, for which tool (command, map, trade), and may a map show "Locating…"? | Vanilla `/locate` radius of 1,600 blocks (100 chunks) replaces the plan's 2,000. Spacing keeps the median below 800 blocks. Maps use the vanilla function with no wait screen | The plan's 2,000 blocks exceeds the vanilla command radius |
-| O20 | Post-P2 | Does the roadmap include optional compat modules (CC: Tweaked peripheral, Create on Fabric, Ponder or a guide book)? | CC: Tweaked peripheral after B15. Create and Ponder only when a NeoForge 26.x build exists. Guide book stays in the backlog | Create and Ponder have no NeoForge 26.2 build |
-| O21 | B15, B26 | Do vanilla and decorative fences hold dinosaurs? | Yes, as walls with vanilla collision. They are not in the breakable list unless a data pack adds them | Without an answer, a wooden fence may be the cheapest paddock |
+The lead answered items O7 to O21. Decisions register rows D21 to D35 in the plan hold the answers.
 
 ## Post-Beta
 

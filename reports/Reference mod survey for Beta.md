@@ -1148,16 +1148,7 @@ These facts differ from a brief, a wiki, a store page, an earlier note or the pl
 
 ## Open items for the lead
 
-These six items are real design gaps. Each has a default that ships as a config value if the lead does not answer.
-
-| Id | Module | Question | Default if unanswered | Why it matters |
-| --- | --- | --- | --- | --- |
-| O1 | B19 | How long does an awareness episode last before a dinosaur rolls again for the same player? | 200 ticks (10 s), `detection.episode_ticks` | Short episodes make detection almost certain. Long episodes make dinosaurs seem blind |
-| O2 | B19 | Which sources drop scent points, at what spacing, and with what cap per chunk? | Players and hurt mobs, 2-block spacing, 32 points per chunk, all config | Sources set the feel of tracking and the size of the save data |
-| O3 | B11 | Does a hatchling get an owner (the egg placer or the nearest player)? | No owner. Taming stays the only bond (B19) | Section 11 sets no imprint rule. An owner changes taming and commands |
-| O4 | B19 | Do owners who are not operators get a status readout of their dinosaur? | No readout. The debug stick stays as decided in B16 | Without it, survival players cannot see need or stress |
-| O5 | B19 | Do vanilla villagers and livestock flee loose dinosaurs? | Off, `vanilla.mobs_fear_dinosaurs` | It changes vanilla mobs. The precedents add it with a tag and a sensor |
-| O6 | B18 | Does breeding stop above a dinosaur count per area? | 0 (no cap), config | The breeding gates already limit growth. A cap protects large servers |
+The lead answered items O1 to O6. Decisions register rows D15 to D20 in the plan hold the answers.
 
 ## Gameplay loops, pacing and design alternatives
 

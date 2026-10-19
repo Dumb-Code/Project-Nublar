@@ -426,39 +426,7 @@ The lead can paste each row into the named module's scope. "Source" names where 
 
 ## Questions for the lead
 
-Each question has a default. The default ships if the lead does not answer. New register rows would be D40 to D68. The lead answered Q25, so it goes in as a decision.
-
-| Id | Question | Default | Why it matters |
-| --- | --- | --- | --- |
-| Q1 | What does a fenced herd do for journeys? | Targets come from the reachable area. A bounded fill finds it (6,000 blocks, T12). Open world keeps 156-314 blocks | Today a fenced herd stalls at the fence and ends with NO_PROGRESS |
-| Q2 | Does the card's hatch success (T. rex 5 %) apply to lab eggs? | No. Lab eggs use `incubation.lab_hatch_success` 0.9, reduced by edit risk. Nest eggs use the card | At 5 % one T. rex costs about 17 hours of machine time |
-| Q3 | Which Beta species can take camouflage and thermal detection? | Camouflage: Velociraptor, Dilophosaurus. Thermal: the three carnivores. Data list | Otherwise two Beta genes fit no Beta species |
-| Q4 | Do Velociraptor and Dilophosaurus carry hyper intelligence and poison from hatch? | No in Beta. The player adds them by edit | It decides how hard a first raptor paddock is |
-| Q5 | What is "abnormal behaviour"? Does it reuse the B10 quirks? | No. A separate `risk_behaviours` list (G1) | Edit risk needs an outcome, and B10 already uses the name "quirk" |
-| Q6 | Which stats trade off? | The five pairs in G2, growing with donor share and edit count | "Raising one stat lowers another" needs pairs |
-| Q7 | What does a hyper-intelligent animal do when it notices an unpowered section? | It walks there and climbs out over the wire (F26). Other animals keep avoiding fences (F27) | It is the main genetics-to-fence link after parity |
-| Q8 | Can a jump edit clear a low fence? | No. The cap stays below the 3-block low-security height | If yes, jump edits force the high fence |
-| Q9 | Add a `scent` gene for the table's scent effects? | Yes | 11 donors list scent |
-| Q10 | Does the nocturnal gene shift the window? | Yes, one step at plus or minus 50 % | Links a gene to when visitors see animals |
-| Q11 | Flee or stand for Brachiosaurus (D13) | Flee, as D13 says. Note: defence clips exist | The clips also support "stands" |
-| Q12 | Special-gene slots: one, or 1-3 by sequence percent? | One | Design doc and plan differ |
-| Q13 | Is the social need the same as the company input? | Yes, one mechanic | Section 11 names both |
-| Q14 | Velociraptor leap with the existing `pounce` clip, without a crouch? | Yes, in B18 pack hunts | The clip exists. Only the crouch is missing |
-| Q15 | Do T. rex pairs and Dilophosaurus groups hunt together? | T. rex pairs: yes, with a far-side approach. Dilophosaurus: no, it hunts alone | The T. rex card lists pair hunting. Nothing covers Dilophosaurus |
-| Q16 | When does a pack give up? | When the leader stops, the target is lost, or under half the members still chase. No flight from a lost hunt in Beta | It decides whether a player can outlast a pack |
-| Q17 | Do packs make herd journeys? | No. The leader roams inside the territory radius | Raptors use 156-314 block journeys today, which run into fences |
-| Q18 | Does dominance set the feeding order? | Yes. The leader first, at most 3 at once | Shows rank to the player and makes pack size a care decision |
-| Q19 | Can a full pack take prey a lone hunter avoids? | Yes. Pack threat sums the adults, capped at 4x the leader | Without it, a pack hunts only what one raptor would |
-| Q20 | Build stalking now with the walk clip, or wait for crouch art? | Now, with the walk clip at speed 0.5 | The plan defers stalking only for the missing crouch |
-| Q21 | Is ambushing in Beta, and for which species? | Yes, Dilophosaurus and Velociraptor | No source mentions ambushing |
-| Q22 | Do animals remember where they were hurt? | Yes, a soft path cost for 2,400 ticks | Makes animals learn the paddock |
-| Q23 | May a starving animal eat its own species? | Yes, at the card weight, never its own group or family | The code comment and the card allow it. The code does not |
-| Q24 | Do alarms cross species, with no mixed groups? | Yes | Mixed paddocks otherwise ignore each other |
-| Q25 | Which 26.2 animals with no table entry give DNA (allay, strider, tadpole, happy ghast, sulfur cube)? | Answered 2026-10-10: none of them. They give no usable DNA | The table predates these animals |
-| Q26 | Do mob variants change genes, or colour only? | Colour only | Variants keep separate drive entries, so the answer sets how much sampling matters |
-| Q27 | Are the unsigned table values plus? | Yes | Polar bear speed is +50 in code and 20 in the table |
-| Q28 | What does "green unlocks Delta" (parrot) mean? | A skin variant named Delta. No source defines it, so it waits | It is the only skin unlock tied to a donor |
-| Q29 | Do effects that only the older design doc lists still apply? | Stat effects: no, the table wins. Cosmetic effects: yes (turtle green skin shift, rabbit albino chance). Mule transport capacity waits for item carrying (B10 quirks) | Polar bear cold resistance, cow and armadillo speed, horse strength, cat and ocelot group size and squid intelligence appear only there |
+The lead answered questions Q1 to Q29. Decisions register rows D40 to D68 in the plan hold the answers.
 
 ## Sources
 
