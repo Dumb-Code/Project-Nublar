@@ -32,8 +32,9 @@ import java.util.List;
 
 /**
  * GameTests for herds (plan B18 and the herd movement redesign). The lead runs them one at a time in a
- * creative world started from {@code runClient} (never on a dedicated GameTest server):
- * {@code /test run herdgametests.<method name in lower case>}.
+ * creative world started from {@code runClient} (never on a dedicated GameTest server). On the GameTest server
+ * each test is its own batch, so they run one at a time there too.
+ * Run a test with {@code /test run herdgametests.<method name in lower case>}.
  * <ul>
  * <li>{@code /test run herdgametests.fivegallimimusformoneherdledbythestrongest}</li>
  * <li>{@code /test run herdgametests.twentygallimimusformoneherdoftwenty}</li>
@@ -209,7 +210,7 @@ public final class HerdGameTests {
      * Five animals form one herd, and the strongest leads it.
      * Run: {@code /test run herdgametests.fivegallimimusformoneherdledbythestrongest}
      */
-    @GameTest(template = ARENA, timeoutTicks = 600)
+    @GameTest(template = ARENA, batch = "fivegallimimusformoneherdledbythestrongest", timeoutTicks = 600)
     public static void fiveGallimimusFormOneHerdLedByTheStrongest(GameTestHelper helper) {
         List<Dinosaur> animals = new ArrayList<>();
         for (int i = 0; i < 4; i++) {
@@ -237,7 +238,7 @@ public final class HerdGameTests {
      * whatever pairs form first, because any two partial herds fit together and merge.
      * Run: {@code /test run herdgametests.twentygallimimusformoneherdoftwenty}
      */
-    @GameTest(template = ARENA, timeoutTicks = 1200)
+    @GameTest(template = ARENA, batch = "twentygallimimusformoneherdoftwenty", timeoutTicks = 1200)
     public static void twentyGallimimusFormOneHerdOfTwenty(GameTestHelper helper) {
         List<Dinosaur> animals = new ArrayList<>();
         for (int row = 0; row < 4; row++) {
@@ -261,7 +262,7 @@ public final class HerdGameTests {
      * A stronger animal that joins a pair leads the herd at once.
      * Run: {@code /test run herdgametests.strongernewcomerleadsatonce}
      */
-    @GameTest(template = ARENA, timeoutTicks = 600)
+    @GameTest(template = ARENA, batch = "strongernewcomerleadsatonce", timeoutTicks = 600)
     public static void strongerNewcomerLeadsAtOnce(GameTestHelper helper) {
         Dinosaur first = hatch(helper, EntityInit.GALLIMIMUS.get(), new BlockPos(8, FLOOR_Y, 12), 0D);
         Dinosaur second = hatch(helper, EntityInit.GALLIMIMUS.get(), new BlockPos(14, FLOOR_Y, 12), 0D);
@@ -283,7 +284,7 @@ public final class HerdGameTests {
      * A member that dies leaves its herd; the survivor stays in a herd of 1.
      * Run: {@code /test run herdgametests.deadmemberleavesitsherd}
      */
-    @GameTest(template = ARENA, timeoutTicks = 400)
+    @GameTest(template = ARENA, batch = "deadmemberleavesitsherd", timeoutTicks = 400)
     public static void deadMemberLeavesItsHerd(GameTestHelper helper) {
         Dinosaur doomed = hatch(helper, EntityInit.GALLIMIMUS.get(), new BlockPos(8, FLOOR_Y, 12), 0D);
         Dinosaur survivor = hatch(helper, EntityInit.GALLIMIMUS.get(), new BlockPos(14, FLOOR_Y, 12), 0D);
