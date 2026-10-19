@@ -17,6 +17,7 @@ import net.dumbcode.projectnublar.registry.ItemInit;
 import net.dumbcode.projectnublar.registry.LootFunctionInit;
 import net.dumbcode.projectnublar.registry.MemoryModuleTypeInit;
 import net.dumbcode.projectnublar.registry.MenuTypeInit;
+import net.dumbcode.projectnublar.registry.PlacementModifierInit;
 import net.dumbcode.projectnublar.registry.RecipeInit;
 import net.dumbcode.projectnublar.registry.SoundInit;
 import net.minecraft.util.random.SimpleWeightedRandomList;
@@ -41,6 +42,7 @@ public class ProjectNublar {
         ItemInit.loadClass();
         LootFunctionInit.loadClass();
         FeatureInit.loadClass();
+        PlacementModifierInit.loadClass();
         MenuTypeInit.loadClass();
         CreativeTabInit.loadClass();
         DataSerializerInit.loadClass();
