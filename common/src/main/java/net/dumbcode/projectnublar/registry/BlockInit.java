@@ -6,6 +6,7 @@ import java.util.function.Function;
 import java.util.function.Supplier;
 import net.dumbcode.projectnublar.Constants;
 import net.dumbcode.projectnublar.api.fossil.FossilCollection;
+import net.dumbcode.projectnublar.api.fossil.FossilPieces;
 import net.dumbcode.projectnublar.block.EggPrinterBlock;
 import net.dumbcode.projectnublar.block.ElectricFenceBlock;
 import net.dumbcode.projectnublar.block.GeneratorBlock;
@@ -35,8 +36,9 @@ import net.minecraft.world.level.block.state.BlockBehaviour;
  * Registers every mod block and block-entity type, plus the per-species fossil block collections.
  *
  * <p>The registered id strings are registry contracts and must never change. The
- * {@link FossilCollection} fields must stay declared here and in this order: their creation runs
- * during class initialization and registers fossil/amber blocks as a side effect.
+ * {@link FossilCollection} field must stay declared here and in this position: its creation runs
+ * during class initialization and registers the fossil blocks, their items and the amber blocks
+ * as a side effect.
  */
 public class BlockInit {
     public static final DeferredRegister<Block> BLOCKS =
@@ -44,10 +46,8 @@ public class BlockInit {
     public static final DeferredRegister<BlockEntityType<?>> BLOCK_ENTITIES =
             DeferredRegister.create(Constants.MODID, Registries.BLOCK_ENTITY_TYPE);
 
-    public static FossilCollection TYRANNOSAURUS_REX_FOSSILS =
-            FossilCollection.create(EntityInit.TYRANNOSAURUS_REX.getId());
-    public static FossilCollection TRICERATOPS_FOSSILS =
-            FossilCollection.create(EntityInit.TRICERATOPS.getId());
+    public static FossilCollection TYRANNOSAURUS_REX_FOSSILS = FossilCollection.create(
+            EntityInit.TYRANNOSAURUS_REX.getId(), "cretaceous", FossilPieces.TYRANNOSAURUS_PIECES);
 
     // Machines are multiblocks: the trailing ints are (rows, columns, depth) of the structure
     // and are mirrored in each block's GeoMultiBlockItem.

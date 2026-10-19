@@ -1,87 +1,100 @@
 package net.dumbcode.projectnublar.api.fossil;
 
 import dev.architectury.registry.registries.DeferredSupplier;
-import java.util.HashMap;
+import java.util.EnumMap;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
-import net.dumbcode.projectnublar.Constants;
+import java.util.stream.Stream;
 import net.dumbcode.projectnublar.block.AmberBlock;
 import net.dumbcode.projectnublar.block.FossilBlock;
+import net.dumbcode.projectnublar.item.fossil.FossilBlockItem;
 import net.dumbcode.projectnublar.registry.BlockInit;
-import net.minecraft.core.registries.BuiltInRegistries;
+import net.dumbcode.projectnublar.registry.ItemInit;
 import net.minecraft.resources.ResourceLocation;
+import net.minecraft.world.item.Item;
 import net.minecraft.world.level.block.Block;
-import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.level.block.state.BlockBehaviour;
 
 /**
- * The fossil and amber block variants registered for one species, indexed as
- * stone block, then quality, then piece (fossils) and stone block, then amber block (amber).
+ * The fossil ores and amber blocks of one species.
  *
- * <p>The registered block id formulas {@code {qualityPrefix}{stone}_{entityPath}_{piece}_fossil}
- * and {@code {stone}_{entity}_amber} are frozen registry contracts.
+ * <p>There is one fossil block per host stone and piece; its quality is a block state. Each block
+ * has four items, one per quality, that place it with that quality. There is one amber block per
+ * host stone.
+ *
+ * <p>The id formulas of {@link #blockId}, {@link #itemId} and the amber blocks are registry
+ * contracts.
+ *
+ * @param period the geological period the species generates in, as named in {@code FossilsConfig}
  */
 public record FossilCollection(
-        Map<Block, Map<Quality, Map<FossilPiece, DeferredSupplier<Block>>>> fossilblocks,
-        Map<Block, DeferredSupplier<Block>> amberBlocks) {
+        ResourceLocation entityType,
+        String period,
+        List<FossilPiece> pieces,
+        Map<FossilBase, Map<FossilPiece, DeferredSupplier<Block>>> fossilBlocks,
+        Map<FossilBase, Map<FossilPiece, Map<Quality, DeferredSupplier<Item>>>> fossilItems,
+        Map<FossilBase, DeferredSupplier<Block>> amberBlocks) {
 
-    /** All created collections, keyed by the entity type id string. */
-    public static Map<String, FossilCollection> COLLECTIONS = new HashMap<>();
-
-    // TODO(BUG): these maps are static, so every FossilCollection created by create() aliases the
-    // very same two maps; entries from later species overwrite earlier ones per stone block.
-    public static Map<Block, Map<Quality, Map<FossilPiece, DeferredSupplier<Block>>>> fullFossilMap =
-            new HashMap<>();
-    public static Map<Block, DeferredSupplier<Block>> fullAmberMap = new HashMap<>();
-
-    /** The stone variants a fossil/amber block is generated for. */
-    public static List<Block> stonelist = List.of(
-            Blocks.STONE,
-            Blocks.ANDESITE, Blocks.GRANITE, Blocks.DIORITE, Blocks.SANDSTONE, Blocks.DEEPSLATE,
-            Blocks.TERRACOTTA, Blocks.RED_TERRACOTTA, Blocks.ORANGE_TERRACOTTA,
-            Blocks.YELLOW_TERRACOTTA, Blocks.BROWN_TERRACOTTA, Blocks.WHITE_TERRACOTTA,
-            Blocks.LIGHT_GRAY_TERRACOTTA
-    );
-
-    /** Overload for this mod's own entities. */
-    public static FossilCollection create(String fossilName) {
-        return create(Constants.modLoc(fossilName));
-    }
+    /** Every collection, keyed by entity type id, in creation order. */
+    public static final Map<ResourceLocation, FossilCollection> COLLECTIONS = new LinkedHashMap<>();
 
     /**
-     * Registers every fossil and amber block for the given entity type.
-     *
-     * <p>TODO(BUG): the return value is {@code Map.put}'s result, i.e. the <em>previous</em>
-     * collection registered under this key - {@code null} on first registration. Callers such as
-     * {@code BlockInit} therefore hold {@code null} references.
+     * Registers the fossil blocks, their items and the amber blocks of a species, and records the
+     * collection in {@link #COLLECTIONS}. Call it while {@link BlockInit} initialises.
      */
-    public static FossilCollection create(ResourceLocation entityType) {
-        for (Block stone : stonelist) {
-            String stoneName = BuiltInRegistries.BLOCK.getKey(stone).getPath();
-            Map<Quality, Map<FossilPiece, DeferredSupplier<Block>>> qualityMap = new HashMap<>();
+    public static FossilCollection create(ResourceLocation entityType, String period, List<FossilPiece> pieces) {
+        Map<FossilBase, Map<FossilPiece, DeferredSupplier<Block>>> fossilBlocks = new EnumMap<>(FossilBase.class);
+        Map<FossilBase, Map<FossilPiece, Map<Quality, DeferredSupplier<Item>>>> fossilItems = new EnumMap<>(FossilBase.class);
+        Map<FossilBase, DeferredSupplier<Block>> amberBlocks = new EnumMap<>(FossilBase.class);
 
-            for (Quality quality : Quality.values()) {
-                String qualityPrefix = quality == Quality.NONE ? "" : quality.getName().toLowerCase() + "_";
+        for (FossilBase base : FossilBase.values()) {
+            Map<FossilPiece, DeferredSupplier<Block>> blocks = new LinkedHashMap<>();
+            Map<FossilPiece, Map<Quality, DeferredSupplier<Item>>> items = new LinkedHashMap<>();
+            for (FossilPiece piece : pieces) {
+                String blockId = blockId(entityType, base, piece);
+                DeferredSupplier<Block> block = BlockInit.BLOCKS.register(blockId, () -> new FossilBlock(
+                        BlockBehaviour.Properties.copy(base.getBlock()).noOcclusion(), entityType, piece, base));
+                blocks.put(piece, block);
 
-                Map<FossilPiece, DeferredSupplier<Block>> pieceMap = new HashMap<>();
-
-                for (FossilPiece piece : FossilPieces.getPiecesByEntityType(entityType)) {
-                    String blockId = qualityPrefix + stoneName + "_" + entityType.getPath() + "_" + piece.name().toLowerCase() + "_fossil";
-
-                    pieceMap.put(piece, BlockInit.registerBlock(blockId,
-                            () -> new FossilBlock(
-                                    BlockBehaviour.Properties.copy(stone).noOcclusion(),
-                                    entityType, piece, quality, stone)));
+                // Common goes last: the last item registered for a block becomes block.asItem().
+                Map<Quality, DeferredSupplier<Item>> qualityItems = new EnumMap<>(Quality.class);
+                for (Quality quality : List.of(Quality.FRAGMENTED, Quality.POOR, Quality.PRISTINE, Quality.COMMON)) {
+                    qualityItems.put(quality, ItemInit.ITEMS.register(itemId(blockId, quality),
+                            () -> new FossilBlockItem(block.get(), ItemInit.getItemProperties(), quality)));
                 }
-                qualityMap.put(quality, pieceMap);
+                items.put(piece, qualityItems);
             }
-
-            fullFossilMap.put(stone, qualityMap);
-            fullAmberMap.put(stone, BlockInit.registerBlock(
-                    stoneName + "_" + entityType.getPath() + "_amber",
-                    () -> new AmberBlock(
-                            BlockBehaviour.Properties.copy(stone).noOcclusion(), entityType, stone)));
+            fossilBlocks.put(base, blocks);
+            fossilItems.put(base, items);
+            amberBlocks.put(base, BlockInit.registerBlock(base.getName() + "_" + entityType.getPath() + "_amber",
+                    () -> new AmberBlock(BlockBehaviour.Properties.copy(base.getBlock()).noOcclusion(),
+                            entityType, base.getBlock())));
         }
-        return COLLECTIONS.put(entityType.toString(), new FossilCollection(fullFossilMap, fullAmberMap));
+
+        FossilCollection collection =
+                new FossilCollection(entityType, period, pieces, fossilBlocks, fossilItems, amberBlocks);
+        COLLECTIONS.put(entityType, collection);
+        return collection;
+    }
+
+    /** Every fossil block of this collection. */
+    public Stream<DeferredSupplier<Block>> blocks() {
+        return fossilBlocks.values().stream().flatMap(blocks -> blocks.values().stream());
+    }
+
+    /** The item that places the fossil block of this stone and piece with this quality. */
+    public DeferredSupplier<Item> item(FossilBase base, FossilPiece piece, Quality quality) {
+        return fossilItems.get(base).get(piece).get(quality);
+    }
+
+    /** For example {@code stone_tyrannosaurus_rex_tyrannosaurus_skull}. */
+    public static String blockId(ResourceLocation entityType, FossilBase base, FossilPiece piece) {
+        return base.getName() + "_" + entityType.getPath() + "_" + piece.name();
+    }
+
+    /** The Common item carries the block id; the others prefix it with their quality name. */
+    public static String itemId(String blockId, Quality quality) {
+        return quality == Quality.COMMON ? blockId : quality.getName() + "_" + blockId;
     }
 }

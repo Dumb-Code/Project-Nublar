@@ -6,6 +6,7 @@ import net.dumbcode.projectnublar.ProjectNublar;
 import net.dumbcode.projectnublar.api.fossil.FossilPiece;
 import net.dumbcode.projectnublar.api.fossil.FossilPieces;
 import net.dumbcode.projectnublar.api.fossil.Quality;
+import net.dumbcode.projectnublar.config.FossilsConfig;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.chat.Component;
@@ -67,9 +68,11 @@ public class DNAData {
         this.entityType = entityType;
     }
 
-    // TODO(DEAD): a quality-based DNA yield (from the old FossilsConfig) was planned here but
-    // never finished; both branches returned the raw percentage, so the branch was removed.
+    /** A fossil sample yields the configured DNA of its quality; any other sample its own percentage. */
     public double getDnaPercentage() {
+        if (quality != null) {
+            return FossilsConfig.getQuality(quality.getName()).dnaYield().get() / 100d;
+        }
         return dnaPercentage;
     }
 
@@ -221,7 +224,7 @@ public class DNAData {
             dnaData.setVariant(tag.getString(VARIANT_KEY));
         }
         if (tag.contains(FOSSIL_PIECE_KEY)) {
-            dnaData.setFossilPiece(FossilPieces.getPieceByName(tag.getString(FOSSIL_PIECE_KEY)));
+            dnaData.setFossilPiece(FossilPieces.byName(tag.getString(FOSSIL_PIECE_KEY)));
         }
         if (tag.contains(QUALITY_KEY)) {
             dnaData.setQuality(Quality.byName(tag.getString(QUALITY_KEY)));

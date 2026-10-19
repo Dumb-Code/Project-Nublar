@@ -2,76 +2,60 @@ package net.dumbcode.projectnublar.api.fossil;
 
 import java.util.ArrayList;
 import java.util.List;
-import net.minecraft.resources.ResourceLocation;
+import java.util.stream.Stream;
+import org.jetbrains.annotations.Nullable;
 
-/** Pseudo-registry of fossil pieces; species-specific piece sets are assembled here. */
-public class FossilPieces {
+/** Every fossil piece, and the piece sets that fossil collections are built from. */
+public final class FossilPieces {
 
     private static final List<FossilPiece> PIECES = new ArrayList<>();
 
-    public static FossilPiece RIBCAGE = registerPiece("ribcage");
-    public static FossilPiece NECK = registerPiece("neck");
-    public static FossilPiece FOOT = registerPiece("foot");
-    public static FossilPiece ARM = registerPiece("arm");
-    public static FossilPiece LEG = registerPiece("leg");
-    public static FossilPiece WING = registerPiece("wing");
-    public static FossilPiece TAIL = registerPiece("tail");
-    public static FossilPiece SPINE = registerPiece("spine");
-    public static FossilPiece LEAF = registerPiece("leaf");
-    public static FossilPiece REX_SKULL = registerPiece("rex_skull", "tyrannosaurus_rex");
-    public static FossilPiece TRICERATOPS_SKULL = registerPiece("triceratops_skull", "triceratops");
+    public static final FossilPiece BIPEDAL_LEG = register("bipedal_leg", "common/biped", "leg");
+    public static final FossilPiece BIPEDAL_CLAW_LEG = register("bipedal_claw_leg", "common/biped", "claw_leg");
+    public static final FossilPiece BIPEDAL_ARM = register("bipedal_arm", "common/biped", "arm");
 
-    public static List<FossilPiece> getTyrannosaurPieces() {
-        List<FossilPiece> tyrannosaurPieces = new ArrayList<>();
-        tyrannosaurPieces.add(REX_SKULL);
-        tyrannosaurPieces.add(RIBCAGE);
-        tyrannosaurPieces.add(ARM);
-        tyrannosaurPieces.add(LEG);
-        tyrannosaurPieces.add(FOOT);
-        tyrannosaurPieces.add(TAIL);
-        tyrannosaurPieces.add(SPINE);
-        return tyrannosaurPieces;
+    public static final FossilPiece QUADRUPED_LEG = register("quadruped_leg", "common/quadruped", "leg");
+
+    public static final FossilPiece NECK = register("neck", "common/generic", "neck");
+    public static final FossilPiece RIBCAGE = register("ribcage", "common/generic", "ribcage");
+    public static final FossilPiece TAIL = register("tail", "common/generic", "tail");
+
+    public static final FossilPiece SAUROPOD_NECK = register("sauropod_neck", "common/sauropod", "neck");
+
+    public static final FossilPiece TYRANNOSAURUS_FOOT = register("tyrannosaurus_foot", "tyrannosaurus_rex", "foot");
+    public static final FossilPiece TYRANNOSAURUS_HAND = register("tyrannosaurus_hand", "tyrannosaurus_rex", "hand");
+    public static final FossilPiece TYRANNOSAURUS_PELVIS = register("tyrannosaurus_pelvis", "tyrannosaurus_rex", "pelvis");
+    public static final FossilPiece TYRANNOSAURUS_SKULL = register("tyrannosaurus_skull", "tyrannosaurus_rex", "skull");
+
+    /** The pieces every two-legged species shares. */
+    public static final List<FossilPiece> BIPED_PIECES = List.of(BIPEDAL_LEG, BIPEDAL_ARM, NECK, RIBCAGE, TAIL);
+
+    /** The Tyrannosaurus pieces: its own four, then the biped set. */
+    public static final List<FossilPiece> TYRANNOSAURUS_PIECES = Stream.concat(
+            Stream.of(TYRANNOSAURUS_HAND, TYRANNOSAURUS_FOOT, TYRANNOSAURUS_PELVIS, TYRANNOSAURUS_SKULL),
+            BIPED_PIECES.stream()).toList();
+
+    private FossilPieces() {
     }
 
-    public static List<FossilPiece> getPieces() {
-        return PIECES;
-    }
-
-    public static List<FossilPiece> getTriceratopsPieces() {
-        List<FossilPiece> triceratopsPieces = new ArrayList<>();
-        triceratopsPieces.add(TRICERATOPS_SKULL);
-        triceratopsPieces.add(RIBCAGE);
-        triceratopsPieces.add(ARM);
-        triceratopsPieces.add(LEG);
-        triceratopsPieces.add(FOOT);
-        triceratopsPieces.add(TAIL);
-        triceratopsPieces.add(SPINE);
-        return triceratopsPieces;
-    }
-
-    /** Piece set for a species; empty for species without a hardcoded set. */
-    public static List<FossilPiece> getPiecesByEntityType(ResourceLocation entityType) {
-        if (entityType.getPath().equals("tyrannosaurus_rex")) {
-            return getTyrannosaurPieces();
-        } else if (entityType.getPath().equals("triceratops")) {
-            return getTriceratopsPieces();
-        } else {
-            return new ArrayList<>();
-        }
-    }
-
-    /** Registers a piece in the "common" folder. */
-    public static FossilPiece registerPiece(String name) {
-        return registerPiece(name, "common");
-    }
-
-    public static FossilPiece registerPiece(String name, String folder) {
-        FossilPiece piece = new FossilPiece(name, folder);
+    private static FossilPiece register(String name, String folder, String displayName) {
+        FossilPiece piece = new FossilPiece(name, folder, displayName);
         PIECES.add(piece);
         return piece;
     }
 
-    public static FossilPiece getPieceByName(String name) {
-        return PIECES.stream().filter(p -> p.name().equals(name)).findFirst().orElse(null);
+    /** Every piece, in declaration order. */
+    public static List<FossilPiece> all() {
+        return List.copyOf(PIECES);
+    }
+
+    /** The piece with this name, or null (old saves can hold removed names such as {@code rex_skull}). */
+    public static @Nullable FossilPiece byName(String name) {
+        for (FossilPiece piece : PIECES) {
+            if (piece.name().equals(name)) {
+                return piece;
+            }
+        }
+        return null;
     }
 }

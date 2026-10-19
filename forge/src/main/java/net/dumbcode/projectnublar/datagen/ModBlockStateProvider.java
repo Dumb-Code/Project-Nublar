@@ -2,6 +2,7 @@ package net.dumbcode.projectnublar.datagen;
 
 import net.dumbcode.projectnublar.Constants;
 import net.dumbcode.projectnublar.api.fossil.FossilCollection;
+import net.dumbcode.projectnublar.api.fossil.Quality;
 import net.dumbcode.projectnublar.block.AmberBlock;
 import net.dumbcode.projectnublar.block.FossilBlock;
 import net.dumbcode.projectnublar.registry.BlockInit;
@@ -20,19 +21,11 @@ public class ModBlockStateProvider extends BlockStateProvider {
     @Override
     protected void registerStatesAndModels() {
 
-        FossilCollection.COLLECTIONS.forEach((s, fossilCollection) -> {
-            fossilCollection.fossilblocks().forEach((block, qualityMap) -> {
-                qualityMap.forEach((quality, fossilPieceRegistryObjectMap) -> {
-                    fossilPieceRegistryObjectMap.forEach((fossilPiece, blockRegistryObject) -> {
-                        fossilBlock(block, (FossilBlock) blockRegistryObject.get());
-                    });
-                });
-            });
-        });
-        FossilCollection.COLLECTIONS.forEach((s, fossilCollection) -> {
-            fossilCollection.amberBlocks().forEach((block, blockRegistryObject) -> {
-                amberBlock(block, (AmberBlock) blockRegistryObject.get());
-            });
+        FossilCollection.COLLECTIONS.values().forEach(fossilCollection -> {
+            fossilCollection.fossilBlocks().forEach((base, pieces) ->
+                    pieces.values().forEach(block -> fossilBlock(base.getBlock(), (FossilBlock) block.get())));
+            fossilCollection.amberBlocks().forEach((base, block) ->
+                    amberBlock(base.getBlock(), (AmberBlock) block.get()));
         });
         simpleBlock(BlockInit.CARNIVORE_FEEDER_ONE.get(), models().getBuilder("block/carnivore_feeder_one").texture("particle",modLoc("block/feeder/meat/feeder_one/empty")));
         simpleBlock(BlockInit.PROCESSOR.get(), models().getBuilder("block/processor").texture("particle", modLoc("block/processor")));
@@ -54,7 +47,7 @@ public class ModBlockStateProvider extends BlockStateProvider {
             simpleBlock(block, models()
                     .withExistingParent(getName(block), modLoc("block/fossil_base"))
                     .texture("0", blockTexture(base))
-                    .texture("1", modLoc("block/fossil_overlay/" + block.getFossilPiece().folder() + "/" + block.getFossilPiece().name()))
+                    .texture("1", modLoc(block.getFossilPiece().texturePath(Quality.COMMON)))
                     .renderType("cutout")
             );
         } catch (Exception ignored) {

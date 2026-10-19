@@ -68,20 +68,16 @@ public class ModItemModelProvider extends ItemModelProvider {
         simpleGeneratedModel(BlockInit.INCUBATOR.get().asItem());
         simpleGeneratedModel(BlockInit.HIGH_SECURITY_ELECTRIC_FENCE_POST.get().asItem());
         simpleGeneratedModel(BlockInit.LOW_SECURITY_ELECTRIC_FENCE_POST.get().asItem());
-        FossilCollection.COLLECTIONS.forEach((s, fossilCollection) -> {
-            fossilCollection.fossilblocks().forEach((block, qualityMap) -> {
-                qualityMap.forEach((quality, fossilPieceRegistryObjectMap) -> {
-                    fossilPieceRegistryObjectMap.forEach((fossilPiece, blockRegistryObject) -> {
-                        try {
-                            simpleBlockItemModel(blockRegistryObject.get());
-                        } catch (Exception ignored) {
-                        }
-                    });
-                });
-            });
-            fossilCollection.amberBlocks().forEach((block, blockRegistryObject) -> {
+        FossilCollection.COLLECTIONS.values().forEach(fossilCollection -> {
+            fossilCollection.blocks().forEach(block -> {
                 try {
-                    simpleBlockItemModel(blockRegistryObject.get());
+                    simpleBlockItemModel(block.get());
+                } catch (Exception ignored) {
+                }
+            });
+            fossilCollection.amberBlocks().values().forEach(block -> {
+                try {
+                    simpleBlockItemModel(block.get());
                 } catch (Exception ignored) {
                 }
             });

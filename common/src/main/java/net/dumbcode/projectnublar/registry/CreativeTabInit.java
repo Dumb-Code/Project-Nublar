@@ -7,6 +7,7 @@ import java.util.List;
 import net.dumbcode.projectnublar.Constants;
 import net.dumbcode.projectnublar.api.dinosaur.DNAData;
 import net.dumbcode.projectnublar.api.dinosaur.DinoData;
+import net.dumbcode.projectnublar.api.fossil.FossilBase;
 import net.dumbcode.projectnublar.api.fossil.FossilCollection;
 import net.dumbcode.projectnublar.api.fossil.FossilPieces;
 import net.dumbcode.projectnublar.api.fossil.Quality;
@@ -22,8 +23,6 @@ import net.minecraft.world.entity.ai.attributes.DefaultAttributes;
 import net.minecraft.world.entity.animal.Parrot;
 import net.minecraft.world.item.CreativeModeTab;
 import net.minecraft.world.item.ItemStack;
-import net.minecraft.world.level.block.Block;
-import net.minecraft.world.level.block.Blocks;
 
 /**
  * Registers the mod's creative tabs.
@@ -36,24 +35,16 @@ public class CreativeTabInit {
             CREATIVE_MODE_TABS.register(Constants.MODID + "_fossil_ores",
                     () -> CreativeModeTab.builder(CreativeModeTab.Row.TOP, 0)
                             .title(Component.translatable("itemGroup." + Constants.MODID + ".fossil_ores"))
-                            .icon(() -> {
-                                Block block = FossilCollection.COLLECTIONS
-                                        .get("projectnublar:tyrannosaurus_rex")
-                                        .fossilblocks()
-                                        .get(Blocks.STONE)
-                                        .get(Quality.PRISTINE)
-                                        .get(FossilPieces.getPieceByName("rex_skull"))
-                                        .get();
-                                return new ItemStack(block);
-                            })
+                            .icon(() -> new ItemStack(BlockInit.TYRANNOSAURUS_REX_FOSSILS
+                                    .item(FossilBase.STONE, FossilPieces.TYRANNOSAURUS_SKULL, Quality.PRISTINE).get()))
                             .displayItems((itemDisplayParameters, output) -> {
-                                // TODO(DEAD): the original item population was commented out pending a
-                                // datapack-driven fossil config; the iteration is kept (no side effects)
-                                // so the tab currently displays nothing.
-                                FossilCollection.COLLECTIONS.forEach((entity, fossilCollection) ->
-                                        fossilCollection.fossilblocks().forEach((block, qualityMap) ->
-                                                qualityMap.forEach((quality, stoneMap) ->
-                                                        stoneMap.forEach((piece, blockDeferredSupplier) -> {}))));
+                                // Every ore item (stone, piece, quality order), then every amber block.
+                                FossilCollection.COLLECTIONS.values().forEach(collection ->
+                                        collection.fossilItems().values().forEach(pieces ->
+                                                pieces.values().forEach(qualities ->
+                                                        qualities.values().forEach(item -> output.accept(item.get())))));
+                                FossilCollection.COLLECTIONS.values().forEach(collection ->
+                                        collection.amberBlocks().values().forEach(amber -> output.accept(amber.get())));
                             })
                             .build());
 

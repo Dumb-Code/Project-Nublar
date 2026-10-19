@@ -11,7 +11,7 @@ CP="$CP;$(cygpath -w "$ROOT/nublar-gui/build/classes/java/main")"
 MC=$(ls ~/.gradle/caches/fabric-loom/minecraftMaven/net/minecraft/minecraft-merged/*/minecraft-merged-*.jar | head -1)
 CP="$CP;$(cygpath -w "$MC")"
 # Libraries Minecraft classes need at class-load time.
-for pattern in "guava-3*.jar" "fastutil-8*.jar" "commons-lang3-*.jar" "slf4j-api-2*.jar" "datafixerupper-6*.jar" "logging-1*.jar" "annotations-2*.jar" "joml-1*.jar"; do
+for pattern in "guava-3*.jar" "fastutil-8*.jar" "commons-lang3-*.jar" "slf4j-api-2*.jar" "datafixerupper-6*.jar" "logging-1*.jar" "annotations-2*.jar" "joml-1*.jar" "gson-2.10*.jar" "brigadier-1*.jar" "authlib-4*.jar"; do
   jar=$(find ~/.gradle/caches/modules-2 -name "$pattern" | grep -v sources | head -1)
   [ -n "$jar" ] && CP="$CP;$(cygpath -w "$jar")"
 done
