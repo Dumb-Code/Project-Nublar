@@ -34,4 +34,13 @@ public final class Assertions {
     public static void assertEquals(float expected, float actual, float delta, String message) { if (Math.abs(expected - actual) > delta) fail(message + ": expected " + expected + ", got " + actual); }
     public static void assertEquals(double expected, double actual, double delta) { assertEquals(expected, actual, delta, "not equal"); }
     public static void assertEquals(double expected, double actual, double delta, String message) { if (Math.abs(expected - actual) > delta) fail(message + ": expected " + expected + ", got " + actual); }
+
+    public static <T extends Throwable> T assertThrows(Class<T> expected, Runnable code) {
+        try { code.run(); } catch (Throwable thrown) {
+            if (expected.isInstance(thrown)) return expected.cast(thrown);
+            fail("expected " + expected.getSimpleName() + ", got " + thrown);
+        }
+        fail("expected " + expected.getSimpleName() + ", nothing was thrown");
+        return null;
+    }
 }
