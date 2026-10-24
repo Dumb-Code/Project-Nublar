@@ -18,7 +18,6 @@ import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.chat.Component;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.entity.EntityType;
-import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.ai.attributes.DefaultAttributes;
 import net.minecraft.world.entity.animal.Parrot;
 import net.minecraft.world.item.CreativeModeTab;
@@ -170,7 +169,7 @@ public class CreativeTabInit {
             } else {
                 // Living entity types are the ones with default attributes; this needs no level,
                 // so the dedicated server can load this class.
-                if (DefaultAttributes.hasSupplier((EntityType<? extends LivingEntity>) BuiltInRegistries.ENTITY_TYPE.get(entry))) {
+                if (DefaultAttributes.hasSupplier(BuiltInRegistries.ENTITY_TYPE.get(entry))) {
                     output.accept(createSyringe(entry, null, 0.5));
                 }
             }

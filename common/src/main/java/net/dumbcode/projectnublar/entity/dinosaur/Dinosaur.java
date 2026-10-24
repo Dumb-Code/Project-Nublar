@@ -660,8 +660,6 @@ public abstract class Dinosaur extends TamableAnimal implements FossilRevived, G
     public BrainActivityGroup<? extends Dinosaur> getCoreTasks() {
         return BrainActivityGroup.coreTasks(
                 new DinosaurLookAtTarget<>().stopIf((entity) -> (entity instanceof Dinosaur dinosaur) && (dinosaur.isResting() || dinosaur.isDrinking() || dinosaur.isDeadOrDying())),
-                // TODO(DEAD): ThreatDisplay(34) was commented out of the core tasks ("needs to be
-                // made more situational"); intentionally left unwired.
                 new MoveToWalkTarget<>().stopIf((entity) -> (entity instanceof Dinosaur dinosaur) && (dinosaur.isResting() || dinosaur.isDrinking() || dinosaur.isDeadOrDying())) ,
                 new SetHunting<>(),
                 // Lead decision 8: a travelling follower leaves the line only for a critical need (HerdNeeds).

@@ -27,12 +27,10 @@ public class FossilsConfig {
     private static final Map<String, PeriodDepth> PERIODS = new LinkedHashMap<>();
 
     public static final ForgeConfigSpec CONFIG_SPEC;
-    public static final FossilsConfig INSTANCE;
 
     static {
         Pair<FossilsConfig, ForgeConfigSpec> pair = new ForgeConfigSpec.Builder().configure(FossilsConfig::new);
         CONFIG_SPEC = pair.getRight();
-        INSTANCE = pair.getLeft();
     }
 
     private FossilsConfig(ForgeConfigSpec.Builder builder) {

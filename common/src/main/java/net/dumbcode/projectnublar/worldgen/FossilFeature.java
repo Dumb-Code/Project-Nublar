@@ -21,13 +21,13 @@ import net.minecraft.world.level.levelgen.feature.FeaturePlaceContext;
 
 import java.util.ArrayList;
 import java.util.BitSet;
+import java.util.EnumMap;
 import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.function.Function;
-import java.util.function.ToIntFunction;
 
 /**
  * A fossil vein. Its shape is the vanilla ore shape: a chain of spheres along a random line
@@ -201,22 +201,27 @@ public class FossilFeature extends Feature<FossilConfiguration> {
     }
 
     /**
-     * Picks the vein's quality by the configured quality weights.
+     * Picks the vein's quality by the configured quality weights. The weights are read once so a config reload
+     * mid-roll cannot change the total.
      *
      * @return empty when the weights add up to 0 or less, so a config value never crashes chunk generation
      */
     static Optional<Quality> pickQuality(RandomSource random) {
         List<Quality> qualities = List.of(Quality.values());
-        ToIntFunction<Quality> weight = q -> FossilsConfig.getQuality(q.getName()).weight().get();
-        int total = FossilRolls.totalWeight(qualities, weight);
+        Map<Quality, Integer> weights = new EnumMap<>(Quality.class);
+        for (Quality quality : qualities) {
+            weights.put(quality, FossilsConfig.getQuality(quality.getName()).weight().get());
+        }
+        int total = FossilRolls.totalWeight(qualities, weights::get);
         if (total <= 0) {
             return Optional.empty();
         }
-        return Optional.of(FossilRolls.pickWeighted(random.nextInt(total), qualities, weight));
+        return Optional.of(FossilRolls.pickWeighted(random.nextInt(total), qualities, weights::get));
     }
 
     /**
-     * Picks the vein's species by weight from the species configured for this period.
+     * Picks the vein's species by weight from the species configured for this period. The weights are read once so
+     * a config reload mid-roll cannot change the total.
      *
      * @return empty when no species has this period or their weights add up to 0
      */
@@ -224,12 +229,15 @@ public class FossilFeature extends Feature<FossilConfiguration> {
         List<Map.Entry<ResourceLocation, FossilsConfig.SpeciesFossils>> candidates = FossilsConfig.getFossils().entrySet().stream()
                 .filter(entry -> entry.getValue().getPeriods().get().contains(period))
                 .toList();
-        ToIntFunction<Map.Entry<ResourceLocation, FossilsConfig.SpeciesFossils>> weight = entry -> entry.getValue().getWeight().get();
-        int total = FossilRolls.totalWeight(candidates, weight);
+        Map<Map.Entry<ResourceLocation, FossilsConfig.SpeciesFossils>, Integer> weights = new HashMap<>();
+        for (Map.Entry<ResourceLocation, FossilsConfig.SpeciesFossils> entry : candidates) {
+            weights.put(entry, entry.getValue().getWeight().get());
+        }
+        int total = FossilRolls.totalWeight(candidates, weights::get);
         if (total <= 0) {
             return Optional.empty();
         }
-        return Optional.of(FossilRolls.pickWeighted(random.nextInt(total), candidates, weight));
+        return Optional.of(FossilRolls.pickWeighted(random.nextInt(total), candidates, weights::get));
     }
 
     /** Picks one piece name by weight. */

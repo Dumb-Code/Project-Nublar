@@ -6,12 +6,12 @@ import org.junit.jupiter.api.Test;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
 /**
- * A wire's "next" side is its {@code getTo()} side: that is the half the renderer draws from the centre toward
- * {@code to}, and the half {@code brokenSide(world, true)} must inspect. Four orientations: east-west and
- * north-south, each built from either end.
+ * Pins only the side rule, {@link Connection#sideNeighbour}: {@code next} means the {@code to}-side neighbour.
  *
- * <p>The {@code Connection} constructor cannot run here (its collision shape needs the Minecraft bootstrap), so
- * this test pins {@link Connection#sideNeighbour}, the rule {@code brokenSide} uses to pick the neighbour.
+ * <p>The orientation guarantee (east-west and north-south, each built from either end) comes from the private
+ * {@code Connection} constructor, which swaps the ends and the neighbours as a pair in its {@code compared < 0}
+ * block. That guarantee was checked in game on both axes. The constructor cannot run under the unit-test stand-in
+ * (its collision shape needs the Minecraft bootstrap), so this test does not cover it.
  */
 class ConnectionOrderingTest {
 

@@ -19,10 +19,6 @@ public class FossilBlockItem extends BlockItem {
         this.quality = quality;
     }
 
-    public Quality getQuality() {
-        return quality;
-    }
-
     @Override
     protected @Nullable BlockState getPlacementState(BlockPlaceContext context) {
         BlockState state = getBlock().defaultBlockState().setValue(FossilBlock.QUALITY, quality);

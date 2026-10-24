@@ -1,6 +1,5 @@
 package net.dumbcode.projectnublar.worldgen;
 
-import com.google.common.collect.ImmutableList;
 import com.mojang.serialization.Codec;
 import com.mojang.serialization.codecs.RecordCodecBuilder;
 import net.minecraft.world.level.block.state.BlockState;
@@ -25,14 +24,6 @@ public class FossilConfiguration implements FeatureConfiguration {
 
     public FossilConfiguration(List<FossilConfiguration.TargetBlockState> targetStates, int size) {
         this(targetStates, size, 0.0F);
-    }
-
-    public FossilConfiguration(RuleTest target, BlockState state, int size, float discardChanceOnAirExposure) {
-        this(ImmutableList.of(new FossilConfiguration.TargetBlockState(target, state)), size, discardChanceOnAirExposure);
-    }
-
-    public FossilConfiguration(RuleTest target, BlockState state, int size) {
-        this(ImmutableList.of(new FossilConfiguration.TargetBlockState(target, state)), size, 0.0F);
     }
 
     public static TargetBlockState target(RuleTest target, BlockState state) {
