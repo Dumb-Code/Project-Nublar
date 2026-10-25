@@ -14,7 +14,6 @@ legacyForge {
 dependencies {
     implementation group: 'com.google.code.findbugs', name: 'jsr305', version: '3.0.1'
     compileOnly group: 'org.jetbrains', name: 'annotations', version: '24.1.0'
-    compileOnlyApi 'net.minecraftforge:mergetool-api:1.0'
 }
 
 configurations {

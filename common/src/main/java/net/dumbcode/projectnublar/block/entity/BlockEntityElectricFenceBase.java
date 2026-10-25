@@ -14,8 +14,6 @@ import net.minecraft.world.level.block.entity.BlockEntityType;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.phys.shapes.Shapes;
 import net.minecraft.world.phys.shapes.VoxelShape;
-import net.minecraftforge.api.distmarker.Dist;
-import net.minecraftforge.api.distmarker.OnlyIn;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -65,7 +63,6 @@ public abstract class BlockEntityElectricFenceBase extends SyncingBlockEntity im
         return null;
     }
 
-    @OnlyIn(Dist.CLIENT)
     public Set<Connection.CompiledRenderData> compiledRenderData() {
         Set<Connection.CompiledRenderData> compiled = Sets.newLinkedHashSet();
         if (this.level == null) {

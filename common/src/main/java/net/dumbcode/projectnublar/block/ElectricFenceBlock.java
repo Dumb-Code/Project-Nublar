@@ -21,8 +21,6 @@ import net.minecraft.world.phys.Vec3;
 import net.minecraft.world.phys.shapes.CollisionContext;
 import net.minecraft.world.phys.shapes.Shapes;
 import net.minecraft.world.phys.shapes.VoxelShape;
-import net.minecraftforge.api.distmarker.Dist;
-import net.minecraftforge.api.distmarker.OnlyIn;
 import org.joml.Vector3f;
 
 public class ElectricFenceBlock extends BlockConnectableBase implements EntityBlock {
@@ -95,7 +93,6 @@ public class ElectricFenceBlock extends BlockConnectableBase implements EntityBl
     public BlockEntity newBlockEntity(BlockPos blockPos, BlockState blockState) {
         return new BlockEntityElectricFence(blockPos, blockState);
     }
-    @OnlyIn(Dist.CLIENT)
     public boolean normalize(Vector3f norm) {
         float f = norm.x * norm.x + norm.y * norm.y + norm.z * norm.z;
         if ((double)f < 1.0E-5D) {
@@ -109,7 +106,6 @@ public class ElectricFenceBlock extends BlockConnectableBase implements EntityBl
         }
     }
 
-    @OnlyIn(Dist.CLIENT)
     public float fastInvSqrt(float p_226165_0_) {
         float f = 0.5F * p_226165_0_;
         int i = Float.floatToIntBits(p_226165_0_);

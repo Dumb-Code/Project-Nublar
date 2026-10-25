@@ -15,10 +15,7 @@ import net.minecraft.network.chat.Component;
 import net.minecraft.network.chat.MutableComponent;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.util.Mth;
-import net.minecraftforge.api.distmarker.Dist;
-import net.minecraftforge.api.distmarker.OnlyIn;
 
-@OnlyIn(Dist.CLIENT)
 public abstract class AbstractSliderButton extends AbstractWidget {
     private static final ResourceLocation SLIDER_LOCATION = new ResourceLocation("textures/gui/slider.png");
     protected static final int TEXTURE_WIDTH = 200;
