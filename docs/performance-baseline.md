@@ -44,9 +44,10 @@ To place a structure, use `/place template projectnublar:herd_arena` or `/place 
 | Value | Reading | Result |
 | --- | --- | --- |
 | fps | The fps value on the F3 screen. Take three readings, one minute apart. | The median of the three readings |
-| Server tick | Run `/debug start`. After 60 seconds, run `/debug stop`. | The average over the 60 seconds |
+| Server tick time (ms gates) | The F3 line `Integrated server @ N ms ticks`, in single player on the reference machine. On every tick, the game sets this value to 80 % of the old value plus 20 % of the new tick time. Take three readings, one minute apart. | The median of the three readings. Use this row for the gates set in ms. |
+| Server tick rate (ticks-per-second gates) | Run `/debug start`. After 60 seconds, run `/debug stop`. | The ticks per second that `/debug stop` reports. Use this row only for the "20 ticks per second" gates. |
 
-Note: `/debug stop` gives the average in ticks per second, not in ms. In single player, the F3 line `Integrated server @ … ms` gives the tick time in ms.
+Note: this page has no method for a dedicated server yet (see D285 in the [decisions register](plan/engineering-backlog.md#decisions-register)).
 
 ## Gates that cite this file
 
