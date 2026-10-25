@@ -364,7 +364,7 @@ Work packages in order: M0.P0, M0.P1, M0.P2, M0.B00. M0.P2 blocks every later wo
   - M0.P2 owns the full client-class cleanup.
 - [ ] Add a `common` unit test source set: JUnit 5 on `./gradlew :common:test`.
   - Add real JUnit 5 dependencies. Gradle has none today.
-  - Move the existing unit tests in (353 at the last green run before P12c; M0.P0 records the count after its P12c decision). Remove `tools/junit-standin/run.sh` when all of them run through Gradle.
+  - Move the existing unit tests in (353 at the last green run before P12c; M0.P0 records the count after its P12c decision). Run all of them with `./gradlew :common:test`.
   - Write `docs/performance-baseline.md`: the reference machine (CPU, GPU, RAM, Java flags), the fixed client settings (render distance 12, fancy graphics, no shaders, no optimization mods) and the test world. Every fps and tick-time gate in this plan runs on that setup.
   - Add first new tests: `Quality` ordering and the fossil rarity math.
   - The set is pure Java. Tests that need Minecraft are GameTests.
@@ -384,7 +384,7 @@ Work packages in order: M0.P0, M0.P1, M0.P2, M0.B00. M0.P2 blocks every later wo
 - CI is green on the integration branch for both loaders.
 - `git status` is clean after a build.
 - The README answers "how do I run this" without the Gradle files.
-- `./gradlew :common:test` runs every moved test and they pass. `tools/junit-standin/run.sh` is gone. `docs/performance-baseline.md` exists.
+- `./gradlew :common:test` runs every moved test and they pass. It is the only unit test runner. `docs/performance-baseline.md` exists.
 - No build file declares `toml4j`.
 - The GameTests compile from `common` and run on each loader through its shim.
 
