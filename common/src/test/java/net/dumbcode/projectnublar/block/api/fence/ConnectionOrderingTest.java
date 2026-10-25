@@ -10,8 +10,8 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
  *
  * <p>The orientation guarantee (east-west and north-south, each built from either end) comes from the private
  * {@code Connection} constructor, which swaps the ends and the neighbours as a pair in its {@code compared < 0}
- * block. That guarantee was checked in game on both axes. The constructor cannot run under the unit-test stand-in
- * (its collision shape needs the Minecraft bootstrap), so this test does not cover it.
+ * block. That guarantee was checked in game on both axes. The constructor cannot run in the unit tests (its
+ * collision shape needs the Minecraft bootstrap), so this test does not cover it.
  */
 class ConnectionOrderingTest {
 

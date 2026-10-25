@@ -28,9 +28,9 @@ import java.util.List;
 
 /**
  * GameTests for herds (plan B18 and the herd movement redesign). The lead runs them one at a time in a
- * creative world started from {@code runClient} (never on a dedicated GameTest server). On the GameTest server
- * each test is its own batch, so they run one at a time there too. The tests have no loader code; the holders
- * {@code ForgeGameTests} (Forge) and {@code FabricGameTests} (Fabric) register them.
+ * creative world started from {@code runClient}. On the GameTest server each test is its own batch, so they run
+ * one at a time there too. The tests have no loader code; the holders {@code ForgeGameTests} (Forge) and
+ * {@code FabricGameTests} (Fabric) register them.
  * Run a test with {@code /test run <name>} on Forge and {@code /test run fabricgametests.<name>} on Fabric,
  * where the name is the method name in lower case:
  * <ul>
@@ -91,12 +91,17 @@ public final class HerdGameTests {
     private static final int FLOOR_CHECK_TICK = 5;
     /** An animal more than this below {@link #FLOOR_Y} fell through the floor. */
     private static final double FLOOR_TOLERANCE = 0.5D;
-    // Template names (data/projectnublar/structures/<name>.nbt), public for the loader holders' @GameTest annotations.
+    /** Template {@code data/projectnublar/structures/herd_arena.nbt}; public for the holders' {@code @GameTest} lines. */
     public static final String ARENA = "herd_arena";
+    /** Template {@code data/projectnublar/structures/herd_track.nbt}; public for the holders' {@code @GameTest} lines. */
     public static final String TRACK = "herd_track";
+    /** Template {@code data/projectnublar/structures/herd_forest.nbt}; public for the holders' {@code @GameTest} lines. */
     public static final String FOREST = "herd_forest";
+    /** Template {@code data/projectnublar/structures/herd_shore.nbt}; public for the holders' {@code @GameTest} lines. */
     public static final String SHORE = "herd_shore";
+    /** Template {@code data/projectnublar/structures/herd_corridor.nbt}; public for the holders' {@code @GameTest} lines. */
     public static final String CORRIDOR = "herd_corridor";
+    /** Template {@code data/projectnublar/structures/herd_lowgap.nbt}; public for the holders' {@code @GameTest} lines. */
     public static final String LOWGAP = "herd_lowgap";
     /**
      * Pinned grazing ticks before counting: spots are picked within 60 ticks (GrazeSchedule.ENTER_STAGGER_TICKS).
