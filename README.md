@@ -26,7 +26,11 @@ This command builds the four modules. `common` holds the shared code and resourc
 | `./gradlew :forge:runGameTestServer` | A Forge server that runs the mod's GameTests, then stops |
 | `./gradlew :fabric:runGametest` | A Fabric server that runs the mod's GameTests, then stops |
 
-The Fabric client has no client entry point until M0.P2. It crashes when it enters a world. Each GameTest server run takes 15 to 25 minutes.
+The Fabric client has no client entry point until M0.P2 (the port to Minecraft 26.2). It crashes when it enters a world.
+
+The first `./gradlew :forge:runServer` writes `forge/run/eula.txt` and stops. To accept the [Minecraft EULA](https://aka.ms/MinecraftEULA), set `eula=true` in that file and run the command again.
+
+In one measured run of each, the Forge GameTest server took about 11 minutes and the Fabric GameTest server took less than 1 minute. Both GameTest servers report failures at this time and end with `BUILD FAILED`. On Forge, some herd tests fail, and the number changes from run to run (8 or 9 of 13 in recent runs). On Fabric, all 13 herd tests fail, because Fabric does not register the mod's data reload listeners until M0.P2. The machine tests pass on both loaders. These failures are known. Do not try to fix them in your work package.
 
 ## Test
 
@@ -49,7 +53,7 @@ The Fabric client cannot run GameTests until M0.P2. On Fabric, use `./gradlew :f
 
 1. Read [How to use this plan](docs/plan/engineering-backlog.md#how-to-use-this-plan) in the engineering backlog.
 2. Write the task plan for your work package in [`docs/superpowers/plans/`](docs/superpowers/plans/). Get a review of it before you write code.
-3. Make a branch from the integration branch. Name it `<wp-id>/<short-name>`, for example `f1.1/fossil-worldgen`.
+3. A new clone starts on the default branch. Check out `integration/1.20.1` first (`git checkout integration/1.20.1`). Make your branch from it. Name it `<wp-id>/<short-name>`, for example `f1.1/fossil-worldgen`.
 4. Make one commit per task. Start each commit message with a conventional prefix, for example `feat:` or `fix:`.
 5. Run `./gradlew build` before each push.
 6. Open a pull request. The template lists the [Definition of done](docs/plan/engineering-backlog.md#5-definition-of-done).
