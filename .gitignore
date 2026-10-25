@@ -22,8 +22,9 @@ build
 eclipse
 run
 
-# Not source: crash logs, data-run output, the datagen cache, agent config
-hs_err_pid*.log
-forge/dataRun/
-common/src/generated/resources/.cache/
+# Not source: crash logs, data-run output, the datagen cache, agent and tool exports
+hs_err_*.log
+dataRun/
+.cache/
 .ai/
+graphify-out/
