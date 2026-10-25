@@ -104,7 +104,7 @@ Every work package follows these rules.
   2. One network object runs each power grid. Posts, pylons and conduits do not tick.
   3. Work happens only on change. A block update or a packet goes out only when a value changes.
 - **Game time.** Timers use game time, not tick counts. A server that skips ticks of far entities must not slow needs, cooldowns or herd travel.
-- **Performance gates.** Every fps or tick-time number in an acceptance list is measured on the reference setup in `docs/performance-baseline.md` (M0.P1 writes it). Server gates for one paddock use half the tick budget: under 25 ms. The full-park gate (100 dinosaurs at 20 ticks per second) is BH.1's Load B.
+- **Performance gates.** Every fps or tick-time number in an acceptance list is checked as `docs/performance-baseline.md` says. The targets are Mojang's minimum and recommended Java PCs, never a developer's own PC. A developer checks a gate on their own PC against vanilla. Server gates for one paddock use half the tick budget: under 25 ms. The full-park gate (100 dinosaurs at 20 ticks per second) is BH.1's Load B.
 - **Optimization mods.** Follow the compatibility duties per optimization mod in `docs/codebase-analysis.md` section 12.2 from the first port build. A compat item ships only when the other mod has a 26.2 build for that loader.
 - **Packets.** Every client packet validates on the server: menu open, slot range, value range.
 - **Payload size.** Payloads stay under the vanilla limits: 32,767 bytes client to server, 1 MiB server to client.
@@ -149,7 +149,7 @@ No single work package owns these inputs. The owner adds the test.
    - F2.4 owns needs and cooldowns. F2.5 owns herd queues and stall thresholds. Beta hardening owns the test matrix.
    - Test: skip ticks of a far dinosaur. Its needs and cooldowns follow game time.
 8. **Colour layers.** 20 Gallimimus draw 23 model passes each and run at 26 to 28 fps.
-   - Test: 20 Gallimimus on screen reach at least 120 fps on the reference setup.
+   - Test: 20 Gallimimus on screen keep at least 30 fps on the minimum PC (Fast) and 60 fps on the recommended PC (Fancy).
 9. **Client-only animation state.** The original incubator arm kept its state in each client's renderer and counted frames. Players saw different eggs turn at different rates.
    - Test: two clients see the same egg turn at the same game tick, at 30 fps and at 144 fps.
 10. **Stand-in assets.** Today the T. rex roar plays for every species. Some files are byte copies of other files (the Art list names them).
@@ -365,7 +365,7 @@ Work packages in order: M0.P0, M0.P1, M0.P2, M0.B00. M0.P2 blocks every later wo
 - [x] Add a `common` unit test source set: JUnit 5 on `./gradlew :common:test`.
   - Add real JUnit 5 dependencies. Gradle has none today.
   - Move the existing unit tests in (353 at the last green run before P12c; M0.P0 records the count after its P12c decision). Run all of them with `./gradlew :common:test`.
-  - Write `docs/performance-baseline.md`: the reference machine (CPU, GPU, RAM, Java flags), the fixed client settings (render distance 12, fancy graphics, no shaders, no optimization mods) and the test world. Every fps and tick-time gate in this plan runs on that setup.
+  - Write `docs/performance-baseline.md`: the target player PCs (Mojang's minimum and recommended specs), the fixed client settings (render distance 12, fancy graphics, no shaders, no optimization mods) and the test world. Every fps and tick-time gate in this plan runs on that setup.
   - Add first new tests: `Quality` ordering and the fossil rarity math.
   - The set is pure Java. Tests that need Minecraft are GameTests.
 - [x] Move the GameTests from the Forge module into `common`, with one small registration shim per loader.
@@ -2749,7 +2749,7 @@ None.
 - Every clip in the species' list (F2.3) plays in a fitting state. Every sound is the species' own. Every Dino VFX item shows.
 - Every Beta skin set renders for both genders.
 - A Gallimimus herd travels. A Velociraptor pack hunts. A calm pair lays a clutch. A dinosaur gives a threat display before it attacks a player.
-- On the reference setup: 20 Gallimimus on screen reach at least 120 fps, and 20 animals in one paddock keep the server tick under 25 ms.
+- On the reference setup: 20 Gallimimus on screen keep at least 30 fps on the minimum PC (Fast) and 60 fps on the recommended PC (Fancy), and 20 animals in one paddock keep the server tick under 25 ms.
 
 **Herds first.** Herds must move and behave properly before hunger, thirst, attack and flee join herd play. Test on the Gallimimus only. Every new behaviour is tested on the Gallimimus first. F2.5 part A comes before F2.4.
 
@@ -3416,14 +3416,14 @@ F2.2 makes each animal render its own genome, with complete Beta skin sets and a
 - **Depends on:** F1.5, F2.1 part A
 - **Touches:** `J/client/renderer/DinosaurRenderer`, `J/client/renderer/dinosaurs/*Renderer`, `J/client/renderer/layer/DinoLayer`, `J/client/CommonClientClass` layer registration, `MOD/textures/entity/**`.
 
-**In game:** each animal shows its own genome: layers, colours, gender texture, biome skin variant and morph. 20 Gallimimus on screen run at 120 fps or more.
+**In game:** each animal shows its own genome: layers, colours, gender texture, biome skin variant and morph. 20 Gallimimus on screen keep at least 30 fps on the minimum PC (Fast) and 60 fps on the recommended PC (Fancy).
 
 #### At a glance
 
 - **Own look.** Layers, colours, gender texture, biome skin variant and morph come from each animal's genome.
 - **Complete skins.** Every Beta skin set is complete for both genders.
 - **True size.** Each species renders at its target scale.
-- **Fast herds.** 20 Gallimimus on screen run at 120 fps or more. Far herds animate at lower cost.
+- **Fast herds.** 20 Gallimimus on screen keep at least 30 fps on the minimum PC (Fast) and 60 fps on the recommended PC (Fancy). Far herds animate at lower cost.
 
 #### Not in Beta
 
@@ -3543,7 +3543,7 @@ See Art list → each species: skin layers per set and gender, glow masks. Not d
 - A Velociraptor and a Triceratops draw every layer of their set.
 - A Dilophosaurus herd of 10 keeps client FPS above a baseline recorded in the PR.
 - A Triceratops measures about 3 blocks at full growth.
-- 20 baked Gallimimus in view reach at least 120 fps on the reference setup. Record the layers-off figure (138 fps today) and the frame time with layers on in the PR. That frame time is the F2.2 baseline that F2.3 measures against.
+- 20 baked Gallimimus in view keep at least 30 fps on the minimum PC (Fast) and 60 fps on the recommended PC (Fancy). Record the layers-off figure (138 fps today) and the frame time with layers on in the PR. That frame time is the F2.2 baseline that F2.3 measures against.
 - A dinosaur beyond 32 blocks holds its last pose.
 - A Brachiosaurus neck draws when its body leaves the screen edge.
 - In the glow pass, a dinosaur draws only its masked bones. A wrong mask draws the whole model and logs one line.
@@ -6714,8 +6714,8 @@ These rows come from the lead's playtest of the M0.P0 build on 2026-10-24. Each 
 | D281 | F1.10, F1.12 | Lead (2026-10-24): creative players and testers need fully assembled machines. The plan already has a creative-only whole-machine item for each machine. What does the placed machine hold? | Proposal: all parts, no upgrades, empty slots and tanks, and no stored energy. A creative player adds upgrades by hand. The lead chooses | Open |
 | D282 | BH.1, F1.10 | The 1.20.1 machines caused visible lag in the lead's playtest of 2026-10-24. The plan has gates for paddocks (25 ms) and herds, but none for machines. What is the machine gate? | Proposal: on the reference setup, the four lab machines at work add less than 2 ms to the server tick, and the client keeps at least 90 % of its frame rate with the lab in view. Each machine package meets it for its machine, and BH.1 measures the full park. The lead chooses | Open |
 | D283 | F1.6, F1.2 | Lead (2026-10-24): the creative tab needs the "embryo filled syringe with its 1.12 texture". The 1.12 mod has `embryo_filled_syringe.png` (`Dumb-Code/ProjectNublar`, branch `master`). Today one sprite serves the bird Embryo Syringe, and the dinosaur-embryo syringe has no sprite. Which syringe takes the 1.12 texture? | Proposal: the dinosaur-embryo syringe, the synthesis output. The bird Embryo Syringe keeps its current sprite, which the video shows. The lead confirms | Open |
-| D284 | M0.P1 | `docs/performance-baseline.md` needs the reference machine. | Open: the lead gives CPU, GPU, RAM and Java flags; "not set" until then | Open |
-| D285 | M0.P1 | `docs/performance-baseline.md` needs a confirmed tick-time source for the ms gates, a method for a dedicated server, and a method for the gates that the single-player F3 reading cannot test: lines 3931, 4424 (average and peak), 6715 and 5928, and Load B (lines 4423 and 5847). | Open: the lead confirms the F3 integrated-server value with the three-reading median, and chooses the dedicated-server method (26.2 has `/tick query`). The lead also chooses the method for those gates, for example the profiler sections and herd timings (line 5848) or `/tick query` on 26.2 | Open |
+| D284 | M0.P1 | `docs/performance-baseline.md` needs the reference machine. | Answered 2026-10-25 (lead): never the lead's PC, which is faster than most players' PCs. The targets are both Mojang Java tiers of 2026-07-21. Minimum PC: 4 CPU cores, 8 GB RAM, a Vulkan 1.3 GPU with 2 GB VRAM, 30 fps on Fast at 1080p. Recommended PC: 16 GB RAM, a 6 GB GPU, 60 fps on Fancy at 1080p. The 120 fps gates become 30 fps on the minimum PC (Fast) and 60 fps on the recommended PC (Fancy). A developer checks a gate on their own PC: the same world with and without the mod's content. Plan rule: the package that owns a gate states the allowed difference in its task plan | Answered |
+| D285 | M0.P1 | `docs/performance-baseline.md` needs a confirmed tick-time source for the ms gates, a method for a dedicated server, and a method for the gates that the single-player F3 reading cannot test: lines 3931, 4424 (average and peak), 6715 and 5928, and Load B (lines 4423 and 5847). | Answered 2026-10-25 (lead): use the F3 integrated-server value, three readings one minute apart, the median. Plan rule: a gate that the F3 line cannot show, and a gate on a dedicated server, get their method in the task plan of the package that owns them | Answered |
 
 ---
 
@@ -6795,3 +6795,4 @@ These rows come from the lead's playtest of the M0.P0 build on 2026-10-24. Each 
 - **2026-10-24 (machine power):** energy must enter a multiblock through any of its blocks; part block entities forward the core's containers (D276).
 - **2026-10-24 (lead playtest):** the lead's M0.P0 playtest feedback written into F1.1, F1.3, F1.5 to F1.10, F1.12, F2.5 and BH.1: Edit-tab preview fit and obscured look, part block entities in F1.10, machine status display and power symbol, powered glow, Incubator lamp colour and bed fill, creative-tab variants, a proposed bone meal recipe from the cracked egg, herds that step aside, a machine performance gate. Register D277 to D283.
 - **2026-10-25 (M0.P1 reference docs):** `docs/config-reference.md` lists the 25 keys of `config/projectnublar-fossils.toml`. `docs/performance-baseline.md` gives the fixed client settings, the test world and the measurement method, and the gates that cite it. The reference machine stays "not set". Server tick time in ms comes from the F3 line, and the dedicated-server method is open. Register D284 and D285.
+- **2026-10-25 (lead, PR #67 review):** D284 and D285 answered. The speed targets are Mojang's minimum and recommended Java PCs, never the lead's PC. The 120 fps gates become 30 fps on the minimum PC (Fast) and 60 fps on the recommended PC (Fancy). A developer checks a gate against vanilla on their own PC. Tick time comes from the F3 line.
