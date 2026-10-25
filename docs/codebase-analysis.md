@@ -267,7 +267,7 @@ The project uses the MultiLoader Template layout. The `common` module holds almo
 | Botarium | 2.3.4 (hard-coded) | Energy and fluids. 8 common files import it `[v]` |
 | Common Networking | 1.0.3 in common, 1.0.5 on loaders | The versions do not match `[v]` |
 | Forge Config API Port | 8.0.0 | The build declares it. No code uses it |
-| toml4j 0.7.2, MixinExtras 0.4.1 | | The build declares them. No code uses them |
+| MixinExtras | 0.4.1 | The build declares it. No code uses it |
 | NyfsGuiLib (`ngl`) | 0.0.19 | Comments disable it in all three modules. `J/client/widget` holds a copy of its widgets |
 
 The legacy branch `1.20.1` used these tools:
@@ -311,24 +311,17 @@ The legacy branch `1.20.1` used these tools:
 
 Fabric does not have these items:
 
-- A client entrypoint. `FB/ProjectNublarClientFabric.java:17-33` is in a block comment. `fabric.mod.json:18-22` declares only `main` `[v]`.
+- A client entrypoint. `FB/ProjectNublarClientFabric.java:17-33` is in a block comment. `fabric.mod.json:18-25` declares only `main` and `fabric-gametest` `[v]`.
 - The reload listeners, the death message hook and the handler that restores a wire with a spool.
 - The `fossil` and `test_tube` model loaders. `FB/client/FossilModel.java` is a stub that no code registers.
 - The fence mixins that supply model data.
-- Dependency declarations for GeckoLib, SmartBrainLib, Architectury and Botarium in `fabric.mod.json`.
 
-Five common files import `net.minecraftforge.api.distmarker` `[v]`:
-
-- `AbstractSliderButton`
-- `EditBox`
-- `BlockEntityElectricFence`
-- `BlockEntityElectricFenceBase`
-- `ElectricFenceBlock`
+No file in `common` or `nublar-gui` imports `net.minecraftforge.api.distmarker` `[v]`.
 
 ### 3.5 Repository hygiene
 
 - **Licence.** `LICENSE` is LGPLv3 on `1.20.1`. Each later branch has the CC0 text of the template `[v]`. `gradle.properties` says `license=CC0-1.0`. GitHub reports LGPL-3.0.
-- **README.** `README.md` is the MultiLoader Template text with no changes.
+- **README.** `README.md` gives the steps to build, run, test and contribute.
 - **Tracked files that are not source** `[v]`:
   - `hs_err_pid553788.log`, a crash of the IDE runtime
   - `hs_err_pid20864.log`, a Gradle daemon that had no memory left
@@ -336,17 +329,12 @@ Five common files import `net.minecraftforge.api.distmarker` `[v]`:
   - `G/.cache/**`, 11 files
   - `.ai/mcp/mcp.json`, 0 bytes
 - The mod did not cause either crash log.
-- **`shapes/*.txt`.** These files are Blockbench shape exports. `ModShapes.java` already contains the same data. No code refers to the folder.
 - **Template remnants:**
   - `J/mixin/ExampleMixin.java`
   - two `META-INF/services/com.example.examplemod...` files `[v]`
-  - the credits at `mods.toml:13`
-  - placeholder URLs in `fabric.mod.json`
-  - a logo file that does not exist
-  - `pack_format` 8
-- **Metadata.** `mod_author=Nyfaria`, `description=Dinosaurs`, version 0.0.23, `minecraft_version_range=[1.20.1, 1.22)`.
-- **Dependencies.** `mods.toml` declares only SmartBrainLib, with `side="SERVER"`.
-- **Tests.** The repository has no tests, no `.github` folder and no CI.
+- **Metadata.** `mod_author=Dumb-Code`, `description=Clone dinosaurs from fossils and amber, raise them in powered enclosures.`, version 0.0.23, `minecraft_version_range=[1.20.1, 1.22)`.
+- **Dependencies.** `mods.toml` declares SmartBrainLib, GeckoLib, Architectury and Botarium, each with `side="BOTH"`. `fabric.mod.json` declares GeckoLib, SmartBrainLib and Architectury. The Fabric jar nests Botarium.
+- **Tests.** `./gradlew :common:test` runs the unit tests with JUnit 5. The GameTest bodies are in `J/gametest/`. `ForgeGameTests` and `FabricGameTests` register them on each loader. `.github/` holds only the pull request template. The repository has no CI.
 
 ---
 
