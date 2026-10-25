@@ -41,6 +41,9 @@ sourceSets.test.runtimeClasspath += sourceSets.main.compileClasspath
 test {
     useJUnitPlatform()
     testLogging { events "failed"; exceptionFormat = "full" }
+    // Minecraft's log4j2.xml writes logs/ relative to the working directory, so run the tests in build output.
+    workingDir = layout.buildDirectory.dir("test-run")
+    doFirst { workingDir.mkdirs() }
 }
 
 configurations {

@@ -9,7 +9,7 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
-/** Unit tests for the herd spacing arithmetic. Runs on the JUnit stand-in runner (tools/junit-standin). */
+/** Unit tests for the herd spacing arithmetic. Runs with ./gradlew :common:test. */
 class HerdSpacingTest {
 
     private static final double EPSILON = 1.0E-9D;
