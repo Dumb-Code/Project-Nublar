@@ -352,28 +352,28 @@ Work packages in order: M0.P0, M0.P1, M0.P2, M0.B00. M0.P2 blocks every later wo
 
 #### In scope
 
-- [ ] Remove `shapes/*.txt`, `J/mixin/ExampleMixin.java` (if rft did not), the `com.example` service files and the empty `.ai/mcp/mcp.json`.
+- [x] Remove `shapes/*.txt`, `J/mixin/ExampleMixin.java` (if rft did not), the `com.example` service files and the empty `.ai/mcp/mcp.json`.
   - Add `hs_err_*.log`, `*/dataRun/` and `*/.cache/` to `.gitignore`.
-- [ ] Replace `README.md`.
+- [x] Replace `README.md`.
   - Content: what the mod is, the Beta scope in one paragraph with a link to section 11, how to build and run each loader, how to contribute (links to this plan).
-- [ ] Fix the metadata.
+- [x] Fix the metadata.
   - `mod_author`, `description`, `credits`, `pack_format`, placeholder URLs and the missing logo in `fabric.mod.json`.
   - Dependency declarations with the right sides (GeckoLib, SmartBrainLib, Forge Config API Port, Balm).
-- [ ] Remove `toml4j` from `common/build.gradle` and `fabric/build.gradle`.
-- [ ] Remove `@OnlyIn` from common classes so CI builds both loaders.
+- [x] Remove `toml4j` from `common/build.gradle` and `fabric/build.gradle`.
+- [x] Remove `@OnlyIn` from common classes so CI builds both loaders.
   - M0.P2 owns the full client-class cleanup.
-- [ ] Add a `common` unit test source set: JUnit 5 on `./gradlew :common:test`.
+- [x] Add a `common` unit test source set: JUnit 5 on `./gradlew :common:test`.
   - Add real JUnit 5 dependencies. Gradle has none today.
   - Move the existing unit tests in (353 at the last green run before P12c; M0.P0 records the count after its P12c decision). Run all of them with `./gradlew :common:test`.
   - Write `docs/performance-baseline.md`: the reference machine (CPU, GPU, RAM, Java flags), the fixed client settings (render distance 12, fancy graphics, no shaders, no optimization mods) and the test world. Every fps and tick-time gate in this plan runs on that setup.
   - Add first new tests: `Quality` ordering and the fossil rarity math.
   - The set is pure Java. Tests that need Minecraft are GameTests.
-- [ ] Move the GameTests from the Forge module into `common`, with one small registration shim per loader.
-- [ ] Add `.github/workflows/build.yml`.
+- [x] Move the GameTests from the Forge module into `common`, with one small registration shim per loader.
+- [x] Add `.github/workflows/build.yml`.
   - On every PR and push: install the toolchain, run `./gradlew build :common:test`, upload the two jars, cache Gradle.
-- [ ] Add `.github/PULL_REQUEST_TEMPLATE.md` with the Definition of done.
-- [ ] Add `docs/config-reference.md` with the header `Key | Default | Type | Section 11 ref | Added by`.
-- [ ] Do not touch `LICENSE` or `license=`.
+- [x] Add `.github/PULL_REQUEST_TEMPLATE.md` with the Definition of done.
+- [x] Add `docs/config-reference.md` with the header `Key | Default | Type | Section 11 ref | Added by`.
+- [x] Do not touch `LICENSE` or `license=`.
 
 #### Out of scope
 
