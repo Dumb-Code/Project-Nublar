@@ -53,7 +53,7 @@ The Fabric client cannot run GameTests until M0.P2. On Fabric, use `./gradlew :f
 
 1. Read [How to use this plan](docs/plan/engineering-backlog.md#how-to-use-this-plan) in the engineering backlog.
 2. Write the task plan for your work package in [`docs/superpowers/plans/`](docs/superpowers/plans/). Get a review of it before you write code.
-3. A new clone starts on the default branch. Check out `integration/1.20.1` first (`git checkout integration/1.20.1`). Make your branch from it. Name it `<wp-id>/<short-name>`, for example `f1.1/fossil-worldgen`.
+3. A new clone starts on `integration/1.20.1`, the default branch. Make your branch from it. Name it `<wp-id>/<short-name>`, for example `f1.1/fossil-worldgen`.
 4. Make one commit per task. Start each commit message with a conventional prefix, for example `feat:` or `fix:`.
 5. Run `./gradlew build` before each push.
 6. Open a pull request. The template lists the [Definition of done](docs/plan/engineering-backlog.md#5-definition-of-done).

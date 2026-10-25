@@ -18,7 +18,7 @@ jobs:
           java-version: '17'
       - uses: gradle/actions/setup-gradle@v5
         with:
-          # The default branch is not the integration branch, so name the branch that saves the cache.
+          # Only pushes to the integration branch save the cache. The branch is named here, so a change of the default branch does not move the cache.
           cache-read-only: ${{ github.ref != 'refs/heads/integration/1.20.1' }}
       - run: chmod +x gradlew && ./gradlew build :common:test --no-daemon --console=plain
       - uses: actions/upload-artifact@v6
