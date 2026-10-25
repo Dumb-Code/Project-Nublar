@@ -88,11 +88,11 @@ Status words:
 | Dinosaur hover box | 0 | 0 | 0 | 0 | 2 | 0 | 0 |
 | Eggs and hatching | 1 | 0 | 4 | 5 | 18 | 0 | 0 |
 | Fossil Processor | 9 | 1 | 0 | 0 | 8 | 3 | 0 |
-| Sequencer | 8 | 4 | 1 | 0 | 15 | 1 | 0 |
-| Egg Printer | 8 | 1 | 0 | 0 | 12 | 2 | 0 |
-| Incubator | 8 | 6 | 1 | 0 | 12 | 2 | 0 |
+| Sequencer | 8 | 4 | 1 | 0 | 17 | 1 | 0 |
+| Egg Printer | 8 | 1 | 0 | 0 | 13 | 2 | 0 |
+| Incubator | 8 | 6 | 1 | 0 | 13 | 2 | 0 |
 | Machine shared parts | 0 | 1 | 1 | 0 | 5 | 0 | 0 |
-| Lab items | 12 | 0 | 2 | 0 | 6 | 0 | 0 |
+| Lab items | 11 | 0 | 3 | 0 | 6 | 0 | 0 |
 | Fossils and amber | 2 | 0 | 15 | 0 | 17 | 0 | 0 |
 | Lab power | 1 | 0 | 1 | 1 | 8 | 0 | 0 |
 | Park power | 0 | 0 | 3 | 2 | 7 | 0 | 0 |
@@ -100,17 +100,17 @@ Status words:
 | Feeders | 3 | 0 | 0 | 10 | 20 | 0 | 0 |
 | Digsites and villagers | 0 | 0 | 1 | 0 | 7 | 0 | 0 |
 | Vehicles | 1 | 0 | 2 | 5 | 26 | 0 | 0 |
-| **Total (without guns)** | **252** | **24** | **178** | **69** | **440** | **42** | **1** |
+| **Total (without guns)** | **251** | **24** | **179** | **69** | **444** | **42** | **1** |
 | Guns (blocked) | 0 | 0 | 2 | 11 | 3 | 0 | 0 |
 
-- **Counted rows:** 1005 (guns not included).
-- **Work left:** 711 rows (440 to make, 69 to export or convert, 178 to import, 24 to check in game), plus 42 shared files for the artist to confirm.
-- **Done:** 252.
+- **Counted rows:** 1009 (guns not included).
+- **Work left:** 716 rows (444 to make, 69 to export or convert, 179 to import, 24 to check in game), plus 42 shared files for the artist to confirm.
+- **Done:** 251.
 - **Not counted:** 1 row that waits on the lead, 32 rows with no art needed, 38 rows not in Beta (6 of them Release 1 groups).
 - **Guns:** blocked on D08. They are not in the total.
 - **Per-milestone counts:** the roadmap's milestone table. They come from the Feature column of each row (F1.x is M1, F2.x is M2, F3.x is M3, F4.x is M4), with guns left out.
 
-**Changed since last review:** Vehicle assembly uses existing groups, so the chassis and engine rows are gone and the wheel split is a Done developer row. Large Generator gets its own ignite, fuel-out and loop rows. Release 1 asset groups listed, not counted. Question 21 settled.
+**Changed since last review:** Vehicle assembly uses existing groups, so the chassis and engine rows are gone and the wheel split is a Done developer row. Large Generator gets its own ignite, fuel-out and loop rows. Release 1 asset groups listed, not counted. Question 21 settled. One glow mask row per lab machine. Incubator lamp colours set as placeholders. The bird Embryo Syringe takes the 1.12 texture. The dinosaur-embryo syringe needs a new sprite. Edit-tab censor static row added. Generic pelvis, foot and spine are Missing: no shared sprite exists.
 
 ## Questions for the artist and lead
 
@@ -1566,7 +1566,7 @@ Milestone: Fossil to egg.
 
 **To make (8)**
 
-- Skins (2): Chip texture swap per chip tier; Powered glow: emissive texture elements.
+- Skins (2): Chip texture swap per chip tier; Glow mask: screens and readouts, indicator lights, lamps and bulbs, tanks and fluid.
 - Sounds (2): Start; Fault: no water or worn filter.
 - Sprites (4): Processor base; Processor body; Processor lid; Processor tanks.
 
@@ -1600,7 +1600,7 @@ Base, drum and lid cap:
 | Asset | Used for | Status | Feature | Where / reference |
 | --- | --- | --- | --- | --- |
 | Chip texture swap per chip tier | Every upgrade changes the look. No new part: a texture swap on an existing bone | Missing | F1.3 | None. The artist proposes the bone. Question 12 |
-| Powered glow: emissive texture elements | Chosen texture elements light up and animate while the Processor has power. No part moves | Missing | F1.3 | None. The artist proposes the elements, and the lead approves them (D279) |
+| Glow mask: screens and readouts, indicator lights, lamps and bulbs, tanks and fluid | These regions glow whenever the Processor has power and animate while it works. No part moves | Missing | F1.3 | None in the mod or REPO |
 | Block texture | Machine look | Done | F1.3 | MOD/textures/block/processor.png |
 
 ### Animations
@@ -1638,7 +1638,7 @@ Screen contents follow the video. Screen art is the current GUI texture in the m
 
 Processor screen parts: filter slot, bucket slot, water gauge, fossil slot, progress arrow, 3x3 output, test tube slot.
 
-**Changed since last review:** The art target is the current mod model and texture, not the 2022 video look. The Processor has no animation.
+**Changed since last review:** The art target is the current mod model and texture, not the 2022 video look. The Processor has no animation. Glow mask regions set.
 
 ---
 
@@ -1660,11 +1660,11 @@ Milestone: Fossil to egg.
 - **REPO model:** machines/sequencer/Sequencer.bbmodel has the same groups, with the monitor still inside `computer`.
 - **Behind the door:** inside `mainBody`, the model already has a tube tray with 16 tubes, 3 system racks and 4 chip cubes. REPO cube names: `system_rack1` to `3`, `computer_chip01` to `04`.
 
-**To make (15)**
+**To make (17)**
 
-- Skins (3): Tank texture swap per tank tier; Dye mask (black parts take the dye colour); Lit monitor while working.
+- Skins (4): Tank texture swap per tank tier; Dye mask (black parts take the dye colour); Lit monitor while powered; Glow mask: screens and readouts, indicator lights, lamps and bulbs, tanks and fluid.
 - Sounds (3): Start; Done; Door open and close.
-- GUI (9): Edit tab: donor rows with sliders, effect panel, chromosome grid, gender and reset buttons, colour wheel with brightness strip, layer controls, number slider box, risk panel, Basic and Advanced button.
+- GUI (10): Edit tab: donor rows with sliders, effect panel, chromosome grid, gender and reset buttons, colour wheel with brightness strip, layer controls, number slider box, risk panel, Basic and Advanced button; Edit-tab censor static overlay.
 
 **To import (1)**
 
@@ -1697,7 +1697,8 @@ Chip look per chip tier:
 | Tank texture swap per tank tier | Every upgrade changes the look. No new part: a texture swap on an existing bone | Missing | F1.6 | None. The artist proposes the bone. Question 12 |
 | Dye mask (black parts take the dye colour) | Dye changes the colour | Missing | F1.4 | None. Every black section takes the dye. The mask follows the black sections of the current texture |
 | Block texture | Machine look | Done | F1.4 | MOD/textures/block/sequencer.png |
-| Lit monitor while working | The monitor glows while the Sequencer works. The original had no glow | Missing | F1.4 | None. It lights bone `monitor_primary`. D279 can add more powered elements |
+| Lit monitor while powered | The monitor glows whenever the Sequencer has power and animates while it works. The original had no glow | Missing | F1.4 | None. It lights bone `monitor_primary` |
+| Glow mask: screens and readouts, indicator lights, lamps and bulbs, tanks and fluid | These regions glow whenever the Sequencer has power and animate while it works | Missing | F1.4 | None in the mod or REPO |
 
 ### Animations
 
@@ -1739,6 +1740,7 @@ Screen contents follow the video. Screen art is the current GUI texture in the m
 | Edit tab: number slider box | Number genes such as Immunity | Missing | F1.5 | None |
 | Edit tab: risk panel | Incubation failure chance and stat drops | Missing | F1.5 | None. Not in the video |
 | Edit tab: Basic and Advanced button | Two views | Missing | F1.5 | None |
+| Edit-tab censor static overlay (preview below 30 % DNA) | A light static over the solid black animal in the preview while the DNA is below 30 % | Missing | F1.5 | None |
 | Screen frame with turning ring logo | All tabs: frame, three tab shapes, "PN" logo with ring arcs that turn | To check in game | F1.4 | MOD/textures/gui/sequencer.png (frame, tabs) and center_pieces.png (5 ring arcs, PN logo). REPO guis/sequencer is another set. Check in game that the rings turn |
 | Sequence tab | See the list below | To check in game | F1.4 | MOD/textures/gui/sequencer.png, sequencer_page.png. Check in game that each item from the video is there |
 | Synthesis tab | Four ingredient bars, embryo picture that fills, Begin and Cancel button, arrow | To check in game | F1.6 | MOD/textures/gui/synth_page.png, center_pieces.png. Check in game that each item from the video is there |
@@ -1747,7 +1749,7 @@ Screen contents follow the video. Screen art is the current GUI texture in the m
 
 Sequence tab parts: drive slot, Regular and Isolated toggle, species list, Isolated gene and animal lists, input and leftover slots, DNA track.
 
-**Changed since last review:** The monitor glows while the Sequencer works. Each upgrade changes the look with a texture swap, except the chip cubes.
+**Changed since last review:** The monitor glows whenever the Sequencer has power and animates while it works. Each upgrade changes the look with a texture swap, except the chip cubes. Glow mask row added. Edit-tab censor static row added.
 
 ---
 
@@ -1784,9 +1786,9 @@ Milestone: Fossil to egg.
 - **Bone split:** a developer moves the needle and the cross-rail into bones of their own, with no art change.
 - **Platform room:** `Panel` has only 0.5 px of room below it, so it can lower 0.5 px at most.
 
-**To make (12)**
+**To make (13)**
 
-- Skins (4): Chip texture swap per chip tier; Leveling Sensor texture swap; Ghost egg outline (idle printer); Emissive texture for the red and green lamps and the 2 by 3 panel.
+- Skins (5): Chip texture swap per chip tier; Leveling Sensor texture swap; Ghost egg outline (idle printer); Emissive texture for the red and green lamps and the 2 by 3 panel; Glow mask: screens and readouts, indicator lights, lamps and bulbs, tanks and fluid.
 - Sounds (4): Start; Done; Fault: broken egg; Lid open and close.
 - Sprites (4): Egg Printer base; Egg Printer needle; Egg Printer platform; Egg Printer body.
 
@@ -1814,7 +1816,8 @@ Milestone: Fossil to egg.
 
 | Asset | Used for | Status | Feature | Where / reference |
 | --- | --- | --- | --- | --- |
-| Emissive texture for the red and green lamps and the 2 by 3 panel | The lamps glow while the printer prints | Missing | F1.7 | No emissive texture. The lamps and the panel are in the current texture. D279 can add more powered elements and animation |
+| Emissive texture for the red and green lamps and the 2 by 3 panel | The lamps and the panel glow whenever the printer has power and animate while it prints | Missing | F1.7 | No emissive texture. The lamps and the panel are in the current texture |
+| Glow mask: screens and readouts, indicator lights, lamps and bulbs, tanks and fluid | These regions glow whenever the Egg Printer has power and animate while it works | Missing | F1.7 | None in the mod or REPO |
 | Chip texture swap per chip tier | Every upgrade changes the look. No new part: a texture swap on an existing bone. The original shows no change | Missing | F1.7 | None. The artist proposes the bone. Question 12 |
 | Leveling Sensor texture swap | Same | Missing | F1.7 | None. The artist proposes the bone. Question 12 |
 | Ghost egg outline (idle printer) | An idle printer shows a ghost egg outline on the platform | Missing | F1.7 | None. Code can also draw the egg model see-through: artist to say |
@@ -1866,7 +1869,7 @@ Screen contents follow the video. Screen art is the current GUI texture in the m
 | --- | --- | --- | --- | --- |
 | Egg Printer screen | Bone meal gauge and slot, syringe slot, egg picture with progress lines, two output slots | Done | F1.7 | MOD/textures/gui/egg_printer.png, bonemeal_bar.png, egg.png |
 
-**Changed since last review:** The printer lamps glow while it prints. An idle printer shows a ghost egg. The printed egg is the species' egg model with the printed texture.
+**Changed since last review:** The printer lamps glow whenever it has power and animate while it prints. An idle printer shows a ghost egg. The printed egg is the species' egg model with the printed texture. Glow mask row added.
 
 ---
 
@@ -1897,9 +1900,9 @@ Milestone: Fossil to egg.
 - **REPO models:** incubator_02.bbmodel has the same arm groups, with the nest and the arm base still inside `body`. incubator_01.bbmodel and incubator_01.png are an older variant.
 - **No lift post:** the current model has no lift post and no separate lamp part. Code moves `cover` straight up.
 
-**To make (12)**
+**To make (13)**
 
-- Skins (6): Container upgrade texture swap (6 and 9 eggs); Plant tank upgrade texture swap; Emissive lamp texture: base lamp, warm bulb, warmer bulb, hot bulb.
+- Skins (7): Container upgrade texture swap (6 and 9 eggs); Plant tank upgrade texture swap; Emissive lamp texture: base lamp, warm bulb, warmer bulb, hot bulb; Glow mask: screens and readouts, indicator lights, lamps and bulbs, tanks and fluid.
 - Sounds (5): Start; Lid up and down; Egg placed; Done; Fault: egg dies.
 - GUI (1): Bed tint: green and red.
 
@@ -1939,10 +1942,11 @@ Arm link pivots:
 | --- | --- | --- | --- | --- |
 | Container upgrade texture swap (6 and 9 eggs) | Every upgrade changes the look. No new part: a texture swap on an existing bone | Missing | F1.8 | None. The artist proposes the bone. Question 12 |
 | Plant tank upgrade texture swap | Same | Missing | F1.8 | None. The artist proposes the bone. Question 12 |
-| Emissive lamp texture: base lamp | Lamp glow per bulb tier on the lamp cap of `cover`. The built-in lamp is the base bulb. Light 9. Each tier glows in a colour of its own (D280) | Missing | F1.8 | None. The lamp changes with the bulb |
-| Emissive lamp texture: warm bulb | Same. Light 11 | Missing | F1.8 | None |
-| Emissive lamp texture: warmer bulb | Same. Light 13 | Missing | F1.8 | None |
-| Emissive lamp texture: hot bulb | Same. Light 15 | Missing | F1.8 | None |
+| Emissive lamp texture: base lamp | Lamp glow on the lamp cap of `cover` whenever the Incubator has power, also with no egg. The built-in lamp is the base bulb. Light 9. Colour: warm white (placeholder, the artist sets the final colour) | Missing | F1.8 | None. The lamp changes with the bulb |
+| Emissive lamp texture: warm bulb | Same. Light 11. Colour: yellow (placeholder) | Missing | F1.8 | None |
+| Emissive lamp texture: warmer bulb | Same. Light 13. Colour: orange (placeholder) | Missing | F1.8 | None |
+| Emissive lamp texture: hot bulb | Same. Light 15. Colour: red-orange (placeholder) | Missing | F1.8 | None |
+| Glow mask: screens and readouts, indicator lights, lamps and bulbs, tanks and fluid | These regions glow whenever the Incubator has power and animate while it works. The lamp follows the lamp rows | Missing | F1.8 | None in the mod or REPO |
 | Block texture | Machine look | Done | F1.8 | MOD/textures/block/incubator.png |
 
 ### Animations
@@ -1997,7 +2001,7 @@ Screen contents follow the video. Screen art is the current GUI texture in the m
 | Empty plant slot sprout icon | Plant slot when empty | To check in game | F1.8 | In MOD/textures/gui/incubator.png, bottom left of the bed pane beside the plant bar |
 | Incubator screen | Leaf bed pane, egg markers, plant matter icon and bar | To check in game | F1.8 | MOD/textures/gui/incubator.png. Check in game that each item from the video is there |
 
-**Changed since last review:** The lid lifts straight up with no lift post, and the build has no lift step. The lamp cap shows the bulb tier with 4 emissive textures. The claw opens and closes on each egg.
+**Changed since last review:** The lid lifts straight up with no lift post, and the build has no lift step. The lamp cap shows the bulb tier with 4 emissive textures. The claw opens and closes on each egg. The lamp glows whenever powered, in a placeholder colour per tier. Glow mask row added.
 
 ---
 ## Machine shared parts
@@ -2024,7 +2028,7 @@ Milestone: Fossil to egg.
 | --- | --- | --- | --- | --- |
 | Pop-up slot dialog | "Insert Hard Drive", "Insert Genetic Material", "Collect Leftover Item" | Missing | F1.10 | None found in MOD/textures/gui |
 | Warning tab | A stopped machine shows why: no power, no input, output full and more | Missing | F1.10 | None |
-| Power symbol: powered and unpowered | Shows whether a machine has power, on its screen and on the status display above it | Missing | F1.10 | None. Layout: D278 |
+| Power symbol: powered and unpowered | Shows whether a machine has power, on the machine itself and as the dot at the left of the status panel above it | Missing | F1.10 | None |
 | Status bar on the left of each machine screen | Green bar, red tick while running | To check in game | F1.10 | Not a separate file. Check whether each screen texture holds it |
 | Linked-machine tabs (4 machines, active and inactive) | Change machines without leaving the screen | Ready to import | F1.10 | REPO guis/tabs/ (8 PNG). Not in the mod |
 
@@ -2055,8 +2059,9 @@ Not in Beta:
 - Sprites: upgrades and drives (1): Plant tank upgrades: iron, gold.
 - Fossil pouch (1): Fossil pouch item.
 
-**To import (2)**
+**To import (3)**
 
+- Sprites: syringes, tubes and labels (1): Embryo Syringe (bird or turtle embryo).
 - Sprites: upgrades and drives (2): Netherite tank upgrade; Leveling sensor.
 
 **To fix (0)**
@@ -2067,7 +2072,7 @@ Not in Beta:
 
 | Asset | Used for | Status | Feature | Where / reference |
 | --- | --- | --- | --- | --- |
-| Syringe with dinosaur embryo | Synthesis output | Missing | F1.6 | None in the mod. Today one embryo sprite serves both. Candidate: the 1.12 texture `Dumb-Code/ProjectNublar` branch `master`, src/main/resources/assets/projectnublar/textures/items/embryo_filled_syringe.png (D283) |
+| Syringe with dinosaur embryo | Synthesis output. A look of its own, apart from the bird Embryo Syringe | Missing | F1.6 | None. No sprite in the mod, REPO or the 1.12 mod is this item: REPO `_old/syringe_embryo.png` is the 1.12 bird texture, and REPO `syringe/SyringeEmbryo.png` is a variant of the current bird sprite |
 | Test tube: Unidentified DNA look | DNA state of an amber tube | Missing | F1.1 | None |
 | Test tube: Identified DNA look | DNA state of a fossil tube | Missing | F1.1 | None |
 | Test tube: Full DNA look | DNA state after synthesis | Missing | F1.1 | None |
@@ -2077,7 +2082,7 @@ Not in Beta:
 | Tag on a syringe (overlay) | No tag in Beta | Not in Beta | F1.2 | None |
 | Syringe, empty | Draw DNA from animals | Done | F1.2 | MOD/textures/item/syringe.png |
 | Syringe with blood (DNA) | DNA from an animal | Done | F1.2 | MOD/textures/item/syringe_blood.png |
-| Embryo Syringe (bird or turtle embryo) | Embryo from a chicken, parrot or turtle. Synthesis input. One item for all donors | Done | F1.2 | MOD/textures/item/syringe_embryo.png. The video shows this sprite as the bird embryo |
+| Embryo Syringe (bird or turtle embryo) | Embryo from a chicken, parrot or turtle. Synthesis input. One item for all donors | Ready to import | F1.2 | The 1.12 texture `Dumb-Code/ProjectNublar` branch `master`, src/main/resources/assets/projectnublar/textures/items/embryo_filled_syringe.png. The same file is REPO sprites/_old/syringe_embryo.png. It replaces MOD/textures/item/syringe_embryo.png |
 | Test tube, empty | Processor input | Done | F1.3 | MOD/textures/item/test_tube.png |
 | Test tube with genetic material | Processor output | Done | F1.3 | MOD/textures/item/test_tube_full.png |
 
@@ -2119,7 +2124,7 @@ The pouch has 27 slots.
 | Fossil pouch item | Collect fossils | Missing | F1.1 | None |
 | Fossil pouch screen (27 slots) | View the contents, take fossils out and put fossils in | No art needed | F1.1 | The vanilla chest layout (proposal, lead decides). If the lead wants its own look, this row becomes Missing |
 
-**Changed since last review:** No Identification Tag or tag overlays. Amber tubes stay Unidentified until the Sequencer drive. No extra tank or SSD tiers. No lysine item. No DNA label sprite. Syringe draw uses a vanilla sound.
+**Changed since last review:** No Identification Tag or tag overlays. Amber tubes stay Unidentified until the Sequencer drive. No extra tank or SSD tiers. No lysine item. No DNA label sprite. Syringe draw uses a vanilla sound. The bird Embryo Syringe takes the 1.12 texture. The dinosaur-embryo syringe needs a new sprite.
 
 ---
 
@@ -2130,7 +2135,7 @@ Milestone: Fossil to egg (fresh drops and soft tissue: Dinosaurs, F2.1).
 
 **To make (17)**
 
-- Skins, ore overlays (7): Special piece: Tyrannosaurus tooth, Velociraptor toe claw, Triceratops horn; Generic pelvis; Generic foot (placeholder); Generic spine (placeholder); Quality looks: fragmented, poor, common, pristine (placeholder).
+- Skins, ore overlays (7): Special piece: Tyrannosaurus tooth, Velociraptor toe claw, Triceratops horn; Generic pelvis; Generic foot; Generic spine; Quality looks: fragmented, poor, common, pristine (placeholder).
 - Sprites: items (10): Fourth quality look for each piece; Generic pelvis item, 3 looks; Tyrannosaurus tooth: fossil item; Velociraptor toe claw: fossil item; Triceratops horn: fossil item; Tyrannosaurus tooth: fresh drop; Velociraptor toe claw: fresh drop; Triceratops horn: fresh drop; Triceratops teeth: fresh drop; Soft tissue.
 
 **To import (15)**
@@ -2151,9 +2156,9 @@ Mod folder: MOD/textures/block/fossil_overlay/. The overlay sits on the vanilla 
 | Special piece: Tyrannosaurus tooth | Special piece | Missing | F1.1 | None |
 | Special piece: Velociraptor toe claw | Special piece | Missing | F1.1 | None |
 | Special piece: Triceratops horn | Special piece | Missing | F1.1 | None |
-| Generic pelvis | Every species has a pelvis piece | Missing | F1.1 | Stand-in today: common/pelvis.png is 0 bytes |
-| Generic foot | Every species has a foot piece | Placeholder | F1.1 | Stand-in: T. rex foot art. No generic foot in REPO _common |
-| Generic spine | Every species has a spine piece | Placeholder | F1.1 | Stand-in: Microceratus spine art. No generic spine in REPO _common |
+| Generic pelvis | Pelvis piece of every species except the T. rex. No species has a pelvis block until it exists | Missing | F1.1 | None. No shared sprite exists. The files in common/ are old T. rex copies or empty: common/pelvis.png is 0 bytes |
+| Generic foot | Foot piece. No species has a foot block until it exists | Missing | F1.1 | None. No shared sprite exists. The files in common/ are old T. rex copies or empty: common/foot.png is T. rex art. No generic foot in REPO _common |
+| Generic spine | Spine piece. No species has a spine block until it exists | Missing | F1.1 | None. No shared sprite exists. The files in common/ are old T. rex copies or empty: common/spine.png is an old T. rex copy. No generic spine in REPO _common |
 | Quality looks: fragmented, poor, common, pristine | Ore shows its quality | Placeholder | F1.1 | Stand-in: 2 looks for skulls only. Fragmented and poor share one |
 | Generic arm | Other bones use generic art | Ready to import | F1.1 | REPO sprites/fossils_bones/_common (arm). Mod common/arm.png is T. rex art |
 | Generic leg | Other bones use generic art | Ready to import | F1.1 | REPO _common (leg). Mod file is T. rex art |

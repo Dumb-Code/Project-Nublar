@@ -48,6 +48,28 @@ Fossil ore and amber hide in the right rock at the right depth, and each find ca
 - The ore shows the bone piece and its quality as an overlay, before the player mines it.
 - **Overlay look:** it takes the host stone tint at a random strength of 0 to 90%. It has one of four opacity levels (15, 43, 72 or 100%) and a random rotation per block.
 
+#### Fossil blocks per species
+
+- Code makes each fossil block: the host stone with the fossil overlay on top.
+- All six Beta species have fossil blocks.
+- A species has a block for a piece only when the sprite of that piece exists, in this repo or in the assets repo `Dumb-Code/ProjectNublar-Assets`. Each new sprite adds its block.
+- In a vein, each block rolls its own piece. If the vein's species has no block for that piece, the game skips that block, and the stone stays.
+- A vein never needs every piece. A vein never takes another species.
+
+| Species | Body plan | Pieces with a block |
+| --- | --- | --- |
+| Tyrannosaurus | Biped | Skull, arm, leg, neck, ribcage, tail, foot, hand, pelvis |
+| Velociraptor | Biped with sickle claw | Skull, arm, sickle-claw leg, neck, ribcage, tail |
+| Gallimimus | Biped | Skull, arm, leg, neck, ribcage, tail |
+| Dilophosaurus | Biped | Skull, arm, leg, neck, ribcage, tail |
+| Triceratops | Quadruped | Skull, quadruped leg, neck, ribcage, tail |
+| Brachiosaurus | Sauropod | Skull, quadruped leg, sauropod neck, ribcage, tail |
+
+- **Skulls:** each species has its own skull sprite in fresh, fragmented and fossilized looks: `assets/sprites/fossils_bones/<species>/<species>_{fresh,fragmented,fossilized}_skull.png`. The T. rex folder is spelled `tyranosaurus`.
+- **Shared pieces:** the biped arm, biped leg, biped sickle-claw leg, quadruped leg, neck, sauropod neck, ribcage and tail, each in three looks. They are in `assets/sprites/fossils_bones/_common/` and in the mod folder `textures/block/fossil_overlay/common/`. The shared tail is in the mod folder only.
+- **T. rex pieces:** the skull, foot, hand and pelvis are T. rex art in three looks, in the mod. The T. rex uses the shared arm, leg, neck, ribcage and tail.
+- **No sprite yet:** a generic pelvis, foot and spine, the T. rex tooth, the Velociraptor toe claw and the Triceratops horn. No species has a block for these pieces until the sprite exists (Art list → Fossils and amber).
+
 #### Drops
 
 - One fossil per break. No jacket step: the broken ore drops the fossil at once.
@@ -61,8 +83,8 @@ Fossil ore and amber hide in the right rock at the right depth, and each find ca
 - **Special pieces:** the skull, the tooth and the claw. They have species art and give 1.5 × the DNA of a bone of the same quality (config value).
   - Special pieces serve DNA and trades only. No recipe uses them.
   - Other bones use generic art.
-- **Pelvis:** every species has a pelvis piece. The T. rex pelvis has its own art. The other species share one generic pelvis look.
-- **Neck:** the T. rex has a neck piece. A T. rex skeleton cluster can hold a neck.
+- **Pelvis:** the T. rex has a pelvis piece with its own art. No generic pelvis sprite exists, so the other species have no pelvis piece until the artist draws one.
+- **Neck:** every species has a neck piece. The Brachiosaurus neck is the sauropod neck. A skeleton cluster can hold a neck.
 
 | Quality | Weight | DNA yield |
 | --- | --- | --- |
@@ -94,7 +116,8 @@ Fossil ore and amber hide in the right rock at the right depth, and each find ca
 - Example: a pristine T. rex skull is about 1 in 200 T. rex ores.
 - Species share: an equal share for each species that is valid at that depth and biome.
 - Period rarity: Cretaceous 2.95, Jurassic 2.8. These are the example values of the periods table.
-- If no species is valid for a depth and biome, the species of the nearest depth band applies. This rule covers amber and fossil ore.
+- If no species is valid for a depth and biome, no fossil ore generates there.
+- Amber with no valid species takes the species of the nearest depth band.
 
 #### Fossil generation per species
 
@@ -143,7 +166,7 @@ See Art list → Fossils and amber (ore overlays, fossil and amber sprites, pelv
 
 **Engineering:** backlog F1.1.
 
-**Changed since last review:** The pouch takes amber by hand and empties into the Processor on use. No hopper reaches the pouch. Ore overlay uses four fixed opacity levels. Every species has a pelvis piece. No Identification Tag: sequencing alone identifies amber. Fortune tier-up is +7.5 % per level. Per-species biome and depth table added.
+**Changed since last review:** The pouch takes amber by hand and empties into the Processor on use. No hopper reaches the pouch. Ore overlay uses four fixed opacity levels. Every species has a pelvis piece. No Identification Tag: sequencing alone identifies amber. Fortune tier-up is +7.5 % per level. Per-species biome and depth table added. Fossil blocks for all six species, one for each piece with a sprite in the assets repo. A vein block with no block for its piece stays stone. No species stands in for another in fossil ore.
 
 ---
 
@@ -179,6 +202,7 @@ A syringe takes DNA or a bird embryo from a vanilla animal.
 - One item serves all three donors. Its tooltip names the donor, for example "Embryo Syringe (Turtle)".
 - An embryo draw has no effect on the animal: it stays in love mode and takes no damage.
 - The Embryo Syringe and the dinosaur-embryo syringe (F1.6) are two items with their own looks.
+- The Embryo Syringe uses the 1.12 texture `embryo_filled_syringe.png`.
 
 #### Donors and variants
 
@@ -206,7 +230,7 @@ See Art list → Lab items (syringe sprites).
 
 **Engineering:** backlog F1.2 (vanilla animals).
 
-**Changed since last review:** Turtles give embryos. An embryo draw leaves the animal in love mode with no damage. No Identification Tag in Beta. The syringe draw uses an existing vanilla sound.
+**Changed since last review:** Turtles give embryos. An embryo draw leaves the animal in love mode with no damage. No Identification Tag in Beta. The syringe draw uses an existing vanilla sound. The Embryo Syringe uses the 1.12 texture.
 
 ---
 
@@ -341,7 +365,7 @@ The player reads DNA samples onto a hard drive and watches each species fill tow
 - Every black section takes dye. The video tints only two parts.
 - The door opens with the screen. The video never shows the model with the screen open.
 - The run uses up a sample's DNA, and the empty tube or syringe comes back for reuse.
-- The monitor glows while the Sequencer works.
+- The monitor glows whenever the Sequencer has power, and it animates while the Sequencer works.
 
 #### Building
 
@@ -398,7 +422,7 @@ The player reads DNA samples onto a hard drive and watches each species fill tow
   - It opens while any player has the screen open, and closes when the last player leaves.
   - Each swing takes half a second. The open door shows the racks and chips inside.
 - **Screen:** the arc rings turn slowly, one turn per 20 s. The helix grows with progress.
-- **Monitor glow:** a lit texture on bone `monitor_primary` while the Sequencer works.
+- **Monitor glow:** a lit texture on bone `monitor_primary` whenever the Sequencer has power. It animates while the Sequencer works.
 
 #### Sounds
 
@@ -421,7 +445,7 @@ See Art list → Sequencer (models, dye mask, lit monitor, door animation, sound
 
 **Engineering:** backlog F1.4.
 
-**Changed since last review:** The monitor stays as a fourth build part. Amber is identified only by sequencing. Vanilla animals show "Modern" and their real diet. Power per drive set.
+**Changed since last review:** The monitor stays as a fourth build part. Amber is identified only by sequencing. Vanilla animals show "Modern" and their real diet. Power per drive set. The monitor glows whenever powered and animates while working.
 
 ---
 
@@ -458,10 +482,11 @@ The player designs the dinosaur: base species, donor animals, gender, colours an
 - **Left:** stacked rows. Each row is a small square slot (blue when chosen) and a slider with the % in the middle.
   - Row 1 is the base dinosaur. The rest are donor rows. Hover shows the donor name.
 - **Donor pick:** the player clicks an empty donor row, then clicks an animal in the DNA list on the right. The player drags the slider of the row to set its share.
-- **Centre:** a framed 3D preview that turns slowly, with a Steve model beside it for scale.
-  - The whole animal fits inside the frame at every size. Nothing is cut off.
-  - The player can turn the preview. The Steve model reacts and does not hold one fixed pose (D277).
-  - Below 30 % DNA the animal shows obscured, for example black with no texture and a light censor effect (D277).
+- **Centre:** a framed 3D preview of the animal, with a Steve model beside it for scale.
+  - Every animal is scaled to fit the preview box. Nothing is cut off.
+  - The preview turns slowly on its own. The player drags it to turn it.
+  - The Steve model looks toward the mouse, like the player model in the vanilla inventory.
+  - Below 30 % DNA the animal draws solid black with no texture, under a light censor static. From 30 % the preview shows the real animal.
 - **Right:** a framed list of sequenced animals. The chosen row is solid blue.
 - **Bottom:** a wide panel with two columns of effect rows.
   - Each title is green (plus), red (minus) or white (zero), with a colour bar under it.
@@ -564,7 +589,7 @@ See Art list → Sequencer (Edit tab: base page, effect panel, chromosome grid, 
 
 **Engineering:** backlog F1.5.
 
-**Changed since last review:** Donor pick by row click then animal click. A strong jump edit can clear the low-security fence. Gene slider range and risk curves set. Clone-count edit slots added. Mob variants change colour only.
+**Changed since last review:** Donor pick by row click then animal click. A strong jump edit can clear the low-security fence. Gene slider range and risk curves set. Clone-count edit slots added. Mob variants change colour only. Edit-tab preview fits its box, turns by itself and by drag, and shows a black animal under censor static below 30 % DNA. Steve looks toward the mouse.
 
 ---
 
@@ -611,7 +636,7 @@ The Sequencer joins the designed genome with a bird embryo and makes a dinosaur-
 
 #### Output
 
-- A syringe with a dinosaur embryo that carries the genome.
+- A syringe with a dinosaur embryo that carries the genome. It has a sprite of its own. No existing sprite fits it, so the artist makes it.
 - Shift on the tooltip shows the breakdown: species, donor mix, edits, failure chance, gender ("may be random" below 80%).
 
 #### Tiers
@@ -666,7 +691,7 @@ See Art list → Sequencer (Synthesis tab, sounds, computer pieces per chip tier
 
 **Engineering:** backlog F1.6.
 
-**Changed since last review:** A Diamond Chip cuts synthesis to 2 minutes. Bone blocks count as 9 bone meal. Cancel returns unused ingredients and uses no DNA. Power per chip tier set.
+**Changed since last review:** A Diamond Chip cuts synthesis to 2 minutes. Bone blocks count as 9 bone meal. Cancel returns unused ingredients and uses no DNA. Power per chip tier set. The dinosaur-embryo syringe gets a new sprite.
 
 ---
 ### F1.7 Egg Printer
@@ -726,8 +751,7 @@ Match the screen of video 11:35-12:18.
 
 - It uses power only while it prints: 20 FE per tick at base tier. Iron chip 26, gold 37, diamond 58 FE per tick.
 - The Leveling Sensor costs no extra power (F1.11).
-- The lamps of the current texture glow while it prints. The green lamp is lit while it prints.
-- The red lamp is lit while a fault stops it (proposal, lead decides).
+- The green and red lamps and the 2 by 3 panel of the current texture glow whenever the printer has power. They animate while it prints.
 
 #### Animations
 
@@ -770,7 +794,7 @@ See Art list → Egg Printer (models, texture swaps, ghost egg, animations, soun
 
 **Engineering:** backlog F1.7.
 
-**Changed since last review:** Output is the unincubated egg. A failed print gives a cracked artificial egg. Platform lowers 0.5 px. Chips and sensor get texture swaps, no new part. 16 bone meal per egg. Power draw per tier set.
+**Changed since last review:** Output is the unincubated egg. A failed print gives a cracked artificial egg. Platform lowers 0.5 px. Chips and sensor get texture swaps, no new part. 16 bone meal per egg. Power draw per tier set. Lamps glow whenever powered and animate while printing.
 
 ---
 
@@ -844,12 +868,17 @@ Match the screen of video 12:50-13:32.
 - Every species takes 30 minutes at the base lamp. The time is a config value, and playtests tune it.
 - Plant matter drains per machine, not per egg. The rate is a config value, and playtests set it.
 - It needs power to run. Containers and plant tanks cost no extra power (F1.11).
-- It gives light only while it incubates. The lead asked for light when powered: D280 sets whether a powered Incubator with no egg glows.
+- It gives block light whenever it has power, also with no egg. The light level follows the lamp tier in the table.
+
+#### Lamp glow
+
+- The lamp texture glows in its bulb colour whenever the Incubator has power, also with no egg.
+- Colours: warm white for the base lamp, yellow for the warm bulb, orange for the warmer bulb, red-orange for the hot bulb. These are placeholders. The artist sets the final colours.
+- Vanilla block light has no colour. The colour shows only in the lamp texture.
 
 #### Upgrades
 
 - The bulb changes the lamp glow: an emissive texture per tier on the lamp cap of `cover`, with no new part.
-- Each tier glows in a colour of its own, and the glow grows stronger with the tier (D280).
 - Every upgrade changes the look. Containers and plant tanks each get a texture swap on an existing bone. No new part.
 
 #### Animations
@@ -900,11 +929,12 @@ See Art list → Incubator (models, texture swaps, animations, sounds, screen), 
 
 - It holds 3 eggs only, because the container upgrades are plain items.
 - 18 s per %, with bulbs at 15, 12 and 9 s. Plant matter 64, 128 and 192. No power draw.
+- It gives light only while it incubates.
 - The arm, the lid and the eggs never move or show. The renderer only shows or hides `nest`, `cover`, `arm_base` and `RoboticHand1`.
 
 **Engineering:** backlog F1.8.
 
-**Changed since last review:** 5 parts, no lift. Empty nest bed. Built-in lamp is the base bulb. Each egg turns every 5 minutes. Claw fingers move. Power and light per bulb tier set. Stalled eggs die.
+**Changed since last review:** 5 parts, no lift. Empty nest bed. Built-in lamp is the base bulb. Each egg turns every 5 minutes. Claw fingers move. Power and light per bulb tier set. Stalled eggs die. Lamp glows and gives light whenever powered, also with no egg. Lamp colour per bulb tier set.
 
 ---
 
@@ -1035,7 +1065,10 @@ F1.10 sets the shared rules for every lab machine: it is built from parts, upgra
 - Each machine is built from crafted parts in a set order, by right-clicking each part onto the machine. Each placed part shows as a bone of the current model.
 - Orders per machine are in F1.3, F1.4, F1.7 and F1.8.
 - Part names follow the video: Base, Needle, Platform, Body (Egg Printer). They do not use the design doc's Chassis, Lid, Printer Frame and Dome.
-- A creative-only item places a whole machine. D281 sets what the placed machine holds.
+- **Creative items.** The Processor, the Sequencer, the Egg Printer and the Incubator each have two creative-only items. Each item places the whole machine.
+  - Assembled: all parts, no upgrades.
+  - Max-upgraded: all parts, with every upgrade the machine takes, at its best tier. Example: the Incubator holds the 9-egg container, and the Egg Printer holds the Leveling Sensor.
+  - Both arrive with full stored energy. The Processor also arrives with a full water tank.
 - Parts can be reused to build another machine. Breaking any part drops every item once.
 - The hitbox matches the model. Breaking one machine never breaks its neighbours.
 - Break particles use the machine texture and are fewer than today.
@@ -1068,9 +1101,13 @@ F1.10 sets the shared rules for every lab machine: it is built from parts, upgra
 - **Tab position.** Not set. A row of tabs along the top-left outside edge, in chain order, like vanilla creative tabs (proposal, lead decides).
 - **Status bar.** The green bar on the left of every machine screen (video 1:07, 2:53, 11:38, 12:50). Its meaning is not stated. It shows stored energy, and the red tick shows "running" (proposal, lead decides).
 - **Vanilla behaviour.** The world behind darkens like vanilla screens. Screens survive a window resize. Shift-click works.
-- **Hover box.** Looking at a machine for a quarter second shows a small box near the crosshair, for example "Working 42 %" or the fault. It also lists the installed upgrades (D278).
-- **Status display.** A panel floats above each machine. It shows the progress of each task: processing, sequencing, synthesis, printing, and each egg in the Incubator. The player turns it off and on (D278).
-- **Power symbol.** A symbol on the machine screen and on the status display shows powered or unpowered (D278).
+- **Hover box.** Looking at a machine for a quarter second shows a small box near the crosshair, for example "Working 42 %" or the fault. It also lists the installed upgrades.
+- **Status display.** A panel floats above each machine.
+  - It has one progress bar per task: processing, sequencing, synthesis, printing. The Incubator has one bar per egg.
+  - A dot at the left of the panel shows powered or unpowered.
+  - The panel shows within 8 blocks of the player. The range is a client config value.
+  - A client key and a client config switch turn the panels off and on. The switch changes only the view of that player.
+- **Power symbol.** The machine itself shows the same powered or unpowered symbol as the panel dot.
 
 #### Faults and effects
 
@@ -1078,7 +1115,19 @@ F1.10 sets the shared rules for every lab machine: it is built from parts, upgra
 - There is no "No bulb" fault, because the Incubator's built-in lamp is the base bulb (F1.8).
 - **Power loss.** 3 smoke puffs over 1 s and a dark model. One puff when it starts again.
 - The working look stops 3 s after work stops.
-- **Powered glow.** Chosen texture elements of each machine light up and animate while it has power (D279).
+- **Powered glow.** On the Processor, the Sequencer, the Egg Printer and the Incubator, these texture regions glow: screens and readouts, indicator lights, lamps and bulbs, tanks and fluid.
+  - They light whenever the machine has power. They animate while the machine works.
+  - The Processor model stays still. A texture animation is not model motion.
+  - The Incubator lamp follows its own colour rule (F1.8).
+
+#### Performance
+
+- With the four lab machines at work, the server tick grows by less than 2 ms.
+- With the lab in view, the client keeps at least 90 % of its frame rate.
+- Both values compare with the same world without the machines, on the developer's own PC. The tick time is the F3 integrated-server value: the median of three readings one minute apart.
+- Each machine package meets this gate for its machine. BH.1 measures the whole park.
+- This is the starting gate. It is tuned after the 26.2 machines are measured.
+- The machine package states the measuring method in its task plan (D285), because F3 shows whole milliseconds.
 
 #### Sounds
 
@@ -1087,17 +1136,17 @@ F1.10 sets the shared rules for every lab machine: it is built from parts, upgra
 
 #### Art needed
 
-See Art list → Screens (GUI) (linked-machine tabs, pop-up slot dialog, status bar), Lab items (machine part sprites).
+See Art list → Screens (GUI) (linked-machine tabs, pop-up slot dialog, status bar), Machine shared parts (power symbol), Lab items (machine part sprites), and the glow mask of each machine.
 
 #### Today in the code
 
 - Only the Incubator assembles part by part.
 - No tabs, no warning tab, no fault smoke. Break drops are incomplete.
-- The machines cause visible lag (lead playtest 2026-10-24). D282 sets a machine performance gate.
+- The machines cause visible lag in the lead's playtest of 2026-10-24.
 
 **Engineering:** backlog F1.10.
 
-**Changed since last review:** Part names follow the video. 3 shared chips. Upgrades change the look with no new part. Extra power only for chips and bulbs. No "No bulb" fault.
+**Changed since last review:** Part names follow the video. 3 shared chips. Upgrades change the look with no new part. Extra power only for chips and bulbs. No "No bulb" fault. Two creative items per machine: assembled and max-upgraded, both with full energy. Status panel above each machine, 8 blocks, per-player toggle. Glow regions set for all four machines. Machine performance gate set.
 
 ---
 
@@ -1227,7 +1276,7 @@ F1.12 makes every lab item craftable in survival, and its advancements guide the
   - 3 bulbs, 2 container upgrades, 2 plant tanks, Leveling Sensor.
   - Basic Generator, power conduit, fossil pouch.
   - No Identification Tag.
-- **No recipe.** Assembled machines (creative only), fossils and amber (world drops), machine outputs (tubes, filled syringes, eggs, the cracked artificial egg).
+- **No recipe.** The two creative items of each lab machine, assembled and max-upgraded (creative only), fossils and amber (world drops), machine outputs (tubes, filled syringes, eggs, the cracked artificial egg).
 - **Bone meal.** A cracked artificial egg crafts into bone meal. The count is a proposal: 3 (lead decides).
 - **Ids.** `basic_generator` replaces `coal_generator`, and `iron_plant_tank_upgrade` replaces `iron_plant_tank_ugprade`. A `*_base` part item starts each machine in survival.
 
@@ -1258,6 +1307,7 @@ F1.12 makes every lab item craftable in survival, and its advancements guide the
 - **Advancements.** First fossil, first amber, first DNA tube, first species at 50% genome, first edit, first embryo, first egg, first hatch, first fully upgraded machine.
 - **Creative tabs.** Ordered by chain stage.
 - **Creative variants.** The creative tabs hold each fossil in all four qualities, a dinosaur-embryo syringe and an incubated egg for each species, and the cracked artificial egg.
+- **Creative machines.** The creative tabs hold two items for each lab machine: the assembled machine and the max-upgraded machine (F1.10).
 - **Acceptance.** A survival player reaches a hatched baby with no creative mode and no trades.
 
 #### Art needed
@@ -1270,7 +1320,7 @@ See Art list → Lab items. Advancement icons reuse these item sprites.
 
 **Engineering:** backlog F1.12 (lab items).
 
-**Changed since last review:** 17 machine-part grids approved. No stone parts, quartz slabs instead. First lab needs gold and nether quartz. Upgrades crafted fresh except the netherite tank. Paleontologist trades. New ids. No Identification Tag.
+**Changed since last review:** 17 machine-part grids approved. No stone parts, quartz slabs instead. First lab needs gold and nether quartz. Upgrades crafted fresh except the netherite tank. Paleontologist trades. New ids. No Identification Tag. Two creative items per lab machine.
 ## M2. Dinosaurs
 
 M2 makes the six Beta species into living animals: Tyrannosaurus, Velociraptor, Brachiosaurus, Triceratops, Dilophosaurus and Gallimimus.

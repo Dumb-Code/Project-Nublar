@@ -60,12 +60,12 @@ The package that owns a gate states its allowed difference in its task plan. The
 
 The single-player F3 reading cannot test these gates:
 
-- Backlog line 3931: under 0.1 ms. The F3 line shows whole milliseconds.
-- Backlog line 4424: herd AI under 1 ms on average. The F3 line shows whole milliseconds.
-- Backlog line 4424: herd AI under 5 ms in any tick. The F3 value is an average, so it cannot show the peak of one tick.
-- Backlog line 6715: the machine increment of 2 ms, which is too close to the 1 ms step of the F3 line.
-- Backlog line 5928: the lab machines meet the machine gate of D282. That gate is the proposed 2 ms increment of line 6715.
-- Backlog lines 4423 and 5847: Load B, 9 to 15 ms. Load B has 3 players (line 5846), and BH.1 profiles it on a dedicated server (line 5843).
+- Backlog line 3964: under 0.1 ms. The F3 line shows whole milliseconds.
+- Backlog line 4457: herd AI under 1 ms on average. The F3 line shows whole milliseconds.
+- Backlog line 4457: herd AI under 5 ms in any tick. The F3 value is an average, so it cannot show the peak of one tick.
+- Backlog line 6801: the machine increment of 2 ms, which is too close to the 1 ms step of the F3 line.
+- Backlog line 6012: the lab machines meet the machine gate of F1.10 (D282). That gate is the 2 ms increment of line 6801.
+- Backlog lines 4456 and 5931: Load B, 9 to 15 ms. Load B has 3 players (line 5930), and BH.1 profiles it on a dedicated server (line 5927).
 
 The package that owns one of these gates sets its method in its task plan. The same rule applies to a gate on a dedicated server.
 
@@ -79,30 +79,30 @@ The line numbers are for `docs/plan/engineering-backlog.md` on 2026-10-25. Edits
 | --- | --- | --- |
 | 107 | Global constraints | "Server gates for one paddock use half the tick budget: under 25 ms." |
 | 147 | Risk 6 (F2.4) | "20 animals in one paddock keep the server tick under 25 ms on the reference setup." |
-| 2752 | M2 exit gate | "20 animals in one paddock keep the server tick under 25 ms." |
-| 3167 | F2.0 | "20 animals in one paddock keep the server tick under 25 ms on the reference setup" |
-| 3754 | F2.4 | "This package's own gate is one paddock under 25 ms." |
-| 4047 | F2.4 | "20 animals in one paddock keep the server tick under 25 ms on the reference setup." |
+| 2785 | M2 exit gate | "20 animals in one paddock keep the server tick under 25 ms." |
+| 3200 | F2.0 | "20 animals in one paddock keep the server tick under 25 ms on the reference setup" |
+| 3787 | F2.4 | "This package's own gate is one paddock under 25 ms." |
+| 4080 | F2.4 | "20 animals in one paddock keep the server tick under 25 ms on the reference setup." |
 
 **Gallimimus on screen, 30 fps on the minimum PC and 60 fps on the recommended PC:**
 
 | Line | Package | Gate |
 | --- | --- | --- |
 | 152 | Risk 8 (F2.2) | "20 Gallimimus on screen keep at least 30 fps on the minimum PC (Fast) and 60 fps on the recommended PC (Fancy)." |
-| 2752 | M2 exit gate | "20 Gallimimus on screen keep at least 30 fps on the minimum PC (Fast) and 60 fps on the recommended PC (Fancy)" |
-| 3419 | F2.2 | "20 Gallimimus on screen keep at least 30 fps on the minimum PC (Fast) and 60 fps on the recommended PC (Fancy)." |
-| 3426 | F2.2 | "20 Gallimimus on screen keep at least 30 fps on the minimum PC (Fast) and 60 fps on the recommended PC (Fancy)." |
-| 3546 | F2.2 | "20 baked Gallimimus in view keep at least 30 fps on the minimum PC (Fast) and 60 fps on the recommended PC (Fancy)." |
+| 2785 | M2 exit gate | "20 Gallimimus on screen keep at least 30 fps on the minimum PC (Fast) and 60 fps on the recommended PC (Fancy)" |
+| 3452 | F2.2 | "20 Gallimimus on screen keep at least 30 fps on the minimum PC (Fast) and 60 fps on the recommended PC (Fancy)." |
+| 3459 | F2.2 | "20 Gallimimus on screen keep at least 30 fps on the minimum PC (Fast) and 60 fps on the recommended PC (Fancy)." |
+| 3579 | F2.2 | "20 baked Gallimimus in view keep at least 30 fps on the minimum PC (Fast) and 60 fps on the recommended PC (Fancy)." |
 
 **Other fps and tick-time gates:**
 
 | Line | Package | Gate |
 | --- | --- | --- |
-| 3544 | F2.2 | "A Dilophosaurus herd of 10 keeps client FPS above a baseline recorded in the PR." |
-| 3728 | F2.3 | "within 10 % of the F2.2 baseline frame time" |
-| 3931 | F2.4 | Shared block scan: "under 1,000 reads, under 0.1 ms, no aligned spike" |
-| 4421 to 4424 | F2.5 | Load A "2 to 3 ms". Load B "9 to 15 ms plus repath spikes". Herd AI "under 1 ms on average, under 5 ms in any tick". |
-| 5832 | BH.1 | "A park of 100 dinosaurs keeps 20 ticks per second" |
-| 5847 | BH.1 | Load B "Target: 9 to 15 ms plus repath spikes." |
-| 5928 | BH.1 | "The four lab machines at work meet the machine gate of D282 on the reference setup." |
-| 6715 | D282 (open) | Proposal: the lab machines "add less than 2 ms to the server tick", and the client keeps "at least 90 % of its frame rate" |
+| 3577 | F2.2 | "A Dilophosaurus herd of 10 keeps client FPS above a baseline recorded in the PR." |
+| 3761 | F2.3 | "within 10 % of the F2.2 baseline frame time" |
+| 3964 | F2.4 | Shared block scan: "under 1,000 reads, under 0.1 ms, no aligned spike" |
+| 4454 to 4457 | F2.5 | Load A "2 to 3 ms". Load B "9 to 15 ms plus repath spikes". Herd AI "under 1 ms on average, under 5 ms in any tick". |
+| 5916 | BH.1 | "A park of 100 dinosaurs keeps 20 ticks per second" |
+| 5931 | BH.1 | Load B "Target: 9 to 15 ms plus repath spikes." |
+| 6012 | BH.1 | "The four lab machines at work meet the machine gate of F1.10" |
+| 6801 | D282 | The lab machines grow the server tick by "less than 2 ms", and the client keeps "at least 90 % of its frame rate" |
