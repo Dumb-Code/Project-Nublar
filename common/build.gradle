@@ -44,6 +44,13 @@ test {
     // Minecraft's log4j2.xml writes logs/ relative to the working directory, so run the tests in build output.
     workingDir = layout.buildDirectory.dir("test-run")
     doFirst { workingDir.mkdirs() }
+    // CI evidence: print one count line per run, and fail when the run finds no test.
+    afterSuite { desc, result ->
+        if (!desc.parent) {
+            println "Unit tests: ${result.testCount} run, ${result.successfulTestCount} passed, ${result.failedTestCount} failed, ${result.skippedTestCount} skipped"
+            if (result.testCount == 0) throw new GradleException("No unit test found in ${project.path}:test")
+        }
+    }
 }
 
 configurations {
