@@ -1,12 +1,14 @@
 package net.dumbcode.projectnublar.datagen;
 
 import net.dumbcode.projectnublar.Constants;
-import net.dumbcode.projectnublar.init.ItemInit;
-import net.dumbcode.projectnublar.init.TagInit;
+import net.dumbcode.projectnublar.api.fossil.FossilCollection;
+import net.dumbcode.projectnublar.registry.ItemInit;
+import net.dumbcode.projectnublar.registry.TagInit;
 import net.minecraft.core.HolderLookup;
 import net.minecraft.core.registries.Registries;
 import net.minecraft.data.PackOutput;
 import net.minecraft.data.tags.TagsProvider;
+import net.minecraft.tags.BlockTags;
 import net.minecraft.tags.ItemTags;
 import net.minecraft.tags.TagKey;
 import net.minecraft.world.entity.EntityType;
@@ -14,6 +16,7 @@ import net.minecraft.world.item.Item;
 import net.minecraft.world.item.Items;
 import net.minecraft.world.level.ItemLike;
 import net.minecraft.world.level.block.Block;
+import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.level.block.ComposterBlock;
 import net.minecraft.world.level.block.LeavesBlock;
 import net.minecraftforge.common.data.ExistingFileHelper;
@@ -56,7 +59,10 @@ public class ModTagProvider {
 
         @Override
         protected void addTags(HolderLookup.Provider pProvider) {
-
+            populateTag(TagInit.SANDSTONE_ORE_REPLACEABLES, () -> Blocks.SANDSTONE);
+            populateTag(BlockTags.MINEABLE_WITH_PICKAXE, FossilCollection.COLLECTIONS.values().stream()
+                    .flatMap(FossilCollection::blocks)
+                    .toArray(Supplier<?>[]::new));
         }
         public  <T extends Block>void populateTag(TagKey<Block> tag, Supplier<?>... items){
             for (Supplier<?> item : items) {

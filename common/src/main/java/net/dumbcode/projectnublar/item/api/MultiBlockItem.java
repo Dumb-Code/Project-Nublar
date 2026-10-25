@@ -1,6 +1,6 @@
 package net.dumbcode.projectnublar.item.api;
 
-import net.dumbcode.projectnublar.block.api.MultiBlock;
+import net.dumbcode.projectnublar.block.api.multiblock.MultiBlock;
 import net.minecraft.core.Direction;
 import net.minecraft.world.item.BlockItem;
 import net.minecraft.world.item.ItemStack;

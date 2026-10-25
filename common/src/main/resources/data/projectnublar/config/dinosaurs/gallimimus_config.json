@@ -27,7 +27,7 @@
  "trust_increase": 0.5,
  "max_social_need": 50,
  "loneliness_drain": 1.0,
- "group_size": 5,
+ "group_size": 20,
 
  "needs_configs": "Defines how often Dinosaurs need to Eat, Drink and Rest",
  "eat_rate_per_day": 5.0,

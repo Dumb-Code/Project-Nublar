@@ -1,6 +1,6 @@
 package net.dumbcode.projectnublar.client;
 
-import net.dumbcode.projectnublar.block.api.Connection;
+import net.dumbcode.projectnublar.block.api.fence.Connection;
 import net.minecraftforge.client.model.data.ModelProperty;
 
 import java.util.Set;

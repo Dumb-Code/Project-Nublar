@@ -7,7 +7,7 @@ import java.util.List;
 import java.util.function.Consumer;
 import javax.annotation.Nullable;
 
-import net.dumbcode.projectnublar.init.RecipeInit;
+import net.dumbcode.projectnublar.registry.RecipeInit;
 import net.minecraft.advancements.Advancement;
 import net.minecraft.advancements.AdvancementRewards;
 import net.minecraft.advancements.CriterionTriggerInstance;

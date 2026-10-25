@@ -1,0 +1,66 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Gallimimus hitbox mockup</title>
+<style>
+:root{--bg:#faf9f5;--text:#1f1e1d;--muted:#5f5e5a;--border:rgba(0,0,0,.12)}
+@media (prefers-color-scheme:dark){:root{--bg:#1f1e1d;--text:#ecebe6;--muted:#b4b2a9;--border:rgba(255,255,255,.14)}}
+body{background:var(--bg);color:var(--text);font-family:system-ui,sans-serif;margin:0;padding:16px}
+main{max-width:720px;margin:0 auto}
+h1{font-size:20px;font-weight:500;margin:0 0 4px}
+p{color:var(--muted);font-size:14px;margin:0 0 12px}
+.row{display:flex;flex-wrap:wrap;gap:6px 16px;font-size:13px;color:var(--muted);margin:0 0 10px}
+.grid{display:grid;grid-template-columns:auto minmax(0,1fr) 52px;gap:6px 12px;align-items:center;font-size:13px;color:var(--muted);margin:0 0 8px}
+.v{color:var(--text);font-weight:500}
+svg{display:block;width:100%;height:auto}
+.ts{font-size:12px;fill:var(--muted)}
+</style></head><body><main>
+<h1>Gallimimus hitbox mockup</h1>
+<p><b>Superseded on 2026-10-10</b> by <a href="Dinosaur%20hitbox%20layouts.html">Dinosaur hitbox layouts.html</a>, which covers all six species.</p>
+<p>Adult Gallimimus at render scale 1.0, rest pose from the geo file with bone rotations applied. 12 proposed hit parts, all with square footprints.</p>
+<div class="row">
+<label><input type="checkbox" id="cM" checked> Model cubes</label>
+<label><input type="checkbox" id="cP" checked> Hit parts</label>
+<label><input type="checkbox" id="cB" checked> Movement box</label>
+<label><input type="checkbox" id="cO"> Today's box</label>
+<label><input type="checkbox" id="cC"> Spacing capsule</label>
+</div>
+<div class="grid">
+<span>Growth</span><input type="range" id="sG" min="0.25" max="1" step="0.05" value="1"><span id="oG" class="v">100%</span>
+<span>Yaw (top view)</span><input type="range" id="sY" min="0" max="180" step="5" value="0"><span id="oY" class="v">0°</span>
+</div>
+<svg id="side" viewBox="0 0 680 380" role="img" aria-label="Side view"></svg>
+<svg id="top" viewBox="0 0 680 400" role="img" aria-label="Top view"></svg>
+<div id="info" style="font-size:13px;color:var(--muted);margin:6px 0 0"></div>
+<script>
+const C=[["t",-0.22,1.65,-0.79,0.22,2.39,0.4],["t",-0.16,1.75,0.26,0.16,2.27,0.83],["t",-0.12,1.79,0.74,0.12,2.19,1.26],["t",-0.09,1.91,1.2,0.09,2.19,1.96],["t",-0.04,1.92,1.88,0.03,2.17,2.94],["t",-0.19,1.74,-1.24,0.19,2.4,-0.55],["t",-0.19,1.75,-1.09,0.19,1.96,-0.76],["t",-0.19,1.61,-1.07,0.19,1.98,-0.62],["t",-0.16,1.49,-0.72,0.16,1.91,-0.15],["t",-0.16,1.49,-0.25,0.16,1.76,0.27],["t",-0.09,1.31,-0.43,0.09,1.84,0.27],["t",-0.12,1.51,0.13,0.13,1.98,0.75],["a",0.12,1.52,-1.03,0.31,1.99,-0.84],["a",0.16,1.15,-1.4,0.31,1.63,-0.9],["a",0.2,0.9,-1.39,0.27,1.22,-1.31],["a",0.23,0.93,-1.39,0.34,1.25,-1.26],["a",0.31,0.82,-1.32,0.33,0.96,-1.21],["a",0.14,0.92,-1.39,0.23,1.25,-1.25],["a",0.17,0.83,-1.31,0.18,0.96,-1.19],["a",0.24,0.79,-1.38,0.25,0.93,-1.25],["a",-0.31,1.52,-1.03,-0.12,1.99,-0.84],["a",-0.31,1.15,-1.4,-0.16,1.63,-0.9],["a",-0.27,0.9,-1.39,-0.2,1.22,-1.31],["a",-0.23,0.92,-1.39,-0.14,1.25,-1.25],["a",-0.18,0.84,-1.34,-0.16,0.96,-1.2],["a",-0.34,0.93,-1.39,-0.23,1.25,-1.26],["a",-0.33,0.82,-1.32,-0.31,0.96,-1.21],["a",-0.25,0.79,-1.38,-0.24,0.93,-1.25],["n",-0.12,1.94,-1.27,0.12,2.29,-0.93],["n",-0.09,1.74,-1.28,0.09,2.1,-0.92],["n",-0.09,1.97,-1.53,0.09,2.41,-1.08],["n",-0.09,2.19,-1.67,0.09,2.59,-1.3],["n",-0.09,2.47,-1.71,0.09,2.81,-1.47],["n",-0.09,2.75,-1.72,0.09,3.01,-1.52],["n",-0.09,2.93,-1.78,0.09,3.17,-1.54],["n",-0.09,3.02,-1.85,0.09,3.29,-1.59],["n",-0.09,3.16,-1.84,0.09,3.3,-1.71],["h",-0.09,3.16,-1.94,0.09,3.3,-1.8],["h",-0.09,3.06,-1.87,0.09,3.19,-1.78],["h",-0.09,3.05,-1.93,0.09,3.19,-1.83],["h",-0.06,3.04,-2.11,0.06,3.17,-1.91],["h",-0.06,3.01,-2.17,0.06,3.09,-2.08],["h",-0.06,3.0,-2.16,0.06,3.07,-2.09],["h",-0.03,3.01,-2.13,0.03,3.1,-2.04],["h",-0.06,3.03,-2.07,0.06,3.13,-1.88],["h",-0.06,3.08,-2.0,0.06,3.16,-1.87],["h",-0.06,3.02,-1.94,0.06,3.11,-1.85],["h",-0.06,3.0,-1.88,0.06,3.13,-1.79],["h",-0.06,2.9,-1.88,0.06,3.13,-1.67],["h",-0.06,2.75,-1.78,0.06,2.97,-1.59],["h",0.04,3.14,-1.92,0.11,3.22,-1.84],["h",-0.11,3.14,-1.92,-0.04,3.22,-1.84],["h",-0.06,3.06,-2.13,0.06,3.22,-1.88],["h",-0.06,3.04,-2.19,0.06,3.12,-2.12],["h",-0.06,3.06,-2.2,0.06,3.15,-2.12],["h",-0.06,3.09,-2.17,0.06,3.17,-2.08],["h",-0.06,3.12,-2.11,0.06,3.2,-2.03],["h",-0.06,3.15,-2.05,0.06,3.27,-1.91],["l",-0.4,1.18,-0.32,-0.02,2.15,0.31],["l",-0.36,0.56,-0.33,-0.06,1.41,0.28],["l",-0.28,0.02,-0.25,-0.09,0.77,0.28],["l",-0.31,0.01,-0.48,-0.06,0.14,-0.04],["l",0.02,1.18,-0.32,0.4,2.15,0.31],["l",0.06,0.56,-0.33,0.36,1.41,0.28],["l",0.09,0.02,-0.25,0.28,0.77,0.28],["l",0.06,0.01,-0.48,0.31,0.14,-0.04]];
+const P=[["head",0,-1.98,.45,.45,2.95,3.35],["neck",0,-1.62,.4,.4,2.45,3.2],["neck",0,-1.22,.5,.5,1.8,2.55],["torso",0,-.82,.75,.75,1.35,2.42],["torso",0,-.05,.75,.75,1.3,2.42],["tail",0,.6,.55,.55,1.5,2.3],["tail",0,1.12,.5,.5,1.75,2.25],["tail",0,1.62,.5,.5,1.85,2.25],["tail",0,2.12,.5,.5,1.88,2.22],["tail",0,2.65,.5,.5,1.9,2.2],["leg",.21,-.085,.6,.6,0,1.35],["leg",-.21,-.085,.6,.6,0,1.35]];
+const CO='#D85A30',TE='#1D9E75',GR='#888780',PU='#7F77DD',AM='#BA7517',PK='#D4537E';
+const $=id=>document.getElementById(id);
+const r=(t,a)=>'<'+t+' '+Object.entries(a).map(([k,v])=>k+'="'+v+'"').join(' ')+'/>';
+const lbl=(x,y,s)=>'<text class="ts" x="'+x+'" y="'+y+'">'+s+'</text>';
+function draw(){
+const g=+$('sG').value,yaw=+$('sY').value,a=yaw*Math.PI/180,cs=Math.cos(a),sn=Math.sin(a),ac=Math.abs(cs),as=Math.abs(sn);
+$('oG').textContent=Math.round(g*100)+'%';$('oY').textContent=yaw+'°';
+let s='',S=100,X=z=>360-z*S,Y=y=>350-y*S;
+for(let z=-3;z<=3;z++)s+=r('line',{x1:X(z),y1:15,x2:X(z),y2:350,stroke:'var(--border)','stroke-width':.5});
+for(let y=0;y<=3;y++)s+=r('line',{x1:40,y1:Y(y),x2:660,y2:Y(y),stroke:'var(--border)','stroke-width':y?.5:1.5});
+if($('cO').checked)s+=r('rect',{x:X(.6),y:Y(2.6),width:1.2*S,height:2.6*S,fill:'none',stroke:AM,'stroke-width':1.5,'stroke-dasharray':'6 4'});
+if($('cB').checked)s+=r('rect',{x:X(.4*g),y:Y(2.4*g),width:.8*g*S,height:2.4*g*S,fill:TE,'fill-opacity':.08,stroke:TE,'stroke-width':1.5,'stroke-dasharray':'4 3'});
+if($('cM').checked)C.forEach(c=>{s+=r('rect',{x:X(c[6]*g),y:Y(c[5]*g),width:Math.max(.5,(c[6]-c[3])*g*S),height:Math.max(.5,(c[5]-c[2])*g*S),fill:GR,'fill-opacity':.45,stroke:GR,'stroke-width':.5})});
+if($('cP').checked)P.forEach(p=>{const col=p[0]=='leg'?PK:CO;s+=r('rect',{x:X((p[2]+p[4]/2)*g),y:Y(p[6]*g),width:p[4]*g*S,height:(p[6]-p[5])*g*S,fill:col,'fill-opacity':.18,stroke:col,'stroke-width':1.2})});
+s+=lbl(44,30,'Side view · head to the right · 1 square = 1 block');
+$('side').innerHTML=s;
+let t='',T=60,cx=340,cy=200,R=(x,z)=>[x*cs-z*sn,x*sn+z*cs],SX=zr=>cx-zr*T,SY=xr=>cy+xr*T;
+for(let k=-5;k<=5;k++){t+=r('line',{x1:cx+k*T,y1:20,x2:cx+k*T,y2:380,stroke:'var(--border)','stroke-width':.5});if(Math.abs(k)<=3)t+=r('line',{x1:40,y1:cy+k*T,x2:640,y2:cy+k*T,stroke:'var(--border)','stroke-width':.5});}
+if($('cC').checked){const p1=R(0,-2.2*g),p2=R(0,2.94*g);t+=r('line',{x1:SX(p1[1]),y1:SY(p1[0]),x2:SX(p2[1]),y2:SY(p2[0]),stroke:PU,'stroke-opacity':.22,'stroke-width':.8*g*T,'stroke-linecap':'round'});t+=r('line',{x1:SX(p1[1]),y1:SY(p1[0]),x2:SX(p2[1]),y2:SY(p2[0]),stroke:PU,'stroke-width':1,'stroke-dasharray':'3 3'});}
+if($('cO').checked)t+=r('rect',{x:cx-.6*T,y:cy-.6*T,width:1.2*T,height:1.2*T,fill:'none',stroke:AM,'stroke-width':1.5,'stroke-dasharray':'6 4'});
+if($('cB').checked)t+=r('rect',{x:cx-.4*g*T,y:cy-.4*g*T,width:.8*g*T,height:.8*g*T,fill:TE,'fill-opacity':.08,stroke:TE,'stroke-width':1.5,'stroke-dasharray':'4 3'});
+if($('cM').checked)C.forEach(c=>{const pts=[[c[1],c[3]],[c[4],c[3]],[c[4],c[6]],[c[1],c[6]]].map(([x,z])=>{const q=R(x*g,z*g);return SX(q[1]).toFixed(1)+','+SY(q[0]).toFixed(1)}).join(' ');t+=r('polygon',{points:pts,fill:GR,'fill-opacity':.45,stroke:GR,'stroke-width':.5})});
+if($('cP').checked)P.forEach(p=>{const col=p[0]=='leg'?PK:CO,q=R(p[1]*g,p[2]*g),ex=(p[3]*ac+p[4]*as)*g*T,ez=(p[3]*as+p[4]*ac)*g*T;t+=r('rect',{x:SX(q[1])-ez/2,y:SY(q[0])-ex/2,width:ez,height:ex,fill:col,'fill-opacity':.18,stroke:col,'stroke-width':1.2})});
+t+=lbl(44,36,'Top view · square parts keep their size as the body turns');
+$('top').innerHTML=t;
+$('info').innerHTML='<span style="color:'+CO+'">■</span> 10 body parts: head, neck ×2, torso ×2, tail ×5 &nbsp; <span style="color:'+PK+'">■</span> 2 leg parts &nbsp; <span style="color:'+TE+'">■</span> movement box '+(.8*g).toFixed(2)+' × '+(2.4*g).toFixed(2)+' &nbsp; <span style="color:'+AM+'">■</span> today 1.2 × 2.6 &nbsp; <span style="color:'+PU+'">■</span> spacing capsule';
+}
+['cM','cP','cB','cO','cC','sG','sY'].forEach(id=>$(id).addEventListener('input',draw));
+draw();
+</script></main></body></html>

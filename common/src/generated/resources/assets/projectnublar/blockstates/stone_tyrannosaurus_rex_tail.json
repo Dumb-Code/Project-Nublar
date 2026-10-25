@@ -1,0 +1,16 @@
+{
+  "variants": {
+    "quality=common": {
+      "model": "projectnublar:block/stone_tyrannosaurus_rex_tail_common"
+    },
+    "quality=fragmented": {
+      "model": "projectnublar:block/stone_tyrannosaurus_rex_tail_fragmented"
+    },
+    "quality=poor": {
+      "model": "projectnublar:block/stone_tyrannosaurus_rex_tail_poor"
+    },
+    "quality=pristine": {
+      "model": "projectnublar:block/stone_tyrannosaurus_rex_tail_pristine"
+    }
+  }
+}

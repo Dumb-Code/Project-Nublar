@@ -1,9 +1,10 @@
 package net.dumbcode.projectnublar.util;
 
-import net.dumbcode.projectnublar.api.DinoBehaviourData;
+import net.dumbcode.projectnublar.api.dinosaur.DinoBehaviourData;
+import net.dumbcode.projectnublar.entity.dinosaur.ai.behavior.social.RunGait;
 import net.dumbcode.projectnublar.entity.dinosaur.CarnivoreDinosaur;
 import net.dumbcode.projectnublar.entity.dinosaur.Dinosaur;
-import net.dumbcode.projectnublar.init.*;
+import net.dumbcode.projectnublar.registry.*;
 import net.minecraft.core.BlockPos;
 import net.minecraft.network.syncher.EntityDataAccessor;
 import net.minecraft.network.syncher.EntityDataSerializers;
@@ -20,6 +21,13 @@ import net.minecraft.world.phys.Vec3;
 import net.tslat.smartbrainlib.util.BrainUtils;
 import org.jetbrains.annotations.Nullable;
 
+/**
+ * Static helpers for the dinosaur need bars (hunger/thirst/stamina/social) and threat scoring.
+ *
+ * <p>Frozen invariant: the {@link EntityDataAccessor} definitions below must stay in this
+ * class and in this order - their ids depend on class-load order together with {@code Dinosaur}
+ * and {@code DinoAnimationUtils}. Do not move or reorder them.
+ */
 public class DinoNeedsUtils {
     public static final EntityDataAccessor<Float> HUNGER = SynchedEntityData.defineId(Dinosaur.class, EntityDataSerializers.FLOAT);
     public static final EntityDataAccessor<Float> THIRST = SynchedEntityData.defineId(Dinosaur.class, EntityDataSerializers.FLOAT);
@@ -136,6 +144,8 @@ public class DinoNeedsUtils {
     public static boolean starving(Dinosaur dinosaur){return dinosaur.getEntityData().get(HUNGER) == 0.0F;}
     public static boolean dehyrdrated(Dinosaur dinosaur){return dinosaur.getEntityData().get(THIRST) == 0.0F;}
     public static boolean isExhausted(Dinosaur dinosaur){return dinosaur.getEntityData().get(STAMINA) == 0.0F;}
+
+    // TODO(BUG): checks STAMINA instead of SOCIAL (copy-paste from isExhausted);
     public static boolean isSociallyDrained(Dinosaur dinosaur){return dinosaur.getEntityData().get(STAMINA) == 0.0F;}
 
 
@@ -158,13 +168,6 @@ public class DinoNeedsUtils {
         int maxDays = starvationTime;
 
         if( (days >= maxDays) || (currentHunger <= 0)){
-            if(days >= maxDays){
-                System.err.println("Days without food: " + days);
-                System.err.println("Starvation time exceeds maximum of days!");
-            }
-            if(currentHunger <= 0){
-                System.err.println("Hunger reached zero");
-            }
             dinosaur.die(dinosaur.damageSources().starve());
             return;
         }
@@ -226,12 +229,9 @@ public class DinoNeedsUtils {
 
     public static void tickStamina(Dinosaur dinosaur){
         float currentStamina = dinosaur.getEntityData().get(STAMINA);
-        float staminaDecrease = (float) dinosaur.getDinoBehaviour().staminaDrain();
+        // P13b (ruling Q3): a walk drains 0.75 of the species' drain, a run twice it (as before).
+        float staminaDecrease = (float) RunGait.staminaDrain(dinosaur.getDinoBehaviour().staminaDrain(), dinosaur.isRunning());
         float newCurrentValue;
-
-        if(dinosaur.isRunning()){
-            staminaDecrease = staminaDecrease * 2;
-        }
 
         newCurrentValue = currentStamina - staminaDecrease;
         if (newCurrentValue <= 0) {
@@ -242,6 +242,8 @@ public class DinoNeedsUtils {
 
     }
 
+    // TODO(BUG): empty stub - the social bar never drains (and its caller's tick increment was
+    // also commented out in Dinosaur.tick());
     public static void tickSocial(){
     }
 
@@ -249,7 +251,6 @@ public class DinoNeedsUtils {
         float currentHunger = dinosaur.getEntityData().get(HUNGER);
         float maxHunger = 100;
         double hungerIncrease;
-        System.err.println(foodItem);
 
         if(dinosaur.getDinoDiet() != null) {
             hungerIncrease = dinosaur.getDinoDiet().foodMap().get(foodItem);

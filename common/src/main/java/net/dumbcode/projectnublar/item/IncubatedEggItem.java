@@ -1,11 +1,11 @@
 package net.dumbcode.projectnublar.item;
 
-import net.dumbcode.projectnublar.api.DinoBehaviourData;
-import net.dumbcode.projectnublar.api.DinoData;
+import net.dumbcode.projectnublar.api.dinosaur.DinoBehaviourData;
+import net.dumbcode.projectnublar.api.dinosaur.DinoData;
 import net.dumbcode.projectnublar.client.renderer.layer.DinoLayer;
 import net.dumbcode.projectnublar.data.BehaviourDataReloadListener;
 import net.dumbcode.projectnublar.entity.dinosaur.Dinosaur;
-import net.dumbcode.projectnublar.init.GeneInit;
+import net.dumbcode.projectnublar.registry.GeneInit;
 import net.dumbcode.projectnublar.item.api.DNADataItem;
 import net.dumbcode.projectnublar.util.DinoNeedsUtils;
 import net.minecraft.core.registries.BuiltInRegistries;

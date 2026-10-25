@@ -2,11 +2,12 @@ package net.dumbcode.projectnublar.datagen;
 
 import com.google.gson.JsonObject;
 import net.dumbcode.projectnublar.Constants;
-import net.dumbcode.projectnublar.api.FossilCollection;
+import net.dumbcode.projectnublar.api.fossil.FossilCollection;
+import net.dumbcode.projectnublar.api.fossil.Quality;
 import net.dumbcode.projectnublar.client.model.fossil.FossilModelLoader;
 import net.dumbcode.projectnublar.client.model.testtube.TestTubeModelLoader;
-import net.dumbcode.projectnublar.init.BlockInit;
-import net.dumbcode.projectnublar.init.ItemInit;
+import net.dumbcode.projectnublar.registry.BlockInit;
+import net.dumbcode.projectnublar.registry.ItemInit;
 import net.minecraft.data.PackOutput;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.item.Item;
@@ -68,23 +69,12 @@ public class ModItemModelProvider extends ItemModelProvider {
         simpleGeneratedModel(BlockInit.INCUBATOR.get().asItem());
         simpleGeneratedModel(BlockInit.HIGH_SECURITY_ELECTRIC_FENCE_POST.get().asItem());
         simpleGeneratedModel(BlockInit.LOW_SECURITY_ELECTRIC_FENCE_POST.get().asItem());
-        FossilCollection.COLLECTIONS.forEach((s, fossilCollection) -> {
-            fossilCollection.fossilblocks().forEach((block, qualityMap) -> {
-                qualityMap.forEach((quality, fossilPieceRegistryObjectMap) -> {
-                    fossilPieceRegistryObjectMap.forEach((fossilPiece, blockRegistryObject) -> {
-                        try {
-                            simpleBlockItemModel(blockRegistryObject.get());
-                        } catch (Exception ignored) {
-                        }
-                    });
-                });
-            });
-            fossilCollection.amberBlocks().forEach((block, blockRegistryObject) -> {
-                try {
-                    simpleBlockItemModel(blockRegistryObject.get());
-                } catch (Exception ignored) {
-                }
-            });
+        FossilCollection.COLLECTIONS.values().forEach(fossilCollection -> {
+            fossilCollection.fossilItems().forEach((base, pieces) -> pieces.forEach((piece, items) -> {
+                String blockId = FossilCollection.blockId(fossilCollection.entityType(), base, piece);
+                items.forEach((quality, item) -> fossilItemModel(blockId, quality));
+            }));
+            fossilCollection.amberBlocks().values().forEach(block -> simpleBlockItemModel(block.get()));
         });
         withExistingParent(getName(ItemInit.FOSSIL_ITEM.get()), "item/generated")
                 .texture("layer0", modLoc("block/fossil_overlay/common/spine"))
@@ -104,6 +94,12 @@ public class ModItemModelProvider extends ItemModelProvider {
                 .model(withExistingParent(getName(ItemInit.SYRINGE.get()) + "_embryo", "item/generated")
                         .texture("layer0", modLoc("item/syringe_embryo"))).end();
         ;
+    }
+
+    /** The item that places a fossil block with a quality shows that quality's block model. */
+    protected ItemModelBuilder fossilItemModel(String blockId, Quality quality) {
+        return withExistingParent(FossilCollection.itemId(blockId, quality),
+                modLoc("block/" + blockId + "_" + quality.getName()));
     }
 
     protected ItemModelBuilder simpleBlockItemModel(Block block) {

@@ -11,6 +11,8 @@ public class DilophosaurusEntity extends CarnivoreDinosaur {
         super($$0, $$1, 39);
     }
 
+    // TODO(BUG): calls super.canTarget(...) but ignores the result, reducing this species to
+    // revenge-only targeting.
     @Override
     public boolean canTarget(LivingEntity target) {
         super.canTarget(target);
