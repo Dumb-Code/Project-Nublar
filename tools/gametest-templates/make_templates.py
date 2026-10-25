@@ -11,7 +11,7 @@ import random
 import struct
 from collections import deque
 
-OUT = "forge/src/main/resources/data/projectnublar/structures"
+OUT = "common/src/main/resources/data/projectnublar/structures"
 DATA_VERSION = 3465
 # Fixed seed: the forest is the same on every run. If the route check fails after an edit, change the seed.
 FOREST_SEED = 20261012

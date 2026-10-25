@@ -266,8 +266,8 @@ The project uses the MultiLoader Template layout. The `common` module holds almo
 | Architectury API | 9.2.14 | Registration |
 | Botarium | 2.3.4 (hard-coded) | Energy and fluids. 8 common files import it `[v]` |
 | Common Networking | 1.0.3 in common, 1.0.5 on loaders | The versions do not match `[v]` |
-| Forge Config API Port | 8.0.0 | The build declares it. No code uses it |
-| toml4j 0.7.2, MixinExtras 0.4.1 | | The build declares them. No code uses them |
+| Forge Config API Port | 8.0.0 | On `integration/1.20.1`, `J/config/FossilsConfig.java` builds a `ForgeConfigSpec`. `FB/ProjectNublarFabric.java:16` registers it through `ForgeConfigRegistry` `[v]` |
+| MixinExtras | 0.4.1 | The build declares it. No code uses it |
 | NyfsGuiLib (`ngl`) | 0.0.19 | Comments disable it in all three modules. `J/client/widget` holds a copy of its widgets |
 
 The legacy branch `1.20.1` used these tools:
@@ -285,8 +285,8 @@ The legacy branch `1.20.1` used these tools:
 - **SmartBrainLib sensors.** The `SBLLoader` service registers the sensors (`J/init/SensorTypesInit.java:20`).
 - **Networking.** `J/network/NetworkInit.java:9-13` registers 3 packets `[v]`. All three go from client to server. No packet goes from server to client.
 - **Packet names.** The packets are `UpdateEditInfoPacket`, `UpdateIncubatorSlotPacket` and `UpdateIncubatorPacket`.
-- **Config.** The mod has no loader config. Datapack JSON is in `R/data/projectnublar/config/**` and `R/data/projectnublar/diet/**`.
-- **Reload listeners.** Four reload listeners in `J/data` read that JSON. Only `F/event/CommonForgeEvents.java:25-30` registers them `[v]`.
+- **Config.** On `integration/1.20.1`, `J/config/FossilsConfig.java` defines one COMMON loader config, `config/projectnublar-fossils.toml` `[v]`. [config-reference.md](config-reference.md) lists its keys. Datapack JSON is in `R/data/projectnublar/config/**` and `R/data/projectnublar/diet/**`.
+- **Reload listeners.** Four reload listeners in `J/data` read that JSON. On `integration/1.20.1`, only `F/event/CommonForgeEvents.java:31-34` registers them `[v]`.
 - **Forge API in common classes.** Mixins inject it. Each loader has its own `GeoMultiBlockItemMixin`. The `BlockEntityElectricFence*Mixin` classes are Forge only and supply model data.
 - **Datagen.** Datagen is Forge only. `F/datagen` has 11 providers and the output goes to `G/`.
 - **Datagen gaps.** `ModWorldGenProvider.java:34-49` has empty bootstrap methods. A comment disables the body of `ModSoundProvider`.
@@ -311,42 +311,22 @@ The legacy branch `1.20.1` used these tools:
 
 Fabric does not have these items:
 
-- A client entrypoint. `FB/ProjectNublarClientFabric.java:17-33` is in a block comment. `fabric.mod.json:18-22` declares only `main` `[v]`.
+- A client entrypoint. `FB/ProjectNublarClientFabric.java:17-33` is in a block comment. `fabric.mod.json:18-25` declares only `main` and `fabric-gametest` `[v]`.
 - The reload listeners, the death message hook and the handler that restores a wire with a spool.
 - The `fossil` and `test_tube` model loaders. `FB/client/FossilModel.java` is a stub that no code registers.
 - The fence mixins that supply model data.
-- Dependency declarations for GeckoLib, SmartBrainLib, Architectury and Botarium in `fabric.mod.json`.
 
-Five common files import `net.minecraftforge.api.distmarker` `[v]`:
-
-- `AbstractSliderButton`
-- `EditBox`
-- `BlockEntityElectricFence`
-- `BlockEntityElectricFenceBase`
-- `ElectricFenceBlock`
+No file in `common` or `nublar-gui` imports `net.minecraftforge.api.distmarker` `[v]`.
 
 ### 3.5 Repository hygiene
 
 - **Licence.** `LICENSE` is LGPLv3 on `1.20.1`. Each later branch has the CC0 text of the template `[v]`. `gradle.properties` says `license=CC0-1.0`. GitHub reports LGPL-3.0.
-- **README.** `README.md` is the MultiLoader Template text with no changes.
-- **Tracked files that are not source** `[v]`:
-  - `hs_err_pid553788.log`, a crash of the IDE runtime
-  - `hs_err_pid20864.log`, a Gradle daemon that had no memory left
-  - `forge/dataRun/**`, 5 files from a different computer
-  - `G/.cache/**`, 11 files
-  - `.ai/mcp/mcp.json`, 0 bytes
-- The mod did not cause either crash log.
-- **`shapes/*.txt`.** These files are Blockbench shape exports. `ModShapes.java` already contains the same data. No code refers to the folder.
-- **Template remnants:**
-  - `J/mixin/ExampleMixin.java`
-  - two `META-INF/services/com.example.examplemod...` files `[v]`
-  - the credits at `mods.toml:13`
-  - placeholder URLs in `fabric.mod.json`
-  - a logo file that does not exist
-  - `pack_format` 8
-- **Metadata.** `mod_author=Nyfaria`, `description=Dinosaurs`, version 0.0.23, `minecraft_version_range=[1.20.1, 1.22)`.
-- **Dependencies.** `mods.toml` declares only SmartBrainLib, with `side="SERVER"`.
-- **Tests.** The repository has no tests, no `.github` folder and no CI.
+- **README.** `README.md` gives the steps to build, run, test and contribute.
+- **Files that are not source.** M0.P0 removed the two crash logs, `forge/dataRun/**`, `G/.cache/**` and `.ai/mcp/mcp.json`. `.gitignore` now keeps these files out of the tree `[v]`.
+- **Template remnants.** The `rft/adversing` merge in M0.P0 removed `J/mixin/ExampleMixin.java` and the two `com.example` service files `[v]`.
+- **Metadata.** `mod_author=Dumb-Code`, `description=Clone dinosaurs from fossils and amber, raise them in powered enclosures.`, version 0.0.23, `minecraft_version_range=[1.20.1, 1.22)`.
+- **Dependencies.** `mods.toml` declares SmartBrainLib, GeckoLib, Architectury and Botarium, each with `side="BOTH"`. `fabric.mod.json` declares GeckoLib, SmartBrainLib and Architectury. The Fabric jar nests Botarium.
+- **Tests.** `./gradlew :common:test` runs the unit tests with JUnit 5. The GameTest bodies are in `J/gametest/`. `ForgeGameTests` and `FabricGameTests` register them on each loader. `.github/` holds the pull request template and the workflow `.github/workflows/build.yml`. The workflow builds both loaders and runs `:common:test` on every push and pull request.
 
 ---
 
@@ -1067,7 +1047,6 @@ The original had 38 packet classes. The rewrite has 3.
 - spawn eggs and a guide book
 - advancements other than the one recipe advancement
 - translations other than `en_us`
-- tests and CI
 
 ### 8.5 Asset repository
 

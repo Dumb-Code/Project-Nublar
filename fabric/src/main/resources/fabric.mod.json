@@ -9,15 +9,18 @@
         "${mod_author}"
     ],
     "contact": {
-        "homepage": "https://fabricmc.net/",
-        "sources": "https://github.com/FabricMC/fabric-example-mod"
+        "homepage": "https://github.com/Dumb-Code/Project-Nublar",
+        "issues": "https://github.com/Dumb-Code/Project-Nublar/issues",
+        "sources": "https://github.com/Dumb-Code/Project-Nublar"
     },
     "license": "${license}",
-    "icon": "assets/modid/${mod_id}.png",
     "environment": "*",
     "entrypoints": {
         "main": [
             "net.dumbcode.projectnublar.ProjectNublarFabric"
+        ],
+        "fabric-gametest": [
+            "net.dumbcode.projectnublar.gametest.FabricGameTests"
         ]
     },
     "mixins": [
@@ -26,12 +29,11 @@
     ],
     "depends": {
         "fabricloader": ">=0.14",
-        "fabric": "*",
+        "fabric-api": "*",
         "minecraft": "${minecraft_version}",
-        "java": ">=17"
-    },
-    "suggests": {
-        "another-mod": "*"
+        "java": ">=17",
+        "geckolib": ">=4.7",
+        "smartbrainlib": ">=1.15",
+        "architectury": ">=9.2"
     }
 }
-  

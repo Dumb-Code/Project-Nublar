@@ -1,0 +1,39 @@
+name: Build
+on:
+  # Pull requests build through pull_request, so a push to a PR branch builds once.
+  push:
+    branches: [integration/1.20.1]
+  pull_request:
+permissions:
+  contents: read
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v5
+      - uses: actions/setup-java@v5
+        with:
+          distribution: temurin
+          java-version: '17'
+      - uses: gradle/actions/setup-gradle@v5
+        with:
+          # Only pushes to the integration branch save the cache. The branch is named here, so a change of the default branch does not move the cache.
+          cache-read-only: ${{ github.ref != 'refs/heads/integration/1.20.1' }}
+      - run: chmod +x gradlew && ./gradlew build :common:test --no-daemon --console=plain
+      - uses: actions/upload-artifact@v6
+        with:
+          name: projectnublar-forge
+          path: |
+            forge/build/libs/*.jar
+            !forge/build/libs/*-sources.jar
+            !forge/build/libs/*-javadoc.jar
+          if-no-files-found: error
+      - uses: actions/upload-artifact@v6
+        with:
+          name: projectnublar-fabric
+          path: |
+            fabric/build/libs/*.jar
+            !fabric/build/libs/*-sources.jar
+            !fabric/build/libs/*-javadoc.jar
+          if-no-files-found: error

@@ -22,8 +22,6 @@ import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.entity.BlockEntityType;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.phys.shapes.VoxelShape;
-import net.minecraftforge.api.distmarker.Dist;
-import net.minecraftforge.api.distmarker.OnlyIn;
 
 /**
  * Block entity for a wire-only fence block. Persists its {@link Connection}s under the frozen
@@ -86,7 +84,6 @@ public class BlockEntityElectricFence extends BlockEntityElectricFenceBase imple
     }
 
     @Override
-    @OnlyIn(Dist.CLIENT)
     public Set<Connection.CompiledRenderData> compiledRenderData() {
         return super.compiledRenderData();
     }

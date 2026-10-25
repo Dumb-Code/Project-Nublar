@@ -1,6 +1,5 @@
 package net.dumbcode.projectnublar.gametest;
 
-import net.dumbcode.projectnublar.Constants;
 import net.dumbcode.projectnublar.api.dinosaur.DinoBehaviourData;
 import net.dumbcode.projectnublar.api.dinosaur.DinoData;
 import net.dumbcode.projectnublar.data.BehaviourDataReloadListener;
@@ -15,15 +14,12 @@ import net.dumbcode.projectnublar.registry.EntityInit;
 import net.dumbcode.projectnublar.registry.GeneInit;
 import net.dumbcode.projectnublar.util.DinoNeedsUtils;
 import net.minecraft.core.BlockPos;
-import net.minecraft.gametest.framework.GameTest;
 import net.minecraft.gametest.framework.GameTestHelper;
 import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.entity.ai.memory.MemoryModuleType;
 import net.minecraft.world.entity.ai.memory.WalkTarget;
 import net.minecraft.world.phys.AABB;
 import net.minecraft.world.phys.Vec3;
-import net.minecraftforge.gametest.GameTestHolder;
-import net.minecraftforge.gametest.PrefixGameTestTemplate;
 import net.tslat.smartbrainlib.util.BrainUtils;
 import org.jetbrains.annotations.Nullable;
 
@@ -32,23 +28,25 @@ import java.util.List;
 
 /**
  * GameTests for herds (plan B18 and the herd movement redesign). The lead runs them one at a time in a
- * creative world started from {@code runClient} (never on a dedicated GameTest server). On the GameTest server
- * each test is its own batch, so they run one at a time there too.
- * Run a test with {@code /test run herdgametests.<method name in lower case>}.
+ * creative world started from {@code runClient}. On the GameTest server each test is its own batch, so they run
+ * one at a time there too. The tests have no loader code; the holders {@code ForgeGameTests} (Forge) and
+ * {@code FabricGameTests} (Fabric) register them.
+ * Run a test with {@code /test run <name>} on Forge and {@code /test run fabricgametests.<name>} on Fabric,
+ * where the name is the method name in lower case:
  * <ul>
- * <li>{@code /test run herdgametests.fivegallimimusformoneherdledbythestrongest}</li>
- * <li>{@code /test run herdgametests.twentygallimimusformoneherdoftwenty}</li>
- * <li>{@code /test run herdgametests.strongernewcomerleadsatonce}</li>
- * <li>{@code /test run herdgametests.deadmemberleavesitsherd}</li>
- * <li>{@code /test run herdgametests.grazingherdholdshardminimum}</li>
- * <li>{@code /test run herdgametests.grazingmembersstayput}</li>
- * <li>{@code /test run herdgametests.smallleadermoveskeepgraze}</li>
- * <li>{@code /test run herdgametests.stackedmembersseparate}</li>
- * <li>{@code /test run herdgametests.herdtravelsalongtrail}</li>
- * <li>{@code /test run herdgametests.herdcrossesforest}</li>
- * <li>{@code /test run herdgametests.herdpassescorridor}</li>
- * <li>{@code /test run herdgametests.memberneverenterslowgap}</li>
- * <li>{@code /test run herdgametests.herdskirtswater}</li>
+ * <li>{@code fivegallimimusformoneherdledbythestrongest}</li>
+ * <li>{@code twentygallimimusformoneherdoftwenty}</li>
+ * <li>{@code strongernewcomerleadsatonce}</li>
+ * <li>{@code deadmemberleavesitsherd}</li>
+ * <li>{@code grazingherdholdshardminimum}</li>
+ * <li>{@code grazingmembersstayput}</li>
+ * <li>{@code smallleadermoveskeepgraze}</li>
+ * <li>{@code stackedmembersseparate}</li>
+ * <li>{@code herdtravelsalongtrail}</li>
+ * <li>{@code herdcrossesforest}</li>
+ * <li>{@code herdpassescorridor}</li>
+ * <li>{@code memberneverenterslowgap}</li>
+ * <li>{@code herdskirtswater}</li>
  * </ul>
  * The arenas {@code herd_track}, {@code herd_forest}, {@code herd_shore}, {@code herd_corridor} and
  * {@code herd_lowgap} come from {@code tools/gametest-templates/make_templates.py}. {@code herd_arena} (the
@@ -82,8 +80,6 @@ import java.util.List;
  * can switch the walk target and restart a path.</li>
  * </ul>
  */
-@GameTestHolder(Constants.MODID)
-@PrefixGameTestTemplate(false)
 public final class HerdGameTests {
 
     /**
@@ -95,10 +91,18 @@ public final class HerdGameTests {
     private static final int FLOOR_CHECK_TICK = 5;
     /** An animal more than this below {@link #FLOOR_Y} fell through the floor. */
     private static final double FLOOR_TOLERANCE = 0.5D;
-    private static final String ARENA = "herd_arena";
-    private static final String TRACK = "herd_track";
-    private static final String FOREST = "herd_forest";
-    private static final String SHORE = "herd_shore";
+    /** Template {@code data/projectnublar/structures/herd_arena.nbt}; public for the holders' {@code @GameTest} lines. */
+    public static final String ARENA = "herd_arena";
+    /** Template {@code data/projectnublar/structures/herd_track.nbt}; public for the holders' {@code @GameTest} lines. */
+    public static final String TRACK = "herd_track";
+    /** Template {@code data/projectnublar/structures/herd_forest.nbt}; public for the holders' {@code @GameTest} lines. */
+    public static final String FOREST = "herd_forest";
+    /** Template {@code data/projectnublar/structures/herd_shore.nbt}; public for the holders' {@code @GameTest} lines. */
+    public static final String SHORE = "herd_shore";
+    /** Template {@code data/projectnublar/structures/herd_corridor.nbt}; public for the holders' {@code @GameTest} lines. */
+    public static final String CORRIDOR = "herd_corridor";
+    /** Template {@code data/projectnublar/structures/herd_lowgap.nbt}; public for the holders' {@code @GameTest} lines. */
+    public static final String LOWGAP = "herd_lowgap";
     /**
      * Pinned grazing ticks before counting: spots are picked within 60 ticks (GrazeSchedule.ENTER_STAGGER_TICKS).
      * At the graze speed (0.049 b/t) a member walks only up to 11.8 blocks toward its spot in the other 240,
@@ -144,8 +148,6 @@ public final class HerdGameTests {
     /** Spec T5: stacked members separate within this many ticks. */
     private static final int SEPARATE_TICKS = 100;
     private static final double APART_TOLERANCE = 0.05D;
-    private static final String CORRIDOR = "herd_corridor";
-    private static final String LOWGAP = "herd_lowgap";
     /** Journey goals: open ground inside each arena (tools/gametest-templates/make_templates.py). */
     private static final BlockPos GOAL = new BlockPos(56, FLOOR_Y, 8);
     /**
@@ -208,9 +210,7 @@ public final class HerdGameTests {
 
     /**
      * Five animals form one herd, and the strongest leads it.
-     * Run: {@code /test run herdgametests.fivegallimimusformoneherdledbythestrongest}
      */
-    @GameTest(template = ARENA, batch = "fivegallimimusformoneherdledbythestrongest", timeoutTicks = 600)
     public static void fiveGallimimusFormOneHerdLedByTheStrongest(GameTestHelper helper) {
         List<Dinosaur> animals = new ArrayList<>();
         for (int i = 0; i < 4; i++) {
@@ -236,9 +236,7 @@ public final class HerdGameTests {
     /**
      * A full herd: the Gallimimus config sets {@code group_size} to 20. Twenty animals end in one herd
      * whatever pairs form first, because any two partial herds fit together and merge.
-     * Run: {@code /test run herdgametests.twentygallimimusformoneherdoftwenty}
      */
-    @GameTest(template = ARENA, batch = "twentygallimimusformoneherdoftwenty", timeoutTicks = 1200)
     public static void twentyGallimimusFormOneHerdOfTwenty(GameTestHelper helper) {
         List<Dinosaur> animals = new ArrayList<>();
         for (int row = 0; row < 4; row++) {
@@ -260,9 +258,7 @@ public final class HerdGameTests {
 
     /**
      * A stronger animal that joins a pair leads the herd at once.
-     * Run: {@code /test run herdgametests.strongernewcomerleadsatonce}
      */
-    @GameTest(template = ARENA, batch = "strongernewcomerleadsatonce", timeoutTicks = 600)
     public static void strongerNewcomerLeadsAtOnce(GameTestHelper helper) {
         Dinosaur first = hatch(helper, EntityInit.GALLIMIMUS.get(), new BlockPos(8, FLOOR_Y, 12), 0D);
         Dinosaur second = hatch(helper, EntityInit.GALLIMIMUS.get(), new BlockPos(14, FLOOR_Y, 12), 0D);
@@ -282,9 +278,7 @@ public final class HerdGameTests {
 
     /**
      * A member that dies leaves its herd; the survivor stays in a herd of 1.
-     * Run: {@code /test run herdgametests.deadmemberleavesitsherd}
      */
-    @GameTest(template = ARENA, batch = "deadmemberleavesitsherd", timeoutTicks = 400)
     public static void deadMemberLeavesItsHerd(GameTestHelper helper) {
         Dinosaur doomed = hatch(helper, EntityInit.GALLIMIMUS.get(), new BlockPos(8, FLOOR_Y, 12), 0D);
         Dinosaur survivor = hatch(helper, EntityInit.GALLIMIMUS.get(), new BlockPos(14, FLOOR_Y, 12), 0D);
@@ -304,9 +298,7 @@ public final class HerdGameTests {
 
     /**
      * Spec T4: a pinned grazing herd of 20; no pair stays closer than the hard minimum for more than 20 ticks.
-     * Run: {@code /test run herdgametests.grazingherdholdshardminimum}
      */
-    @GameTest(template = TRACK, batch = "grazing_hard_minimum", timeoutTicks = 3000)
     public static void grazingHerdHoldsHardMinimum(GameTestHelper helper) {
         List<Dinosaur> animals = hatchTwenty(helper, 3);
         int[][] close = new int[animals.size()][animals.size()];
@@ -336,9 +328,7 @@ public final class HerdGameTests {
      * spots are closer than {@link #GRAZE_SPACING} (4.2), and at least half of the followers hold a spot (so
      * the spot check cannot pass with no spots). Counting starts after {@link #STAND_SETTLE_TICKS} of pinned
      * grazing.
-     * Run: {@code /test run herdgametests.grazingmembersstayput}
      */
-    @GameTest(template = TRACK, batch = "grazing_stay_put", timeoutTicks = 3400)
     public static void grazingMembersStayPut(GameTestHelper helper) {
         List<Dinosaur> animals = hatchTwenty(helper, 3);
         double[][] last = new double[animals.size()][2];
@@ -398,9 +388,7 @@ public final class HerdGameTests {
      * sampling cannot always place 19 spots 4.2 apart inside the 22-wide arena (Review Focus 1). But at least
      * {@link #MIN_SPOT_HOLDER_FRACTION} of the followers must hold a spot on every tick after the moves begin,
      * so the spot check cannot pass with no spots.
-     * Run: {@code /test run herdgametests.smallleadermoveskeepgraze}
      */
-    @GameTest(template = TRACK, batch = "small_leader_moves", timeoutTicks = 2400)
     public static void smallLeaderMovesKeepGraze(GameTestHelper helper) {
         List<Dinosaur> animals = hatchTwenty(helper, 3);
         double[][] spots = new double[animals.size()][];
@@ -491,9 +479,7 @@ public final class HerdGameTests {
      * <li>A pair counts as apart at {@link #APART_TOLERANCE} under the hard minimum. A separating body stops
      * when it reaches the minimum, and movement and collision can leave the stop a little short of it.</li>
      * </ul>
-     * Run: {@code /test run herdgametests.stackedmembersseparate}
      */
-    @GameTest(template = ARENA, batch = "stacked_members", timeoutTicks = 600)
     public static void stackedMembersSeparate(GameTestHelper helper) {
         List<Dinosaur> animals = new ArrayList<>();
         for (int i = 0; i < 3; i++) {
@@ -529,9 +515,7 @@ public final class HerdGameTests {
      * behind) (30.5 - 11.2) / 0.194 = 100 + stagger 60; total 1163, x 1.3 = 1512. A full 200-tick wait makes
      * 1263, x 1.3 = 1642, so 1700 (1.46 x the realistic total, 1.35 x with the full wait). The timeout leaves
      * 1500 ticks to form the herd.
-     * Run: {@code /test run herdgametests.herdtravelsalongtrail}
      */
-    @GameTest(template = TRACK, batch = "travel_trail", timeoutTicks = 3200)
     public static void herdTravelsAlongTrail(GameTestHelper helper) {
         List<Dinosaur> animals = hatchTwenty(helper, 3);
         int[][] close = new int[animals.size()][animals.size()];
@@ -558,9 +542,7 @@ public final class HerdGameTests {
      * 0.194 = 340 + stagger 60; total 1757, x 1.3 = 2284, so 2400 (1.37 x; the forest is the least certain
      * estimate, and the limit is not cut below lead decision 18's 2400). The timeout leaves 1600 ticks to form
      * the herd.
-     * Run: {@code /test run herdgametests.herdcrossesforest}
      */
-    @GameTest(template = FOREST, batch = "travel_forest", timeoutTicks = 4000)
     public static void herdCrossesForest(GameTestHelper helper) {
         List<Dinosaur> animals = hatchTwenty(helper, 3);
         boolean[] travelled = new boolean[1];
@@ -596,9 +578,7 @@ public final class HerdGameTests {
      * through the corridor and 2 blocks either side of it, 6 in 2 open rows west of it, + 1.1 lag), 30 blocks
      * short of x 44: 30 / 0.194 = 155, so 160 with the file ahead of it, + stagger 60; total 1410, x 1.3 =
      * 1833, so 1900 (1.35 x). The timeout leaves 1500 ticks to form the herd.
-     * Run: {@code /test run herdgametests.herdpassescorridor}
      */
-    @GameTest(template = CORRIDOR, batch = "travel_corridor", timeoutTicks = 3400)
     public static void herdPassesCorridor(GameTestHelper helper) {
         List<Dinosaur> animals = hatchTwenty(helper, 3);
         boolean[] passed = new boolean[animals.size()];
@@ -637,9 +617,7 @@ public final class HerdGameTests {
      * path = 175 + stagger 60; total 1168, x 1.3 = 1518. A full 200-tick wait makes 1268, x 1.3 = 1648, so
      * 1700 (1.46 x the realistic total, 1.34 x with the full wait). The timeout leaves 1500 ticks to form the
      * herd (after the limit and the 300 ticks of grazing).
-     * Run: {@code /test run herdgametests.memberneverenterslowgap}
      */
-    @GameTest(template = LOWGAP, batch = "travel_lowgap", timeoutTicks = 3500)
     public static void memberNeverEntersLowGap(GameTestHelper helper) {
         List<Dinosaur> animals = hatchTwenty(helper, 3);
         boolean[] passed = new boolean[animals.size()];
@@ -689,9 +667,7 @@ public final class HerdGameTests {
      * settle 100 + walk-in (the deepest wedge, single file beside the channel, tail 62 behind) (62 - 11.2) /
      * 0.194 = 262 + stagger 60; total 1477, x 1.3 = 1920, so 2000 (1.35 x). The timeout leaves 1400 ticks to
      * form the herd.
-     * Run: {@code /test run herdgametests.herdskirtswater}
      */
-    @GameTest(template = SHORE, batch = "travel_shore", timeoutTicks = 3400)
     public static void herdSkirtsWater(GameTestHelper helper) {
         List<Dinosaur> animals = hatchTwenty(helper, 3);
         boolean[] travelled = new boolean[1];
