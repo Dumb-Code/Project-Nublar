@@ -44,8 +44,16 @@ To place a structure, use `/place template projectnublar:herd_arena` or `/place 
 | Value | Reading | Result |
 | --- | --- | --- |
 | fps | The fps value on the F3 screen. Take three readings, one minute apart. | The median of the three readings |
-| Server tick time (ms gates) | The F3 line `Integrated server @ N ms ticks`, in single player on the reference machine. On every tick, the game sets this value to 80 % of the old value plus 20 % of the new tick time. Take three readings, one minute apart. | The median of the three readings. Use this row for the gates set in ms. |
+| Server tick time (ms gates) | The F3 line `Integrated server @ N ms ticks`, in single player on the reference machine. On every tick, the game sets this value to 80 % of the old value plus 20 % of the new tick time. Take three readings, one minute apart. | The median of the three readings. Use this row for the gates set in ms, except the three gates named under the table. |
 | Server tick rate (ticks-per-second gates) | Run `/debug start`. After 60 seconds, run `/debug stop`. | The ticks per second that `/debug stop` reports. Use this row only for the "20 ticks per second" gates. |
+
+The F3 line shows whole milliseconds. It cannot test three gates:
+
+- Backlog line 3931: under 0.1 ms.
+- Backlog line 4424: herd AI under 1 ms on average.
+- Backlog line 6715: the machine increment of 2 ms, which is too close to the 1 ms step.
+
+These gates have no method yet (see D285 in the [decisions register](plan/engineering-backlog.md#decisions-register)).
 
 Note: this page has no method for a dedicated server yet (see D285 in the [decisions register](plan/engineering-backlog.md#decisions-register)).
 
