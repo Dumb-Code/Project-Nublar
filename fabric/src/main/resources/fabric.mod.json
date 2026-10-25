@@ -18,6 +18,9 @@
     "entrypoints": {
         "main": [
             "net.dumbcode.projectnublar.ProjectNublarFabric"
+        ],
+        "fabric-gametest": [
+            "net.dumbcode.projectnublar.gametest.FabricGameTests"
         ]
     },
     "mixins": [

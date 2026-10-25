@@ -7,14 +7,11 @@ import net.dumbcode.projectnublar.registry.BlockInit;
 import net.dumbcode.projectnublar.registry.ItemInit;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
-import net.minecraft.gametest.framework.GameTest;
 import net.minecraft.gametest.framework.GameTestHelper;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.state.BlockState;
-import net.minecraftforge.gametest.GameTestHolder;
-import net.minecraftforge.gametest.PrefixGameTestTemplate;
 
 import java.lang.reflect.Field;
 
@@ -22,22 +19,22 @@ import java.lang.reflect.Field;
  * GameTests for the Sequencer's synthesis start ("Begin") and the energy that reaches it from a creative
  * generator. The Sequencer is a 2 x 2 x 2 multiblock and only its core block (rows, columns and depth all 0)
  * has the block entity that stores energy; these tests check whether a generator must touch that core block.
- * Each test is its own batch.
+ * Each test is its own batch and uses the herd arena template ({@code HerdGameTests.ARENA}). The tests have no
+ * loader code; the holders {@code ForgeGameTests} (Forge) and {@code FabricGameTests} (Fabric) register them.
+ * Run a test with {@code /test run <name>} on Forge and {@code /test run fabricgametests.<name>} on Fabric,
+ * where the name is the method name in lower case:
  * <ul>
- * <li>{@code /test run machinegametests.sequencersynthstartswithgeneratoroncore}: generator against the core,
- * all inputs filled; synthesis must start.</li>
- * <li>{@code /test run machinegametests.sequencersynthfailswithgeneratoronpart}: generator against a non-core
- * part only, all inputs filled; synthesis must NOT start (the test passes when it does not).</li>
- * <li>{@code /test run machinegametests.sequencercorereceivesenergy}: generator against the core, no inputs;
- * the core must store more than the 32 FE a synthesis tick needs.</li>
+ * <li>{@code sequencersynthstartswithgeneratoroncore}: generator against the core, all inputs filled;
+ * synthesis must start.</li>
+ * <li>{@code sequencersynthfailswithgeneratoronpart}: generator against a non-core part only, all inputs
+ * filled; synthesis must NOT start (the test passes when it does not).</li>
+ * <li>{@code sequencercorereceivesenergy}: generator against the core, no inputs; the core must store more
+ * than the 32 FE a synthesis tick needs.</li>
  * </ul>
  * Every test logs its readings with the prefix {@code [machinetest]}.
  */
-@GameTestHolder(Constants.MODID)
-@PrefixGameTestTemplate(false)
 public final class MachineGameTests {
 
-    private static final String ARENA = "herd_arena";
     /** First layer above the arena floor (see {@code HerdGameTests.FLOOR_Y}). */
     private static final int FLOOR_Y = 2;
     /** Core block of the Sequencer. With FACING north the parts extend west (columns), south (depth) and up (rows). */
@@ -58,9 +55,7 @@ public final class MachineGameTests {
 
     /**
      * Generator against the core block, all synthesis inputs filled: Begin starts synthesis.
-     * Run: {@code /test run machinegametests.sequencersynthstartswithgeneratoroncore}
      */
-    @GameTest(template = ARENA, batch = "sequencersynthstartswithgeneratoroncore", timeoutTicks = 200)
     public static void sequencerSynthStartsWithGeneratorOnCore(GameTestHelper helper) {
         SequencerBlockEntity sequencer = placeSequencer(helper, GENERATOR_ON_CORE);
         fillSynthInputs(sequencer);
@@ -82,9 +77,7 @@ public final class MachineGameTests {
     /**
      * Generator against a non-core part only, all synthesis inputs filled: Begin does not start synthesis.
      * The test passes when synthesis stays off.
-     * Run: {@code /test run machinegametests.sequencersynthfailswithgeneratoronpart}
      */
-    @GameTest(template = ARENA, batch = "sequencersynthfailswithgeneratoronpart", timeoutTicks = 200)
     public static void sequencerSynthFailsWithGeneratorOnPart(GameTestHelper helper) {
         SequencerBlockEntity sequencer = placeSequencer(helper, GENERATOR_ON_PART);
         fillSynthInputs(sequencer);
@@ -105,9 +98,7 @@ public final class MachineGameTests {
 
     /**
      * Generator against the core block, no inputs: the core stores more than one synthesis tick of energy.
-     * Run: {@code /test run machinegametests.sequencercorereceivesenergy}
      */
-    @GameTest(template = ARENA, batch = "sequencercorereceivesenergy", timeoutTicks = 200)
     public static void sequencerCoreReceivesEnergy(GameTestHelper helper) {
         SequencerBlockEntity sequencer = placeSequencer(helper, GENERATOR_ON_CORE);
         helper.runAfterDelay(SETTLE_TICKS, () -> {
