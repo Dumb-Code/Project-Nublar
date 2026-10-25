@@ -1391,6 +1391,7 @@ Each activity below is in Beta. "Ends when" names what stops it. The ladder afte
 - Eggs count as young. A parent that sees a player near its eggs warns and attacks.
 - These flee: the Gallimimus, babies, a pack below its minimum (from big threats), and a pack that lost its leader (to safety first).
 - A fleeing species flees with no warning when a noticed player enters its personal space.
+- A calm animal (stress below 20) lets a sneaking player who holds its food into its personal space, with no warning. Any other act, or more stress, brings back the warning.
 - A standing animal retreats from an attacker with more than 2 × its threat. A carnivore adds its group's threat to its own. The Brachiosaurus defends and does not flee.
 
 ##### Social life and breeding
@@ -1410,7 +1411,7 @@ Each activity below is in Beta. "Ends when" names what stops it. The ladder afte
 - Play uses existing clips only (run, Velociraptor pounce). No new clip.
 - Mating has two more gates: full health, and no own young under half grown within 16 blocks.
 - The female builds a nest from vanilla blocks of her surroundings, then lays her eggs in it (F2.5).
-- Trust rises while a player is near a calm animal, and hand-feeding gives a big boost. Trust rises only while stress is below 20.
+- Trust rises while a player is near a calm animal, and hand-feeding gives a big boost. Trust rises only while stress is below 20. A hand-feed counts once per 2 minutes for each animal, and only while its hunger is 75 % or lower.
 
 ##### Which activity wins
 
@@ -2763,6 +2764,7 @@ Rules that F2.0 holds in full:
 #### Taming
 
 - A calm, low-stress animal can be tamed. It does not attack its owner.
+- **Feeding to tame.** A player sneaks up to a calm animal with its food and feeds it by hand. Feeding works once every 2 minutes, and only while the animal is hungry.
 - Trust rules (near a calm animal, hand-feeding boost, only below stress 20) and the follow, stay and defend commands: see F2.0, Social life and breeding.
 - Taming reads stress, not contentment. Every player sees the contentment band and worst need in the hover box: see F2.0, Contentment.
 
@@ -2779,8 +2781,13 @@ Rules that F2.0 holds in full:
 | Warning inside the personal space | The warning plays at once. The answer follows when the clip ends |
 | Warning cooldown | 10 to 20 s (proposal, lead decides) |
 | Spit | 4 damage, 30 s of blindness, range 10 blocks (proposal, lead decides) |
+| Trust to tame | 100, divided by the tamability gene |
+| Trust near a calm animal | +1 per minute within 16 blocks |
+| Trust from a hand-feed | +10 once per 2 minutes for each animal, while its hunger is 75 % or lower |
+| Trust decay | −10 per in-game day |
+| Approach to hand-feed | A calm animal lets a sneaking player who holds its food into its personal space, with no warning |
 
-Playtests tune the detection levels.
+Playtests tune the detection levels and the trust values.
 
 #### Warning clips and sounds
 
@@ -2807,7 +2814,7 @@ See Art list → each species (Animations: warning clips, sit. Sounds: warning s
 
 **Engineering:** backlog F2.6.
 
-**Changed since last review:** No warning skip radius: a player inside the personal space still gets the warning, and the notice roll runs every 20 ticks near the animal. No vision gene. No scent trails. No home territory: personal space instead. Brachiosaurus defends instead of fleeing. Carnivores stand or retreat by group threat. Taming trust rises below stress 20, not only at zero. Every player sees contentment.
+**Changed since last review:** No warning skip radius: a player inside the personal space still gets the warning, and the notice roll runs every 20 ticks near the animal. No vision gene. No scent trails. No home territory: personal space instead. Brachiosaurus defends instead of fleeing. Carnivores stand or retreat by group threat. Taming trust rises below stress 20, not only at zero. Every player sees contentment. Trust values are set. A hand-feed counts once per 2 minutes while the animal is hungry. A sneaking player with its food can come close to feed a calm animal.
 
 ### F2.7 Special genes and quirks, DNA from your own dinosaurs
 
@@ -3497,6 +3504,7 @@ F4.2 lets the player drive a Jeep Wrangler, and a 1992 Ford Explorer runs park t
 - **Driving.** The player drives the Jeep around the park. A vehicle needs no fuel.
 - **Looks.** Dye tints a vehicle's colours and is used up. A Wrench changes its variation: the Jeep has 3 and the Explorer 4.
 - **Motion.** The wheels turn with the speed, the front wheels steer, and the doors swing open when a player gets in or out.
+- **Handling.** Arcade handling makes driving fun. The driver can drift for a boost, ride the slipstream of another vehicle, tilt the vehicle in the air and do air tricks. The Jeep has it, and so does the Explorer when the player drives it by hand.
 - **Hits.** At low speed a vehicle pushes mobs and players aside. At high speed it hurts what it hits.
 - **Tours.** The player lays a visible road-marker track and sets stops. The Ford Explorer follows the track and stops at each stop. Off the track, the player drives the Explorer by hand.
 
@@ -3528,6 +3536,22 @@ F4.2 lets the player drive a Jeep Wrangler, and a 1992 Ford Explorer runs park t
 - Above it, a vehicle hurts what it hits, more at a higher speed. The threshold is a config value.
 - A vehicle that meets an electric fence stops like at a wall. A live fence shocks the driver once.
 
+#### Handling
+
+The driver has four arcade moves. They work on the Jeep, and on the Explorer while the player drives it by hand. On the tour track the Explorer has none.
+
+| Move | How the driver does it | What happens |
+| --- | --- | --- |
+| Drift boost | Hold jump while steering at speed | The rear slides out and tyre smoke builds. A short drift charges a small boost, a long drift a full boost. Release jump for the speed burst |
+| Slipstream | Drive close behind another moving vehicle | Wind lines show the slipstream. After a moment the follower gains speed. It keeps the gain for a short time after it pulls out to pass |
+| Air pitch | Press forward or back in the air | The vehicle tilts nose down or nose up. A level landing keeps the speed. A nose-first or tail-first landing loses speed but does no damage |
+| Air trick | Press jump in the air | The vehicle spins or rolls once. A clean landing gives a short speed boost. A landing in the middle of the trick counts as a bad landing |
+
+- One key does two jobs: jump drifts on the ground and starts a trick in the air.
+- A drift ends with no boost when the vehicle hits something or slows below drift speed.
+- A touring Explorer counts as a vehicle to follow, so a Jeep can ride its slipstream.
+- A new boost replaces a weaker one. Boosts do not add up.
+
 #### Tours
 
 - The Explorer follows a track that the player puts in the road. It stops at each stop and can tour with no driver.
@@ -3547,17 +3571,32 @@ F4.2 lets the player drive a Jeep Wrangler, and a 1992 Ford Explorer runs park t
 | Jeep seats | 2 (proposal, lead decides) |
 | Track speed | 0.25 blocks per tick (estimate, proposal, lead decides) |
 | Stop time, top speeds, hit speed threshold | Not set (config) |
+| Drift speed | 60 % of top speed or more (proposal, lead decides) |
+| Drift boost | Small after 1 s of drift: +25 % top speed for 1 s. Full after 2 s: +25 % for 2 s (proposal, lead decides) |
+| Slipstream | Up to 6 blocks behind and about 1 block to each side. After 1.5 s: +15 % top speed, kept for 2 s after leaving (proposal, lead decides) |
+| Air pitch | Up to 90° per second (proposal, lead decides) |
+| Air trick | One spin or roll in 0.5 s. A clean landing gives +20 % top speed for 1 s (proposal, lead decides) |
+| Bad landing | More than 30° off the ground slope. The vehicle loses half its speed (proposal, lead decides) |
 
 #### Animations
 
 - Code drives all motion. No keyframed clips.
 - The wheels spin with the speed, and the front wheels steer.
 - The doors swing open when a player gets in or out, where the model has door parts.
+- The body slides sideways in a drift, tilts in the air, and spins or rolls in a trick. Code turns the whole model.
 
 #### Sounds
 
 - Stop chime.
 - Engine idle and drive, horn, door, crash (proposal, lead decides).
+- Tyre skid in a drift, boost burst, slipstream wind, landing thud (proposal, lead decides).
+
+#### Effects
+
+- Tyre smoke in a drift. It grows thicker as the boost charges.
+- A puff from the exhaust when a boost fires.
+- Wind lines around a vehicle in a slipstream.
+- A vanilla particle can serve for each. The artist decides.
 
 #### Models
 
@@ -3596,7 +3635,7 @@ See Art list → Vehicles.
 
 **Engineering:** backlog F4.2.
 
-**Changed since last review:** Assembly stages are body, wheels, seats and Tour Computer: no chassis or engine part. Vehicles are assembled from parts, not crafted as one Jeep item and one Explorer item. Shared parts plus a body per vehicle. Explorer needs a Tour Computer. Damage and wrecks moved to a later release. No Tour Station. Stop marker lamp lights at a stop.
+**Changed since last review:** Assembly stages are body, wheels, seats and Tour Computer: no chassis or engine part. Vehicles are assembled from parts, not crafted as one Jeep item and one Explorer item. Shared parts plus a body per vehicle. Explorer needs a Tour Computer. Damage and wrecks moved to a later release. No Tour Station. Stop marker lamp lights at a stop. Arcade handling in Beta: drift boost, slipstream, air pitch and air tricks on the Jeep and the hand-driven Explorer.
 
 ### F4.3 Guns (blocked on decision D08)
 

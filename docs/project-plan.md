@@ -5,7 +5,7 @@ Mirror of the shared page tab "Beta and Release 1 project plan" (the master copy
 The Beta is a survival Jurassic Park mod for Minecraft 26.2 on Fabric and NeoForge. The player finds fossils, clones and edits six dinosaur species, and keeps them in a powered, fenced, fed park.
 
 - **Status:** no milestone is started. Nothing blocks M0.
-- **Largest gap:** art. 433 of the 998 Beta art assets are missing or are placeholders. 270 more need importing, exporting, converting or checking in game.
+- **Largest gap:** art. 440 of the 1005 Beta art assets are missing or are placeholders. 270 more need importing, exporting, converting or checking in game.
 
 ## Roadmap
 
@@ -26,7 +26,7 @@ flowchart LR
 | M1 Fossil to egg | Find fossils and amber, extract and edit DNA, print and incubate an egg, and hatch a baby | Fossils and amber, DNA from animals, Fossil Processor, Sequencer (sequencing, editing, synthesis), Egg Printer, Incubator, eggs and hatching, machine building, lab power, lab recipes | 50 · 12 · 31 · 92 | Not started |
 | M2 Dinosaurs | Raise six species that eat, drink, rest, socialise, breed and react to the player | Behaviour model and contentment, species core, appearance, animations and sounds and effects, needs, herds and packs, the player, special genes | 192 · 11 · 186 · 277 | Not started |
 | M3 Park | Hold dinosaurs in a powered, fenced paddock with feeders | Fences, power grid, feeders, park recipes | 9 · 0 · 22 · 36 | Not started |
-| M4 World and vehicles | Find digsites and traders, build and drive the Jeep, run Ford Explorer tours | Digsites and maps, vehicles, guns (blocked) | 1 · 0 · 8 · 26 | Not started |
+| M4 World and vehicles | Find digsites and traders, build and drive the Jeep, run Ford Explorer tours | Digsites and maps, vehicles, guns (blocked) | 1 · 0 · 8 · 33 | Not started |
 | Beta hardening | Play a fast, stable Beta on both loaders | Performance and cleanup, balance playtest, release | Not applicable | Not started |
 | Release 1 | Plant a park, and clone four new species | Plants and wood sets, four species, their fossils | Not counted yet | Not started |
 

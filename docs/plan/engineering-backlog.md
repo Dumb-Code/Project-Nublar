@@ -4600,6 +4600,9 @@ Connect `ThreatDisplay`:
   - Trust rises while the player is near a calm animal.
   - Hand-feeding (use its food on it) gives a big boost.
   - Trust rises only while stress is below 20.
+  - Values: 100 trust tames. A player within 16 blocks gets +1 per minute. Decay is −10 per in-game day (D286).
+  - A hand-feed gives +10, at most once per 2,400 ticks for each animal, and only while its hunger is 75 % or lower (D286).
+  - A calm animal lets a sneaking player who holds its food into its personal space with no warning. Any other act, or stress of 20 or more, brings back the warning (D287).
 - **Reputation:** `PLAYER_REPUTATION` holds one capped integer per player, with a daily decay and a threshold. The `tamability` gene scales the threshold.
 - **Commands:**
   - Commands are one synced value. Each owner use cycles it with an action-bar message.
@@ -4637,6 +4640,14 @@ Connect `ThreatDisplay`:
 | `detection.episode_ticks` | 200 |
 | Detection levels | 0.25, 0.40, 0.60, 0.85 |
 | `taming.trust_max_stress` | 20 |
+| `taming.trust_to_tame` | 100 |
+| `taming.near_radius` | 16 blocks |
+| `taming.near_trust_per_minute` | 1 |
+| `taming.feed_trust` | 10 |
+| `taming.feed_cooldown_ticks` | 2,400 for each animal |
+| `taming.feed_max_hunger` | 0.75 |
+| `taming.trust_decay_per_day` | 10 |
+| `taming.sneak_feed_approach` | true |
 | `personal_space_radius` (species data) | Start values above |
 | `vanilla.mobs_fear_dinosaurs` | true |
 
@@ -4665,6 +4676,8 @@ See Art list → each species (warning clips and sounds, `ramwindup`, `ram`, `sp
 - A Velociraptor that loses sight of a player walks to the last seen spot and searches there.
 - A tamed raptor follows and defends. In defend mode it attacks the mob that hit its owner.
 - Hand-feeding raises trust more than standing near the animal. At stress 25, trust does not rise.
+- A second hand-feed inside 2,400 ticks adds no trust. A hand-feed to an animal with hunger above 75 % adds no trust.
+- A sneaking player who holds raw meat walks up to a calm Velociraptor and gets no warning. The same player, not sneaking, gets the screech.
 - An animal with wolf DNA reaches the taming threshold sooner.
 - A command packet from a non-owner changes nothing.
 - A roar near villagers makes them run for a few seconds.
@@ -5631,6 +5644,7 @@ F4.2 adds the Jeep Wrangler and the Ford Explorer, built part by part, and drive
 - **Assembly.** The parts go on in order: a body, 4 wheels one by one and seats. The Explorer adds a Tour Computer. The body and each wheel show on the model.
 - **Body decides.** A Jeep body gives a Jeep Wrangler. An Explorer body gives a Ford Explorer, which also takes a Tour Computer.
 - **Drive.** When the last part is on, the vehicle becomes a driveable entity. The player drives the Jeep around the park.
+- **Handling.** Drift boost, slipstream, air pitch and air tricks on the Jeep and the hand-driven Explorer (D288).
 - **Customise.** Dye on a vehicle tints its colours, and a Wrench cycles its variation.
 - **Tours.** The Explorer follows a visible road-marker track that the player lays, and stops at stop markers. It waits for anything on the track and sounds its horn.
 - **Stops.** At each stop it chimes and shows "Stop 2 of 4: Triceratops paddock", with the name that the player gave the stop.
@@ -5642,7 +5656,7 @@ F4.2 adds the Jeep Wrangler and the Ford Explorer, built part by part, and drive
 - Vehicle health, wrecks and repair (a later release). Visible damage stages, self-healing dents, breakdown after 160 ticks in water.
 - Fuel.
 - Abstract tour data.
-- Per-box hitbox entities, custom collision, boost pads, drift, upgrades, physics bodies.
+- Per-box hitbox entities, custom collision, boost pads, upgrades, physics bodies.
 - Camera distance keys. Breaking leaves and vines.
 
 #### Scope: Assembly
@@ -5710,6 +5724,27 @@ F4.2 adds the Jeep Wrangler and the Ford Explorer, built part by part, and drive
   - Probes run when moved or turned, at most every 20 ticks, offset by id.
   - Each height moves at 0.15 blocks per tick.
 
+#### Scope: Arcade handling
+
+- [ ] The four moves live in the shared vehicle class, so the Jeep and the hand-driven Explorer get them. An Explorer on its track, or in driverless mode, skips them.
+- [ ] **Drift:** on the ground, jump held, steering held, and speed at least `vehicles.drift_min_speed` × top speed.
+  - The yaw rate rises by a drift factor, and the velocity keeps part of its old heading, so the rear slides.
+  - The charge counts ticks: small at 20, full at 40. Releasing jump fires the boost.
+  - A hit, or speed below the threshold, drops the charge with no boost.
+- [ ] **Slipstream:** every 5 ticks, a moving vehicle looks for a leader. The leader is another moving vehicle up to `vehicles.slipstream_range` blocks ahead, inside a narrow cone (start: dot product above 0.95).
+  - A touring Explorer counts as a leader.
+  - After 30 ticks behind a leader, the boost starts. It lasts while the follower stays behind, and 40 ticks after it leaves.
+- [ ] **Airborne:** the vehicle is off the ground for more than 2 ticks, so step-ups do not count.
+  - Forward and back set the body pitch rate, up to 4.5° per tick.
+  - On landing, compare the body pitch with the ground slope from the four edge probes. More than `vehicles.bad_landing_degrees` off: speed × `vehicles.bad_landing_speed`. No damage.
+- [ ] **Trick:** jump in the air starts a 10-tick trick that code plays on the whole model. Steering held left or right gives a roll, no steering a spin.
+  - A finished trick and a good landing fire the trick boost.
+  - A landing before the trick ends counts as a bad landing.
+- [ ] **Boost:** one timed multiplier on top speed and push. A new boost replaces a weaker or shorter one. Boosts do not stack.
+  - The server speed clamp uses the boosted top speed only while the server sees an active boost.
+- [ ] **Network:** drift, trick and boost states travel in the existing on-change state: one byte of flags plus the boost ticks. Smoke, wind lines and model turns stay on the client.
+- [ ] **Sounds and effects:** skid loop, boost burst, wind loop, landing thud. Tyre smoke, an exhaust puff and wind lines. A vanilla particle serves where the artist makes none.
+
 #### Scope: Ford Explorer and tours
 
 - [ ] Driven by hand off the track. 4 seats. Players board at any time, also while it moves.
@@ -5745,6 +5780,15 @@ F4.2 adds the Jeep Wrangler and the Ford Explorer, built part by part, and drive
 | `vehicles.stop_seconds` | Set in the task plan |
 | `vehicles.hurt_speed` | Set in the task plan |
 | Handling records | Per vehicle, see "Vehicle base" |
+| `vehicles.drift_min_speed` | 0.6 of top speed (proposal, lead decides) |
+| `vehicles.drift_small_ticks`, `vehicles.drift_full_ticks` | 20, 40 (proposal, lead decides) |
+| `vehicles.drift_boost` | +25 % top speed, 20 ticks small, 40 ticks full (proposal, lead decides) |
+| `vehicles.slipstream_range` | 6 blocks (proposal, lead decides) |
+| `vehicles.slipstream_boost` | +15 % top speed after 30 ticks, kept 40 ticks after leaving (proposal, lead decides) |
+| `vehicles.air_pitch_rate` | 4.5° per tick (proposal, lead decides) |
+| `vehicles.trick_boost` | +20 % top speed for 20 ticks (proposal, lead decides) |
+| `vehicles.bad_landing_degrees` | 30 (proposal, lead decides) |
+| `vehicles.bad_landing_speed` | 0.5 (proposal, lead decides) |
 | Loop walk cap | 4,096 blocks (estimate) |
 
 #### Open questions
@@ -5766,6 +5810,13 @@ F4.2 adds the Jeep Wrangler and the Ford Explorer, built part by part, and drive
 - An Explorer needs the Tour Computer after its seats. Before that part, it is not a vehicle that a player can drive.
 - A fifth wheel used on a body does nothing, and the player keeps the item.
 - The Explorer completes a laid loop with two stops unattended and carries a passenger.
+- A Jeep at full speed drifts through a turn with jump held, with tyre smoke. After a 2 s drift and release, it goes faster than its top speed for 2 s.
+- A drift that hits a block ends with no boost.
+- A Jeep up to 6 blocks behind a touring Explorer gains speed after 1.5 s.
+- A Jeep that leaves a hill crest tilts nose down and lands level with no speed loss. A nose-first landing halves its speed and does no damage.
+- A trick finished before landing gives a boost. A landing in the middle of a trick halves the speed.
+- The Explorer drifts when the player drives it by hand. On its track, jump does not drift.
+- The server clamps a speed packet above top speed when no boost is active.
 - It stops for a dinosaur on the track and starts when clear.
 - A tour start on a broken loop shows the broken position.
 - A body does not place where the finished vehicle would sit inside a wall.
@@ -6717,6 +6768,16 @@ These rows come from the lead's playtest of the M0.P0 build on 2026-10-24. Each 
 | D284 | M0.P1 | `docs/performance-baseline.md` needs the reference machine. | Answered 2026-10-25 (lead): never the lead's PC, which is faster than most players' PCs. The targets are both Mojang Java tiers of 2026-07-21. Minimum PC: 4 CPU cores, 8 GB RAM, a Vulkan 1.3 GPU with 2 GB VRAM, 30 fps on Fast at 1080p. Recommended PC: 16 GB RAM, a 6 GB GPU, 60 fps on Fancy at 1080p. The 120 fps gates become 30 fps on the minimum PC (Fast) and 60 fps on the recommended PC (Fancy). A developer checks a gate on their own PC: the same world with and without the mod's content. Plan rule: the package that owns a gate states the allowed difference in its task plan | Answered |
 | D285 | M0.P1 | `docs/performance-baseline.md` needs a confirmed tick-time source for the ms gates, a method for a dedicated server, and a method for the gates that the single-player F3 reading cannot test: lines 3931, 4424 (average and peak), 6715 and 5928, and Load B (lines 4423 and 5847). | Answered 2026-10-25 (lead): use the F3 integrated-server value, three readings one minute apart, the median. Plan rule: a gate that the F3 line cannot show, and a gate on a dedicated server, get their method in the task plan of the package that owns them | Answered |
 
+### D286 and later: design review of 2026-10-25
+
+These rows come from a review of the specs against mechanics in other games.
+
+| Id | Work package | Question | Default if unanswered | Status |
+| --- | --- | --- | --- | --- |
+| D286 | F2.0, F2.6 | Taming has no values, and nothing limits repeat hand-feeding. The plan gives a capped trust score per player, a daily decay and a threshold, with no numbers. As written, a player can feed one calm animal again and again and tame it in seconds. What are the trust values, and what limits hand-feeding? | Answered 2026-10-25 (lead): approved as proposed. 100 trust tames, divided by the tamability gene. A player within 16 blocks of a calm animal gets +1 per minute (1,200 ticks). A hand-feed gives +10, at most once per 2 minutes (2,400 ticks) for each animal, and only while its hunger is 75 % or lower. Decay is −10 per in-game day (24,000 ticks). Example: at the fastest rate, a feed every 2 minutes, a calm raptor is tame in about 20 minutes. A player who only stands near it needs about 10 in-game days. All values are config values | Answered |
+| D287 | F2.0, F2.6 | Hand-feeding puts the player inside the animal's personal space (5 to 10 blocks). There, a noticed player gets a warning and then an attack, and a Gallimimus flees at once. The rules have no exception for a player who tames. Example: a player who walks up to a calm T. rex with meat in hand gets a roar and a bite. How does a player get close enough to hand-feed? | Answered 2026-10-25 (lead): approved as proposed. While the animal is calm (stress below 20), a sneaking player who holds its food can enter the personal space with no warning. Any other act, or stress of 20 or more, brings back the normal rule | Answered |
+| D288 | F4.2 | Lead (2026-10-25): a basic level of arcade racing makes the vehicles more fun. Which handling moves ship, on which vehicles, and when? | Answered 2026-10-25 (lead): drift boost, slipstream, air pitch control and air trick boost. The Jeep has them, and so does the Explorer while the player drives it by hand. They ship in Beta. The question also offered a countdown start boost, and the lead did not pick it. The values in F4.2 are proposals | Answered |
+
 ---
 
 ## Change log
@@ -6796,3 +6857,5 @@ These rows come from the lead's playtest of the M0.P0 build on 2026-10-24. Each 
 - **2026-10-24 (lead playtest):** the lead's M0.P0 playtest feedback written into F1.1, F1.3, F1.5 to F1.10, F1.12, F2.5 and BH.1: Edit-tab preview fit and obscured look, part block entities in F1.10, machine status display and power symbol, powered glow, Incubator lamp colour and bed fill, creative-tab variants, a proposed bone meal recipe from the cracked egg, herds that step aside, a machine performance gate. Register D277 to D283.
 - **2026-10-25 (M0.P1 reference docs):** `docs/config-reference.md` lists the 25 keys of `config/projectnublar-fossils.toml`. `docs/performance-baseline.md` gives the fixed client settings, the test world and the measurement method, and the gates that cite it. The reference machine stays "not set". Server tick time in ms comes from the F3 line, and the dedicated-server method is open. Register D284 and D285.
 - **2026-10-25 (lead, PR #67 review):** D284 and D285 answered. The speed targets are Mojang's minimum and recommended Java PCs, never the lead's PC. The 120 fps gates become 30 fps on the minimum PC (Fast) and 60 fps on the recommended PC (Fancy). A developer checks a gate against vanilla on their own PC. Tick time comes from the F3 line.
+- **2026-10-25 (design review):** register D286 (taming trust values and a limit on repeat hand-feeding) and D287 (hand-feeding inside the personal space). F2.6 gets the trust values and two acceptance lines. The lead approved both proposals the same day.
+- **2026-10-25 (lead: vehicle handling):** D288 answered. F4.2 gets arcade handling in Beta: drift boost, slipstream, air pitch and air tricks on the Jeep and the hand-driven Explorer. The values are proposals.

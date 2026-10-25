@@ -99,14 +99,14 @@ Status words:
 | Fences | 6 | 0 | 7 | 0 | 9 | 0 | 0 |
 | Feeders | 3 | 0 | 0 | 10 | 20 | 0 | 0 |
 | Digsites and villagers | 0 | 0 | 1 | 0 | 7 | 0 | 0 |
-| Vehicles | 1 | 0 | 2 | 5 | 19 | 0 | 0 |
-| **Total (without guns)** | **252** | **24** | **178** | **69** | **433** | **42** | **1** |
+| Vehicles | 1 | 0 | 2 | 5 | 26 | 0 | 0 |
+| **Total (without guns)** | **252** | **24** | **178** | **69** | **440** | **42** | **1** |
 | Guns (blocked) | 0 | 0 | 2 | 11 | 3 | 0 | 0 |
 
-- **Counted rows:** 998 (guns not included).
-- **Work left:** 704 rows (433 to make, 69 to export or convert, 178 to import, 24 to check in game), plus 42 shared files for the artist to confirm.
+- **Counted rows:** 1005 (guns not included).
+- **Work left:** 711 rows (440 to make, 69 to export or convert, 178 to import, 24 to check in game), plus 42 shared files for the artist to confirm.
 - **Done:** 252.
-- **Not counted:** 1 row that waits on the lead, 31 rows with no art needed, 38 rows not in Beta (6 of them Release 1 groups).
+- **Not counted:** 1 row that waits on the lead, 32 rows with no art needed, 38 rows not in Beta (6 of them Release 1 groups).
 - **Guns:** blocked on D08. They are not in the total.
 - **Per-milestone counts:** the roadmap's milestone table. They come from the Feature column of each row (F1.x is M1, F2.x is M2, F3.x is M3, F4.x is M4), with guns left out.
 
@@ -2600,11 +2600,12 @@ Milestone: World and vehicles.
 
 - Vehicle damage, wrecks and repair. They wait for a later release.
 
-**To make (19)**
+**To make (26)**
 
 - Models (2): Tour track piece; Tour stop marker.
 - Skins (3): Track piece and stop marker textures; Stop marker lamp: lit and unlit; Dye tint mask: Jeep and Explorer.
-- Sounds (6): Engine idle; Engine drive loop; Horn; Door open and close; Crash hit; Tour stop chime.
+- Sounds (10): Engine idle; Engine drive loop; Horn; Door open and close; Crash hit; Tour stop chime; Tyre skid; Boost burst; Slipstream wind; Landing thud.
+- Effects (3): Tyre smoke; Exhaust puff on a boost; Slipstream wind lines.
 - Sprites (8): Wheel item; Seats item; Jeep body item; Explorer body item; Tour Computer item; Tour track item; Stop marker item; Wrench item.
 
 **To import (2)**
@@ -2648,6 +2649,7 @@ Code drives the wheel and door motion on the existing groups. No vehicle needs a
 | Jeep wheel spin and steering | Driving | No art needed | F4.2 | Code drives the wheel groups |
 | Ford Explorer wheel spin and steering | Driving | No art needed | F4.2 | Code drives the wheel groups |
 | Ford Explorer doors open and close | Get in and out | No art needed | F4.2 | Code swings the door groups |
+| Drift slide, air tilt, trick spin and roll (both vehicles) | Arcade handling | No art needed | F4.2 | Code turns the whole model |
 
 ### Sounds
 
@@ -2659,6 +2661,18 @@ Code drives the wheel and door motion on the existing groups. No vehicle needs a
 | Door open and close | Get in and out | Missing | F4.2 | None |
 | Crash hit | Collision | Missing | F4.2 | None |
 | Tour stop chime | Plays at each tour stop, with "Stop 2 of 4" and the stop name | Missing | F4.2 | None |
+| Tyre skid | Loops during a drift | Missing | F4.2 | None |
+| Boost burst | A drift, slipstream or trick boost fires | Missing | F4.2 | None |
+| Slipstream wind | Loops while a vehicle rides a slipstream | Missing | F4.2 | None |
+| Landing thud | A vehicle lands after time in the air | Missing | F4.2 | None |
+
+### Effects
+
+| Asset | Used for | Status | Feature | Where / reference |
+| --- | --- | --- | --- | --- |
+| Tyre smoke | Drift. It grows thicker as the boost charges | Missing | F4.2 | None. A vanilla particle can serve. The artist decides |
+| Exhaust puff on a boost | A boost fires | Missing | F4.2 | None. A vanilla particle can serve. The artist decides |
+| Slipstream wind lines | A vehicle rides a slipstream | Missing | F4.2 | None. A vanilla particle can serve. The artist decides |
 
 ### Sprites
 
@@ -2673,7 +2687,7 @@ Code drives the wheel and door motion on the existing groups. No vehicle needs a
 | Stop marker item | Set stops | Missing | F4.2 | None |
 | Wrench item | A Wrench moves a vehicle to its next variation | Missing | F4.2 | None |
 
-**Changed since last review:** Vehicles are assembled from parts. No Jeep or Explorer item. All variations ship, cycled by a Wrench. Dye tints vehicles. Stop marker lamp lights at the stop. No vehicle damage in Beta.
+**Changed since last review:** Vehicles are assembled from parts. No Jeep or Explorer item. All variations ship, cycled by a Wrench. Dye tints vehicles. Stop marker lamp lights at the stop. No vehicle damage in Beta. Arcade handling adds 4 sounds and 3 effects.
 
 ---
 
