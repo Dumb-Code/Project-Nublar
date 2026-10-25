@@ -18,7 +18,7 @@ This page is the master backlog for the Beta and Release 1 of Project Nublar. It
   - Step P12c (cliff edges, `GroundSupport` and its changes to `BodyFit` and `FenceAwareNodeEvaluator`) is in 582fbb0 but not built, tested or reviewed. Playtest 6 ran. The lead has not reported its results. M0.P0 builds and tests it, and the lead decides keep or revert.
   - The worktree `.claude/worktrees/herd-leader-sample` keeps 65 uncommitted files as a frozen backup. Never edit it.
   - Handoff: `docs/superpowers/handoffs/2026-10-10-herd-p13-p12c-handoff.md`. Ledger: `.superpowers/sdd/2026-10-08-herd-movement-redesign/progress.md`.
-- **Open decisions.** The register's Status column is the only source of what is open. Blocked by the lead's choice: D08 (guns), D09 (licence) and D14 (animation speed). D91 waits on the artist. Every other row is answered, and each feature spec states the current rule.
+- **Open decisions.** The register's Status column is the only source of what is open. Blocked by the lead's choice: D08 (guns), D09 (licence) and D14 (animation speed). D91 waits on the artist. D274 and D275 wait for the lead to confirm the controller's choice. D277 to D283 come from the lead's playtest of 2026-10-24 and wait for the lead's choice. Every other row is answered, and each feature spec states the current rule.
 - **Spec wins.** `docs/codebase-analysis.md` section 11 is the design that the lead confirmed. If this plan and section 11 differ, section 11 wins and this plan has a bug.
 
 ## How to read this page
@@ -819,6 +819,7 @@ F1.1 puts fossil and amber ore in the world and turns it into fossil items, ambe
   - Species sprites for the skull, the tooth and the claw.
   - The Art list rows give the file for each.
 - Translation keys for every piece and quality.
+- The creative tab holds every fossil item of every species and piece, in all four qualities, and amber.
 - The tag `projectnublar:special_pieces` marks special pieces for trades (F4.1). No recipe uses special pieces.
 - Remove the static maps of `FossilCollection`, the `COLLECTIONS.put` return bug and the empty-list `.get()` in `FossilItemFunction`.
 
@@ -901,6 +902,7 @@ F1.1 puts fossil and amber ore in the world and turns it into fossil items, ambe
 - Unit tests: the same seed and cell give the same species. The cell pick never returns an invalid species.
 - GameTest: over 200 breaks per quality, with no enchantment, Fortune III and Silk Touch, the drops match the expected distribution.
 - Unit test: yield per quality and for a special piece.
+- The creative tab shows each fossil item in all four qualities.
 - A Processor run on a pristine T. rex bone that is not a special piece, with a new iron filter, gives 34.5 % (30 % × 1.15). A pristine T. rex skull gives 51.75 % (30 % × 1.5 × 1.15, D01). The tube shows that percent, on both loaders (with F1.3).
 - Amber (with F1.3, F1.4):
   - Unit test: the amber roll distribution with two species.
@@ -1156,6 +1158,7 @@ F1.3 delivers the whole Fossil Processor: the machine that turns one fossil or a
 
 - The base, drum and lid cap are cubes of the root bone `FossilProcessor`.
 - All three filters have a durability of 100.
+- `1.20.1-ai` applies the filter as a cut, not a boost: tube DNA = yield × filter factor (iron 0.25, gold 0.5, diamond 1.0) × wear (1.0 new to 0.25 worn), floored to a whole percent. The lead's playtest of 2026-10-24 found the low tubes that this gives. The boost in "Numbers" (D257) replaces it.
 
 **Changed since last review:** Filter durability 150, 250, 500 runs. About 1 diamond in 100 runs. Power draw 20, 28, 44, 92 FE per tick. No netherite tank. No animation. Water per run is a config value. Own sound per event with generic fallback.
 
@@ -1451,6 +1454,9 @@ Matches video 4:50-7:00, with the section 11.6 changes.
   - The player drags the slider of the row to set its share. The total stays 100 %.
 - [ ] A turning preview of the animal with a player for scale.
   - The client makes the preview with vanilla `EntityType.create`, with no server entity.
+  - The whole animal fits inside the preview frame at every size and growth stage. The preview scales the animal to the frame, so nothing is cut off.
+  - The preview turns on its own, and the player can turn it. The player model beside it reacts and does not hold one fixed pose (D277).
+- [ ] Below 30 % DNA the preview hides the look of the animal. The animal shows obscured, for example black with no texture and a light censor effect (D277).
 - [ ] A list of sequenced animals.
 - [ ] An effect panel in two columns. Each effect has a title ("Speed +3%") in green, red or white and a colour bar.
   - A large edit names the paddock effect, for example "Size +40 %: needs the high fence".
@@ -1558,11 +1564,13 @@ See Art list → Screens (GUI): Edit tab, colour wheel background and blip, valu
 - Opening the Edit tab again allocates no new colour-wheel texture.
 - A size edit that needs the high fence names it in the effect text.
 - An unapplied colour roll leaves the genome unchanged after the screen closes. A colour copy between species fails with its reason.
+- The preview shows the whole adult Brachiosaurus and the whole adult Tyrannosaurus inside its frame. Below 30 % DNA it shows the animal obscured.
 
 #### Today in the code
 
 - Layer colours are never saved and never reach the client.
 - Each screen allocates a new 400 × 400 colour-wheel texture (640 KB) in `ColorWheelWidget.java:45,110`.
+- The preview cuts off large animals and does not turn. The player model beside it looks up in one fixed pose (lead playtest 2026-10-24).
 
 **Changed since last review:** Gene sliders unlock at 70 %, donor sliders at 50 %. Attack and defense edits need 90 %. Clone count unlocks edit slots. Jump can clear the low post. Risk curve and slider range set. Donor pick by click. Risk panel position set.
 
@@ -1618,6 +1626,7 @@ Matches video 7:00-7:45, with the section 11.7 changes.
 - [ ] A player cannot start a run that will fail. Synthesis accepts only a genome at or above the clone threshold of `EditRules`.
   - Use a vanilla slot filter.
 - [ ] Parse `DNAData` on a slot change, not twice per tick.
+- [ ] The creative tab holds one dinosaur-embryo syringe per species, at 100 % DNA with the species default genome. Its sprite: D283 (the 1.12 `embryo_filled_syringe` texture).
 
 #### In scope: upgrades and their looks
 
@@ -1654,6 +1663,7 @@ Matches video 7:00-7:45, with the section 11.7 changes.
 #### In scope: faults
 
 - [ ] Synthesis raises NO_POWER, NO_INPUT (a missing ingredient or syringe) and OUTPUT_FULL in the F1.10 fault mask.
+- [ ] When a run cannot start, the Begin button names the condition, for example "No power" (D276).
 
 #### Recipe rows
 
@@ -1690,6 +1700,11 @@ See Art list → Sequencer (synthesis tab, chip and tank looks, synthesis sounds
 - The output syringe carries the edited genome and shows "Full".
 - The energy meter falls only while a run makes progress. A gold chip draws more than an iron chip. With no power, the warning tab says "No power".
 - Each state plays its own sound event.
+
+#### Today in the code
+
+- The diamond chip has a synthesis time of −1 in `ItemInit`, so `SequencerBlock` refuses it. The plan sets 2 minutes ("function and numbers").
+- The 1.20.1 build has no netherite tank upgrade. "Function and numbers" and F1.10 list it.
 
 **Changed since last review:** Diamond chip added (2 minutes). Bone block counts as 9 bone meal. Plant matter is an item tag. Cancel returns unused ingredients and keeps the DNA. Power values set. Sound events set.
 
@@ -1765,6 +1780,7 @@ Matches video 11:38-12:33.
 - [ ] Use bone meal and refill on events, not one item per tick with a block update.
 - [ ] Bone meal per egg: 16, so a stack of 64 prints 4 eggs.
 - [ ] Delete the uncracked artificial egg sprite `artificial_egg.png`. The cracked artificial egg stays as the failed print.
+- [ ] The cracked artificial egg crafts into bone meal (recipe table row, proposed). The creative tab holds the cracked artificial egg.
   - The unincubated and incubated egg sprites need their own art first (Art list).
 
 #### In scope: upgrades and their looks
@@ -1826,7 +1842,7 @@ Matches video 11:44-11:55.
 
 #### Recipe rows
 
-- Egg Printer base, needle, platform and body. Leveling Sensor.
+- Egg Printer base, needle, platform and body. Leveling Sensor. Bone meal from the cracked artificial egg (proposed).
 - This package adds the rows to the recipe provider from the approved recipe table.
 - Chips are shared items of F1.10.
 
@@ -1870,6 +1886,7 @@ See Art list → Egg Printer, Eggs and hatching (printed textures), Lab items (L
 - The bone meal per egg is already 16.
 - The unincubated and incubated egg sprites are byte copies of `artificial_egg.png`.
 - The base, the body, the cross-rail and the needle are cubes inside bone `Body`.
+- No part of the printer moves. The lead's playtest of 2026-10-24 saw no animation. "In scope: animation (new)" holds the motion.
 
 **Changed since last review:** Egg printed in code on the current model. Failed print gives a cracked artificial egg and returns inputs. Uncracked artificial egg sprite deleted. Bone meal per egg is 16. Ghost egg outline when idle. Body lamps glow. Sensor costs no power.
 ### F1.8: Incubator
@@ -1940,6 +1957,8 @@ F1.8 delivers the whole Incubator: a five-part lab machine that holds printed eg
   - A placed egg can be dragged to a new spot.
 - [ ] A plant matter icon (a sprout outline when empty) with its number and a bar at the bottom left.
   - Inserting plant matter plays a small icon and bar animation.
+- [ ] The bed in the bed pane fills with plants as plant matter goes in, as in 1.12: bare wood when empty, then dark green, then leaves when full. The fill follows the plant matter fraction.
+  - The mod has an unused bed shader (`shaders/core/incubator_bed.*`). Today the screen draws a plain texture.
 - [ ] Egg tooltip: species, percent, time left, then the F1.9 tooltip lines.
 - [ ] The Incubator tab icon for the F1.10 tab host: a nest, in an active and an inactive look.
 
@@ -1964,6 +1983,7 @@ F1.8 delivers the whole Incubator: a five-part lab machine that holds printed eg
 - [ ] A powered, working Incubator gives block light, only while it incubates.
   - Levels: 9 with the base lamp, 11 warm, 13 warmer, 15 hot.
   - A block-state property carries the level and changes only on a state change.
+- [ ] The lamp glow takes a colour of its own for each bulb tier, and its strength rises with the tier. Vanilla block light has no colour, so the colour shows in the emissive lamp texture. The lead asked for light when powered: D280 sets whether a powered Incubator with no egg glows.
 
 #### The arm
 
@@ -2110,6 +2130,8 @@ Incubator base, nest, lid, arm base and arm. Warm, warmer and hot bulbs. Small a
 
 See Art list → Incubator, Eggs and hatching, Lab items (bulbs, container upgrades, plant tanks, Incubator part sprites), Screens (GUI) (incubator screen, tab icon). Not done until those rows are Done (no Placeholder, no To check).
 
+- Art list → Incubator → GUI: Bed fills with plants. Skins: the emissive lamp textures take the colour of each tier (D280).
+
 #### Acceptance
 
 - `machine_chain_smoke` passes on both loaders after this machine moves onto the F1.10 framework.
@@ -2127,6 +2149,7 @@ See Art list → Incubator, Eggs and hatching, Lab items (bulbs, container upgra
 - An egg taken out during a turn makes the arm return at once.
 - Unit tests: the two-link solver against known poses with the 6.5 px links, the timeline phase at each tick, the lid ease curve.
 - While it incubates, the light level is 9 with the base lamp, 11 warm, 13 warmer and 15 hot. Each bulb, container and plant tank tier shows its approved look.
+- Each bulb tier shows its own lamp colour. Plant matter that goes in fills the bed in the bed pane with plants, and the fill drops as plant matter drains.
 - Two clients see the claw open and close at the same tick.
 - An incubation longer than 32,767 ticks shows a bar that rises with no wrap.
 - The energy meter falls only while an egg incubates. With no plant matter, the warning tab shows NO_PLANT_MATTER. With no power, the machine smokes and goes dark.
@@ -2178,6 +2201,7 @@ F1.9 delivers the egg models and textures for each species, the egg wobble in th
 - [ ] The artist questions on these models (shared cubes, missing `tall_3` texture, black QR textures) are Art list Q9. F1.9 is not done until the artist answers them.
 - [ ] The unincubated and incubated egg items have their own sprites.
 - [ ] The printer, the nest in the Incubator and the placed egg all use the same model registry.
+- [ ] The creative tab holds one incubated egg per species with the species default genome, ready to place and hatch.
 
 #### Wobble while incubating
 
@@ -2308,11 +2332,12 @@ F1.10 is the code that every lab machine shares: parts, the master block, upgrad
   - Use on any part opens the master's screen.
   - Breaking any part drops the master's slots once, and the other parts become part items.
   - A part whose master is missing returns to its unassembled state.
-- [ ] Parts have no block entity.
+- [ ] Each part position has a small part block entity (D276).
   - A part index in the block state gives a fixed offset to the master.
-  - Capabilities register on the block and return the master's handler.
-  - Parts cost no ticks and no saves.
+  - The part block entity forwards the master's energy container, and later its fluid and item handlers. So energy enters through any block of the machine.
+  - Part block entities do not tick and hold no state of their own.
 - [ ] A creative-only item places a fully assembled machine. Each machine package registers its own.
+  - D281 sets what the placed machine holds.
 - [ ] Part names follow the video (Base, Needle, Platform, Body on the Egg Printer), not the design doc names.
 - [ ] Parts of a broken machine can build another machine.
 - [ ] The shape follows the placed parts. Breaking one machine never breaks a neighbour. Fewer break particles than today.
@@ -2379,6 +2404,10 @@ F1.10 is the code that every lab machine shares: parts, the master block, upgrad
   - It reads synced fields only.
   - A network summary for generators comes from a 20-tick server cache.
   - The box is always on. A client switch hides it and sets its offset.
+  - Looking at a machine also lists its installed upgrades (D278).
+- [ ] Status display (D278): a panel floats above each machine. It shows the progress of each task (processing, sequencing, synthesis, printing, and incubation per egg) and whether the machine has power.
+  - It stays on until the player turns it off. A client toggle turns it off and on.
+- [ ] A power symbol shows whether a machine has power, with one look for powered and one for unpowered. It shows on the machine screen and on the status display (D278).
 - [ ] Machine sound helper: each machine registers its own sound events per state (start, working loop, finished, power-down, plus its own extras).
   - The server plays one-shot events on state edges.
   - The client plays the loop while the synced ACTIVE state is on.
@@ -2409,6 +2438,7 @@ F1.10 is the code that every lab machine shares: parts, the master block, upgrad
   - A block state `ANIMATED` flips only on the work edges.
   - Each machine package supplies its idle-pose model.
 - [ ] Far machines cost no draw. The GeckoLib machine renderer has a view distance of 48 blocks (start value).
+- [ ] Powered glow (D279): chosen texture elements of each machine are emissive. They light up and animate while the machine has power. Each machine package names its elements.
 
 #### Automation and test tools
 
@@ -2448,6 +2478,9 @@ Iron, gold and diamond computer chips. Iron, gold, diamond and netherite tank up
 
 See Art list → Lab items (chip and tank upgrade sprites), Screens (GUI) (tab frame, warning tab icon). Not done until those rows are Done (no Placeholder, no To check). Each machine's own art (part sprites, dark model, idle-pose model, upgrade looks, tab icon) belongs to its machine package.
 
+- Art list → Machine shared parts → GUI: Power symbol, powered and unpowered (D278).
+- Art list → each machine's emissive texture rows (D279).
+
 #### Acceptance
 
 - GameTest with the two-part test machine on both loaders:
@@ -2456,6 +2489,9 @@ See Art list → Lab items (chip and tank upgrade sprites), Screens (GUI) (tab f
   - Breaking any part drops the master's slots once and the other parts as items.
   - A part with no master returns to its unassembled state.
 - A hopper or a third-party pipe on any part face reaches the master's inventory.
+- A generator or a conduit on any block of the test machine delivers energy, and the machine runs (D276).
+- With the status display on, each machine shows its task progress, and the Incubator shows one bar per egg. The toggle hides and shows it.
+- A powered machine shows the powered symbol and lights its emissive elements. A machine with no power shows the unpowered symbol.
 - Tabs switch between two test machines that share a network id from a test network provider, and keep the screen open. A machine with another id shows no tab. The real conduit network test is in F1.11.
 - A gold chip over an iron chip gives the iron chip back.
 - A fault bit set on the test machine shows its reason in the warning tab. A power loss puffs smoke and shows the dark model.
@@ -2472,6 +2508,7 @@ See Art list → Lab items (chip and tank upgrade sprites), Screens (GUI) (tab f
 
 - Each active machine sends about 20 full-NBT packets per second.
 - Every machine uses `ENTITYBLOCK_ANIMATED`.
+- In the lead's playtest of 2026-10-24 the machines caused visible lag. BH.1 and D282 set the machine gate.
 
 **Changed since last review:** At most 3 upgrades per machine. A replaced upgrade returns to the player. Only chips and bulbs cost extra power, by the run-cost factor. Part names follow the video. Upgrade looks use existing bones only. No NO_BULB fault. No comparator output.
 
@@ -2675,6 +2712,7 @@ F1.12 makes every lab item craftable in survival from vanilla materials, adds th
   - First fossil, first amber, first tube, first species at 50 % and first edit.
   - Then first embryo, first egg, first hatch and first fully upgraded machine.
 - [ ] Creative tabs ordered by chain stage.
+- [ ] The creative tabs hold every data variant that a package lists: each fossil in all four qualities (F1.1), a dinosaur-embryo syringe per species (F1.6), the cracked artificial egg (F1.7) and an incubated egg per species (F1.9).
 
 #### Produces
 
@@ -2696,6 +2734,7 @@ None.
 - Unit test: every registered lab item in the creative tabs has a recipe or a creative-only mark.
 - A new player who picks up a first fossil sees the lab part recipes in the recipe book.
 - Each advancement fires at its step of the chain.
+- The creative tabs show every data variant that the packages list.
 
 **Changed since last review:** Recipe table approved with changes. Four machines cost about 50 iron, 4 gold and 14 quartz slabs. No stone in lab parts. Recipe book unlocks on the first fossil or amber. Ids renamed. Advancement list set.
 
@@ -4170,6 +4209,8 @@ Build in this order.
   - One roster, primitive returns, one `CollisionContext` per probe batch, an index map for the gather.
 - [ ] View cones for separation and cohesion.
   - Cohesion ignores mates behind.
+- [ ] Members of different herds step aside for each other. When two herds meet at one spot, each member keeps the hard minimum spacing from members of the other herd too.
+- [ ] The spacing debug message names the distances it compares, in blocks: the open and the tight spacing of the clicked animal, and which one is in use.
 - [ ] Inside a fence, journey targets come from the reachable area, found by a bounded fill of 6,000 blocks.
   - Open ground keeps 156 to 314 blocks.
   - A fenced herd picks targets inside its paddock only.
@@ -4386,6 +4427,7 @@ GameTests on both loaders, in common code.
 - A fed Velociraptor pack starts no journey and roams near its leader. A hungry pack with no prey in range starts a journey.
 - Kill a pack leader: the pack flees to safety, then the two highest-dominance members contest, and one leads.
 - 20 Gallimimus in one paddock (maximum 12) form two herds, each with a leader. Their stress does not rise from crowding.
+- Two herds sent to one spot: members of the two herds step aside for each other, and no member pushes through a member of the other herd.
 - A Brachiosaurus search visits no more nodes than its cap.
 - A boxed-in animal fails at most one new search per tick.
 - With the compare switch on, the column cache matches `BodyFit` in the corridor test.
@@ -5804,6 +5846,7 @@ BH.1 removes dead code and makes a large park run at full speed on a server.
   - Load B: 100 dinosaurs in 5 herds, 10 large, 3 players, 600 other entities.
 - Today's load B estimate: about 28 ms plus spikes near 440 ms. Target: 9 to 15 ms plus repath spikes. Nobody has profiled 26.2.
 - Use SmartBrainLib profiler sections and the herd timings.
+- Profile the four lab machines at work, on the server and on the client. In the lead's playtest of 2026-10-24 the 1.20.1 machines caused visible lag. The machines meet the machine gate (D282).
 - Profile the JDK vertex-allocation claim once on 26.2 with 100 creatures. Report it upstream if true. The mod has no `Unsafe` vertex code.
 
 #### Slow-work intervals
@@ -5882,6 +5925,7 @@ Each fast path has three switches. They apply to the part index, the column cach
 - After a level unload, no per-level map holds an entry for that level.
 - With each compare switch on, the park profile logs no difference. With the break property set, the compare switch logs one.
 - The PR records the vertex-allocation result.
+- The four lab machines at work meet the machine gate of D282 on the reference setup.
 
 ### BH.2: Balance playtest and release
 
@@ -6155,6 +6199,7 @@ Every Beta item that a player crafts has an approved recipe. This section lists 
 | Egg Printer platform | F1.7 | Iron and Nether (quartz) | `UUU` / `IPI` | Approved |
 | Egg Printer body | F1.7 | Iron and Nether (quartz) | `QQQ` / `U.U` / `IRI` | Approved |
 | Leveling Sensor | F1.7 | Gold and Nether | `.A.` / `CRC` / `.O.`. A = nether quartz | Approved |
+| Bone meal from a cracked artificial egg | F1.7 | Lab output (failed print) | Shapeless: cracked artificial egg. Out 3 (proposal, lead decides) | Proposed |
 | Incubator base (`incubator_base`) | F1.8 | Iron and Nether (quartz) | `IFI` / `UUU`. F = furnace | Approved |
 | Incubator nest | F1.8 | Iron | `I.I` / `III`. See note | Approved |
 | Incubator lid | F1.8 | Iron | `LAL` / `I.I`. A = any light block | Approved |
@@ -6654,7 +6699,21 @@ These rows come from the final plan review of 2026-10-19. D258 to D261 carry def
 | D273 | F2.5, F2.0 | The Triceratops routine "drinks with the herd" and the Dilophosaurus routine "naps near water" had no mechanism. | Answered 2026-10-19 (lead): F2.5 part A adds a herd water trip. When the leader's thirst falls below 75 %, its next journey goes to the known water and the herd drinks together at shore spots. The Dilophosaurus routine loses "near water" | Answered |
 | D274 | M0.P0 | Fence wires: the rft rework passes `previous` as the neighbour toward `from` and `next` toward `to`, and the `Connection` constructor swaps both with the ends when it canonicalises them. The leftover `next == compared < 0` selector in `brokenSide` undid that for one orientation. | Decided 2026-10-19 (controller): fix `brokenSide` to read `next ? next : previous`; call sites unchanged. Wires saved before the rft rework keep the old order and may render their broken halves mirrored; no save migration. The lead confirms or asks for a migration | Open |
 | D275 | M0.P0 | The fossils branch fell back to Tyrannosaurus when a vein's rolled species had no block for the rolled piece or period. | Decided 2026-10-19 (controller): no fallback. A vein whose species has no block for the piece, or whose origin depth is in no period band, places nothing. The species period comes from the vein origin's y. The lead confirms | Open |
-| D276 | F1.3, F1.4, F1.6 | Only the core block of a multiblock machine has a block entity, so a generator or cable delivers energy only when it touches that one block; on the other seven blocks it delivers nothing and the Sequencer's Begin button fails with no message (GameTests `MachineGameTests`, 2026-10-24). | Decided 2026-10-24 (lead): fix it fully, not with a distance rule. Every part position gets a small part block entity that forwards the core's energy container (later also its fluid and item handlers), so power enters through any block of the Processor, Sequencer, Egg Printer and Incubator. The Begin button names the condition it fails on. Lands with the machine framework work, not in M0.P0 | Answered |
+| D276 | F1.3, F1.4, F1.6, F1.10 | Only the core block of a multiblock machine has a block entity, so a generator or cable delivers energy only when it touches that one block; on the other seven blocks it delivers nothing and the Sequencer's Begin button fails with no message (GameTests `MachineGameTests`, 2026-10-24). | Decided 2026-10-24 (lead): fix it fully, not with a distance rule. Every part position gets a small part block entity that forwards the core's energy container (later also its fluid and item handlers), so power enters through any block of the Processor, Sequencer, Egg Printer and Incubator. The Begin button names the condition it fails on. Lands with the machine framework work, not in M0.P0 | Answered |
+
+### D277 and later: lead playtest of 2026-10-24
+
+These rows come from the lead's playtest of the M0.P0 build on 2026-10-24. Each row states the lead's requirement and the choice that is still open.
+
+| Id | Work package | Question | Default if unanswered | Status |
+| --- | --- | --- | --- | --- |
+| D277 | F1.5 | The Edit-tab preview cuts off large animals and does not turn. The player model beside it looks up in one fixed pose. Lead (2026-10-24): the preview fits its box, turns and feels interactive, and below 30 % DNA the animal shows obscured. What does the obscured animal look like, and how does the player use the preview? | Proposal: below 30 % the animal draws black with no texture and a light censor effect (the lead's suggestion). The preview turns slowly on its own, and the player drags it to turn it. The player model looks toward the mouse, as the vanilla inventory player does. The lead chooses | Open |
+| D278 | F1.10 | Lead (2026-10-24): a persistent display floats above each machine, and the player can turn it off and on. It shows the progress of each task: processing, sequencing, synthesis, printing, and incubation per egg. A symbol shows powered or unpowered, in the machine and on the display. The lead also suggests a list of installed upgrades when the cursor is on a machine. What are the layout, the toggle and the range? | Proposal: a small panel above the machine with one bar per task and one bar per egg, and the power symbol at its left, shown within 16 blocks. A client key and a client config switch toggle it. The look-at hover box stays and adds the upgrade list. The lead chooses | Open |
+| D279 | F1.10, F1.3, F1.4, F1.7, F1.8 | Lead (2026-10-24) suggests that some texture elements of the machines are emissive and light up and animate when powered. Which elements light on each machine, and do they light when powered or only while the machine works? | Proposal: the artist proposes the elements of each machine, and the lead approves them. They light while the machine has power and animate while it works. The existing glows stay: the Sequencer monitor, the printer lamps and the Incubator lamp. The Processor model stays still (D95): a texture animation is not model motion. The lead chooses | Open |
+| D280 | F1.8 | Lead (2026-10-24): the Incubator lights up when powered, and its light strength and colour follow the bulb upgrade. Today it gives light only while it incubates, at 9, 11, 13 and 15. Does a powered Incubator with no egg glow, and which colour does each bulb tier show? | Proposal: the lamp glows while the Incubator has power, and block light comes only while it incubates. Vanilla block light has no colour, so the colour shows in the lamp texture: warm white for the base lamp, then yellow, orange and red-orange for the three bulbs. The artist proposes the colours, and the lead chooses | Open |
+| D281 | F1.10, F1.12 | Lead (2026-10-24): creative players and testers need fully assembled machines. The plan already has a creative-only whole-machine item for each machine. What does the placed machine hold? | Proposal: all parts, no upgrades, empty slots and tanks, and no stored energy. A creative player adds upgrades by hand. The lead chooses | Open |
+| D282 | BH.1, F1.10 | The 1.20.1 machines caused visible lag in the lead's playtest of 2026-10-24. The plan has gates for paddocks (25 ms) and herds, but none for machines. What is the machine gate? | Proposal: on the reference setup, the four lab machines at work add less than 2 ms to the server tick, and the client keeps at least 90 % of its frame rate with the lab in view. Each machine package meets it for its machine, and BH.1 measures the full park. The lead chooses | Open |
+| D283 | F1.6, F1.2 | Lead (2026-10-24): the creative tab needs the "embryo filled syringe with its 1.12 texture". The 1.12 mod has `embryo_filled_syringe.png` (`Dumb-Code/ProjectNublar`, branch `master`). Today one sprite serves the bird Embryo Syringe, and the dinosaur-embryo syringe has no sprite. Which syringe takes the 1.12 texture? | Proposal: the dinosaur-embryo syringe, the synthesis output. The bird Embryo Syringe keeps its current sprite, which the video shows. The lead confirms | Open |
 
 ---
 
@@ -6732,3 +6791,4 @@ These rows come from the final plan review of 2026-10-19. D258 to D261 carry def
 - **2026-10-19 (open items closed):** pairs count as company (D271), sleep cooldown after damage only and a 5-minute full sleep (D272), herd water trips and the Dilophosaurus nap without a water clause (D273), need rates D258 to D261 confirmed as config defaults. Register D271 to D273.
 - **2026-10-23 (M0.P0 done on branch `m0.p0/branch-integration`):** `integration/1.20.1` created from 4244f62; the herd work, `rft/adversing` and the ported fossil design are on one 1.20.1 build that compiles on Forge and Fabric; P12c kept (D269). Register D274 (fence neighbour order) and D275 (no species fallback in fossil veins).
 - **2026-10-24 (machine power):** energy must enter a multiblock through any of its blocks; part block entities forward the core's containers (D276).
+- **2026-10-24 (lead playtest):** the lead's M0.P0 playtest feedback written into F1.1, F1.3, F1.5 to F1.10, F1.12, F2.5 and BH.1: Edit-tab preview fit and obscured look, part block entities in F1.10, machine status display and power symbol, powered glow, Incubator lamp colour and bed fill, creative-tab variants, a proposed bone meal recipe from the cracked egg, herds that step aside, a machine performance gate. Register D277 to D283.

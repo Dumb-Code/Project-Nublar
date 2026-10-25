@@ -87,11 +87,11 @@ Status words:
 | Dinosaur effects | 0 | 0 | 0 | 0 | 32 | 0 | 0 |
 | Dinosaur hover box | 0 | 0 | 0 | 0 | 2 | 0 | 0 |
 | Eggs and hatching | 1 | 0 | 4 | 5 | 18 | 0 | 0 |
-| Fossil Processor | 9 | 1 | 0 | 0 | 7 | 3 | 0 |
+| Fossil Processor | 9 | 1 | 0 | 0 | 8 | 3 | 0 |
 | Sequencer | 8 | 4 | 1 | 0 | 15 | 1 | 0 |
 | Egg Printer | 8 | 1 | 0 | 0 | 12 | 2 | 0 |
-| Incubator | 8 | 5 | 1 | 0 | 12 | 2 | 0 |
-| Machine shared parts | 0 | 1 | 1 | 0 | 4 | 0 | 0 |
+| Incubator | 8 | 6 | 1 | 0 | 12 | 2 | 0 |
+| Machine shared parts | 0 | 1 | 1 | 0 | 5 | 0 | 0 |
 | Lab items | 12 | 0 | 2 | 0 | 6 | 0 | 0 |
 | Fossils and amber | 2 | 0 | 15 | 0 | 17 | 0 | 0 |
 | Lab power | 1 | 0 | 1 | 1 | 8 | 0 | 0 |
@@ -100,11 +100,11 @@ Status words:
 | Feeders | 3 | 0 | 0 | 10 | 20 | 0 | 0 |
 | Digsites and villagers | 0 | 0 | 1 | 0 | 7 | 0 | 0 |
 | Vehicles | 1 | 0 | 2 | 5 | 19 | 0 | 0 |
-| **Total (without guns)** | **252** | **23** | **178** | **69** | **431** | **42** | **1** |
+| **Total (without guns)** | **252** | **24** | **178** | **69** | **433** | **42** | **1** |
 | Guns (blocked) | 0 | 0 | 2 | 11 | 3 | 0 | 0 |
 
-- **Counted rows:** 995 (guns not included).
-- **Work left:** 701 rows (431 to make, 69 to export or convert, 178 to import, 23 to check in game), plus 42 shared files for the artist to confirm.
+- **Counted rows:** 998 (guns not included).
+- **Work left:** 704 rows (433 to make, 69 to export or convert, 178 to import, 24 to check in game), plus 42 shared files for the artist to confirm.
 - **Done:** 252.
 - **Not counted:** 1 row that waits on the lead, 31 rows with no art needed, 38 rows not in Beta (6 of them Release 1 groups).
 - **Guns:** blocked on D08. They are not in the total.
@@ -1564,9 +1564,9 @@ Milestone: Fossil to egg.
 - **No moving parts:** no part moves, and none will. The video and the original show no Processor animation.
 - **Older state:** REPO machines/fossil_processor/models/Fossil_Processor.bbmodel has one group of 36 cubes and no tank bones.
 
-**To make (7)**
+**To make (8)**
 
-- Skins (1): Chip texture swap per chip tier.
+- Skins (2): Chip texture swap per chip tier; Powered glow: emissive texture elements.
 - Sounds (2): Start; Fault: no water or worn filter.
 - Sprites (4): Processor base; Processor body; Processor lid; Processor tanks.
 
@@ -1600,6 +1600,7 @@ Base, drum and lid cap:
 | Asset | Used for | Status | Feature | Where / reference |
 | --- | --- | --- | --- | --- |
 | Chip texture swap per chip tier | Every upgrade changes the look. No new part: a texture swap on an existing bone | Missing | F1.3 | None. The artist proposes the bone. Question 12 |
+| Powered glow: emissive texture elements | Chosen texture elements light up and animate while the Processor has power. No part moves | Missing | F1.3 | None. The artist proposes the elements, and the lead approves them (D279) |
 | Block texture | Machine look | Done | F1.3 | MOD/textures/block/processor.png |
 
 ### Animations
@@ -1696,7 +1697,7 @@ Chip look per chip tier:
 | Tank texture swap per tank tier | Every upgrade changes the look. No new part: a texture swap on an existing bone | Missing | F1.6 | None. The artist proposes the bone. Question 12 |
 | Dye mask (black parts take the dye colour) | Dye changes the colour | Missing | F1.4 | None. Every black section takes the dye. The mask follows the black sections of the current texture |
 | Block texture | Machine look | Done | F1.4 | MOD/textures/block/sequencer.png |
-| Lit monitor while working | The monitor glows while the Sequencer works. The original had no glow | Missing | F1.4 | None. It lights bone `monitor_primary` |
+| Lit monitor while working | The monitor glows while the Sequencer works. The original had no glow | Missing | F1.4 | None. It lights bone `monitor_primary`. D279 can add more powered elements |
 
 ### Animations
 
@@ -1813,7 +1814,7 @@ Milestone: Fossil to egg.
 
 | Asset | Used for | Status | Feature | Where / reference |
 | --- | --- | --- | --- | --- |
-| Emissive texture for the red and green lamps and the 2 by 3 panel | The lamps glow while the printer prints | Missing | F1.7 | No emissive texture. The lamps and the panel are in the current texture |
+| Emissive texture for the red and green lamps and the 2 by 3 panel | The lamps glow while the printer prints | Missing | F1.7 | No emissive texture. The lamps and the panel are in the current texture. D279 can add more powered elements and animation |
 | Chip texture swap per chip tier | Every upgrade changes the look. No new part: a texture swap on an existing bone. The original shows no change | Missing | F1.7 | None. The artist proposes the bone. Question 12 |
 | Leveling Sensor texture swap | Same | Missing | F1.7 | None. The artist proposes the bone. Question 12 |
 | Ghost egg outline (idle printer) | An idle printer shows a ghost egg outline on the platform | Missing | F1.7 | None. Code can also draw the egg model see-through: artist to say |
@@ -1906,12 +1907,12 @@ Milestone: Fossil to egg.
 
 - Sounds (1): Arm move.
 
-**To fix (7)**
+**To fix (8)**
 
 - Models (2): Arm links: base turn, shoulder, elbow, wrist (check in game); Nest bed holds 9 eggs (check in game).
 - Sounds (2): Heater hum (confirm shared); Fault: no power (confirm shared).
 - Sprites (1): Incubator base (check in game).
-- GUI (2): Empty plant slot sprout icon (check in game); Incubator screen (check in game).
+- GUI (3): Bed fills with plants (check in game); Empty plant slot sprout icon (check in game); Incubator screen (check in game).
 
 ### Models
 
@@ -1938,7 +1939,7 @@ Arm link pivots:
 | --- | --- | --- | --- | --- |
 | Container upgrade texture swap (6 and 9 eggs) | Every upgrade changes the look. No new part: a texture swap on an existing bone | Missing | F1.8 | None. The artist proposes the bone. Question 12 |
 | Plant tank upgrade texture swap | Same | Missing | F1.8 | None. The artist proposes the bone. Question 12 |
-| Emissive lamp texture: base lamp | Lamp glow per bulb tier on the lamp cap of `cover`. The built-in lamp is the base bulb. Light 9 | Missing | F1.8 | None. The lamp changes with the bulb |
+| Emissive lamp texture: base lamp | Lamp glow per bulb tier on the lamp cap of `cover`. The built-in lamp is the base bulb. Light 9. Each tier glows in a colour of its own (D280) | Missing | F1.8 | None. The lamp changes with the bulb |
 | Emissive lamp texture: warm bulb | Same. Light 11 | Missing | F1.8 | None |
 | Emissive lamp texture: warmer bulb | Same. Light 13 | Missing | F1.8 | None |
 | Emissive lamp texture: hot bulb | Same. Light 15 | Missing | F1.8 | None |
@@ -1992,6 +1993,7 @@ Screen contents follow the video. Screen art is the current GUI texture in the m
 | Asset | Used for | Status | Feature | Where / reference |
 | --- | --- | --- | --- | --- |
 | Bed tint: green and red | Green where an egg can go, red where it cannot | Missing | F1.8 | None found |
+| Bed fills with plants | The bed in the pane fills with plants as plant matter goes in, as in 1.12: bare wood, then dark green, then leaves | To check in game | F1.8 | MOD/shaders/core/incubator_bed.* draws this fill, but no code uses it: `IncubatorScreen` draws a plain texture. Check that it matches the 1.12 effect |
 | Empty plant slot sprout icon | Plant slot when empty | To check in game | F1.8 | In MOD/textures/gui/incubator.png, bottom left of the bed pane beside the plant bar |
 | Incubator screen | Leaf bed pane, egg markers, plant matter icon and bar | To check in game | F1.8 | MOD/textures/gui/incubator.png. Check in game that each item from the video is there |
 
@@ -2003,9 +2005,9 @@ Screen contents follow the video. Screen art is the current GUI texture in the m
 Screen parts, sounds and looks that all four lab machines share. Each machine's own screen is listed under its machine.
 Milestone: Fossil to egg.
 
-**To make (4)**
+**To make (5)**
 
-- GUI (2): Pop-up slot dialog; Warning tab.
+- GUI (3): Pop-up slot dialog; Warning tab; Power symbol: powered and unpowered.
 - Sounds (2): Part placed; Upgrade installed.
 
 **To import (1)**
@@ -2022,6 +2024,7 @@ Milestone: Fossil to egg.
 | --- | --- | --- | --- | --- |
 | Pop-up slot dialog | "Insert Hard Drive", "Insert Genetic Material", "Collect Leftover Item" | Missing | F1.10 | None found in MOD/textures/gui |
 | Warning tab | A stopped machine shows why: no power, no input, output full and more | Missing | F1.10 | None |
+| Power symbol: powered and unpowered | Shows whether a machine has power, on its screen and on the status display above it | Missing | F1.10 | None. Layout: D278 |
 | Status bar on the left of each machine screen | Green bar, red tick while running | To check in game | F1.10 | Not a separate file. Check whether each screen texture holds it |
 | Linked-machine tabs (4 machines, active and inactive) | Change machines without leaving the screen | Ready to import | F1.10 | REPO guis/tabs/ (8 PNG). Not in the mod |
 
@@ -2064,7 +2067,7 @@ Not in Beta:
 
 | Asset | Used for | Status | Feature | Where / reference |
 | --- | --- | --- | --- | --- |
-| Syringe with dinosaur embryo | Synthesis output | Missing | F1.6 | None. Today one embryo sprite serves both |
+| Syringe with dinosaur embryo | Synthesis output | Missing | F1.6 | None in the mod. Today one embryo sprite serves both. Candidate: the 1.12 texture `Dumb-Code/ProjectNublar` branch `master`, src/main/resources/assets/projectnublar/textures/items/embryo_filled_syringe.png (D283) |
 | Test tube: Unidentified DNA look | DNA state of an amber tube | Missing | F1.1 | None |
 | Test tube: Identified DNA look | DNA state of a fossil tube | Missing | F1.1 | None |
 | Test tube: Full DNA look | DNA state after synthesis | Missing | F1.1 | None |

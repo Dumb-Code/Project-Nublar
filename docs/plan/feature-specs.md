@@ -459,6 +459,9 @@ The player designs the dinosaur: base species, donor animals, gender, colours an
   - Row 1 is the base dinosaur. The rest are donor rows. Hover shows the donor name.
 - **Donor pick:** the player clicks an empty donor row, then clicks an animal in the DNA list on the right. The player drags the slider of the row to set its share.
 - **Centre:** a framed 3D preview that turns slowly, with a Steve model beside it for scale.
+  - The whole animal fits inside the frame at every size. Nothing is cut off.
+  - The player can turn the preview. The Steve model reacts and does not hold one fixed pose (D277).
+  - Below 30 % DNA the animal shows obscured, for example black with no texture and a light censor effect (D277).
 - **Right:** a framed list of sequenced animals. The chosen row is solid blue.
 - **Bottom:** a wide panel with two columns of effect rows.
   - Each title is green (plus), red (minus) or white (zero), with a colour bar under it.
@@ -555,6 +558,7 @@ See Art list → Sequencer (Edit tab: base page, effect panel, chromosome grid, 
 #### Today in the code
 
 - The edit tab is a prototype.
+- The preview cuts off large animals and does not turn. The Steve model looks up in one fixed pose.
 - The game does not check edits and does not save layer colours.
 - Only gender and size change the animal.
 
@@ -658,6 +662,7 @@ See Art list → Sequencer (Synthesis tab, sounds, computer pieces per chip tier
 - Synthesis runs for 10 minutes with 500 mB of water and 8 each of bone meal, sugar and plant matter.
 - It gives a test tube, and a crafting recipe makes the egg.
 - Water tiers and the netherite tank do not match the spec.
+- The diamond chip has a synthesis time of −1, so the Sequencer refuses it.
 
 **Engineering:** backlog F1.6.
 
@@ -809,6 +814,7 @@ Match the screen of video 12:50-13:32.
 - **Art.** The current `gui/incubator.png`. Status bar on the left (F1.10). Player inventory below.
 - **Bed pane.** One large pane at the top. Eggs show as small egg markers at their real bed spot.
 - **Plant matter.** Bottom left of the pane: a plant icon (a sprout outline when empty), the plant matter count and a long bar. Adding leaves plays a small icon and bar animation.
+- **Bed fill.** The bed in the pane fills with plants as plant matter goes in, as in 1.12: bare wood when empty, then dark green, then leaves when full. It empties as the plant matter drains.
 - **Placing.** Holding an egg over the pane turns it bright green where the egg can go and red where it cannot. A placed egg can be dragged to a new spot.
 - **Egg tooltip.** Name, progress %, time left, "Press shift for DNA breakdown". Time left stops at 0.
 
@@ -838,11 +844,12 @@ Match the screen of video 12:50-13:32.
 - Every species takes 30 minutes at the base lamp. The time is a config value, and playtests tune it.
 - Plant matter drains per machine, not per egg. The rate is a config value, and playtests set it.
 - It needs power to run. Containers and plant tanks cost no extra power (F1.11).
-- It gives light only while it incubates.
+- It gives light only while it incubates. The lead asked for light when powered: D280 sets whether a powered Incubator with no egg glows.
 
 #### Upgrades
 
 - The bulb changes the lamp glow: an emissive texture per tier on the lamp cap of `cover`, with no new part.
+- Each tier glows in a colour of its own, and the glow grows stronger with the tier (D280).
 - Every upgrade changes the look. Containers and plant tanks each get a texture swap on an existing bone. No new part.
 
 #### Animations
@@ -1028,7 +1035,7 @@ F1.10 sets the shared rules for every lab machine: it is built from parts, upgra
 - Each machine is built from crafted parts in a set order, by right-clicking each part onto the machine. Each placed part shows as a bone of the current model.
 - Orders per machine are in F1.3, F1.4, F1.7 and F1.8.
 - Part names follow the video: Base, Needle, Platform, Body (Egg Printer). They do not use the design doc's Chassis, Lid, Printer Frame and Dome.
-- A creative-only item places a whole machine.
+- A creative-only item places a whole machine. D281 sets what the placed machine holds.
 - Parts can be reused to build another machine. Breaking any part drops every item once.
 - The hitbox matches the model. Breaking one machine never breaks its neighbours.
 - Break particles use the machine texture and are fewer than today.
@@ -1052,6 +1059,7 @@ F1.10 sets the shared rules for every lab machine: it is built from parts, upgra
 | 3 | Diamond chip, hot bulb | 15 % |
 
 - Filters, the Leveling Sensor, containers and tanks cost no extra power.
+- Power enters through any block of a machine. A generator or a conduit can touch any part (D276).
 
 #### Screen
 
@@ -1060,7 +1068,9 @@ F1.10 sets the shared rules for every lab machine: it is built from parts, upgra
 - **Tab position.** Not set. A row of tabs along the top-left outside edge, in chain order, like vanilla creative tabs (proposal, lead decides).
 - **Status bar.** The green bar on the left of every machine screen (video 1:07, 2:53, 11:38, 12:50). Its meaning is not stated. It shows stored energy, and the red tick shows "running" (proposal, lead decides).
 - **Vanilla behaviour.** The world behind darkens like vanilla screens. Screens survive a window resize. Shift-click works.
-- **Hover box.** Looking at a machine for a quarter second shows a small box near the crosshair, for example "Working 42 %" or the fault.
+- **Hover box.** Looking at a machine for a quarter second shows a small box near the crosshair, for example "Working 42 %" or the fault. It also lists the installed upgrades (D278).
+- **Status display.** A panel floats above each machine. It shows the progress of each task: processing, sequencing, synthesis, printing, and each egg in the Incubator. The player turns it off and on (D278).
+- **Power symbol.** A symbol on the machine screen and on the status display shows powered or unpowered (D278).
 
 #### Faults and effects
 
@@ -1068,6 +1078,7 @@ F1.10 sets the shared rules for every lab machine: it is built from parts, upgra
 - There is no "No bulb" fault, because the Incubator's built-in lamp is the base bulb (F1.8).
 - **Power loss.** 3 smoke puffs over 1 s and a dark model. One puff when it starts again.
 - The working look stops 3 s after work stops.
+- **Powered glow.** Chosen texture elements of each machine light up and animate while it has power (D279).
 
 #### Sounds
 
@@ -1082,6 +1093,7 @@ See Art list → Screens (GUI) (linked-machine tabs, pop-up slot dialog, status 
 
 - Only the Incubator assembles part by part.
 - No tabs, no warning tab, no fault smoke. Break drops are incomplete.
+- The machines cause visible lag (lead playtest 2026-10-24). D282 sets a machine performance gate.
 
 **Engineering:** backlog F1.10.
 
@@ -1216,6 +1228,7 @@ F1.12 makes every lab item craftable in survival, and its advancements guide the
   - Basic Generator, power conduit, fossil pouch.
   - No Identification Tag.
 - **No recipe.** Assembled machines (creative only), fossils and amber (world drops), machine outputs (tubes, filled syringes, eggs, the cracked artificial egg).
+- **Bone meal.** A cracked artificial egg crafts into bone meal. The count is a proposal: 3 (lead decides).
 - **Ids.** `basic_generator` replaces `coal_generator`, and `iron_plant_tank_upgrade` replaces `iron_plant_tank_ugprade`. A `*_base` part item starts each machine in survival.
 
 #### Materials and cost
@@ -1244,6 +1257,7 @@ F1.12 makes every lab item craftable in survival, and its advancements guide the
 
 - **Advancements.** First fossil, first amber, first DNA tube, first species at 50% genome, first edit, first embryo, first egg, first hatch, first fully upgraded machine.
 - **Creative tabs.** Ordered by chain stage.
+- **Creative variants.** The creative tabs hold each fossil in all four qualities, a dinosaur-embryo syringe and an incubated egg for each species, and the cracked artificial egg.
 - **Acceptance.** A survival player reaches a hatched baby with no creative mode and no trades.
 
 #### Art needed
@@ -2635,6 +2649,7 @@ Rules that F2.0 holds in full:
 
 - **Formation.** A wedge in open ground, at most 3 abreast. Single file in corridors.
 - **Spacing.** Mates keep space from snout to tail.
+- **Two herds.** When two herds meet at one spot, members of different herds step aside for each other.
 - **Brachiosaurus.** An adult Brachiosaurus stays in open ground.
 - **Journeys.** Every 2 to 5 minutes, 156 to 314 blocks. The leader waits at most 10 s for stragglers.
 - **Paddocks.** A fenced herd picks journey targets inside its paddock only.
@@ -2693,7 +2708,7 @@ See Art list → Eggs and hatching (natural egg textures), each species (Animati
 
 #### Today in the code
 
-- Gallimimus herd travel exists on the kash's-slop branch. Its last playtest is not reported.
+- Gallimimus herd travel is on the M0.P0 integration build. In the lead's playtest of 2026-10-24 herd travel looked fine. Members of different herds did not step aside for each other, and the spacing debug message did not name the distances it compares.
 - Leaders by dominance, packs and nests do not work.
 - Breeding lays one egg that shares the mother's genome.
 
