@@ -1,24 +1,25 @@
 package net.dumbcode.projectnublar.gui.widget;
 
-import net.minecraft.SharedConstants;
-import net.minecraft.Util;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.ComponentPath;
 import net.minecraft.client.gui.Font;
-import net.minecraft.client.gui.GuiGraphics;
+import net.minecraft.client.gui.GuiGraphicsExtractor;
 import net.minecraft.client.gui.components.AbstractWidget;
 import net.minecraft.client.gui.components.Renderable;
 import net.minecraft.client.gui.narration.NarratedElementType;
 import net.minecraft.client.gui.narration.NarrationElementOutput;
 import net.minecraft.client.gui.navigation.FocusNavigationEvent;
-import net.minecraft.client.gui.screens.Screen;
-import net.minecraft.client.renderer.RenderType;
+import net.minecraft.client.input.CharacterEvent;
+import net.minecraft.client.input.KeyEvent;
+import net.minecraft.client.input.MouseButtonEvent;
 import net.minecraft.client.sounds.SoundManager;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.chat.MutableComponent;
 import net.minecraft.network.chat.Style;
 import net.minecraft.util.FormattedCharSequence;
 import net.minecraft.util.Mth;
+import net.minecraft.util.StringUtil;
+import net.minecraft.util.Util;
 
 import javax.annotation.Nullable;
 import java.util.Objects;
@@ -32,7 +33,8 @@ public class EditBox extends AbstractWidget implements Renderable {
     private static final int CURSOR_INSERT_WIDTH = 1;
     private static final int CURSOR_INSERT_COLOR = -3092272;
     private static final String CURSOR_APPEND_CHARACTER = "_";
-    public static final int DEFAULT_TEXT_COLOR = 14737632;
+    /** ARGB with full alpha: 26.2 skips text whose colour has alpha 0 (1.20.1 made such colours opaque). */
+    public static final int DEFAULT_TEXT_COLOR = 0xFFE0E0E0;
     private static final int BORDER_COLOR_FOCUSED = -1;
     private static final int BORDER_COLOR = -6250336;
     private static final int BACKGROUND_COLOR = -16777216;
@@ -69,8 +71,8 @@ public class EditBox extends AbstractWidget implements Renderable {
         this.bordered = true;
         this.canLoseFocus = true;
         this.isEditable = true;
-        this.textColor = 14737632;
-        this.textColorUneditable = 7368816;
+        this.textColor = DEFAULT_TEXT_COLOR;
+        this.textColorUneditable = 0xFF707070;
         this.filter = Objects::nonNull;
         this.formatter = (p_94147_, p_94148_) -> FormattedCharSequence.forward(p_94147_, Style.EMPTY);
         this.font = font;
@@ -130,7 +132,7 @@ public class EditBox extends AbstractWidget implements Renderable {
         int i = Math.min(this.cursorPos, this.highlightPos);
         int j = Math.max(this.cursorPos, this.highlightPos);
         int k = this.maxLength - this.value.length() - (i - j);
-        String s = SharedConstants.filterText(textToWrite);
+        String s = StringUtil.filterText(textToWrite);
         int l = s.length();
         if (k < l) {
             s = s.substring(0, k);
@@ -154,8 +156,8 @@ public class EditBox extends AbstractWidget implements Renderable {
 
     }
 
-    private void deleteText(int count) {
-        if (Screen.hasControlDown()) {
+    private void deleteText(int count, boolean wholeWord) {
+        if (wholeWord) {
             this.deleteWords(count);
         } else {
             this.deleteChars(count);
@@ -261,25 +263,25 @@ public class EditBox extends AbstractWidget implements Renderable {
         this.moveCursorTo(this.value.length());
     }
 
-    public boolean keyPressed(int keyCode, int scanCode, int modifiers) {
+    public boolean keyPressed(KeyEvent event) {
         if (!this.canConsumeInput()) {
             return false;
         } else {
-            this.shiftPressed = Screen.hasShiftDown();
-            if (Screen.isSelectAll(keyCode)) {
+            this.shiftPressed = event.hasShiftDown();
+            if (event.isSelectAll()) {
                 this.moveCursorToEnd();
                 this.setHighlightPos(0);
                 return true;
-            } else if (Screen.isCopy(keyCode)) {
+            } else if (event.isCopy()) {
                 Minecraft.getInstance().keyboardHandler.setClipboard(this.getHighlighted());
                 return true;
-            } else if (Screen.isPaste(keyCode)) {
+            } else if (event.isPaste()) {
                 if (this.isEditable) {
                     this.insertText(Minecraft.getInstance().keyboardHandler.getClipboard());
                 }
 
                 return true;
-            } else if (Screen.isCut(keyCode)) {
+            } else if (event.isCut()) {
                 Minecraft.getInstance().keyboardHandler.setClipboard(this.getHighlighted());
                 if (this.isEditable) {
                     this.insertText("");
@@ -287,12 +289,12 @@ public class EditBox extends AbstractWidget implements Renderable {
 
                 return true;
             } else {
-                switch (keyCode) {
+                switch (event.key()) {
                     case 259:
                         if (this.isEditable) {
                             this.shiftPressed = false;
-                            this.deleteText(-1);
-                            this.shiftPressed = Screen.hasShiftDown();
+                            this.deleteText(-1, event.hasControlDownWithQuirk());
+                            this.shiftPressed = event.hasShiftDown();
                         }
 
                         return true;
@@ -306,13 +308,13 @@ public class EditBox extends AbstractWidget implements Renderable {
                     case 261:
                         if (this.isEditable) {
                             this.shiftPressed = false;
-                            this.deleteText(1);
-                            this.shiftPressed = Screen.hasShiftDown();
+                            this.deleteText(1, event.hasControlDownWithQuirk());
+                            this.shiftPressed = event.hasShiftDown();
                         }
 
                         return true;
                     case 262:
-                        if (Screen.hasControlDown()) {
+                        if (event.hasControlDownWithQuirk()) {
                             this.moveCursorTo(this.getWordPosition(1));
                         } else {
                             this.moveCursor(1);
@@ -320,7 +322,7 @@ public class EditBox extends AbstractWidget implements Renderable {
 
                         return true;
                     case 263:
-                        if (Screen.hasControlDown()) {
+                        if (event.hasControlDownWithQuirk()) {
                             this.moveCursorTo(this.getWordPosition(-1));
                         } else {
                             this.moveCursor(-1);
@@ -342,12 +344,12 @@ public class EditBox extends AbstractWidget implements Renderable {
         return this.isVisible() && this.isFocused() && this.isEditable();
     }
 
-    public boolean charTyped(char codePoint, int modifiers) {
+    public boolean charTyped(CharacterEvent event) {
         if (!this.canConsumeInput()) {
             return false;
-        } else if (SharedConstants.isAllowedChatCharacter(codePoint)) {
+        } else if (event.isAllowedChatCharacter()) {
             if (this.isEditable) {
-                this.insertText(Character.toString(codePoint));
+                this.insertText(event.codepointAsString());
             }
 
             return true;
@@ -356,8 +358,8 @@ public class EditBox extends AbstractWidget implements Renderable {
         }
     }
 
-    public void onClick(double mouseX, double mouseY) {
-        int i = Mth.floor(mouseX) - this.getX();
+    public void onClick(MouseButtonEvent event, boolean doubleClick) {
+        int i = Mth.floor(event.x()) - this.getX();
         if (this.bordered) {
             i -= 4;
         }
@@ -369,7 +371,7 @@ public class EditBox extends AbstractWidget implements Renderable {
     public void playDownSound(SoundManager handler) {
     }
 
-    public void renderWidget(GuiGraphics guiGraphics, int mouseX, int mouseY, float partialTick) {
+    public void extractWidgetRenderState(GuiGraphicsExtractor guiGraphics, int mouseX, int mouseY, float partialTick) {
         if (this.isVisible()) {
             if (this.isBordered()) {
                 int i = this.isFocused() ? -1 : -6250336;
@@ -392,7 +394,10 @@ public class EditBox extends AbstractWidget implements Renderable {
 
             if (!s.isEmpty()) {
                 String s1 = flag ? s.substring(0, j) : s;
-                j1 = guiGraphics.drawString(this.font, (FormattedCharSequence)this.formatter.apply(s1, this.displayPos), l, i1, i2);
+                FormattedCharSequence head = this.formatter.apply(s1, this.displayPos);
+                guiGraphics.text(this.font, head, l, i1, i2);
+                // 1.20.1 drawString returned the end x: the advance plus 1 for the drop shadow.
+                j1 = l + this.font.width(head) + 1;
             }
 
             boolean flag2 = this.cursorPos < this.value.length() || this.value.length() >= this.getMaxLength();
@@ -405,22 +410,22 @@ public class EditBox extends AbstractWidget implements Renderable {
             }
 
             if (!s.isEmpty() && flag && j < s.length()) {
-                guiGraphics.drawString(this.font, (FormattedCharSequence)this.formatter.apply(s.substring(j), this.cursorPos), j1, i1, i2);
+                guiGraphics.text(this.font, this.formatter.apply(s.substring(j), this.cursorPos), j1, i1, i2);
             }
 
             if (this.hint != null && s.isEmpty() && !this.isFocused()) {
-                guiGraphics.drawString(this.font, this.hint, j1, i1, i2);
+                guiGraphics.text(this.font, this.hint, j1, i1, i2);
             }
 
             if (!flag2 && this.suggestion != null) {
-                guiGraphics.drawString(this.font, this.suggestion, k1 - 1, i1, -8355712);
+                guiGraphics.text(this.font, this.suggestion, k1 - 1, i1, -8355712);
             }
 
             if (flag1) {
                 if (flag2) {
-                    guiGraphics.fill(RenderType.guiOverlay(), k1, i1 - 1, k1 + 1, i1 + 1 + 9, -3092272);
+                    guiGraphics.fill(k1, i1 - 1, k1 + 1, i1 + 1 + 9, CURSOR_INSERT_COLOR);
                 } else {
-                    guiGraphics.drawString(this.font, "_", k1, i1, i2);
+                    guiGraphics.text(this.font, CURSOR_APPEND_CHARACTER, k1, i1, i2);
                 }
             }
 
@@ -432,7 +437,7 @@ public class EditBox extends AbstractWidget implements Renderable {
 
     }
 
-    private void renderHighlight(GuiGraphics guiGraphics, int minX, int minY, int maxX, int maxY) {
+    private void renderHighlight(GuiGraphicsExtractor guiGraphics, int minX, int minY, int maxX, int maxY) {
         if (minX < maxX) {
             int i = minX;
             minX = maxX;
@@ -453,7 +458,8 @@ public class EditBox extends AbstractWidget implements Renderable {
             minX = this.getX() + this.width;
         }
 
-        guiGraphics.fill(RenderType.guiTextHighlight(), minX, minY, maxX, maxY, -16776961);
+        // 26.2 vanilla's successor of the 1.20.1 logic-op highlight: invert, then the blue highlight.
+        guiGraphics.textHighlight(minX, minY, maxX, maxY, true);
     }
 
     public void setMaxLength(int length) {
@@ -481,10 +487,12 @@ public class EditBox extends AbstractWidget implements Renderable {
         this.bordered = enableBackgroundDrawing;
     }
 
+    /** Sets the text colour as ARGB; pass the alpha byte (e.g. {@code 0xFFE0E0E0}), as 26.2 skips text with alpha 0. */
     public void setTextColor(int color) {
         this.textColor = color;
     }
 
+    /** Sets the read-only text colour as ARGB; pass the alpha byte, as 26.2 skips text with alpha 0. */
     public void setTextColorUneditable(int color) {
         this.textColorUneditable = color;
     }

@@ -2,34 +2,36 @@ package net.dumbcode.projectnublar.gui.widget;
 
 //COPYRIGHT OF MOJANG.
 
-import com.mojang.blaze3d.systems.RenderSystem;
 import net.minecraft.client.InputType;
 import net.minecraft.client.Minecraft;
-import net.minecraft.client.gui.GuiGraphics;
+import net.minecraft.client.gui.GuiGraphicsExtractor;
 import net.minecraft.client.gui.components.AbstractWidget;
 import net.minecraft.client.gui.narration.NarratedElementType;
 import net.minecraft.client.gui.narration.NarrationElementOutput;
-import net.minecraft.client.gui.navigation.CommonInputs;
+import net.minecraft.client.input.KeyEvent;
+import net.minecraft.client.input.MouseButtonEvent;
+import net.minecraft.client.renderer.RenderPipelines;
 import net.minecraft.client.sounds.SoundManager;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.chat.MutableComponent;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
+import net.minecraft.util.ARGB;
 import net.minecraft.util.Mth;
 
-public abstract class AbstractSliderButton extends AbstractWidget {
-    private static final ResourceLocation SLIDER_LOCATION = new ResourceLocation("textures/gui/slider.png");
-    protected static final int TEXTURE_WIDTH = 200;
-    protected static final int TEXTURE_HEIGHT = 20;
-    protected static final int TEXTURE_BORDER_X = 20;
-    protected static final int TEXTURE_BORDER_Y = 4;
+/**
+ * Copy of the vanilla slider. Since 1.20.2 vanilla draws it from GUI sprites instead of
+ * {@code textures/gui/slider.png}; the copy follows the 26.2 vanilla class for that and for the
+ * grey inactive text, which now comes from {@link AbstractWidget.WithInactiveMessage}.
+ */
+public abstract class AbstractSliderButton extends AbstractWidget.WithInactiveMessage {
+    private static final Identifier SLIDER_SPRITE = Identifier.withDefaultNamespace("widget/slider");
+    private static final Identifier HIGHLIGHTED_SPRITE = Identifier.withDefaultNamespace("widget/slider_highlighted");
+    private static final Identifier SLIDER_HANDLE_SPRITE = Identifier.withDefaultNamespace("widget/slider_handle");
+    private static final Identifier SLIDER_HANDLE_HIGHLIGHTED_SPRITE = Identifier.withDefaultNamespace("widget/slider_handle_highlighted");
     protected static final int TEXT_MARGIN = 2;
     private static final int HEIGHT = 20;
     private static final int HANDLE_HALF_WIDTH = 4;
     private static final int HANDLE_WIDTH = 8;
-    private static final int BACKGROUND = 0;
-    private static final int BACKGROUND_FOCUSED = 1;
-    private static final int HANDLE = 2;
-    private static final int HANDLE_FOCUSED = 3;
     protected double value;
     private boolean canChangeValue;
 
@@ -38,14 +40,14 @@ public abstract class AbstractSliderButton extends AbstractWidget {
         this.value = value;
     }
 
-    public int getTextureY() {
-        int i = this.isFocused() && !this.canChangeValue ? 1 : 0;
-        return i * 20;
+    /** The track sprite: highlighted while focused but not yet changing the value (the old texture row 1). */
+    protected Identifier getSprite() {
+        return this.isFocused() && !this.canChangeValue ? HIGHLIGHTED_SPRITE : SLIDER_SPRITE;
     }
 
-    public int getHandleTextureY() {
-        int i = !this.isHovered && !this.canChangeValue ? 2 : 3;
-        return i * 20;
+    /** The handle sprite: highlighted while hovered or changing the value (the old texture row 3). */
+    protected Identifier getHandleSprite() {
+        return !this.isHovered && !this.canChangeValue ? SLIDER_HANDLE_SPRITE : SLIDER_HANDLE_HIGHLIGHTED_SPRITE;
     }
 
     protected MutableComponent createNarrationMessage() {
@@ -64,21 +66,14 @@ public abstract class AbstractSliderButton extends AbstractWidget {
 
     }
 
-    public void renderWidget(GuiGraphics guiGraphics, int mouseX, int mouseY, float partialTick) {
-        Minecraft minecraft = Minecraft.getInstance();
-        guiGraphics.setColor(1.0F, 1.0F, 1.0F, this.alpha);
-        RenderSystem.enableBlend();
-        RenderSystem.defaultBlendFunc();
-        RenderSystem.enableDepthTest();
-        guiGraphics.blitNineSliced(SLIDER_LOCATION, this.getX(), this.getY(), this.getWidth(), this.getHeight(), 20, 4, 200, 20, 0, this.getTextureY());
-        guiGraphics.blitNineSliced(SLIDER_LOCATION, this.getX() + (int)(this.value * (double)(this.width - 8)), this.getY(), 8, 20, 20, 4, 200, 20, 0, this.getHandleTextureY());
-        guiGraphics.setColor(1.0F, 1.0F, 1.0F, 1.0F);
-        int i = this.active ? 16777215 : 10526880;
-        this.renderScrollingString(guiGraphics, minecraft.font, 2, i | Mth.ceil(this.alpha * 255.0F) << 24);
+    public void extractWidgetRenderState(GuiGraphicsExtractor guiGraphics, int mouseX, int mouseY, float partialTick) {
+        guiGraphics.blitSprite(RenderPipelines.GUI_TEXTURED, this.getSprite(), this.getX(), this.getY(), this.getWidth(), this.getHeight(), ARGB.white(this.alpha));
+        guiGraphics.blitSprite(RenderPipelines.GUI_TEXTURED, this.getHandleSprite(), this.getX() + (int)(this.value * (double)(this.width - HANDLE_WIDTH)), this.getY(), HANDLE_WIDTH, HEIGHT, ARGB.white(this.alpha));
+        this.extractScrollingStringOverContents(guiGraphics.textRendererForWidget(this, GuiGraphicsExtractor.HoveredTextEffects.NONE), this.getMessage(), TEXT_MARGIN);
     }
 
-    public void onClick(double mouseX, double mouseY) {
-        this.setValueFromMouse(mouseX);
+    public void onClick(MouseButtonEvent event, boolean doubleClick) {
+        this.setValueFromMouse(event.x());
     }
 
     public void setFocused(boolean focused) {
@@ -94,16 +89,16 @@ public abstract class AbstractSliderButton extends AbstractWidget {
 
     }
 
-    public boolean keyPressed(int keyCode, int scanCode, int modifiers) {
-        if (CommonInputs.selected(keyCode)) {
+    public boolean keyPressed(KeyEvent event) {
+        if (event.isSelection()) {
             this.canChangeValue = !this.canChangeValue;
             return true;
         } else {
             if (this.canChangeValue) {
-                boolean flag = keyCode == 263;
-                if (flag || keyCode == 262) {
+                boolean flag = event.isLeft();
+                if (flag || event.isRight()) {
                     float f = flag ? -1.0F : 1.0F;
-                    this.setValue(this.value + (double)(f / (float)(this.width - 8)));
+                    this.setValue(this.value + (double)(f / (float)(this.width - HANDLE_WIDTH)));
                     return true;
                 }
             }
@@ -113,7 +108,7 @@ public abstract class AbstractSliderButton extends AbstractWidget {
     }
 
     private void setValueFromMouse(double mouseX) {
-        this.setValue((mouseX - (double)(this.getX() + 4)) / (double)(this.width - 8));
+        this.setValue((mouseX - (double)(this.getX() + HANDLE_HALF_WIDTH)) / (double)(this.width - HANDLE_WIDTH));
     }
 
     private void setValue(double value) {
@@ -126,15 +121,15 @@ public abstract class AbstractSliderButton extends AbstractWidget {
         this.updateMessage();
     }
 
-    protected void onDrag(double mouseX, double mouseY, double dragX, double dragY) {
-        this.setValueFromMouse(mouseX);
-        super.onDrag(mouseX, mouseY, dragX, dragY);
+    protected void onDrag(MouseButtonEvent event, double dragX, double dragY) {
+        this.setValueFromMouse(event.x());
+        super.onDrag(event, dragX, dragY);
     }
 
     public void playDownSound(SoundManager handler) {
     }
 
-    public void onRelease(double mouseX, double mouseY) {
+    public void onRelease(MouseButtonEvent event) {
         super.playDownSound(Minecraft.getInstance().getSoundManager());
     }
 

@@ -1,13 +1,16 @@
 package net.dumbcode.projectnublar.gui.widget;
 
 import com.google.common.collect.Lists;
-import net.minecraft.client.gui.GuiGraphics;
+import net.minecraft.client.gui.GuiGraphicsExtractor;
 import net.minecraft.client.gui.components.AbstractWidget;
 import net.minecraft.client.gui.components.Renderable;
 import net.minecraft.client.gui.components.events.ContainerEventHandler;
 import net.minecraft.client.gui.components.events.GuiEventListener;
 import net.minecraft.client.gui.narration.NarratableEntry;
 import net.minecraft.client.gui.narration.NarrationElementOutput;
+import net.minecraft.client.input.CharacterEvent;
+import net.minecraft.client.input.KeyEvent;
+import net.minecraft.client.input.MouseButtonEvent;
 import net.minecraft.network.chat.Component;
 import org.jetbrains.annotations.Nullable;
 
@@ -41,19 +44,19 @@ public abstract class ParentWidget<T extends GuiEventListener> extends AbstractW
 
     public abstract void init(boolean rebuild);
 
-    protected abstract void renderBackground(GuiGraphics pGuiGraphics, int pMouseX, int pMouseY, float pPartialTick);
+    protected abstract void renderBackground(GuiGraphicsExtractor pGuiGraphics, int pMouseX, int pMouseY, float pPartialTick);
 
-    protected abstract void renderForeground(GuiGraphics pGuiGraphics, int pMouseX, int pMouseY, float pPartialTick);
+    protected abstract void renderForeground(GuiGraphicsExtractor pGuiGraphics, int pMouseX, int pMouseY, float pPartialTick);
 
     @Override
-    protected void renderWidget(GuiGraphics pGuiGraphics, int pMouseX, int pMouseY, float pPartialTick) {
+    protected void extractWidgetRenderState(GuiGraphicsExtractor pGuiGraphics, int pMouseX, int pMouseY, float pPartialTick) {
         if (doesScissor()) {
 //            pGuiGraphics.enableScissor(getX(), getY() + getScissorsTopYOffset(), getX() + this.width, getY() + this.height);
             pGuiGraphics.enableScissor(getX() + getScissorsLeftXOffset(), getY() + getScissorsTopYOffset(), getX() + this.width - getScissorsRightXOffset(), getY() + this.height - getScissorsBottomYOffset());
         }
         this.renderBackground(pGuiGraphics, pMouseX, pMouseY, pPartialTick);
         for (Renderable renderable : this.renderables) {
-            renderable.render(pGuiGraphics, pMouseX, pMouseY, pPartialTick);
+            renderable.extractRenderState(pGuiGraphics, pMouseX, pMouseY, pPartialTick);
         }
         this.renderForeground(pGuiGraphics, pMouseX, pMouseY, pPartialTick);
         if (doesScissor())
@@ -78,9 +81,9 @@ public abstract class ParentWidget<T extends GuiEventListener> extends AbstractW
         this.scissorsTopYOffset = scissorsTopYOffset;
     }
 
-    public void renderAfterScissor(GuiGraphics pGuiGraphics, int pMouseX, int pMouseY, float pPartialTick) {
+    public void renderAfterScissor(GuiGraphicsExtractor pGuiGraphics, int pMouseX, int pMouseY, float pPartialTick) {
         for (Renderable renderable : this.renderableNoScissor) {
-            renderable.render(pGuiGraphics, pMouseX, pMouseY, pPartialTick);
+            renderable.extractRenderState(pGuiGraphics, pMouseX, pMouseY, pPartialTick);
         }
         for(GuiEventListener renderable : this.children){
             if(renderable instanceof TooltipRenderer && pMouseX >= getX() && pMouseX <= getX() + width && pMouseY >= getY() && pMouseY <= getY() + height){
@@ -167,13 +170,13 @@ public abstract class ParentWidget<T extends GuiEventListener> extends AbstractW
     }
 
     @Override
-    public boolean mouseClicked(double pMouseX, double pMouseY, int pButton) {
+    public boolean mouseClicked(MouseButtonEvent event, boolean doubleClick) {
         if (this.active && this.visible) {
-            if(this.isMouseOver(pMouseX, pMouseY)){
+            if(this.isMouseOver(event.x(), event.y())){
                 for (GuiEventListener guieventlistener : this.children()) {
-                    if (guieventlistener.mouseClicked(pMouseX, pMouseY, pButton)) {
+                    if (guieventlistener.mouseClicked(event, doubleClick)) {
                         this.setFocused(guieventlistener);
-                        if (pButton == 0) {
+                        if (event.button() == 0) {
                             this.setDragging(true);
                         }
 
@@ -188,33 +191,33 @@ public abstract class ParentWidget<T extends GuiEventListener> extends AbstractW
 
 
 
-    public boolean mouseReleased(double pMouseX, double pMouseY, int pButton) {
+    public boolean mouseReleased(MouseButtonEvent event) {
         this.setDragging(false);
-        return this.getChildAt(pMouseX, pMouseY).filter((p_94708_) -> {
-            return p_94708_.mouseReleased(pMouseX, pMouseY, pButton);
+        return this.getChildAt(event.x(), event.y()).filter((p_94708_) -> {
+            return p_94708_.mouseReleased(event);
         }).isPresent();
     }
 
-    public boolean mouseDragged(double pMouseX, double pMouseY, int pButton, double pDragX, double pDragY) {
-        return this.getFocused() != null && this.isDragging() && pButton == 0 ? this.getFocused().mouseDragged(pMouseX, pMouseY, pButton, pDragX, pDragY) : false;
+    public boolean mouseDragged(MouseButtonEvent event, double pDragX, double pDragY) {
+        return this.getFocused() != null && this.isDragging() && event.button() == 0 ? this.getFocused().mouseDragged(event, pDragX, pDragY) : false;
     }
 
-    public boolean mouseScrolled(double pMouseX, double pMouseY, double pDelta) {
+    public boolean mouseScrolled(double pMouseX, double pMouseY, double pScrollX, double pScrollY) {
         return this.getChildAt(pMouseX, pMouseY).filter((p_94693_) -> {
-            return p_94693_.mouseScrolled(pMouseX, pMouseY, pDelta);
+            return p_94693_.mouseScrolled(pMouseX, pMouseY, pScrollX, pScrollY);
         }).isPresent();
     }
 
-    public boolean keyPressed(int pKeyCode, int pScanCode, int pModifiers) {
-        return this.getFocused() != null && this.getFocused().keyPressed(pKeyCode, pScanCode, pModifiers);
+    public boolean keyPressed(KeyEvent event) {
+        return this.getFocused() != null && this.getFocused().keyPressed(event);
     }
 
-    public boolean keyReleased(int pKeyCode, int pScanCode, int pModifiers) {
-        return this.getFocused() != null && this.getFocused().keyReleased(pKeyCode, pScanCode, pModifiers);
+    public boolean keyReleased(KeyEvent event) {
+        return this.getFocused() != null && this.getFocused().keyReleased(event);
     }
 
-    public boolean charTyped(char pCodePoint, int pModifiers) {
-        return this.getFocused() != null && this.getFocused().charTyped(pCodePoint, pModifiers);
+    public boolean charTyped(CharacterEvent event) {
+        return this.getFocused() != null && this.getFocused().charTyped(event);
     }
 
     public void rebuild() {

@@ -3,12 +3,13 @@ package net.dumbcode.projectnublar.gui.widget;
 import net.dumbcode.projectnublar.gui.NublarGuiConstants;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.Font;
-import net.minecraft.client.gui.GuiGraphics;
+import net.minecraft.client.gui.GuiGraphicsExtractor;
 
 import net.minecraft.client.gui.components.events.GuiEventListener;
+import net.minecraft.client.renderer.RenderPipelines;
 import net.minecraft.network.chat.Component;
-import net.minecraft.resources.ResourceLocation;
-import net.minecraft.util.FastColor;
+import net.minecraft.resources.Identifier;
+import net.minecraft.util.ARGB;
 
 import java.awt.*;
 
@@ -20,7 +21,7 @@ import java.awt.*;
  * parameterizing this inversion.
  */
 public class ColorPickerWidget<T extends GuiEventListener> extends ParentWidget<T> {
-    public static final ResourceLocation COLOR_WHEEL_BACKGROUND = new ResourceLocation(NublarGuiConstants.MODID, "textures/gui/color_wheel_background.png");
+    public static final Identifier COLOR_WHEEL_BACKGROUND = Identifier.fromNamespaceAndPath(NublarGuiConstants.MODID, "textures/gui/color_wheel_background.png");
     private float currentHue = 0;
     private float currentSaturation = 0;
     private float currentValue = 0.0f;
@@ -75,27 +76,27 @@ public class ColorPickerWidget<T extends GuiEventListener> extends ParentWidget<
         this.saturationEditBox.setMaxLength(4);
         this.valueEditBox.setMaxLength(4);
         int color = getCurrentColor(this.currentHue, this.currentSaturation, this.currentValue);
-        this.redEditBox.setValue(FastColor.ARGB32.red(color) + "");
-        this.greenEditBox.setValue(FastColor.ARGB32.green(color) + "");
-        this.blueEditBox.setValue(FastColor.ARGB32.blue(color) + "");
+        this.redEditBox.setValue(ARGB.red(color) + "");
+        this.greenEditBox.setValue(ARGB.green(color) + "");
+        this.blueEditBox.setValue(ARGB.blue(color) + "");
         this.hueEditBox.setValue(currentHue + "");
         this.saturationEditBox.setValue(currentSaturation + "");
         this.valueEditBox.setValue(currentValue + "");
         this.redEditBox.setResponder((p_169394_) -> {
             int red = tryParseInt(p_169394_);
-            int newColor = FastColor.ARGB32.color(255, red, greenEditBox.getValue().isEmpty() ? 0 : Integer.parseInt(greenEditBox.getValue()), blueEditBox.getValue().isEmpty() ? 0 : Integer.parseInt(blueEditBox.getValue()));
+            int newColor = ARGB.color(255, red, greenEditBox.getValue().isEmpty() ? 0 : Integer.parseInt(greenEditBox.getValue()), blueEditBox.getValue().isEmpty() ? 0 : Integer.parseInt(blueEditBox.getValue()));
             this.setFromRBG(newColor,false);
             this.onColorChanged.onColorChanged(newColor);
         });
         this.greenEditBox.setResponder((p_169394_) -> {
             int green = tryParseInt(p_169394_);
-            int newColor = FastColor.ARGB32.color(255, redEditBox.getValue().isEmpty() ? 0 : Integer.parseInt(redEditBox.getValue()), green, blueEditBox.getValue().isEmpty() ? 0 : Integer.parseInt(blueEditBox.getValue()));
+            int newColor = ARGB.color(255, redEditBox.getValue().isEmpty() ? 0 : Integer.parseInt(redEditBox.getValue()), green, blueEditBox.getValue().isEmpty() ? 0 : Integer.parseInt(blueEditBox.getValue()));
             this.setFromRBG(newColor,false);
             this.onColorChanged.onColorChanged(newColor);
         });
         this.blueEditBox.setResponder((p_169394_) -> {
             int blue = tryParseInt(p_169394_);
-            int newColor = FastColor.ARGB32.color(255, redEditBox.getValue().isEmpty() ? 0 : Integer.parseInt(redEditBox.getValue()), greenEditBox.getValue().isEmpty() ? 0 : Integer.parseInt(greenEditBox.getValue()), blue);
+            int newColor = ARGB.color(255, redEditBox.getValue().isEmpty() ? 0 : Integer.parseInt(redEditBox.getValue()), greenEditBox.getValue().isEmpty() ? 0 : Integer.parseInt(greenEditBox.getValue()), blue);
             this.setFromRBG(newColor,false);
             this.onColorChanged.onColorChanged(newColor);
         });
@@ -125,13 +126,12 @@ public class ColorPickerWidget<T extends GuiEventListener> extends ParentWidget<
     }
 
     @Override
-    protected void renderBackground(GuiGraphics pGuiGraphics, int pMouseX, int pMouseY, float pPartialTick) {
-        pGuiGraphics.pose().translate(0,0,1000);
-        pGuiGraphics.blit(COLOR_WHEEL_BACKGROUND, this.getX(), this.getY(), 0, 0, this.width, this.height, this.width, this.height);
+    protected void renderBackground(GuiGraphicsExtractor pGuiGraphics, int pMouseX, int pMouseY, float pPartialTick) {
+        pGuiGraphics.blit(RenderPipelines.GUI_TEXTURED, COLOR_WHEEL_BACKGROUND, this.getX(), this.getY(), 0, 0, this.width, this.height, this.width, this.height);
     }
 
     @Override
-    protected void renderForeground(GuiGraphics pGuiGraphics, int pMouseX, int pMouseY, float pPartialTick) {
+    protected void renderForeground(GuiGraphicsExtractor pGuiGraphics, int pMouseX, int pMouseY, float pPartialTick) {
 
     }
 

@@ -1,6 +1,6 @@
 package net.dumbcode.projectnublar.gui.widget;
 
-import net.minecraft.client.gui.GuiGraphics;
+import net.minecraft.client.gui.GuiGraphicsExtractor;
 import net.minecraft.client.gui.components.AbstractButton;
 import net.minecraft.client.gui.components.events.GuiEventListener;
 import net.minecraft.network.chat.Component;
@@ -58,7 +58,7 @@ public class ScrollingButtonListWidget<T extends GuiEventListener> extends Paren
     }
 
     @Override
-    public boolean mouseScrolled(double pMouseX, double pMouseY, double pDelta) {
+    public boolean mouseScrolled(double pMouseX, double pMouseY, double pScrollX, double pDelta) {
         int change = (int) (pDelta * 10);
         // TODO(BUG): the scroll clamp hardcodes -(count - 10) * 21, assuming ten visible
         // 21-pixel rows regardless of the widget's actual height; current UX depends on it.
@@ -66,16 +66,16 @@ public class ScrollingButtonListWidget<T extends GuiEventListener> extends Paren
             buttons.forEach(button -> button.setY(button.getY() + (int) (pDelta * 10)));
             scroll += (int) (pDelta * 10);
         }
-        return super.mouseScrolled(pMouseX, pMouseY, pDelta);
+        return super.mouseScrolled(pMouseX, pMouseY, pScrollX, pDelta);
     }
 
     @Override
-    protected void renderBackground(GuiGraphics pGuiGraphics, int pMouseX, int pMouseY, float pPartialTick) {
+    protected void renderBackground(GuiGraphicsExtractor pGuiGraphics, int pMouseX, int pMouseY, float pPartialTick) {
 
     }
 
     @Override
-    protected void renderForeground(GuiGraphics pGuiGraphics, int pMouseX, int pMouseY, float pPartialTick) {
+    protected void renderForeground(GuiGraphicsExtractor pGuiGraphics, int pMouseX, int pMouseY, float pPartialTick) {
 
     }
 }

@@ -2,9 +2,10 @@ package net.dumbcode.projectnublar.gui.widget;
 
 import it.unimi.dsi.fastutil.objects.Object2ObjectMap;
 import it.unimi.dsi.fastutil.objects.Object2ObjectOpenHashMap;
-import net.minecraft.client.gui.GuiGraphics;
+import net.minecraft.client.gui.GuiGraphicsExtractor;
 import net.minecraft.client.gui.components.AbstractWidget;
 import net.minecraft.client.gui.narration.NarrationElementOutput;
+import net.minecraft.client.input.MouseButtonEvent;
 import net.minecraft.network.chat.Component;
 import net.minecraft.world.item.DyeColor;
 
@@ -46,7 +47,9 @@ public class VanillaColorPickerWidget extends AbstractWidget {
     }
 
     @Override
-    public void onClick(double mouseX, double mouseY) {
+    public void onClick(MouseButtonEvent event, boolean doubleClick) {
+        double mouseX = event.x();
+        double mouseY = event.y();
         colorMap.forEach((rowColumn, dyeColor) -> {
             if(mouseX >= getX() + (rowColumn.column * cubeHeight) && mouseX <= getX() + (rowColumn.column * cubeHeight) +cubeHeight && mouseY >= getY() + (rowColumn.row * cubeHeight) && mouseY <= getY() + (rowColumn.row * cubeHeight) + cubeHeight) {
                 onColorSelected.onColorSelected(HEX_CODS.get(dyeColor));
@@ -55,7 +58,7 @@ public class VanillaColorPickerWidget extends AbstractWidget {
     }
 
     @Override
-    protected void renderWidget(GuiGraphics pGuiGraphics, int pMouseX, int pMouseY, float pPartialTick) {
+    protected void extractWidgetRenderState(GuiGraphicsExtractor pGuiGraphics, int pMouseX, int pMouseY, float pPartialTick) {
         for (RowColumn rowColumn : colorMap.keySet()) {
             DyeColor dyeColor = colorMap.get(rowColumn);
 

@@ -1,7 +1,7 @@
 package net.dumbcode.projectnublar.gui.widget;
 
 
-import net.minecraft.client.gui.GuiGraphics;
+import net.minecraft.client.gui.GuiGraphicsExtractor;
 import net.minecraft.client.gui.components.AbstractWidget;
 import net.minecraft.network.chat.Component;
 import org.jetbrains.annotations.Nullable;
@@ -18,12 +18,12 @@ public class DataDisplayWidget extends ParentWidget<AbstractWidget> {
     }
 
     @Override
-    protected void renderBackground(GuiGraphics pGuiGraphics, int pMouseX, int pMouseY, float pPartialTick) {
+    protected void renderBackground(GuiGraphicsExtractor pGuiGraphics, int pMouseX, int pMouseY, float pPartialTick) {
 
     }
 
     @Override
-    protected void renderForeground(GuiGraphics pGuiGraphics, int pMouseX, int pMouseY, float pPartialTick) {
+    protected void renderForeground(GuiGraphicsExtractor pGuiGraphics, int pMouseX, int pMouseY, float pPartialTick) {
 
     }
 }

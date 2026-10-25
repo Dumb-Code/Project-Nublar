@@ -1,16 +1,18 @@
 package net.dumbcode.projectnublar.gui.widget;
 
 import net.dumbcode.projectnublar.gui.NublarGuiConstants;
-import net.minecraft.client.gui.GuiGraphics;
+import net.minecraft.client.gui.GuiGraphicsExtractor;
 import net.minecraft.client.gui.components.AbstractWidget;
 import net.minecraft.client.gui.narration.NarrationElementOutput;
+import net.minecraft.client.input.MouseButtonEvent;
+import net.minecraft.client.renderer.RenderPipelines;
 import net.minecraft.network.chat.Component;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.util.Mth;
 
 public class VerticalGradientBarWidget extends AbstractWidget {
-    public static final ResourceLocation VALUE_BAR_SIDE = new ResourceLocation(NublarGuiConstants.MODID, "textures/gui/value_bar_side.png");
-    public static final ResourceLocation VALUE_BAR_MIDDLE = new ResourceLocation(NublarGuiConstants.MODID, "textures/gui/value_bar_middle.png");
+    public static final Identifier VALUE_BAR_SIDE = Identifier.fromNamespaceAndPath(NublarGuiConstants.MODID, "textures/gui/value_bar_side.png");
+    public static final Identifier VALUE_BAR_MIDDLE = Identifier.fromNamespaceAndPath(NublarGuiConstants.MODID, "textures/gui/value_bar_middle.png");
     private int topColor = 0xFFFFFFFF;
     private int bottomColor = 0xFF000000;
     private int barY;
@@ -24,27 +26,27 @@ public class VerticalGradientBarWidget extends AbstractWidget {
     }
 
     @Override
-    protected void renderWidget(GuiGraphics guiGraphics, int i, int i1, float v) {
+    protected void extractWidgetRenderState(GuiGraphicsExtractor guiGraphics, int i, int i1, float v) {
         guiGraphics.fillGradient(getX(), getY(), getX() + width, getY() + height, topColor, bottomColor);
-        guiGraphics.blit(VALUE_BAR_SIDE, getX() - 1, barY-1, 0, 0, 1, 3, 1, 3);
-        guiGraphics.blit(VALUE_BAR_MIDDLE, getX(), barY-1, 0, 0, width, 3, width, 3);
-        guiGraphics.blit(VALUE_BAR_SIDE, getX() + width, barY-1, 0, 0, 1, 3, 1, 3);
+        guiGraphics.blit(RenderPipelines.GUI_TEXTURED, VALUE_BAR_SIDE, getX() - 1, barY-1, 0, 0, 1, 3, 1, 3);
+        guiGraphics.blit(RenderPipelines.GUI_TEXTURED, VALUE_BAR_MIDDLE, getX(), barY-1, 0, 0, width, 3, width, 3);
+        guiGraphics.blit(RenderPipelines.GUI_TEXTURED, VALUE_BAR_SIDE, getX() + width, barY-1, 0, 0, 1, 3, 1, 3);
     }
 
     @Override
-    public void onClick(double mouseX, double mouseY) {
+    public void onClick(MouseButtonEvent event, boolean doubleClick) {
         float oldValue = this.value;
-        this.value = 1.0f-(float)(mouseY - getY()) / (float)height;
+        this.value = 1.0f-(float)(event.y() - getY()) / (float)height;
         this.valueChanged.onValueChanged(oldValue, this.value);
-        this.barY = (int)mouseY;
+        this.barY = (int)event.y();
     }
 
     @Override
-    protected void onDrag(double pMouseX, double pMouseY, double pDragX, double pDragY) {
+    protected void onDrag(MouseButtonEvent event, double pDragX, double pDragY) {
         float oldValue = this.value;
-        this.value = 1.0f-Mth.clamp((float)(pMouseY - getY()) / (float)height,0.0f,1.0f);
+        this.value = 1.0f-Mth.clamp((float)(event.y() - getY()) / (float)height,0.0f,1.0f);
         this.valueChanged.onValueChanged(oldValue, this.value);
-        this.barY = Mth.clamp((int)pMouseY, getY(), getY() + height - 1);
+        this.barY = Mth.clamp((int)event.y(), getY(), getY() + height - 1);
     }
 
     @Override

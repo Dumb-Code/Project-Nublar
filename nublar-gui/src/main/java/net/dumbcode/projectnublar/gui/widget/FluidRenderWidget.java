@@ -1,26 +1,26 @@
 package net.dumbcode.projectnublar.gui.widget;
 
-import com.mojang.blaze3d.systems.RenderSystem;
 import net.minecraft.client.Minecraft;
-import net.minecraft.client.gui.GuiGraphics;
+import net.minecraft.client.gui.GuiGraphicsExtractor;
 import net.minecraft.client.gui.components.AbstractWidget;
 import net.minecraft.client.gui.narration.NarrationElementOutput;
+import net.minecraft.client.renderer.RenderPipelines;
 import net.minecraft.network.chat.Component;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 
 public class FluidRenderWidget extends AbstractWidget {
 
 
-    private static final ResourceLocation FLOW_TEXTURE = new ResourceLocation("textures/block/water_flow.png");
-    private static final ResourceLocation STILL_TEXTURE = new ResourceLocation("textures/block/water_still.png");
+    private static final Identifier FLOW_TEXTURE = Identifier.withDefaultNamespace("textures/block/water_flow.png");
+    private static final Identifier STILL_TEXTURE = Identifier.withDefaultNamespace("textures/block/water_still.png");
 
-    private ResourceLocation foreground;
+    private Identifier foreground;
     private float progress = 0;
     private int color;
     private boolean flowDown;
     private boolean flow;
 
-    public FluidRenderWidget(int x, int y, int width, int height, ResourceLocation foreground, int color, boolean flow, boolean flowDown) {
+    public FluidRenderWidget(int x, int y, int width, int height, Identifier foreground, int color, boolean flow, boolean flowDown) {
         super(x, y, width, height, Component.empty());
         this.foreground = foreground;
         this.color = color;
@@ -29,16 +29,15 @@ public class FluidRenderWidget extends AbstractWidget {
     }
 
     @Override
-    protected void renderWidget(GuiGraphics guiGraphics, int i, int i1, float v) {
-        RenderSystem.setShaderColor((color >> 16 & 255) / 255.0F, (color >> 8 & 255) / 255.0F, (color & 255) / 255.0F, (color >> 24 & 255) / 255.0F);
+    protected void extractWidgetRenderState(GuiGraphicsExtractor guiGraphics, int i, int i1, float v) {
         long tick = Minecraft.getInstance().level.getGameTime();
         int offset = (int) (tick % 32) * (flowDown ? -1 : 1);
         guiGraphics.enableScissor(getX() + 1, getY() + 1 + ((height - 1) - (int) ((height - 1) * getProgress())), getX() + width - 1, getY() + height - 1);
-        guiGraphics.blit(flow ? FLOW_TEXTURE : STILL_TEXTURE, getX() + 1, getY() + 1, width - 2, height - 2, 0, offset * 32, 32, 1024, 32, 1024);
+        // The fluid colour tints this blit only (in 1.20.1 it was a shader colour set around it).
+        guiGraphics.blit(RenderPipelines.GUI_TEXTURED, flow ? FLOW_TEXTURE : STILL_TEXTURE, getX() + 1, getY() + 1, 0, offset * 32, width - 2, height - 2, 32, 1024, 32, 1024, color);
         guiGraphics.disableScissor();
-        RenderSystem.setShaderColor(1, 1, 1, 1);
         if(foreground != null) {
-            guiGraphics.blit(foreground, getX(), getY(), 0, 0, width, height, width, height);
+            guiGraphics.blit(RenderPipelines.GUI_TEXTURED, foreground, getX(), getY(), 0, 0, width, height, width, height);
         }
     }
 

@@ -1,40 +1,41 @@
 package net.dumbcode.projectnublar.gui.widget;
 
 
-import net.minecraft.client.gui.GuiGraphics;
+import net.minecraft.client.gui.GuiGraphicsExtractor;
 import net.minecraft.client.gui.components.AbstractWidget;
 
 import net.minecraft.client.gui.narration.NarrationElementOutput;
+import net.minecraft.client.renderer.RenderPipelines;
 import net.minecraft.network.chat.Component;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 
 import java.util.function.Supplier;
 
 public class ProgressWidget extends AbstractWidget {
-    private final ResourceLocation background;
-    private final ResourceLocation foreground;
+    private final Identifier background;
+    private final Identifier foreground;
     private final boolean horizontal;
     private int color;
     public Supplier<Float> progress;
     private boolean reverse;
 
-    public ProgressWidget(int x, int y, int width, int height, ResourceLocation foreground, boolean horizontal, boolean reverse) {
+    public ProgressWidget(int x, int y, int width, int height, Identifier foreground, boolean horizontal, boolean reverse) {
         this(x, y, width, height, null, foreground, -1, horizontal, reverse);
     }
 
-    public ProgressWidget(int x, int y, int width, int height, ResourceLocation foreground, Supplier<Float> progress, boolean horizontal, boolean reverse) {
+    public ProgressWidget(int x, int y, int width, int height, Identifier foreground, Supplier<Float> progress, boolean horizontal, boolean reverse) {
         this(x, y, width, height, null, foreground, -1, progress, horizontal, reverse);
     }
 
-    public ProgressWidget(int x, int y, int width, int height, ResourceLocation background, ResourceLocation foreground, int color, boolean horizontal, boolean reverse) {
+    public ProgressWidget(int x, int y, int width, int height, Identifier background, Identifier foreground, int color, boolean horizontal, boolean reverse) {
         this(x, y, width, height, background, foreground, color, () -> 0.0F, horizontal, reverse);
     }
 
-    public ProgressWidget(int x, int y, int width, int height, ResourceLocation background, ResourceLocation foreground, Supplier<Float> progress, boolean horizontal, boolean reverse) {
+    public ProgressWidget(int x, int y, int width, int height, Identifier background, Identifier foreground, Supplier<Float> progress, boolean horizontal, boolean reverse) {
         this(x, y, width, height, background, foreground, -1, progress, horizontal, reverse);
     }
 
-    public ProgressWidget(int x, int y, int width, int height, ResourceLocation background, ResourceLocation foreground, int color, Supplier<Float> progress, boolean horizontal, boolean reverse) {
+    public ProgressWidget(int x, int y, int width, int height, Identifier background, Identifier foreground, int color, Supplier<Float> progress, boolean horizontal, boolean reverse) {
         super(x, y, width, height, Component.empty());
         this.background = background;
         this.foreground = foreground;
@@ -45,13 +46,11 @@ public class ProgressWidget extends AbstractWidget {
     }
 
     @Override
-    protected void renderWidget(GuiGraphics guiGraphics, int i, int i1, float v) {
+    protected void extractWidgetRenderState(GuiGraphicsExtractor guiGraphics, int i, int i1, float v) {
         if (background != null) {
-            guiGraphics.blit(background, getX(), getY(), 0, 0, getWidth(), getHeight(), getWidth(), getHeight());
+            guiGraphics.blit(RenderPipelines.GUI_TEXTURED, background, getX(), getY(), 0, 0, getWidth(), getHeight(), getWidth(), getHeight());
         }
-        if (color != -1) {
-            guiGraphics.setColor((color >> 16 & 255) / 255.0F, (color >> 8 & 255) / 255.0F, (color & 255) / 255.0F, (color >> 24 & 255) / 255.0F);
-        }
+        // The colour tints the foreground blits only; the default -1 is opaque white, which is no tint.
         if (horizontal) {
             int progressWidth = (int) (getWidth() * progress.get());
             if(!reverse) {
@@ -59,7 +58,7 @@ public class ProgressWidget extends AbstractWidget {
             } else {
                 guiGraphics.enableScissor(getX() + 1 + ((width - 1) - (int) ((width - 1) * getProgress().get())), getY() + 1, getX() + width - 1, getY() + height - 1);
             }
-            guiGraphics.blit(foreground, getX(), getY(), 0, 0, getWidth(), getHeight(), getWidth(), getHeight());
+            guiGraphics.blit(RenderPipelines.GUI_TEXTURED, foreground, getX(), getY(), 0, 0, getWidth(), getHeight(), getWidth(), getHeight(), color);
         } else {
             int progressHeight = (int) (getHeight() * progress.get());
             if(!reverse) {
@@ -67,10 +66,7 @@ public class ProgressWidget extends AbstractWidget {
             } else {
                 guiGraphics.enableScissor(getX() + 1, getY() + 1, getX() + width - 1, getY() + 1 + ((height - 1) - (int) ((height - 1) * getProgress().get())));
             }
-            guiGraphics.blit(foreground, getX(), getY() + getHeight(), 0, getHeight(), getWidth(), getHeight(), getWidth(), getHeight());
-        }
-        if (color != -1) {
-            guiGraphics.setColor(1, 1, 1, 1);
+            guiGraphics.blit(RenderPipelines.GUI_TEXTURED, foreground, getX(), getY() + getHeight(), 0, getHeight(), getWidth(), getHeight(), getWidth(), getHeight(), color);
         }
         guiGraphics.disableScissor();
     }

@@ -5,12 +5,11 @@ package net.dumbcode.projectnublar.gui.widget;
 import net.dumbcode.projectnublar.gui.NublarGuiConstants;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.Font;
-import net.minecraft.client.gui.GuiGraphics;
+import net.minecraft.client.gui.GuiGraphicsExtractor;
 import net.minecraft.client.gui.components.EditBox;
 import net.minecraft.client.gui.components.events.GuiEventListener;
 import net.minecraft.network.chat.Component;
-import net.minecraft.resources.ResourceLocation;
-import net.minecraft.util.FastColor;
+import net.minecraft.resources.Identifier;
 import net.minecraft.util.Mth;
 
 import java.awt.*;
@@ -22,7 +21,7 @@ import java.awt.*;
  * the value - the two widgets must not be unified without parameterizing this difference.
  */
 public class DinoColorPickerWidget<T extends GuiEventListener> extends ParentWidget<T> {
-    public static final ResourceLocation COLOR_WHEEL_BACKGROUND = new ResourceLocation(NublarGuiConstants.MODID, "textures/gui/color_wheel_background.png");
+    public static final Identifier COLOR_WHEEL_BACKGROUND = Identifier.fromNamespaceAndPath(NublarGuiConstants.MODID, "textures/gui/color_wheel_background.png");
     private float currentHue = 0;
     private float currentSaturation = 0;
     private float currentValue = 0.0f;
@@ -131,13 +130,12 @@ public class DinoColorPickerWidget<T extends GuiEventListener> extends ParentWid
     }
 
     @Override
-    protected void renderBackground(GuiGraphics pGuiGraphics, int pMouseX, int pMouseY, float pPartialTick) {
-        pGuiGraphics.pose().translate(0,0,1000);
+    protected void renderBackground(GuiGraphicsExtractor pGuiGraphics, int pMouseX, int pMouseY, float pPartialTick) {
 //        pGuiGraphics.blit(COLOR_WHEEL_BACKGROUND, this.getX(), this.getY(), 0, 0, this.width, this.height, this.width, this.height);
     }
 
     @Override
-    protected void renderForeground(GuiGraphics pGuiGraphics, int pMouseX, int pMouseY, float pPartialTick) {
+    protected void renderForeground(GuiGraphicsExtractor pGuiGraphics, int pMouseX, int pMouseY, float pPartialTick) {
 
     }
 
