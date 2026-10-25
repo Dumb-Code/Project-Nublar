@@ -334,7 +334,7 @@ No file in `common` or `nublar-gui` imports `net.minecraftforge.api.distmarker` 
   - two `META-INF/services/com.example.examplemod...` files `[v]`
 - **Metadata.** `mod_author=Dumb-Code`, `description=Clone dinosaurs from fossils and amber, raise them in powered enclosures.`, version 0.0.23, `minecraft_version_range=[1.20.1, 1.22)`.
 - **Dependencies.** `mods.toml` declares SmartBrainLib, GeckoLib, Architectury and Botarium, each with `side="BOTH"`. `fabric.mod.json` declares GeckoLib, SmartBrainLib and Architectury. The Fabric jar nests Botarium.
-- **Tests.** `./gradlew :common:test` runs the unit tests with JUnit 5. The GameTest bodies are in `J/gametest/`. `ForgeGameTests` and `FabricGameTests` register them on each loader. `.github/` holds only the pull request template. The repository has no CI.
+- **Tests.** `./gradlew :common:test` runs the unit tests with JUnit 5. The GameTest bodies are in `J/gametest/`. `ForgeGameTests` and `FabricGameTests` register them on each loader. `.github/` holds the pull request template and the workflow `.github/workflows/build.yml`. The workflow builds both loaders and runs `:common:test` on every push and pull request.
 
 ---
 
