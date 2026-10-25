@@ -1,6 +1,8 @@
 name: Build
 on:
+  # Pull requests build through pull_request, so a push to a PR branch builds once.
   push:
+    branches: [integration/1.20.1]
   pull_request:
 permissions:
   contents: read
