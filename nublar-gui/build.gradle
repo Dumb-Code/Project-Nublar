@@ -1,19 +1,19 @@
 plugins {
     id 'multiloader-common'
-    id 'net.neoforged.moddev.legacyforge'
+    id 'net.neoforged.moddev'
 }
 
-legacyForge {
-    mcpVersion = minecraft_version
-    parchment {
-        minecraftVersion = parchment_minecraft
-        mappingsVersion = parchment_version
-    }
+neoForge {
+    // nublar-gui compiles against vanilla only (NeoForm), like common.
+    neoFormVersion = neo_form_version
 }
 
 dependencies {
-    implementation group: 'com.google.code.findbugs', name: 'jsr305', version: '3.0.1'
-    compileOnly group: 'org.jetbrains', name: 'annotations', version: '24.1.0'
+    compileOnly 'org.jetbrains:annotations:24.1.0'
+}
+
+tasks.named('compileJava') {
+    options.compilerArgs += ['-Xmaxerrs', '10000'] // compile window, removed in Task 11
 }
 
 configurations {

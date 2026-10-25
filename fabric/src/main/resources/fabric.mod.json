@@ -19,21 +19,22 @@
         "main": [
             "net.dumbcode.projectnublar.ProjectNublarFabric"
         ],
-        "fabric-gametest": [
-            "net.dumbcode.projectnublar.gametest.FabricGameTests"
+        "client": [
+            "net.dumbcode.projectnublar.ProjectNublarClientFabric"
         ]
     },
-    "mixins": [
-        "projectnublar.mixins.json",
-        "projectnublar.fabric.mixins.json"
-    ],
     "depends": {
-        "fabricloader": ">=0.14",
+        "java": ">=25",
+        "minecraft": "~26.2",
+        "fabricloader": ">=0.20.1",
         "fabric-api": "*",
-        "minecraft": "${minecraft_version}",
-        "java": ">=17",
-        "geckolib": ">=4.7",
-        "smartbrainlib": ">=1.15",
-        "architectury": ">=9.2"
+        "geckolib": ">=5.5.5",
+        "smartbrainlib": ">=2.0.3",
+        "balm": ">=26.2.0.9",
+        "architectury": ">=21.1.12"
+    },
+    "suggests": {
+        "team_reborn_energy": "*"
     }
 }
+

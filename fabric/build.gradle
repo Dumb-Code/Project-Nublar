@@ -1,56 +1,60 @@
 plugins {
     id 'multiloader-loader'
-    id 'fabric-loom'
+    id 'net.fabricmc.fabric-loom'
 }
+
+// Minecraft 26.x is unobfuscated: no mappings line, and plain implementation in place of modImplementation.
 dependencies {
     minecraft "com.mojang:minecraft:${minecraft_version}"
-    mappings loom.layered {
-        officialMojangMappings()
-        parchment("org.parchmentmc.data:parchment-${parchment_minecraft}:${parchment_version}@zip")
-    }
-    modImplementation "net.fabricmc:fabric-loader:${fabric_loader_version}"
-    modImplementation "net.fabricmc.fabric-api:fabric-api:${fabric_version}"
-    implementation group: 'com.google.code.findbugs', name: 'jsr305', version: '3.0.1'
-    implementation project(":common")
+    implementation "net.fabricmc:fabric-loader:${fabric_loader_version}"
+    implementation "net.fabricmc.fabric-api:fabric-api:${fabric_version}"
 
-    modApi "fuzs.forgeconfigapiport:forgeconfigapiport-fabric:${project.forge_config_api_port_version}"
-    include "fuzs.forgeconfigapiport:forgeconfigapiport-fabric:${project.forge_config_api_port_version}"
-    modImplementation "net.tslat.smartbrainlib:SmartBrainLib-fabric-${project.minecraft_version}:${project.sbl_version}"
-    modImplementation "software.bernie.geckolib:geckolib-fabric-${minecraft_version}:${geckolib_version}"
- //   modImplementation "com.nyfaria.nyfsguilib:nyfsguilib-fabric-${minecraft_version}:${ngl_version}"
- //   include("com.nyfaria.nyfsguilib:nyfsguilib-fabric-${minecraft_version}:${ngl_version}")
-    modImplementation include('mysticdrew:common-networking-fabric:1.0.5-1.20.1')
-    modImplementation include("earth.terrarium.botarium:botarium-fabric-1.20.1:2.3.4")
-    modImplementation "dev.architectury:architectury-fabric:$rootProject.architectury_api_version"
+    implementation "com.geckolib:geckolib-fabric-${minecraft_version}:${geckolib_fabric_version}"
+    implementation "net.tslat:smartbrainlib-fabric-${minecraft_version}:${sbl_version}"
+    implementation "net.blay09.mods:balm-fabric:${balm_version}"
+    implementation "dev.architectury:architectury-fabric:${architectury_api_version}"
+    include(implementation("fuzs.forgeconfigapiport:forgeconfigapiport-fabric:${forge_config_api_port_version}"))
+    // Nested so Balm can expose energy to cable mods. Fabric Loader keeps the newest nested copy,
+    // so a newer Team Reborn Energy from another mod wins over this one.
+    include(implementation("teamreborn:energy:${team_reborn_energy_version}"))
 }
 
 loom {
-   if (project(":common").file("src/main/resources/${mod_id}.accesswidener").exists()) {
-        accessWidenerPath.set(project(":common").file("src/main/resources/${mod_id}.accesswidener"))
-   }
-    // accessWidenerPath = file("src/main/resources/projectnublar.accesswidener")
-    mixin {
-        defaultRefmapName.set("${mod_id}.refmap.json")
+    def aw = project(':common').file("src/main/resources/${mod_id}.accesswidener")
+    if (aw.exists()) {
+        accessWidenerPath.set(aw)
     }
     runs {
         client {
             client()
-            setConfigName("Fabric Client")
+            setConfigName('Fabric Client')
             ideConfigGenerated(true)
-            runDir("run")
+            runDir('runs/client')
         }
         server {
             server()
-            setConfigName("Fabric Server")
+            setConfigName('Fabric Server')
             ideConfigGenerated(true)
-            runDir("run")
+            runDir('runs/server')
         }
-        gametest {
-            server()
-            setConfigName("Fabric GameTest")
-            vmArg "-Dfabric-api.gametest"
-            vmArg "-Dfabric-api.gametest.report-file=${project.buildDir}/junit.xml"
-            runDir "build/gametest"
+    }
+}
+
+// Implement mcgradleconventions loader attribute (MultiLoader Template)
+def loaderAttribute = Attribute.of('io.github.mcgradleconventions.loader', String)
+['apiElements', 'runtimeElements', 'sourcesElements', 'javadocElements', 'includeInternal', 'modCompileClasspath'].each { variant ->
+    configurations.named(variant) {
+        attributes {
+            attribute(loaderAttribute, 'fabric')
+        }
+    }
+}
+sourceSets.configureEach {
+    [it.compileClasspathConfigurationName, it.runtimeClasspathConfigurationName].each { variant ->
+        configurations.named(variant) {
+            attributes {
+                attribute(loaderAttribute, 'fabric')
+            }
         }
     }
 }

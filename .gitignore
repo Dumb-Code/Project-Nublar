@@ -21,6 +21,7 @@ build
 # other
 eclipse
 run
+runs
 
 # Not source: crash logs, data-run output, the datagen cache, agent and tool exports
 hs_err_*.log
