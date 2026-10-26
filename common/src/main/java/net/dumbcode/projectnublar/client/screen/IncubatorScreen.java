@@ -9,7 +9,7 @@ import net.dumbcode.projectnublar.registry.ItemInit;
 import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.gui.screens.inventory.AbstractContainerScreen;
 import net.minecraft.network.chat.Component;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.util.Mth;
 import net.minecraft.world.entity.player.Inventory;
 import net.minecraft.world.inventory.ClickType;
@@ -24,7 +24,7 @@ import net.minecraft.world.inventory.Slot;
  * commented-out code); the bed is drawn with a plain texture blit instead.
  */
 public class IncubatorScreen extends AbstractContainerScreen<IncubatorMenu> {
-    private static final ResourceLocation TEXTURE = new ResourceLocation(Constants.MODID, "textures/gui/incubator.png");
+    private static final Identifier TEXTURE = Identifier.fromNamespaceAndPath(Constants.MODID,"textures/gui/incubator.png");
 
     public static final int BED_WIDTH = 158;
     public static final int BED_HEIGHT = 115;

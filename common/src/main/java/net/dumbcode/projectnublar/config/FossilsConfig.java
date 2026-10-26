@@ -6,7 +6,7 @@ import java.util.List;
 import java.util.Map;
 import net.dumbcode.projectnublar.Constants;
 import net.dumbcode.projectnublar.api.fossil.FossilPieces;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.world.level.biome.Biomes;
 import net.minecraftforge.common.ForgeConfigSpec;
 import org.apache.commons.lang3.tuple.Pair;
@@ -20,7 +20,7 @@ import org.apache.commons.lang3.tuple.Pair;
  */
 public class FossilsConfig {
     // Filled by the constructor, so they are declared before the static block that runs it.
-    private static final Map<ResourceLocation, SpeciesFossils> FOSSILS = new LinkedHashMap<>();
+    private static final Map<Identifier, SpeciesFossils> FOSSILS = new LinkedHashMap<>();
     private static final Map<String, PieceSet> SETS = new HashMap<>();
     private static final Map<String, QualityWeights> QUALITIES = new HashMap<>();
     /** In the order {@link #getPeriod} tests the bands; the first band that holds the y wins. */
@@ -42,7 +42,7 @@ public class FossilsConfig {
                         FossilPieces.TYRANNOSAURUS_HAND.name(), FossilPieces.TYRANNOSAURUS_PELVIS.name()),
                 List.of(1, 2, 2, 1),
                 1, List.of("cretaceous"),
-                List.of(Biomes.DESERT.location(), Biomes.FOREST.location())));
+                List.of(Biomes.DESERT.identifier(), Biomes.FOREST.identifier())));
         builder.pop();
         builder.pop();
 
@@ -98,7 +98,7 @@ public class FossilsConfig {
     }
 
     /** The configured species, keyed by entity type id. */
-    public static Map<ResourceLocation, SpeciesFossils> getFossils() {
+    public static Map<Identifier, SpeciesFossils> getFossils() {
         return FOSSILS;
     }
 
@@ -149,14 +149,14 @@ public class FossilsConfig {
         private final ForgeConfigSpec.ConfigValue<List<? extends String>> biomes;
 
         SpeciesFossils(ForgeConfigSpec.Builder builder, String setName, List<String> specialPieces,
-                       List<Integer> specialWeights, int weight, List<String> periods, List<ResourceLocation> biomes) {
+                       List<Integer> specialWeights, int weight, List<String> periods, List<Identifier> biomes) {
             this.pieces = builder.comment("The pieces that make up this fossil").define("pieces", setName);
             this.specialPieces = builder.comment("optional field to include if a species has a special identifiable fossil type").defineList("special_pieces", specialPieces,
                     o -> o instanceof String s && FossilPieces.byName(s) != null);
             this.specialWeights = builder.comment("The weights of the special pieces").defineList("special_weights", specialWeights, o -> o instanceof Integer);
             this.weight = builder.comment("the lower the number the more rare the fossil; (weight / total weights) = percentage chance this fossil type generating").defineInRange("weight", weight, 0, Integer.MAX_VALUE);
             this.periods = builder.comment("The time period that this fossil type belongs to").defineList("periods", periods, o -> o instanceof String);
-            this.biomes = builder.comment("all acceptable biomes for this fossil to generate in").defineList("biomes", biomes.stream().map(ResourceLocation::toString).toList(), o -> o instanceof String);
+            this.biomes = builder.comment("all acceptable biomes for this fossil to generate in").defineList("biomes", biomes.stream().map(Identifier::toString).toList(), o -> o instanceof String);
         }
 
         /** The name of the piece set of this species. */

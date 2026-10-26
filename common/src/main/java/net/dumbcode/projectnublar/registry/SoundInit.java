@@ -5,7 +5,7 @@ import dev.architectury.registry.registries.DeferredSupplier;
 import dev.architectury.registry.registries.RegistrySupplier;
 import net.dumbcode.projectnublar.Constants;
 import net.minecraft.core.registries.Registries;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.sounds.SoundEvent;
 
 
@@ -27,7 +27,7 @@ public class SoundInit {
     }
 
     private static RegistrySupplier<SoundEvent> registerSoundEvents(String name) {
-        ResourceLocation id = new ResourceLocation(Constants.MODID, name);
+        Identifier id = Identifier.fromNamespaceAndPath(Constants.MODID, name);
         return SOUND_EVENTS.register(name, () -> SoundEvent.createVariableRangeEvent(id));
     }
 

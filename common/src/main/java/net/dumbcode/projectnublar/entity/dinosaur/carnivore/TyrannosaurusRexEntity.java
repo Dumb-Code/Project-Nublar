@@ -5,7 +5,6 @@ import net.dumbcode.projectnublar.entity.dinosaur.CarnivoreDinosaur;
 import net.dumbcode.projectnublar.entity.dinosaur.Dinosaur;
 import net.dumbcode.projectnublar.entity.dinosaur.DinosaurPart;
 import net.dumbcode.projectnublar.registry.SoundInit;
-import net.minecraft.nbt.CompoundTag;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.sounds.SoundEvent;
 import net.minecraft.util.Mth;
@@ -13,6 +12,8 @@ import net.minecraft.world.damagesource.DamageSource;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.level.Level;
+import net.minecraft.world.level.storage.ValueInput;
+import net.minecraft.world.level.storage.ValueOutput;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -90,14 +91,14 @@ public class TyrannosaurusRexEntity extends CarnivoreDinosaur {
     }
 
     @Override
-    public void addAdditionalSaveData(CompoundTag tag) {
-        super.addAdditionalSaveData(tag);
+    public void addAdditionalSaveData(ValueOutput output) {
+        super.addAdditionalSaveData(output);
 
     }
 
     @Override
-    public void readAdditionalSaveData(CompoundTag pTag) {
-        super.readAdditionalSaveData(pTag);
+    public void readAdditionalSaveData(ValueInput input) {
+        super.readAdditionalSaveData(input);
     }
 
     @Override

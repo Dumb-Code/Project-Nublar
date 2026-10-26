@@ -6,14 +6,14 @@ import net.dumbcode.projectnublar.api.dinosaur.DinoData;
 import net.dumbcode.projectnublar.block.entity.SequencerBlockEntity;
 import net.minecraft.core.BlockPos;
 import net.minecraft.network.FriendlyByteBuf;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 
 /**
  * Client-to-server: pushes the edit-tab {@link DinoData} into the sequencer. The encode/decode
  * field order (DinoData NBT, then BlockPos) is a frozen wire contract.
  */
 public record UpdateEditInfoPacket(DinoData info, BlockPos pos) {
-    public static ResourceLocation ID = Constants.modLoc("update_edit_info");
+    public static Identifier ID = Constants.modLoc("update_edit_info");
 
     public static UpdateEditInfoPacket decode(FriendlyByteBuf buf) {
         return new UpdateEditInfoPacket(DinoData.fromNBT(buf.readNbt()), buf.readBlockPos());

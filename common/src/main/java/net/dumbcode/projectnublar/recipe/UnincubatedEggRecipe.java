@@ -10,7 +10,7 @@ import net.dumbcode.projectnublar.registry.RecipeInit;
 import net.minecraft.core.NonNullList;
 import net.minecraft.core.RegistryAccess;
 import net.minecraft.network.FriendlyByteBuf;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.util.GsonHelper;
 import net.minecraft.world.entity.player.StackedContents;
 import net.minecraft.world.inventory.CraftingContainer;
@@ -24,13 +24,13 @@ import net.minecraft.world.level.Level;
 import org.jetbrains.annotations.NotNull;
 
 public class UnincubatedEggRecipe implements CraftingRecipe {
-    private final ResourceLocation id;
+    private final Identifier id;
     final String group;
     final CraftingBookCategory category;
     final ItemStack result;
     final NonNullList<Ingredient> ingredients;
 
-    public UnincubatedEggRecipe(ResourceLocation pId, String pGroup, CraftingBookCategory pCategory, ItemStack pResult, NonNullList<Ingredient> pIngredients) {
+    public UnincubatedEggRecipe(Identifier pId, String pGroup, CraftingBookCategory pCategory, ItemStack pResult, NonNullList<Ingredient> pIngredients) {
         this.id = pId;
         this.group = pGroup;
         this.category = pCategory;
@@ -39,7 +39,7 @@ public class UnincubatedEggRecipe implements CraftingRecipe {
     }
 
 
-    public ResourceLocation getId() {
+    public Identifier getId() {
         return this.id;
     }
 
@@ -107,7 +107,7 @@ public class UnincubatedEggRecipe implements CraftingRecipe {
     }
 
     public static class Serializer implements RecipeSerializer<UnincubatedEggRecipe> {
-        public UnincubatedEggRecipe fromJson(ResourceLocation pRecipeId, JsonObject pJson) {
+        public UnincubatedEggRecipe fromJson(Identifier pRecipeId, JsonObject pJson) {
             String s = GsonHelper.getAsString(pJson, "group", "");
             CraftingBookCategory craftingbookcategory = CraftingBookCategory.CODEC.byName(GsonHelper.getAsString(pJson, "category", (String) null), CraftingBookCategory.MISC);
             NonNullList<Ingredient> nonnulllist = itemsFromJson(GsonHelper.getAsJsonArray(pJson, "ingredients"));
@@ -134,7 +134,7 @@ public class UnincubatedEggRecipe implements CraftingRecipe {
             return nonnulllist;
         }
 
-        public UnincubatedEggRecipe fromNetwork(ResourceLocation pRecipeId, FriendlyByteBuf pBuffer) {
+        public UnincubatedEggRecipe fromNetwork(Identifier pRecipeId, FriendlyByteBuf pBuffer) {
             String s = pBuffer.readUtf();
             CraftingBookCategory craftingbookcategory = pBuffer.readEnum(CraftingBookCategory.class);
             int i = pBuffer.readVarInt();

@@ -2,7 +2,7 @@ package net.dumbcode.projectnublar.client.renderer.layer;
 
 import net.dumbcode.projectnublar.entity.dinosaur.Dinosaur;
 import net.minecraft.core.registries.BuiltInRegistries;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.world.entity.EntityType;
 
 import javax.annotation.Nullable;
@@ -23,8 +23,8 @@ public class DinoLayer {
     private static final String FEMALE = "female";
     /** Entity type the cached texture locations belong to. */
     private @Nullable EntityType<?> cachedType;
-    private @Nullable ResourceLocation cachedMale;
-    private @Nullable ResourceLocation cachedFemale;
+    private @Nullable Identifier cachedMale;
+    private @Nullable Identifier cachedFemale;
 
     public DinoLayer(String layerName, int basicLayer, Function<Dinosaur, Boolean> renderRequirement) {
         this.layerName = layerName;
@@ -53,12 +53,12 @@ public class DinoLayer {
     /**
      * Returns the texture of this layer for the given dinosaur. The texture depends only on the entity type and the
      * gender, so the two possible locations are built once per entity type and then reused. This keeps the per-frame
-     * render path free of string and {@link ResourceLocation} allocation. Vanilla memoizes
-     * {@code RenderType.entityTranslucent} per {@link ResourceLocation}, so a stable instance here is enough to avoid
+     * render path free of string and {@link Identifier} allocation. Vanilla memoizes
+     * {@code RenderType.entityTranslucent} per {@link Identifier}, so a stable instance here is enough to avoid
      * a render type lookup that allocates.
      * Called on the render thread only, so the cache needs no locking.
      */
-    public ResourceLocation getTextureLocation(Dinosaur dino) {
+    public Identifier getTextureLocation(Dinosaur dino) {
         EntityType<?> type = dino.getType();
         if (type != cachedType) {
             cachedType = type;
@@ -66,10 +66,10 @@ public class DinoLayer {
             cachedFemale = null;
         }
         boolean male = MALE.equals(dino.getStringDinoGender());
-        ResourceLocation cached = male ? cachedMale : cachedFemale;
+        Identifier cached = male ? cachedMale : cachedFemale;
         if (cached == null) {
-            ResourceLocation dinoLoc = BuiltInRegistries.ENTITY_TYPE.getKey(type);
-            cached = new ResourceLocation(dinoLoc.getNamespace(), "textures/entity/" + dinoLoc.getPath() + "/" + (male ? MALE : FEMALE) + "/" + layerName + ".png");
+            Identifier dinoLoc = BuiltInRegistries.ENTITY_TYPE.getKey(type);
+            cached = Identifier.fromNamespaceAndPath(dinoLoc.getNamespace(),"textures/entity/" + dinoLoc.getPath() + "/" + (male ? MALE : FEMALE) + "/" + layerName + ".png");
             if (male) {
                 cachedMale = cached;
             } else {

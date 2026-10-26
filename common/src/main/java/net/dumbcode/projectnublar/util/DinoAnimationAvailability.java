@@ -3,7 +3,7 @@ package net.dumbcode.projectnublar.util;
 import net.dumbcode.projectnublar.Constants;
 import net.dumbcode.projectnublar.entity.dinosaur.animation.AnimationChoice;
 import net.minecraft.core.registries.BuiltInRegistries;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.world.entity.EntityType;
 import org.jetbrains.annotations.Nullable;
 import software.bernie.geckolib.cache.GeckoLibCache;
@@ -66,13 +66,13 @@ public final class DinoAnimationAvailability {
 
     /** Per-species cache. The cached answers are only valid while {@code baked} is the current file instance. */
     private static final class Species {
-        final ResourceLocation file;
+        final Identifier file;
         final String name;
         BakedAnimations baked;
         /** Client: available candidate indices per choice, {@code null} until looked up. */
         final int[][] indices = new int[CHOICES.length][];
 
-        Species(ResourceLocation file, String name) {
+        Species(Identifier file, String name) {
             this.file = file;
             this.name = name;
         }
@@ -113,8 +113,8 @@ public final class DinoAnimationAvailability {
     private static Species speciesOf(Map<EntityType<?>, Species> cache, EntityType<?> type) {
         Species species = cache.get(type);
         if (species == null) {
-            ResourceLocation key = BuiltInRegistries.ENTITY_TYPE.getKey(type);
-            species = new Species(new ResourceLocation(key.getNamespace(), "animations/entity/" + key.getPath() + ".animation.json"), key.getPath());
+            Identifier key = BuiltInRegistries.ENTITY_TYPE.getKey(type);
+            species = new Species(Identifier.fromNamespaceAndPath(key.getNamespace(),"animations/entity/" + key.getPath() + ".animation.json"), key.getPath());
             cache.put(type, species);
         }
         return species;

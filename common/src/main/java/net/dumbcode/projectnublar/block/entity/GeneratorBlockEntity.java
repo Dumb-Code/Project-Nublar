@@ -8,8 +8,8 @@ import net.dumbcode.projectnublar.block.GeneratorBlock;
 import net.dumbcode.projectnublar.block.api.sync.SyncingContainerBlockEntity;
 import net.dumbcode.projectnublar.menutypes.GeneratorMenu;
 import net.dumbcode.projectnublar.registry.BlockInit;
+import net.dumbcode.projectnublar.util.SaveVersion;
 import net.minecraft.core.BlockPos;
-import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.chat.Component;
 import net.minecraft.world.entity.player.Inventory;
 import net.minecraft.world.entity.player.Player;
@@ -19,6 +19,8 @@ import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.state.BlockState;
+import net.minecraft.world.level.storage.ValueInput;
+import net.minecraft.world.level.storage.ValueOutput;
 
 public class GeneratorBlockEntity extends SyncingContainerBlockEntity implements BotariumEnergyBlock<WrappedBlockEnergyContainer> {
     private static final String FUEL_TAG = "fuel";
@@ -60,13 +62,14 @@ public class GeneratorBlockEntity extends SyncingContainerBlockEntity implements
     };
 
     @Override
-    protected void saveData(CompoundTag tag) {
-        tag.put(FUEL_TAG, fuelStack.save(new CompoundTag()));
+    protected void saveData(ValueOutput output) {
+        SaveVersion.write(output);
+        output.store(FUEL_TAG, ItemStack.OPTIONAL_CODEC, fuelStack);
     }
 
     @Override
-    protected void loadData(CompoundTag tag) {
-        fuelStack = ItemStack.of(tag.getCompound(FUEL_TAG));
+    protected void loadData(ValueInput input) {
+        fuelStack = input.read(FUEL_TAG, ItemStack.OPTIONAL_CODEC).orElse(ItemStack.EMPTY);
     }
 
     @Override

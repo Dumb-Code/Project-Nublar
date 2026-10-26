@@ -18,7 +18,7 @@ import net.minecraft.data.recipes.CraftingRecipeBuilder;
 import net.minecraft.data.recipes.FinishedRecipe;
 import net.minecraft.data.recipes.RecipeBuilder;
 import net.minecraft.data.recipes.RecipeCategory;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.tags.TagKey;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.crafting.CraftingBookCategory;
@@ -112,7 +112,7 @@ public class UnincubatedEggRecipeBuilder extends CraftingRecipeBuilder implement
       return this.result;
    }
 
-   public void save(Consumer<FinishedRecipe> pFinishedRecipeConsumer, ResourceLocation pRecipeId) {
+   public void save(Consumer<FinishedRecipe> pFinishedRecipeConsumer, Identifier pRecipeId) {
       this.ensureValid(pRecipeId);
       this.advancement.parent(ROOT_RECIPE_ADVANCEMENT).addCriterion("has_the_recipe", RecipeUnlockedTrigger.unlocked(pRecipeId)).rewards(AdvancementRewards.Builder.recipe(pRecipeId)).requirements(RequirementsStrategy.OR);
       pFinishedRecipeConsumer.accept(new UnincubatedEggRecipeBuilder.Result(pRecipeId, this.result, this.count, this.group == null ? "" : this.group, determineBookCategory(this.category), this.ingredients, this.advancement, pRecipeId.withPrefix("recipes/" + this.category.getFolderName() + "/")));
@@ -121,22 +121,22 @@ public class UnincubatedEggRecipeBuilder extends CraftingRecipeBuilder implement
    /**
     * Makes sure that this recipe is valid and obtainable.
     */
-   private void ensureValid(ResourceLocation pId) {
+   private void ensureValid(Identifier pId) {
       if (this.advancement.getCriteria().isEmpty()) {
          throw new IllegalStateException("No way of obtaining recipe " + pId);
       }
    }
 
    public static class Result extends CraftingRecipeBuilder.CraftingResult {
-      private final ResourceLocation id;
+      private final Identifier id;
       private final Item result;
       private final int count;
       private final String group;
       private final List<Ingredient> ingredients;
       private final Advancement.Builder advancement;
-      private final ResourceLocation advancementId;
+      private final Identifier advancementId;
 
-      public Result(ResourceLocation pId, Item pResult, int pCount, String pGroup, CraftingBookCategory pCategory, List<Ingredient> pIngredients, Advancement.Builder pAdvancement, ResourceLocation pAdvancementId) {
+      public Result(Identifier pId, Item pResult, int pCount, String pGroup, CraftingBookCategory pCategory, List<Ingredient> pIngredients, Advancement.Builder pAdvancement, Identifier pAdvancementId) {
          super(pCategory);
          this.id = pId;
          this.result = pResult;
@@ -176,7 +176,7 @@ public class UnincubatedEggRecipeBuilder extends CraftingRecipeBuilder implement
       /**
        * Gets the ID for the recipe.
        */
-      public ResourceLocation getId() {
+      public Identifier getId() {
          return this.id;
       }
 
@@ -189,7 +189,7 @@ public class UnincubatedEggRecipeBuilder extends CraftingRecipeBuilder implement
       }
 
       @Nullable
-      public ResourceLocation getAdvancementId() {
+      public Identifier getAdvancementId() {
          return this.advancementId;
       }
    }

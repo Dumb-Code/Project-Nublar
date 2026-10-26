@@ -5,7 +5,7 @@ import net.dumbcode.projectnublar.Constants;
 import net.dumbcode.projectnublar.block.entity.IncubatorBlockEntity;
 import net.minecraft.core.BlockPos;
 import net.minecraft.network.FriendlyByteBuf;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 
 /**
  * Client-to-server: moves an incubator egg slot. {@code index} is the menu slot index;
@@ -13,7 +13,7 @@ import net.minecraft.resources.ResourceLocation;
  * (BlockPos, index, x, y) is a frozen wire contract.
  */
 public record UpdateIncubatorSlotPacket(BlockPos pos, int index, int x, int y) {
-    public static ResourceLocation ID = Constants.modLoc("update_incubator_slot");
+    public static Identifier ID = Constants.modLoc("update_incubator_slot");
 
     public static UpdateIncubatorSlotPacket decode(FriendlyByteBuf buf) {
         return new UpdateIncubatorSlotPacket(buf.readBlockPos(), buf.readInt(), buf.readInt(), buf.readInt());

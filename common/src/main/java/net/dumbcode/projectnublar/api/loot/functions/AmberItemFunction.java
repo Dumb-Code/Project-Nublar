@@ -10,7 +10,7 @@ import net.dumbcode.projectnublar.registry.ItemInit;
 import net.dumbcode.projectnublar.registry.LootFunctionInit;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.nbt.CompoundTag;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.world.item.BlockItem;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.enchantment.EnchantmentHelper;
@@ -42,7 +42,7 @@ public class AmberItemFunction extends LootItemConditionalFunction {
     @Override
     protected ItemStack run(ItemStack itemStack, LootContext lootContext) {
         AmberBlock block = (AmberBlock) ((BlockItem) itemStack.getItem()).getBlock();
-        ResourceLocation dino = block.getEntityType();
+        Identifier dino = block.getEntityType();
         ItemStack toolStack = lootContext.getParamOrNull(LootContextParams.TOOL);
         if (toolStack != null) {
             // here the fortune level is computed but unused

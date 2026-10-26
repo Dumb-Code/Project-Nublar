@@ -1,6 +1,5 @@
 package net.dumbcode.projectnublar.entity.dinosaur;
 
-import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.syncher.EntityDataAccessor;
 import net.minecraft.network.syncher.EntityDataSerializers;
 import net.minecraft.network.syncher.SynchedEntityData;
@@ -17,6 +16,8 @@ import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.entity.Pose;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.level.Level;
+import net.minecraft.world.level.storage.ValueInput;
+import net.minecraft.world.level.storage.ValueOutput;
 import org.jetbrains.annotations.NotNull;
 
 import javax.annotation.Nullable;
@@ -43,12 +44,12 @@ public abstract class PartEntity extends Entity {
     }
 
     @Override
-    protected void readAdditionalSaveData(CompoundTag compoundTag) {
+    protected void readAdditionalSaveData(ValueInput input) {
 
     }
 
     @Override
-    protected void addAdditionalSaveData(CompoundTag compoundTag) {
+    protected void addAdditionalSaveData(ValueOutput output) {
 
     }
 
@@ -231,12 +232,12 @@ public abstract class PartEntity extends Entity {
     }
 
     @Override
-    public boolean hurt(@NotNull DamageSource source, float damage) {
+    public boolean hurtServer(ServerLevel level, @NotNull DamageSource source, float damage) {
         Entity parent = getParent();
         if (level().isClientSide && source.getEntity() instanceof Player && parent != null) {
             //send packet
         }
-        return parent != null && parent.hurt(source, damage * this.damageMultiplier);
+        return parent != null && parent.hurtServer(level, source, damage * this.damageMultiplier);
     }
 
     @Override

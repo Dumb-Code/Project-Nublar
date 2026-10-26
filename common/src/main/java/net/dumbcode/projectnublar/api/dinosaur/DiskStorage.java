@@ -2,7 +2,7 @@ package net.dumbcode.projectnublar.api.dinosaur;
 
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.nbt.CompoundTag;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.item.DyeColor;
 
@@ -52,7 +52,7 @@ public class DiskStorage {
         CompoundTag synthedEntityTag = tag.getCompound(SYNTHED_ENTITIES_KEY);
         for (String key : synthedEntityTag.getAllKeys()) {
             synthedEntityMap.put(
-                    BuiltInRegistries.ENTITY_TYPE.get(ResourceLocation.tryParse(key)),
+                    BuiltInRegistries.ENTITY_TYPE.get(Identifier.tryParse(key)),
                     synthedEntityTag.getDouble(key));
         }
         for (int color : tag.getIntArray(TROPICAL_FISH_COLORS_KEY)) {

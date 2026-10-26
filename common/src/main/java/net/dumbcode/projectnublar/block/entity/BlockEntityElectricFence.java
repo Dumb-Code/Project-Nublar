@@ -13,14 +13,14 @@ import net.dumbcode.projectnublar.block.api.fence.Connection;
 import net.dumbcode.projectnublar.block.api.fence.FencePowerService;
 import net.dumbcode.projectnublar.registry.BlockInit;
 import net.dumbcode.projectnublar.util.LineUtils;
+import net.dumbcode.projectnublar.util.SaveVersion;
 import net.minecraft.core.BlockPos;
-import net.minecraft.nbt.CompoundTag;
-import net.minecraft.nbt.ListTag;
-import net.minecraft.nbt.Tag;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.entity.BlockEntityType;
 import net.minecraft.world.level.block.state.BlockState;
+import net.minecraft.world.level.storage.ValueInput;
+import net.minecraft.world.level.storage.ValueOutput;
 import net.minecraft.world.phys.shapes.VoxelShape;
 
 /**
@@ -45,23 +45,22 @@ public class BlockEntityElectricFence extends BlockEntityElectricFenceBase imple
     }
 
     @Override
-    public void saveData(CompoundTag compound) {
-        super.saveData(compound);
-        ListTag nbt = new ListTag();
+    public void saveData(ValueOutput output) {
+        SaveVersion.write(output);
+        super.saveData(output);
+        ValueOutput.ValueOutputList connections = output.childrenList(CONNECTIONS_TAG);
         for (Connection connection : this.fenceConnections) {
-            nbt.add(connection.writeToNBT(new CompoundTag()));
+            connection.write(connections.addChild());
         }
-        compound.put(CONNECTIONS_TAG, nbt);
     }
 
     @Override
-    public void loadData(CompoundTag compound) {
-        super.loadData(compound);
+    public void loadData(ValueInput input) {
+        super.loadData(input);
         this.fenceConnections.clear();
-        ListTag nbt = compound.getList(CONNECTIONS_TAG, Tag.TAG_COMPOUND);
-        for (int i = 0; i < nbt.size(); i++) {
+        for (ValueInput entry : input.childrenListOrEmpty(CONNECTIONS_TAG)) {
             try {
-                Connection connection = Connection.fromNBT(nbt.getCompound(i), this);
+                Connection connection = Connection.read(entry, this);
                 if(connection.isValid()) {
                     this.fenceConnections.add(connection);
                 }

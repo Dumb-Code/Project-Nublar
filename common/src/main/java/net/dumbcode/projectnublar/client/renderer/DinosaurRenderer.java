@@ -15,7 +15,7 @@ import net.minecraft.client.renderer.LightTexture;
 import net.minecraft.client.renderer.MultiBufferSource;
 import net.minecraft.client.renderer.RenderType;
 import net.minecraft.client.renderer.entity.EntityRendererProvider;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.world.phys.Vec3;
 import org.joml.Matrix4f;
 import org.joml.Vector3f;
@@ -32,7 +32,7 @@ import software.bernie.geckolib.renderer.GeoEntityRenderer;
  * Velociraptor +0.6, Dilophosaurus +0.5, Gallimimus +1.0, Triceratops +2.0, Brachiosaurus +2.5).
  */
 public class DinosaurRenderer extends GeoEntityRenderer<Dinosaur> {
-    private static final ResourceLocation LEADER_CROWN = new ResourceLocation(Constants.MODID, "textures/misc/leader_crown.png");
+    private static final Identifier LEADER_CROWN = Identifier.fromNamespaceAndPath(Constants.MODID,"textures/misc/leader_crown.png");
     private static final float CROWN_SIZE = 0.6F;
     private static final float CROWN_GAP = 0.5F;
 
@@ -140,7 +140,7 @@ public class DinosaurRenderer extends GeoEntityRenderer<Dinosaur> {
                     }
 
                     @Override
-                    public @Nullable ResourceLocation getTextureResource(Dinosaur animatable) {
+                    public @Nullable Identifier getTextureResource(Dinosaur animatable) {
                         return layer.getTextureLocation(animatable);
                     }
                 });

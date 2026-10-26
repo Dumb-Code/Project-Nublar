@@ -1,12 +1,12 @@
 package net.dumbcode.projectnublar;
 
 import java.util.ServiceLoader;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.tslat.smartbrainlib.SBLLoader;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-/** Mod-wide constants and {@link ResourceLocation} helpers. */
+/** Mod-wide constants and {@link Identifier} helpers. */
 public class Constants {
 
     public static final String MODID = "projectnublar";
@@ -16,11 +16,13 @@ public class Constants {
             ServiceLoader.load(SBLLoader.class).findFirst().get();
     public static final int BORDER_COLOR = 0xFF577694;
 
-    public static ResourceLocation modLoc(String path) {
-        return new ResourceLocation(MODID, path);
+    /** An identifier in this mod's namespace. */
+    public static Identifier modLoc(String path) {
+        return Identifier.fromNamespaceAndPath(MODID, path);
     }
 
-    public static ResourceLocation mcLoc(String path) {
-        return new ResourceLocation(path);
+    /** An identifier parsed from {@code path}; without a namespace it is in {@code minecraft}. */
+    public static Identifier mcLoc(String path) {
+        return Identifier.parse(path);
     }
 }

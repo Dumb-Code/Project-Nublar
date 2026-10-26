@@ -9,12 +9,15 @@ import net.dumbcode.projectnublar.block.api.fence.Connection;
 import net.dumbcode.projectnublar.block.api.fence.FencePowerService;
 import net.dumbcode.projectnublar.registry.BlockInit;
 import net.dumbcode.projectnublar.util.LineUtils;
+import net.dumbcode.projectnublar.util.SaveVersion;
 import net.minecraft.core.BlockPos;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.state.BlockState;
+import net.minecraft.world.level.storage.ValueInput;
+import net.minecraft.world.level.storage.ValueOutput;
 import net.minecraft.world.phys.shapes.Shapes;
 import net.minecraft.world.phys.shapes.VoxelShape;
 import software.bernie.geckolib.animatable.GeoBlockEntity;
@@ -81,17 +84,19 @@ public class BlockEntityElectricFencePole extends BlockEntityElectricFence imple
     }
 
     @Override
-    public void saveData(CompoundTag compound) {
-        compound.putBoolean(ROTATION_FLIPPED_TAG, this.flippedAround);
-        compound.put(ENERGY_TAG, this.getEnergyStorage().serialize(new CompoundTag()));
-        super.saveData(compound);
+    public void saveData(ValueOutput output) {
+        SaveVersion.write(output);
+        output.putBoolean(ROTATION_FLIPPED_TAG, this.flippedAround);
+        // Botarium still serializes to a CompoundTag (Task 5 replaces it); stored through the tag codec.
+        output.store(ENERGY_TAG, CompoundTag.CODEC, this.getEnergyStorage().serialize(new CompoundTag()));
+        super.saveData(output);
     }
 
     @Override
-    public void loadData(CompoundTag compound) {
-        this.flippedAround = compound.getBoolean(ROTATION_FLIPPED_TAG);
-        this.getEnergyStorage().deserialize(compound.getCompound(ENERGY_TAG));
-        super.loadData(compound);
+    public void loadData(ValueInput input) {
+        this.flippedAround = input.getBooleanOr(ROTATION_FLIPPED_TAG, false);
+        this.getEnergyStorage().deserialize(input.read(ENERGY_TAG, CompoundTag.CODEC).orElseGet(CompoundTag::new));
+        super.loadData(input);
     }
 
     @Override

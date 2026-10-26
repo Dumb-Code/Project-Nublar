@@ -9,7 +9,7 @@ import net.dumbcode.projectnublar.Constants;
 import net.dumbcode.projectnublar.api.gene.Genes;
 import net.minecraft.core.Registry;
 import net.minecraft.resources.ResourceKey;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.util.ExtraCodecs;
 
 import java.util.ArrayList;
@@ -74,7 +74,7 @@ public class GeneInit {
 
     /** Codec resolving genes by registry name, with a compressed raw-id alternative. */
     public static Codec<Genes.Gene> byNameCodec() {
-        Codec<Genes.Gene> nameCodec = ResourceLocation.CODEC.flatXmap(
+        Codec<Genes.Gene> nameCodec = Identifier.CODEC.flatXmap(
                 location -> Optional.ofNullable(GENES.getRegistrar().get(location))
                         .map(DataResult::success)
                         .orElseGet(() -> DataResult.error(

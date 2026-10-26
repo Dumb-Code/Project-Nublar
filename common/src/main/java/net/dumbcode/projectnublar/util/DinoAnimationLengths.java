@@ -5,7 +5,7 @@ import com.google.gson.JsonObject;
 import net.dumbcode.projectnublar.Constants;
 import net.dumbcode.projectnublar.entity.dinosaur.animation.AnimationChoice;
 import net.minecraft.core.registries.BuiltInRegistries;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.util.GsonHelper;
 import net.minecraft.world.entity.EntityType;
 
@@ -64,7 +64,7 @@ public final class DinoAnimationLengths {
     }
 
     private static Map<String, Double> read(EntityType<?> type) {
-        ResourceLocation key = BuiltInRegistries.ENTITY_TYPE.getKey(type);
+        Identifier key = BuiltInRegistries.ENTITY_TYPE.getKey(type);
         String path = "/assets/" + key.getNamespace() + "/animations/entity/" + key.getPath() + ".animation.json";
         Map<String, Double> seconds = new HashMap<>();
         try (InputStream stream = DinoAnimationLengths.class.getResourceAsStream(path)) {

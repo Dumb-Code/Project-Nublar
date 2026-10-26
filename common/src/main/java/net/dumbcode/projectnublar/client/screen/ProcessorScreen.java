@@ -8,14 +8,14 @@ import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.gui.components.Tooltip;
 import net.minecraft.client.gui.screens.inventory.AbstractContainerScreen;
 import net.minecraft.network.chat.Component;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.util.Mth;
 import net.minecraft.util.StringUtil;
 import net.minecraft.world.entity.player.Inventory;
 
 public class ProcessorScreen extends AbstractContainerScreen<ProcessorMenu> {
-    private static final ResourceLocation FOREGROUND = Constants.modLoc( "textures/gui/fluid_overlay.png");
-    private static ResourceLocation TEXTURE = Constants.modLoc( "textures/gui/processor.png");
+    private static final Identifier FOREGROUND = Constants.modLoc( "textures/gui/fluid_overlay.png");
+    private static Identifier TEXTURE = Constants.modLoc( "textures/gui/processor.png");
     private FluidRenderWidget fluidWidget;
 
     public ProcessorScreen(ProcessorMenu processorMenu, Inventory inventory, Component component) {

@@ -16,7 +16,7 @@ import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.core.registries.Registries;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.chat.Component;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.entity.ai.attributes.DefaultAttributes;
 import net.minecraft.world.entity.animal.Parrot;
@@ -158,7 +158,7 @@ public class CreativeTabInit {
      */
     private static void addSyringesForAllEntities(CreativeModeTab.Output output) {
         output.accept(ItemInit.SYRINGE.get());
-        for (ResourceLocation entry : BuiltInRegistries.ENTITY_TYPE.keySet()) {
+        for (Identifier entry : BuiltInRegistries.ENTITY_TYPE.keySet()) {
             if (entry.getPath().contains("parrot")) {
                 for (Parrot.Variant variant : Parrot.Variant.values()) {
                     output.accept(createSyringe(entry, variant.getSerializedName(), 1.0));
@@ -177,7 +177,7 @@ public class CreativeTabInit {
     }
 
     private static ItemStack createSyringe(
-            ResourceLocation entityId, String variant, double dnaPercentage) {
+            Identifier entityId, String variant, double dnaPercentage) {
         ItemStack stack = new ItemStack(ItemInit.SYRINGE.get());
         DNAData dnaData = new DNAData();
         dnaData.setEntityType(BuiltInRegistries.ENTITY_TYPE.get(entityId));

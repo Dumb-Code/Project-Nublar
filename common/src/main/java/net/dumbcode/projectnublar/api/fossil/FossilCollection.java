@@ -11,7 +11,7 @@ import net.dumbcode.projectnublar.block.FossilBlock;
 import net.dumbcode.projectnublar.item.fossil.FossilBlockItem;
 import net.dumbcode.projectnublar.registry.BlockInit;
 import net.dumbcode.projectnublar.registry.ItemInit;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.state.BlockBehaviour;
@@ -29,7 +29,7 @@ import net.minecraft.world.level.block.state.BlockBehaviour;
  * @param period the geological period the species generates in, as named in {@code FossilsConfig}
  */
 public record FossilCollection(
-        ResourceLocation entityType,
+        Identifier entityType,
         String period,
         List<FossilPiece> pieces,
         Map<FossilBase, Map<FossilPiece, DeferredSupplier<Block>>> fossilBlocks,
@@ -37,13 +37,13 @@ public record FossilCollection(
         Map<FossilBase, DeferredSupplier<Block>> amberBlocks) {
 
     /** Every collection, keyed by entity type id, in creation order. */
-    public static final Map<ResourceLocation, FossilCollection> COLLECTIONS = new LinkedHashMap<>();
+    public static final Map<Identifier, FossilCollection> COLLECTIONS = new LinkedHashMap<>();
 
     /**
      * Registers the fossil blocks, their items and the amber blocks of a species, and records the
      * collection in {@link #COLLECTIONS}. Call it while {@link BlockInit} initialises.
      */
-    public static FossilCollection create(ResourceLocation entityType, String period, List<FossilPiece> pieces) {
+    public static FossilCollection create(Identifier entityType, String period, List<FossilPiece> pieces) {
         Map<FossilBase, Map<FossilPiece, DeferredSupplier<Block>>> fossilBlocks = new EnumMap<>(FossilBase.class);
         Map<FossilBase, Map<FossilPiece, Map<Quality, DeferredSupplier<Item>>>> fossilItems = new EnumMap<>(FossilBase.class);
         Map<FossilBase, DeferredSupplier<Block>> amberBlocks = new EnumMap<>(FossilBase.class);
@@ -89,7 +89,7 @@ public record FossilCollection(
     }
 
     /** For example {@code stone_tyrannosaurus_rex_tyrannosaurus_skull}. */
-    public static String blockId(ResourceLocation entityType, FossilBase base, FossilPiece piece) {
+    public static String blockId(Identifier entityType, FossilBase base, FossilPiece piece) {
         return base.getName() + "_" + entityType.getPath() + "_" + piece.name();
     }
 

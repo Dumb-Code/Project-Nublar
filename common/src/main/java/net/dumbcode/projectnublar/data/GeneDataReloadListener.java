@@ -7,7 +7,7 @@ import com.mojang.serialization.JsonOps;
 import java.util.Map;
 import net.dumbcode.projectnublar.api.gene.GeneData;
 import net.dumbcode.projectnublar.api.gene.Genes;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.server.packs.resources.ResourceManager;
 import net.minecraft.server.packs.resources.SimpleJsonResourceReloadListener;
 import net.minecraft.util.profiling.ProfilerFiller;
@@ -30,13 +30,13 @@ public class GeneDataReloadListener extends SimpleJsonResourceReloadListener {
 
     @Override
     protected void apply(
-            Map<ResourceLocation, JsonElement> elements,
+            Map<Identifier, JsonElement> elements,
             ResourceManager resourceManager,
             ProfilerFiller profiler) {
         elements.forEach(GeneDataReloadListener::loadGeneData);
     }
 
-    private static void loadGeneData(ResourceLocation resourceLocation, JsonElement jsonElement) {
+    private static void loadGeneData(Identifier resourceLocation, JsonElement jsonElement) {
         EntityType<?> type = EntityType.byString(resourceLocation.toString()).orElse(null);
         if (type != null) {
             // TODO(BUG): .result().get() has no error handling; a malformed gene_data file

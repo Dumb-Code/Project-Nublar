@@ -3,7 +3,7 @@ package net.dumbcode.projectnublar.client.model;
 import net.dumbcode.projectnublar.entity.dinosaur.Dinosaur;
 import net.dumbcode.projectnublar.entity.dinosaur.animation.AnimationChoice;
 import net.dumbcode.projectnublar.entity.dinosaur.animation.IdleSway;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import software.bernie.geckolib.core.animatable.model.CoreGeoBone;
 import software.bernie.geckolib.core.animation.AnimationProcessor;
 import software.bernie.geckolib.core.animation.AnimationState;
@@ -17,16 +17,16 @@ import software.bernie.geckolib.model.DefaultedEntityGeoModel;
  */
 public class DinosaurGeoModel extends DefaultedEntityGeoModel<Dinosaur> {
 
-    public DinosaurGeoModel(ResourceLocation assetSubpath) {
+    public DinosaurGeoModel(Identifier assetSubpath) {
         super(assetSubpath);
     }
 
-    public DinosaurGeoModel(ResourceLocation assetSubpath, boolean turnsHead) {
+    public DinosaurGeoModel(Identifier assetSubpath, boolean turnsHead) {
         super(assetSubpath, turnsHead);
     }
 
     @Override
-    public ResourceLocation getTextureResource(Dinosaur animatable) {
+    public Identifier getTextureResource(Dinosaur animatable) {
         return super.getTextureResource(animatable);
     }
 

@@ -12,6 +12,7 @@ import net.dumbcode.projectnublar.item.PlantTankItem;
 import net.dumbcode.projectnublar.menutypes.IncubatorMenu;
 import net.dumbcode.projectnublar.registry.BlockInit;
 import net.dumbcode.projectnublar.registry.ItemInit;
+import net.dumbcode.projectnublar.util.SaveVersion;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.NonNullList;
 import net.minecraft.nbt.CompoundTag;
@@ -24,6 +25,8 @@ import net.minecraft.world.inventory.ContainerData;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.state.BlockState;
+import net.minecraft.world.level.storage.ValueInput;
+import net.minecraft.world.level.storage.ValueOutput;
 import software.bernie.geckolib.animatable.GeoBlockEntity;
 import software.bernie.geckolib.core.animatable.instance.AnimatableInstanceCache;
 import software.bernie.geckolib.core.animation.AnimatableManager;
@@ -177,45 +180,50 @@ public class IncubatorBlockEntity extends SyncingContainerBlockEntity
     }
 
     @Override
-    protected void saveData(CompoundTag tag) {
+    protected void saveData(ValueOutput output) {
+        SaveVersion.write(output);
         // TODO(BUG): "slot" + items.indexOf(slot) returns the index of the first equal slot, so
         // two slots with equal contents/positions produce duplicate keys and one entry is lost.
         items.forEach(slot -> {
-            CompoundTag slotTag = new CompoundTag();
-            slotTag.putInt(SLOT_X_TAG, slot.x);
-            slotTag.putInt(SLOT_Y_TAG, slot.y);
-            slot.stack.save(slotTag);
-            tag.put(SLOT_TAG_PREFIX + items.indexOf(slot), slotTag);
+            ValueOutput slotOutput = output.child(SLOT_TAG_PREFIX + items.indexOf(slot));
+            slotOutput.putInt(SLOT_X_TAG, slot.x);
+            slotOutput.putInt(SLOT_Y_TAG, slot.y);
+            // The stack's fields sit beside x and y, as in 1.20.1; the item map codec cannot encode an empty stack.
+            if (!slot.stack.isEmpty()) {
+                slotOutput.store(ItemStack.MAP_CODEC, slot.stack);
+            }
         });
-        tag.put(PLANT_MATTER_STACK_TAG, plantMatterStack.save(new CompoundTag()));
-        tag.putInt(PLANT_MATTER_TAG, plantMatter);
-        tag.put(CONTAINER_STACK_TAG, containerStack.save(new CompoundTag()));
-        tag.put(BULB_STACK_TAG, bulbStack.save(new CompoundTag()));
-        tag.put(TANK_STACK_TAG, tankStack.save(new CompoundTag()));
-        tag.put(NEST_STACK_TAG, nestStack.save(new CompoundTag()));
-        tag.put(LID_STACK_TAG, lidStack.save(new CompoundTag()));
-        tag.put(BASE_STACK_TAG, baseStack.save(new CompoundTag()));
-        tag.put(ARM_STACK_TAG, armStack.save(new CompoundTag()));
-        tag.put(ENERGY_TAG, energyContainer.serialize(new CompoundTag()));
+        output.store(PLANT_MATTER_STACK_TAG, ItemStack.OPTIONAL_CODEC, plantMatterStack);
+        output.putInt(PLANT_MATTER_TAG, plantMatter);
+        output.store(CONTAINER_STACK_TAG, ItemStack.OPTIONAL_CODEC, containerStack);
+        output.store(BULB_STACK_TAG, ItemStack.OPTIONAL_CODEC, bulbStack);
+        output.store(TANK_STACK_TAG, ItemStack.OPTIONAL_CODEC, tankStack);
+        output.store(NEST_STACK_TAG, ItemStack.OPTIONAL_CODEC, nestStack);
+        output.store(LID_STACK_TAG, ItemStack.OPTIONAL_CODEC, lidStack);
+        output.store(BASE_STACK_TAG, ItemStack.OPTIONAL_CODEC, baseStack);
+        output.store(ARM_STACK_TAG, ItemStack.OPTIONAL_CODEC, armStack);
+        // Botarium still serializes to a CompoundTag (Task 5 replaces it); stored through the tag codec.
+        output.store(ENERGY_TAG, CompoundTag.CODEC, energyContainer.serialize(new CompoundTag()));
     }
 
     @Override
-    protected void loadData(CompoundTag tag) {
+    protected void loadData(ValueInput input) {
         for (int i = 0; i < EGG_SLOT_COUNT; i++) {
-            CompoundTag slotTag = tag.getCompound(SLOT_TAG_PREFIX + i);
+            ValueInput slotInput = input.childOrEmpty(SLOT_TAG_PREFIX + i);
             items.set(i, new Slot(
-                    ItemStack.of(slotTag), slotTag.getInt(SLOT_X_TAG), slotTag.getInt(SLOT_Y_TAG)));
+                    slotInput.read(ItemStack.MAP_CODEC).orElse(ItemStack.EMPTY),
+                    slotInput.getIntOr(SLOT_X_TAG, 0), slotInput.getIntOr(SLOT_Y_TAG, 0)));
         }
-        plantMatterStack = ItemStack.of(tag.getCompound(PLANT_MATTER_STACK_TAG));
-        plantMatter = tag.getInt(PLANT_MATTER_TAG);
-        containerStack = ItemStack.of(tag.getCompound(CONTAINER_STACK_TAG));
-        bulbStack = ItemStack.of(tag.getCompound(BULB_STACK_TAG));
-        tankStack = ItemStack.of(tag.getCompound(TANK_STACK_TAG));
-        nestStack = ItemStack.of(tag.getCompound(NEST_STACK_TAG));
-        lidStack = ItemStack.of(tag.getCompound(LID_STACK_TAG));
-        baseStack = ItemStack.of(tag.getCompound(BASE_STACK_TAG));
-        armStack = ItemStack.of(tag.getCompound(ARM_STACK_TAG));
-        energyContainer.deserialize(tag.getCompound(ENERGY_TAG));
+        plantMatterStack = input.read(PLANT_MATTER_STACK_TAG, ItemStack.OPTIONAL_CODEC).orElse(ItemStack.EMPTY);
+        plantMatter = input.getIntOr(PLANT_MATTER_TAG, 0);
+        containerStack = input.read(CONTAINER_STACK_TAG, ItemStack.OPTIONAL_CODEC).orElse(ItemStack.EMPTY);
+        bulbStack = input.read(BULB_STACK_TAG, ItemStack.OPTIONAL_CODEC).orElse(ItemStack.EMPTY);
+        tankStack = input.read(TANK_STACK_TAG, ItemStack.OPTIONAL_CODEC).orElse(ItemStack.EMPTY);
+        nestStack = input.read(NEST_STACK_TAG, ItemStack.OPTIONAL_CODEC).orElse(ItemStack.EMPTY);
+        lidStack = input.read(LID_STACK_TAG, ItemStack.OPTIONAL_CODEC).orElse(ItemStack.EMPTY);
+        baseStack = input.read(BASE_STACK_TAG, ItemStack.OPTIONAL_CODEC).orElse(ItemStack.EMPTY);
+        armStack = input.read(ARM_STACK_TAG, ItemStack.OPTIONAL_CODEC).orElse(ItemStack.EMPTY);
+        energyContainer.deserialize(input.read(ENERGY_TAG, CompoundTag.CODEC).orElseGet(CompoundTag::new));
     }
 
     public ItemStack getNestStack() {

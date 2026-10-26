@@ -4,7 +4,9 @@ import earth.terrarium.botarium.common.energy.base.BotariumEnergyBlock;
 import earth.terrarium.botarium.common.energy.impl.WrappedBlockEnergyContainer;
 import net.dumbcode.projectnublar.block.api.sync.SyncingContainerBlockEntity;
 import net.dumbcode.projectnublar.registry.BlockInit;
+import net.dumbcode.projectnublar.util.SaveVersion;
 import net.minecraft.core.BlockPos;
+import net.minecraft.core.HolderLookup;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.protocol.Packet;
@@ -16,6 +18,8 @@ import net.minecraft.world.inventory.AbstractContainerMenu;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.state.BlockState;
+import net.minecraft.world.level.storage.ValueInput;
+import net.minecraft.world.level.storage.ValueOutput;
 import org.jetbrains.annotations.Nullable;
 import software.bernie.geckolib.animatable.GeoBlockEntity;
 import software.bernie.geckolib.core.animatable.instance.AnimatableInstanceCache;
@@ -90,17 +94,18 @@ public class DinosaurFeederBlockEntity extends SyncingContainerBlockEntity imple
     }
 
     @Override
-    protected void saveData(CompoundTag tag) {
-        tag.putInt("progress", progress);
-        tag.putBoolean("shouldDispenseFood", shouldDispenseFood);
-        tag.putBoolean("shouldDisplayFood", shouldDisplayFood);
+    protected void saveData(ValueOutput output) {
+        SaveVersion.write(output);
+        output.putInt("progress", progress);
+        output.putBoolean("shouldDispenseFood", shouldDispenseFood);
+        output.putBoolean("shouldDisplayFood", shouldDisplayFood);
     }
 
     @Override
-    protected void loadData(CompoundTag tag) {
-        shouldDispenseFood = tag.getBoolean("shouldDispenseFood");
-        shouldDisplayFood = tag.getBoolean("shouldDisplayFood");
-        progress = tag.getInt("progress");
+    protected void loadData(ValueInput input) {
+        shouldDispenseFood = input.getBooleanOr("shouldDispenseFood", false);
+        shouldDisplayFood = input.getBooleanOr("shouldDisplayFood", false);
+        progress = input.getIntOr("progress", 0);
     }
 
     @Override
@@ -237,7 +242,7 @@ public class DinosaurFeederBlockEntity extends SyncingContainerBlockEntity imple
         }
     }
     @Override
-    public CompoundTag getUpdateTag() {
+    public CompoundTag getUpdateTag(HolderLookup.Provider registries) {
         CompoundTag tag =new CompoundTag();
         tag.putBoolean("shouldDispenseFood", shouldDispenseFood);
         tag.putBoolean("shouldDisplayFood", shouldDisplayFood);
@@ -245,14 +250,11 @@ public class DinosaurFeederBlockEntity extends SyncingContainerBlockEntity imple
     }
 
     @Override
-    public void load(CompoundTag tag) {
-        super.load(tag);
-        if(tag.contains("shouldDispenseFood")) {
-            shouldDispenseFood = tag.getBoolean("shouldDispenseFood");
-        }
-        if(tag.contains("shouldDisplayFood")) {
-            shouldDisplayFood = tag.getBoolean("shouldDisplayFood");
-        }
+    public void loadAdditional(ValueInput input) {
+        super.loadAdditional(input);
+        // The 1.20.1 "if contains" checks: keep the current value when the key is missing.
+        shouldDispenseFood = input.getBooleanOr("shouldDispenseFood", shouldDispenseFood);
+        shouldDisplayFood = input.getBooleanOr("shouldDisplayFood", shouldDisplayFood);
     }
 
     @Override

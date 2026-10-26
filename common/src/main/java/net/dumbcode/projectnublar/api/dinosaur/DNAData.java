@@ -11,7 +11,7 @@ import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.chat.MutableComponent;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.util.Mth;
 import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.entity.animal.TropicalFish;
@@ -176,7 +176,7 @@ public class DNAData {
             if (entityType.getDescription().getString().toLowerCase().contains("parrot")) {
                 localVariant = ProjectNublar.checkReplace(variant);
             } else if (entityType.getDescription().getString().toLowerCase().contains("cat")) {
-                localVariant = ProjectNublar.checkReplace(new ResourceLocation(variant).getPath());
+                localVariant = ProjectNublar.checkReplace(Identifier.parse(variant).getPath());
             }
         }
         return Component.literal(localVariant + getEntityType().getDescription().getString());
@@ -216,7 +216,7 @@ public class DNAData {
     public static DNAData loadFromNBT(CompoundTag tag) {
         DNAData dnaData = new DNAData();
         dnaData.setEntityType(
-                BuiltInRegistries.ENTITY_TYPE.get(new ResourceLocation(tag.getString(ENTITY_TYPE_KEY))));
+                BuiltInRegistries.ENTITY_TYPE.get(Identifier.parse(tag.getString(ENTITY_TYPE_KEY))));
         if (tag.contains(DNA_PERCENTAGE_KEY)) {
             dnaData.setDnaPercentage(tag.getDouble(DNA_PERCENTAGE_KEY));
         }

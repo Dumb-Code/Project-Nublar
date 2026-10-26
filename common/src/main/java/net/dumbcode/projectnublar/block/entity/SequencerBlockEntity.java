@@ -15,6 +15,7 @@ import net.dumbcode.projectnublar.menutypes.SequencerMenu;
 import net.dumbcode.projectnublar.registry.BlockInit;
 import net.dumbcode.projectnublar.registry.ItemInit;
 import net.dumbcode.projectnublar.registry.TagInit;
+import net.dumbcode.projectnublar.util.SaveVersion;
 import net.minecraft.ChatFormatting;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.NonNullList;
@@ -29,6 +30,8 @@ import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.state.BlockState;
+import net.minecraft.world.level.storage.ValueInput;
+import net.minecraft.world.level.storage.ValueOutput;
 import software.bernie.geckolib.animatable.GeoBlockEntity;
 import software.bernie.geckolib.core.animatable.instance.AnimatableInstanceCache;
 import software.bernie.geckolib.core.animation.AnimatableManager;
@@ -388,55 +391,57 @@ public class SequencerBlockEntity extends SyncingContainerBlockEntity
     }
 
     @Override
-    protected void saveData(CompoundTag tag) {
-        tag.put(STORAGE_TAG, storage.save(new CompoundTag()));
-        tag.put(DNA_INPUT_TAG, dnaInput.save(new CompoundTag()));
-        tag.put(EMPTY_VIAL_OUTPUT_TAG, emptyVialOutput.save(new CompoundTag()));
-        tag.put(WATER_TAG, water.save(new CompoundTag()));
-        tag.put(BONE_MATTER_TAG, boneMatter.save(new CompoundTag()));
-        tag.put(SUGAR_TAG, sugar.save(new CompoundTag()));
-        tag.put(PLANT_MATTER_TAG, plantMatter.save(new CompoundTag()));
-        tag.put(EMPTY_TUBE_INPUT_TAG, emptyTubeInput.save(new CompoundTag()));
-        tag.put(DNA_TEST_TUBE_OUTPUT_TAG, dnaTestTubeOutput.save(new CompoundTag()));
-        tag.putFloat(SEQUENCING_TIME_TAG, sequencingTime);
-        tag.putBoolean(HAS_COMPUTER_TAG, hasComputer);
-        tag.putBoolean(HAS_DOOR_TAG, hasDoor);
-        tag.putBoolean(HAS_SCREEN_TAG, hasScreen);
-        tag.putInt(WATER_LEVEL_TAG, waterLevel);
-        tag.putInt(BONE_MATTER_LEVEL_TAG, boneMatterLevel);
-        tag.putInt(SUGAR_LEVEL_TAG, sugarLevel);
-        tag.putInt(PLANT_MATTER_LEVEL_TAG, plantMatterLevel);
-        tag.put(DINO_DATA_TAG, dinoData.toNBT());
-        tag.putBoolean(IS_SYNTHESIZING_TAG, isSynthesizing);
-        tag.putInt(SYNTH_TIME_TAG, synthTime);
-        tag.put(COMPUTER_CHIP_TAG, computerChip.save(new CompoundTag()));
-        tag.put(TANK_TAG, tank.save(new CompoundTag()));
+    protected void saveData(ValueOutput output) {
+        SaveVersion.write(output);
+        output.store(STORAGE_TAG, ItemStack.OPTIONAL_CODEC, storage);
+        output.store(DNA_INPUT_TAG, ItemStack.OPTIONAL_CODEC, dnaInput);
+        output.store(EMPTY_VIAL_OUTPUT_TAG, ItemStack.OPTIONAL_CODEC, emptyVialOutput);
+        output.store(WATER_TAG, ItemStack.OPTIONAL_CODEC, water);
+        output.store(BONE_MATTER_TAG, ItemStack.OPTIONAL_CODEC, boneMatter);
+        output.store(SUGAR_TAG, ItemStack.OPTIONAL_CODEC, sugar);
+        output.store(PLANT_MATTER_TAG, ItemStack.OPTIONAL_CODEC, plantMatter);
+        output.store(EMPTY_TUBE_INPUT_TAG, ItemStack.OPTIONAL_CODEC, emptyTubeInput);
+        output.store(DNA_TEST_TUBE_OUTPUT_TAG, ItemStack.OPTIONAL_CODEC, dnaTestTubeOutput);
+        output.putFloat(SEQUENCING_TIME_TAG, sequencingTime);
+        output.putBoolean(HAS_COMPUTER_TAG, hasComputer);
+        output.putBoolean(HAS_DOOR_TAG, hasDoor);
+        output.putBoolean(HAS_SCREEN_TAG, hasScreen);
+        output.putInt(WATER_LEVEL_TAG, waterLevel);
+        output.putInt(BONE_MATTER_LEVEL_TAG, boneMatterLevel);
+        output.putInt(SUGAR_LEVEL_TAG, sugarLevel);
+        output.putInt(PLANT_MATTER_LEVEL_TAG, plantMatterLevel);
+        // DinoData stays on CompoundTag until Task 16; stored through the tag codec.
+        output.store(DINO_DATA_TAG, CompoundTag.CODEC, dinoData.toNBT());
+        output.putBoolean(IS_SYNTHESIZING_TAG, isSynthesizing);
+        output.putInt(SYNTH_TIME_TAG, synthTime);
+        output.store(COMPUTER_CHIP_TAG, ItemStack.OPTIONAL_CODEC, computerChip);
+        output.store(TANK_TAG, ItemStack.OPTIONAL_CODEC, tank);
     }
 
     @Override
-    protected void loadData(CompoundTag tag) {
-        storage = ItemStack.of(tag.getCompound(STORAGE_TAG));
-        dnaInput = ItemStack.of(tag.getCompound(DNA_INPUT_TAG));
-        emptyVialOutput = ItemStack.of(tag.getCompound(EMPTY_VIAL_OUTPUT_TAG));
-        water = ItemStack.of(tag.getCompound(WATER_TAG));
-        boneMatter = ItemStack.of(tag.getCompound(BONE_MATTER_TAG));
-        sugar = ItemStack.of(tag.getCompound(SUGAR_TAG));
-        plantMatter = ItemStack.of(tag.getCompound(PLANT_MATTER_TAG));
-        emptyTubeInput = ItemStack.of(tag.getCompound(EMPTY_TUBE_INPUT_TAG));
-        dnaTestTubeOutput = ItemStack.of(tag.getCompound(DNA_TEST_TUBE_OUTPUT_TAG));
-        sequencingTime = tag.getFloat(SEQUENCING_TIME_TAG);
-        hasComputer = tag.getBoolean(HAS_COMPUTER_TAG);
-        hasDoor = tag.getBoolean(HAS_DOOR_TAG);
-        hasScreen = tag.getBoolean(HAS_SCREEN_TAG);
-        waterLevel = tag.getInt(WATER_LEVEL_TAG);
-        boneMatterLevel = tag.getInt(BONE_MATTER_LEVEL_TAG);
-        sugarLevel = tag.getInt(SUGAR_LEVEL_TAG);
-        plantMatterLevel = tag.getInt(PLANT_MATTER_LEVEL_TAG);
-        dinoData = DinoData.fromNBT(tag.getCompound(DINO_DATA_TAG));
-        isSynthesizing = tag.getBoolean(IS_SYNTHESIZING_TAG);
-        synthTime = tag.getInt(SYNTH_TIME_TAG);
-        computerChip = ItemStack.of(tag.getCompound(COMPUTER_CHIP_TAG));
-        tank = ItemStack.of(tag.getCompound(TANK_TAG));
+    protected void loadData(ValueInput input) {
+        storage = input.read(STORAGE_TAG, ItemStack.OPTIONAL_CODEC).orElse(ItemStack.EMPTY);
+        dnaInput = input.read(DNA_INPUT_TAG, ItemStack.OPTIONAL_CODEC).orElse(ItemStack.EMPTY);
+        emptyVialOutput = input.read(EMPTY_VIAL_OUTPUT_TAG, ItemStack.OPTIONAL_CODEC).orElse(ItemStack.EMPTY);
+        water = input.read(WATER_TAG, ItemStack.OPTIONAL_CODEC).orElse(ItemStack.EMPTY);
+        boneMatter = input.read(BONE_MATTER_TAG, ItemStack.OPTIONAL_CODEC).orElse(ItemStack.EMPTY);
+        sugar = input.read(SUGAR_TAG, ItemStack.OPTIONAL_CODEC).orElse(ItemStack.EMPTY);
+        plantMatter = input.read(PLANT_MATTER_TAG, ItemStack.OPTIONAL_CODEC).orElse(ItemStack.EMPTY);
+        emptyTubeInput = input.read(EMPTY_TUBE_INPUT_TAG, ItemStack.OPTIONAL_CODEC).orElse(ItemStack.EMPTY);
+        dnaTestTubeOutput = input.read(DNA_TEST_TUBE_OUTPUT_TAG, ItemStack.OPTIONAL_CODEC).orElse(ItemStack.EMPTY);
+        sequencingTime = input.getFloatOr(SEQUENCING_TIME_TAG, 0F);
+        hasComputer = input.getBooleanOr(HAS_COMPUTER_TAG, false);
+        hasDoor = input.getBooleanOr(HAS_DOOR_TAG, false);
+        hasScreen = input.getBooleanOr(HAS_SCREEN_TAG, false);
+        waterLevel = input.getIntOr(WATER_LEVEL_TAG, 0);
+        boneMatterLevel = input.getIntOr(BONE_MATTER_LEVEL_TAG, 0);
+        sugarLevel = input.getIntOr(SUGAR_LEVEL_TAG, 0);
+        plantMatterLevel = input.getIntOr(PLANT_MATTER_LEVEL_TAG, 0);
+        dinoData = DinoData.fromNBT(input.read(DINO_DATA_TAG, CompoundTag.CODEC).orElseGet(CompoundTag::new));
+        isSynthesizing = input.getBooleanOr(IS_SYNTHESIZING_TAG, false);
+        synthTime = input.getIntOr(SYNTH_TIME_TAG, 0);
+        computerChip = input.read(COMPUTER_CHIP_TAG, ItemStack.OPTIONAL_CODEC).orElse(ItemStack.EMPTY);
+        tank = input.read(TANK_TAG, ItemStack.OPTIONAL_CODEC).orElse(ItemStack.EMPTY);
     }
 
     @Override

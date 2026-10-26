@@ -28,7 +28,7 @@ import net.minecraft.client.gui.screens.inventory.AbstractContainerScreen;
 import net.minecraft.client.gui.screens.inventory.InventoryScreen;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.network.chat.Component;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.util.Mth;
 import net.minecraft.util.RandomSource;
 import net.minecraft.util.StringUtil;
@@ -54,13 +54,13 @@ import java.util.Map;
  * client/server mixing).
  */
 public class SequencerScreen extends AbstractContainerScreen<SequencerMenu> {
-    private static ResourceLocation TEXTURE = Constants.modLoc("textures/gui/sequencer.png");
-    private static ResourceLocation TEXTURE_2 = Constants.modLoc("textures/gui/sequencer_page.png");
-    private static ResourceLocation INVENTORY = Constants.modLoc("textures/gui/inventory_overlay.png");
-    private static ResourceLocation CENTER = Constants.modLoc("textures/gui/center_pieces.png");
-    private static ResourceLocation SPIRAL = Constants.modLoc("textures/gui/dna_spiral.png");
-    private static ResourceLocation SYNTH = Constants.modLoc("textures/gui/synth_page.png");
-    private static ResourceLocation EDIT = Constants.modLoc("textures/gui/edit_page.png");
+    private static Identifier TEXTURE = Constants.modLoc("textures/gui/sequencer.png");
+    private static Identifier TEXTURE_2 = Constants.modLoc("textures/gui/sequencer_page.png");
+    private static Identifier INVENTORY = Constants.modLoc("textures/gui/inventory_overlay.png");
+    private static Identifier CENTER = Constants.modLoc("textures/gui/center_pieces.png");
+    private static Identifier SPIRAL = Constants.modLoc("textures/gui/dna_spiral.png");
+    private static Identifier SYNTH = Constants.modLoc("textures/gui/synth_page.png");
+    private static Identifier EDIT = Constants.modLoc("textures/gui/edit_page.png");
     ProgressWidget progressWidget;
     TextScrollBox textScrollBox;
     TextScrollBox isolatedTextScrollBox;

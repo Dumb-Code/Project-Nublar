@@ -5,14 +5,14 @@ import net.dumbcode.projectnublar.menutypes.EggPrinterMenu;
 import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.gui.screens.inventory.AbstractContainerScreen;
 import net.minecraft.network.chat.Component;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.util.Mth;
 import net.minecraft.world.entity.player.Inventory;
 
 public class EggPrinterScreen extends AbstractContainerScreen<EggPrinterMenu> {
-    private static final ResourceLocation TEXTURE = new ResourceLocation(Constants.MODID, "textures/gui/egg_printer.png");
-    private static final ResourceLocation BONEMEAL_BAR = new ResourceLocation(Constants.MODID, "textures/gui/bonemeal_bar.png");
-    private static final ResourceLocation EGG = new ResourceLocation(Constants.MODID, "textures/gui/egg.png");
+    private static final Identifier TEXTURE = Identifier.fromNamespaceAndPath(Constants.MODID,"textures/gui/egg_printer.png");
+    private static final Identifier BONEMEAL_BAR = Identifier.fromNamespaceAndPath(Constants.MODID,"textures/gui/bonemeal_bar.png");
+    private static final Identifier EGG = Identifier.fromNamespaceAndPath(Constants.MODID,"textures/gui/egg.png");
 
     public EggPrinterScreen(EggPrinterMenu pMenu, Inventory pPlayerInventory, Component pTitle) {
         super(pMenu, pPlayerInventory, pTitle);

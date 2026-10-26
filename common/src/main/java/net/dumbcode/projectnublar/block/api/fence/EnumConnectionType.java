@@ -1,7 +1,7 @@
 package net.dumbcode.projectnublar.block.api.fence;
 
 import net.dumbcode.projectnublar.Constants;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 
 
 /**
@@ -49,7 +49,7 @@ public enum EnumConnectionType implements ConnectionType {
     private final float rotationOffset;
     private final float halfSize;
     private final int lightLevel;
-    private final ResourceLocation registryName;
+    private final Identifier registryName;
 
     EnumConnectionType(int amount, int height, float radius, float cableWidth, float defaultRotation, float halfSize, int lightLevel) {
         this.offsets = new double[amount];
@@ -59,7 +59,7 @@ public enum EnumConnectionType implements ConnectionType {
         this.rotationOffset = defaultRotation;
         this.halfSize = halfSize;
         this.lightLevel = lightLevel;
-        this.registryName = new ResourceLocation(Constants.MODID, "textures/blocks/" + this.name().toLowerCase() + "_electric_fence_pole.png");
+        this.registryName = Identifier.fromNamespaceAndPath(Constants.MODID,"textures/blocks/" + this.name().toLowerCase() + "_electric_fence_pole.png");
 
         double off = 1D / (amount * 2);
         for (int i = 0; i < amount; i++) {
@@ -104,7 +104,7 @@ public enum EnumConnectionType implements ConnectionType {
     }
 
     @Override
-    public ResourceLocation getRegistryName() {
+    public Identifier getRegistryName() {
         return registryName;
     }
 }

@@ -3,7 +3,7 @@ package net.dumbcode.projectnublar.block;
 import net.dumbcode.projectnublar.api.fossil.FossilBase;
 import net.dumbcode.projectnublar.api.fossil.FossilPiece;
 import net.dumbcode.projectnublar.api.fossil.Quality;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.DropExperienceBlock;
 import net.minecraft.world.level.block.state.BlockState;
@@ -17,11 +17,11 @@ import net.minecraft.world.level.block.state.properties.EnumProperty;
 public class FossilBlock extends DropExperienceBlock {
     public static final EnumProperty<Quality> QUALITY = EnumProperty.create("quality", Quality.class);
 
-    private final ResourceLocation entityType;
+    private final Identifier entityType;
     private final FossilPiece fossilPiece;
     private final FossilBase base;
 
-    public FossilBlock(Properties properties, ResourceLocation entityType, FossilPiece piece, FossilBase base) {
+    public FossilBlock(Properties properties, Identifier entityType, FossilPiece piece, FossilBase base) {
         super(properties);
         this.entityType = entityType;
         this.fossilPiece = piece;
@@ -34,7 +34,7 @@ public class FossilBlock extends DropExperienceBlock {
         builder.add(QUALITY);
     }
 
-    public ResourceLocation getEntityType() {
+    public Identifier getEntityType() {
         return entityType;
     }
 

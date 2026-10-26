@@ -19,7 +19,7 @@ import net.dumbcode.projectnublar.api.fossil.FossilSets;
 import net.dumbcode.projectnublar.api.fossil.Fossils;
 import net.dumbcode.projectnublar.api.fossil.TraceFossils;
 import net.minecraft.core.registries.BuiltInRegistries;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.server.packs.resources.ResourceManager;
 import net.minecraft.server.packs.resources.SimpleJsonResourceReloadListener;
 import net.minecraft.util.GsonHelper;
@@ -82,7 +82,7 @@ public class FossilConfigReloadListener extends SimpleJsonResourceReloadListener
 
     @Override
     protected void apply(
-            Map<ResourceLocation, JsonElement> elements,
+            Map<Identifier, JsonElement> elements,
             ResourceManager resourceManager,
             ProfilerFiller profiler) {
         Map<String, FossilPeriod> newPeriodMap = new HashMap<>();
@@ -92,8 +92,8 @@ public class FossilConfigReloadListener extends SimpleJsonResourceReloadListener
         Map<String, TraceFossils> newTraceFossilsMap = new HashMap<>();
         Map<String, AmberFossils> newAmberFossilsMap = new HashMap<>();
 
-        for (Map.Entry<ResourceLocation, JsonElement> entry : elements.entrySet()) {
-            ResourceLocation fileId = entry.getKey();
+        for (Map.Entry<Identifier, JsonElement> entry : elements.entrySet()) {
+            Identifier fileId = entry.getKey();
             JsonElement element = entry.getValue();
 
             try {
@@ -223,9 +223,9 @@ public class FossilConfigReloadListener extends SimpleJsonResourceReloadListener
     }
 
     private static ParsedFossils parseFossils(
-            String configId, JsonObject jsonObject, ResourceLocation fileId) {
+            String configId, JsonObject jsonObject, Identifier fileId) {
         String resourceLocationString = GsonHelper.getAsString(jsonObject, SPECIES_KEY);
-        ResourceLocation entityLocation = ResourceLocation.tryParse(resourceLocationString);
+        Identifier entityLocation = Identifier.tryParse(resourceLocationString);
 
         EntityType<?> entityType = BuiltInRegistries.ENTITY_TYPE.getOptional(entityLocation)
                 .orElseThrow(

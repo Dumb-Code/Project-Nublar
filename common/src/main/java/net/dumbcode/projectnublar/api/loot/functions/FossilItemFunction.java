@@ -12,7 +12,7 @@ import net.dumbcode.projectnublar.registry.ItemInit;
 import net.dumbcode.projectnublar.registry.LootFunctionInit;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.nbt.CompoundTag;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.world.item.BlockItem;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.enchantment.EnchantmentHelper;
@@ -49,7 +49,7 @@ public class FossilItemFunction extends LootItemConditionalFunction {
         return createFossilItem(block.getEntityType(), block.getFossilPiece(), quality);
     }
 
-    private static ItemStack createFossilItem(ResourceLocation dino, FossilPiece piece, Quality quality) {
+    private static ItemStack createFossilItem(Identifier dino, FossilPiece piece, Quality quality) {
         ItemStack itemStack = new ItemStack(ItemInit.FOSSIL_ITEM.get());
         DNAData dnaData = new DNAData();
         dnaData.setEntityType(BuiltInRegistries.ENTITY_TYPE.get(dino));

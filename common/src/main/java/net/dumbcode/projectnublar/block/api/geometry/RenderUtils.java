@@ -9,7 +9,7 @@ import com.mojang.blaze3d.vertex.VertexFormat;
 import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.renderer.texture.TextureAtlasSprite;
 import net.minecraft.core.Direction;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.world.phys.Vec3;
 import org.joml.Matrix3f;
 import org.joml.Matrix4f;
@@ -168,7 +168,7 @@ public class RenderUtils {
 //        Tessellator.getInstance().draw();
     }
 
-    public static void draw256Texture(ResourceLocation rl, GuiGraphics stack, int x, int y, int u, int v, int sizeX, int sizeU) {
+    public static void draw256Texture(Identifier rl, GuiGraphics stack, int x, int y, int u, int v, int sizeX, int sizeU) {
         stack.blit(rl, x, y, 0, u, v, sizeX, sizeU, 256, 256);
     }
 

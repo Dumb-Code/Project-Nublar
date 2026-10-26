@@ -5,11 +5,11 @@ import net.dumbcode.projectnublar.Constants;
 import net.dumbcode.projectnublar.block.entity.IncubatorBlockEntity;
 import net.minecraft.core.BlockPos;
 import net.minecraft.network.FriendlyByteBuf;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 
 /** Client-to-server: requests an incubator block sync. Wire format (BlockPos) is the same as before. */
 public record UpdateIncubatorPacket(BlockPos pos) {
-    public static ResourceLocation ID = Constants.modLoc("update_incubator");
+    public static Identifier ID = Constants.modLoc("update_incubator");
 
     public static UpdateIncubatorPacket decode(FriendlyByteBuf buf) {
         return new UpdateIncubatorPacket(buf.readBlockPos());

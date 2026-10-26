@@ -10,9 +10,9 @@ import net.dumbcode.projectnublar.item.ComputerChipItem;
 import net.dumbcode.projectnublar.menutypes.EggPrinterMenu;
 import net.dumbcode.projectnublar.registry.BlockInit;
 import net.dumbcode.projectnublar.registry.ItemInit;
+import net.dumbcode.projectnublar.util.SaveVersion;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.NonNullList;
-import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.chat.Component;
 import net.minecraft.world.entity.player.Inventory;
 import net.minecraft.world.entity.player.Player;
@@ -21,6 +21,8 @@ import net.minecraft.world.inventory.ContainerData;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.state.BlockState;
+import net.minecraft.world.level.storage.ValueInput;
+import net.minecraft.world.level.storage.ValueOutput;
 import software.bernie.geckolib.animatable.GeoBlockEntity;
 import software.bernie.geckolib.core.animatable.instance.AnimatableInstanceCache;
 import software.bernie.geckolib.core.animation.AnimatableManager;
@@ -205,29 +207,30 @@ public class EggPrinterBlockEntity extends SyncingContainerBlockEntity
     }
 
     @Override
-    protected void saveData(CompoundTag tag) {
-        tag.put(EMBRYO_INPUT_TAG, embryoInput.save(new CompoundTag()));
-        tag.put(BONEMEAL_INPUT_TAG, bonemealInput.save(new CompoundTag()));
-        tag.put(EGG_OUTPUT_TAG, eggOutput.save(new CompoundTag()));
-        tag.put(SYRINGE_OUTPUT_TAG, syringeOutput.save(new CompoundTag()));
-        tag.putInt(BONEMEAL_AMOUNT_TAG, bonemealAmount);
-        tag.putInt(BONEMEAL_MAX_TAG, bonemealMax);
-        tag.putInt(PROGRESS_TAG, progress);
-        tag.putInt(MAX_PROGRESS_TAG, maxProgress);
-        tag.putBoolean(IS_PRINTING_TAG, isPrinting);
+    protected void saveData(ValueOutput output) {
+        SaveVersion.write(output);
+        output.store(EMBRYO_INPUT_TAG, ItemStack.OPTIONAL_CODEC, embryoInput);
+        output.store(BONEMEAL_INPUT_TAG, ItemStack.OPTIONAL_CODEC, bonemealInput);
+        output.store(EGG_OUTPUT_TAG, ItemStack.OPTIONAL_CODEC, eggOutput);
+        output.store(SYRINGE_OUTPUT_TAG, ItemStack.OPTIONAL_CODEC, syringeOutput);
+        output.putInt(BONEMEAL_AMOUNT_TAG, bonemealAmount);
+        output.putInt(BONEMEAL_MAX_TAG, bonemealMax);
+        output.putInt(PROGRESS_TAG, progress);
+        output.putInt(MAX_PROGRESS_TAG, maxProgress);
+        output.putBoolean(IS_PRINTING_TAG, isPrinting);
     }
 
     @Override
-    protected void loadData(CompoundTag tag) {
-        embryoInput = ItemStack.of(tag.getCompound(EMBRYO_INPUT_TAG));
-        bonemealInput = ItemStack.of(tag.getCompound(BONEMEAL_INPUT_TAG));
-        eggOutput = ItemStack.of(tag.getCompound(EGG_OUTPUT_TAG));
-        syringeOutput = ItemStack.of(tag.getCompound(SYRINGE_OUTPUT_TAG));
-        bonemealAmount = tag.getInt(BONEMEAL_AMOUNT_TAG);
-        bonemealMax = tag.getInt(BONEMEAL_MAX_TAG);
-        progress = tag.getInt(PROGRESS_TAG);
-        maxProgress = tag.getInt(MAX_PROGRESS_TAG);
-        isPrinting = tag.getBoolean(IS_PRINTING_TAG);
+    protected void loadData(ValueInput input) {
+        embryoInput = input.read(EMBRYO_INPUT_TAG, ItemStack.OPTIONAL_CODEC).orElse(ItemStack.EMPTY);
+        bonemealInput = input.read(BONEMEAL_INPUT_TAG, ItemStack.OPTIONAL_CODEC).orElse(ItemStack.EMPTY);
+        eggOutput = input.read(EGG_OUTPUT_TAG, ItemStack.OPTIONAL_CODEC).orElse(ItemStack.EMPTY);
+        syringeOutput = input.read(SYRINGE_OUTPUT_TAG, ItemStack.OPTIONAL_CODEC).orElse(ItemStack.EMPTY);
+        bonemealAmount = input.getIntOr(BONEMEAL_AMOUNT_TAG, 0);
+        bonemealMax = input.getIntOr(BONEMEAL_MAX_TAG, 0);
+        progress = input.getIntOr(PROGRESS_TAG, 0);
+        maxProgress = input.getIntOr(MAX_PROGRESS_TAG, 0);
+        isPrinting = input.getBooleanOr(IS_PRINTING_TAG, false);
     }
 
     @Override

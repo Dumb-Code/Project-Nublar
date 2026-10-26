@@ -1,12 +1,12 @@
 package net.dumbcode.projectnublar.block.api.fence;
 
 import com.google.common.collect.Maps;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 
 import java.util.Map;
 
 public interface ConnectionType {
-    Map<ResourceLocation, ConnectionType> registryMap = Maps.newHashMap(); //todo: move to a registry?
+    Map<Identifier, ConnectionType> registryMap = Maps.newHashMap(); //todo: move to a registry?
     default void register() {
         registryMap.put(this.getRegistryName(), this);
     }
@@ -17,9 +17,9 @@ public interface ConnectionType {
     float getRotationOffset();
     float getHalfSize();
     int getLightLevel();
-    ResourceLocation getRegistryName();
+    Identifier getRegistryName();
 
-    static ConnectionType getType(ResourceLocation id) {
+    static ConnectionType getType(Identifier id) {
         return ConnectionType.registryMap.getOrDefault(id, EnumConnectionType.LOW_SECURITY);
     }
 }

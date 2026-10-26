@@ -1,12 +1,12 @@
 package net.dumbcode.projectnublar.api.fossil;
 
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 
 import java.util.List;
 
 public record Fossils(
         String configId,
-        ResourceLocation speciesId,
+        Identifier speciesId,
         String pieces,
         List<SpecialFossilPieces> specialFossilPieces,
         int weight,

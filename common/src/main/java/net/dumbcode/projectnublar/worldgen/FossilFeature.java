@@ -8,7 +8,7 @@ import net.dumbcode.projectnublar.config.FossilsConfig;
 import net.dumbcode.projectnublar.util.FossilUtils;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.SectionPos;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.util.Mth;
 import net.minecraft.util.RandomSource;
 import net.minecraft.world.level.WorldGenLevel;
@@ -131,7 +131,7 @@ public class FossilFeature extends Feature<FossilConfiguration> {
 
         // One quality and one species per vein
         Optional<Quality> quality = pickQuality(random);
-        Optional<Map.Entry<ResourceLocation, FossilsConfig.SpeciesFossils>> species = pickSpecies(random, period);
+        Optional<Map.Entry<Identifier, FossilsConfig.SpeciesFossils>> species = pickSpecies(random, period);
         if (quality.isEmpty() || species.isEmpty() || !FossilCollection.COLLECTIONS.containsKey(species.get().getKey())) {
             return false;
         }
@@ -225,12 +225,12 @@ public class FossilFeature extends Feature<FossilConfiguration> {
      *
      * @return empty when no species has this period or their weights add up to 0
      */
-    static Optional<Map.Entry<ResourceLocation, FossilsConfig.SpeciesFossils>> pickSpecies(RandomSource random, String period) {
-        List<Map.Entry<ResourceLocation, FossilsConfig.SpeciesFossils>> candidates = FossilsConfig.getFossils().entrySet().stream()
+    static Optional<Map.Entry<Identifier, FossilsConfig.SpeciesFossils>> pickSpecies(RandomSource random, String period) {
+        List<Map.Entry<Identifier, FossilsConfig.SpeciesFossils>> candidates = FossilsConfig.getFossils().entrySet().stream()
                 .filter(entry -> entry.getValue().getPeriods().get().contains(period))
                 .toList();
-        Map<Map.Entry<ResourceLocation, FossilsConfig.SpeciesFossils>, Integer> weights = new HashMap<>();
-        for (Map.Entry<ResourceLocation, FossilsConfig.SpeciesFossils> entry : candidates) {
+        Map<Map.Entry<Identifier, FossilsConfig.SpeciesFossils>, Integer> weights = new HashMap<>();
+        for (Map.Entry<Identifier, FossilsConfig.SpeciesFossils> entry : candidates) {
             weights.put(entry, entry.getValue().getWeight().get());
         }
         int total = FossilRolls.totalWeight(candidates, weights::get);
@@ -247,7 +247,7 @@ public class FossilFeature extends Feature<FossilConfiguration> {
     }
 
     /** The targets of this species, keyed by piece name. */
-    private static Map<String, FossilConfiguration.TargetBlockState> targetsByPiece(FossilConfiguration config, ResourceLocation entityType) {
+    private static Map<String, FossilConfiguration.TargetBlockState> targetsByPiece(FossilConfiguration config, Identifier entityType) {
         Map<String, FossilConfiguration.TargetBlockState> targets = new HashMap<>();
         for (FossilConfiguration.TargetBlockState target : config.targetStates) {
             if (target.state.getBlock() instanceof FossilBlock block && block.getEntityType().equals(entityType)) {

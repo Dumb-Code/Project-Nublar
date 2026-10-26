@@ -4,13 +4,13 @@ import net.dumbcode.projectnublar.block.api.geometry.RotatedRayBox;
 import net.dumbcode.projectnublar.block.entity.BlockEntityElectricFenceBase;
 import net.dumbcode.projectnublar.util.LineUtils;
 import net.minecraft.core.BlockPos;
-import net.minecraft.nbt.CompoundTag;
-import net.minecraft.nbt.NbtUtils;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.world.level.BlockGetter;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.level.block.entity.BlockEntity;
+import net.minecraft.world.level.storage.ValueInput;
+import net.minecraft.world.level.storage.ValueOutput;
 import net.minecraft.world.phys.AABB;
 import net.minecraft.world.phys.Vec3;
 import net.minecraft.world.phys.shapes.Shapes;
@@ -33,7 +33,7 @@ import java.util.Random;
  * <ul>
  *   <li><b>Geometry</b>: the rotated ray boxes and collision shape used for picking/collision -
  *       all math here is numerically frozen ({@code RotatedRayBox}, {@code LineUtils}).
- *   <li><b>Persistence</b>: {@link #writeToNBT}/{@link #fromNBT} with frozen tag names
+ *   <li><b>Persistence</b>: {@link #write}/{@link #read} with frozen tag names
  *       ({@code id}, {@code offset}, {@code from}, {@code to}, {@code sign}, {@code next},
  *       {@code previous}, {@code broken}).
  *   <li><b>Rendering</b>: precomputed vertex arrays ({@link RenderData}) consumed by
@@ -374,29 +374,30 @@ public class Connection {
         return this.in[END_Z] - this.in[START_Z];
     }
 
-    public CompoundTag writeToNBT(CompoundTag nbt) {
-        nbt.putString(ID_TAG, this.type.getRegistryName().toString());
-        nbt.putDouble(OFFSET_TAG, this.offset);
-        nbt.put(FROM_TAG, NbtUtils.writeBlockPos(this.getFrom()));
-        nbt.put(TO_TAG, NbtUtils.writeBlockPos(this.getTo()));
-        nbt.putBoolean(SIGN_TAG, this.sign);
-        nbt.put(NEXT_TAG, NbtUtils.writeBlockPos(this.next));
-        nbt.put(PREVIOUS_TAG, NbtUtils.writeBlockPos(this.previous));
-        nbt.putBoolean(BROKEN_TAG, this.broken);
-        return nbt;
+    /** Writes this wire under the frozen tag names; positions use the vanilla {@link BlockPos#CODEC}. */
+    public void write(ValueOutput output) {
+        output.putString(ID_TAG, this.type.getRegistryName().toString());
+        output.putDouble(OFFSET_TAG, this.offset);
+        output.store(FROM_TAG, BlockPos.CODEC, this.getFrom());
+        output.store(TO_TAG, BlockPos.CODEC, this.getTo());
+        output.putBoolean(SIGN_TAG, this.sign);
+        output.store(NEXT_TAG, BlockPos.CODEC, this.next);
+        output.store(PREVIOUS_TAG, BlockPos.CODEC, this.previous);
+        output.putBoolean(BROKEN_TAG, this.broken);
     }
 
-    public static Connection fromNBT(CompoundTag nbt, BlockEntity tileEntity) {
+    /** Reads a wire written by {@link #write}; a missing position reads as the origin, as in 1.20.1. */
+    public static Connection read(ValueInput input, BlockEntity tileEntity) {
         return new Connection(
             tileEntity,
-            ConnectionType.getType(new ResourceLocation(nbt.getString(ID_TAG))),
-            nbt.getDouble(OFFSET_TAG),
-            NbtUtils.readBlockPos(nbt.getCompound(FROM_TAG)),
-            NbtUtils.readBlockPos(nbt.getCompound(TO_TAG)),
-            NbtUtils.readBlockPos(nbt.getCompound(PREVIOUS_TAG)),
-            NbtUtils.readBlockPos(nbt.getCompound(NEXT_TAG)),
+            ConnectionType.getType(Identifier.parse(input.getStringOr(ID_TAG, ""))),
+            input.getDoubleOr(OFFSET_TAG, 0D),
+            input.read(FROM_TAG, BlockPos.CODEC).orElse(BlockPos.ZERO),
+            input.read(TO_TAG, BlockPos.CODEC).orElse(BlockPos.ZERO),
+            input.read(PREVIOUS_TAG, BlockPos.CODEC).orElse(BlockPos.ZERO),
+            input.read(NEXT_TAG, BlockPos.CODEC).orElse(BlockPos.ZERO),
             tileEntity.getBlockPos()
-        ).silentlySetBroken(nbt.getBoolean(BROKEN_TAG)).silentlySetSign(nbt.getBoolean(SIGN_TAG));
+        ).silentlySetBroken(input.getBooleanOr(BROKEN_TAG, false)).silentlySetSign(input.getBooleanOr(SIGN_TAG, false));
     }
 
     public boolean lazyEquals(Connection con) {

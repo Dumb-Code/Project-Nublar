@@ -1,5 +1,6 @@
 package net.dumbcode.projectnublar.entity.dinosaur;
 
+import com.mojang.serialization.Codec;
 import net.dumbcode.projectnublar.api.dinosaur.DinoBehaviourData;
 import net.dumbcode.projectnublar.api.dinosaur.DinoData;
 import net.dumbcode.projectnublar.api.dinosaur.DinoDietData;
@@ -22,7 +23,9 @@ import net.dumbcode.projectnublar.registry.*;
 import net.dumbcode.projectnublar.util.DinoAnimationLengths;
 import net.dumbcode.projectnublar.util.DinoAnimationUtils;
 import net.dumbcode.projectnublar.util.DinoNeedsUtils;
+import net.dumbcode.projectnublar.util.SaveVersion;
 import net.minecraft.core.BlockPos;
+import net.minecraft.core.UUIDUtil;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.syncher.EntityDataAccessor;
 import net.minecraft.network.syncher.EntityDataSerializers;
@@ -51,6 +54,8 @@ import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.state.BlockState;
+import net.minecraft.world.level.storage.ValueInput;
+import net.minecraft.world.level.storage.ValueOutput;
 import net.minecraft.world.phys.Vec3;
 import net.tslat.smartbrainlib.api.SmartBrainOwner;
 import net.tslat.smartbrainlib.api.core.BrainActivityGroup;
@@ -350,79 +355,74 @@ public abstract class Dinosaur extends TamableAnimal implements FossilRevived, G
     }
 
     @Override
-    public void addAdditionalSaveData(CompoundTag tag) {
-        super.addAdditionalSaveData(tag);
-        tag.put("dino_data", this.getDinoData().toNBT());
-        tag.put("behaviour_profile", this.entityData.get(DINO_BEHAVIOUR));
-        tag.putFloat("hunger_bar", this.entityData.get(DinoNeedsUtils.HUNGER));
-        tag.putFloat("thirst_bar", this.entityData.get(DinoNeedsUtils.THIRST));
-        tag.putFloat("stamina_bar", this.entityData.get(DinoNeedsUtils.STAMINA));
-        tag.putFloat("social_bar", this.entityData.get(DinoNeedsUtils.SOCIAL));
-        tag.putFloat("trust_threshold", this.entityData.get(DinoNeedsUtils.TAMING_SCORE));
-        tag.putFloat("dino_vision", this.entityData.get(DinoNeedsUtils.VISION));
-        tag.putFloat("dino_aggression", this.entityData.get(DinoNeedsUtils.AGGRESSION));
-        tag.putFloat("dino_fertility", this.entityData.get(DinoNeedsUtils.FERTILITY));
-        tag.putFloat("dino_domesticity", this.entityData.get(DinoNeedsUtils.DOMESTICITY));
-        tag.putFloat("dino_size", this.entityData.get(DinoNeedsUtils.SIZE));
-        tag.putFloat("dino_intelligence", this.entityData.get(DinoNeedsUtils.INTELLIGENCE));
-        tag.putFloat("dino_immunity", this.entityData.get(DinoNeedsUtils.IMMUNITY));
-        tag.putBoolean("baby_age_boolean", this.entityData.get(BABY_DATA_ID));
-        tag.putBoolean("juvenile_age_boolean", this.entityData.get(JUVENILE_DATA_ID));
-        tag.putBoolean("sub_adult_age_boolean", this.entityData.get(SUB_ADULT_DATA_ID));
-        tag.putBoolean("adult_age_boolean", this.entityData.get(ADULT_DATA_ID));
+    public void addAdditionalSaveData(ValueOutput output) {
+        SaveVersion.write(output);
+        super.addAdditionalSaveData(output);
+        // DinoData and the behaviour profile stay on CompoundTag until Task 16; stored through the tag codec.
+        output.store("dino_data", CompoundTag.CODEC, this.getDinoData().toNBT());
+        output.store("behaviour_profile", CompoundTag.CODEC, this.entityData.get(DINO_BEHAVIOUR));
+        output.putFloat("hunger_bar", this.entityData.get(DinoNeedsUtils.HUNGER));
+        output.putFloat("thirst_bar", this.entityData.get(DinoNeedsUtils.THIRST));
+        output.putFloat("stamina_bar", this.entityData.get(DinoNeedsUtils.STAMINA));
+        output.putFloat("social_bar", this.entityData.get(DinoNeedsUtils.SOCIAL));
+        output.putFloat("trust_threshold", this.entityData.get(DinoNeedsUtils.TAMING_SCORE));
+        output.putFloat("dino_vision", this.entityData.get(DinoNeedsUtils.VISION));
+        output.putFloat("dino_aggression", this.entityData.get(DinoNeedsUtils.AGGRESSION));
+        output.putFloat("dino_fertility", this.entityData.get(DinoNeedsUtils.FERTILITY));
+        output.putFloat("dino_domesticity", this.entityData.get(DinoNeedsUtils.DOMESTICITY));
+        output.putFloat("dino_size", this.entityData.get(DinoNeedsUtils.SIZE));
+        output.putFloat("dino_intelligence", this.entityData.get(DinoNeedsUtils.INTELLIGENCE));
+        output.putFloat("dino_immunity", this.entityData.get(DinoNeedsUtils.IMMUNITY));
+        output.putBoolean("baby_age_boolean", this.entityData.get(BABY_DATA_ID));
+        output.putBoolean("juvenile_age_boolean", this.entityData.get(JUVENILE_DATA_ID));
+        output.putBoolean("sub_adult_age_boolean", this.entityData.get(SUB_ADULT_DATA_ID));
+        output.putBoolean("adult_age_boolean", this.entityData.get(ADULT_DATA_ID));
 
 
         if(headBonePos != null){
-            tag.putDouble("headx",headBonePos.x);
-            tag.putDouble("heady",headBonePos.y);
-            tag.putDouble("headz",headBonePos.z);
+            output.putDouble("headx",headBonePos.x);
+            output.putDouble("heady",headBonePos.y);
+            output.putDouble("headz",headBonePos.z);
         }
 
-        if(this.entityData.get(DINO_MATE).isPresent()) {
-            tag.putUUID("mate_uuid",this.entityData.get(DINO_MATE).get());
-        }
-        if(this.entityData.get(DINO_FAMILY_UUID).isPresent()) {
-            tag.putUUID("family_uuid",this.entityData.get(DINO_FAMILY_UUID).get());
-        }
+        // UUIDUtil.CODEC is the int-array form that 1.20.1's putUUID wrote.
+        this.entityData.get(DINO_MATE).ifPresent(uuid -> output.store("mate_uuid", UUIDUtil.CODEC, uuid));
+        this.entityData.get(DINO_FAMILY_UUID).ifPresent(uuid -> output.store("family_uuid", UUIDUtil.CODEC, uuid));
     }
 
     @Override
-    public void readAdditionalSaveData(CompoundTag pTag) {
-        super.readAdditionalSaveData(pTag);
-        entityData.set(DINO_DATA, DinoData.fromNBT(pTag.getCompound("dino_data")));
-        this.entityData.set(DINO_BEHAVIOUR, pTag.getCompound("behaviour_profile"));
-        this.entityData.set(DinoNeedsUtils.HUNGER, pTag.getFloat("hunger_bar"));
-        this.entityData.set(DinoNeedsUtils.THIRST, pTag.getFloat("thirst_bar"));
-        this.entityData.set(DinoNeedsUtils.STAMINA, pTag.getFloat("stamina_bar"));
-        this.entityData.set(DinoNeedsUtils.SOCIAL, pTag.getFloat("social_bar"));
+    public void readAdditionalSaveData(ValueInput input) {
+        super.readAdditionalSaveData(input);
+        entityData.set(DINO_DATA, DinoData.fromNBT(input.read("dino_data", CompoundTag.CODEC).orElseGet(CompoundTag::new)));
+        this.entityData.set(DINO_BEHAVIOUR, input.read("behaviour_profile", CompoundTag.CODEC).orElseGet(CompoundTag::new));
+        this.entityData.set(DinoNeedsUtils.HUNGER, input.getFloatOr("hunger_bar", 0F));
+        this.entityData.set(DinoNeedsUtils.THIRST, input.getFloatOr("thirst_bar", 0F));
+        this.entityData.set(DinoNeedsUtils.STAMINA, input.getFloatOr("stamina_bar", 0F));
+        this.entityData.set(DinoNeedsUtils.SOCIAL, input.getFloatOr("social_bar", 0F));
         // TODO(BUG): all four age flags are read from "baby_age_boolean"; the dedicated
         // juvenile/sub_adult/adult keys are written in addAdditionalSaveData but never read.
-        this.entityData.set(BABY_DATA_ID, pTag.getBoolean("baby_age_boolean"));
-        this.entityData.set(JUVENILE_DATA_ID, pTag.getBoolean("baby_age_boolean"));
-        this.entityData.set(SUB_ADULT_DATA_ID, pTag.getBoolean("baby_age_boolean"));
-        this.entityData.set(ADULT_DATA_ID, pTag.getBoolean("baby_age_boolean"));
-        this.entityData.set(DinoNeedsUtils.TAMING_SCORE,pTag.getFloat("trust_threshold"));
-        this.entityData.set(DinoNeedsUtils.VISION,pTag.getFloat("dino_vision"));
-        this.entityData.set(DinoNeedsUtils.AGGRESSION,pTag.getFloat("dino_aggression"));
-        this.entityData.set(DinoNeedsUtils.FERTILITY,pTag.getFloat("dino_fertility"));
-        this.entityData.set(DinoNeedsUtils.DOMESTICITY,pTag.getFloat("dino_domesticity"));
-        this.entityData.set(DinoNeedsUtils.SIZE,pTag.getFloat("dino_size"));
-        this.entityData.set(DinoNeedsUtils.INTELLIGENCE,pTag.getFloat("dino_intelligence"));
-        this.entityData.set(DinoNeedsUtils.IMMUNITY,pTag.getFloat("dino_immunity"));
+        this.entityData.set(BABY_DATA_ID, input.getBooleanOr("baby_age_boolean", false));
+        this.entityData.set(JUVENILE_DATA_ID, input.getBooleanOr("baby_age_boolean", false));
+        this.entityData.set(SUB_ADULT_DATA_ID, input.getBooleanOr("baby_age_boolean", false));
+        this.entityData.set(ADULT_DATA_ID, input.getBooleanOr("baby_age_boolean", false));
+        this.entityData.set(DinoNeedsUtils.TAMING_SCORE,input.getFloatOr("trust_threshold", 0F));
+        this.entityData.set(DinoNeedsUtils.VISION,input.getFloatOr("dino_vision", 0F));
+        this.entityData.set(DinoNeedsUtils.AGGRESSION,input.getFloatOr("dino_aggression", 0F));
+        this.entityData.set(DinoNeedsUtils.FERTILITY,input.getFloatOr("dino_fertility", 0F));
+        this.entityData.set(DinoNeedsUtils.DOMESTICITY,input.getFloatOr("dino_domesticity", 0F));
+        this.entityData.set(DinoNeedsUtils.SIZE,input.getFloatOr("dino_size", 0F));
+        this.entityData.set(DinoNeedsUtils.INTELLIGENCE,input.getFloatOr("dino_intelligence", 0F));
+        this.entityData.set(DinoNeedsUtils.IMMUNITY,input.getFloatOr("dino_immunity", 0F));
 
-        if(pTag.contains("headx") && pTag.contains("heady") && pTag.contains("headz")){
-           headBonePos = new Vec3(pTag.getDouble("headx"),pTag.getDouble("heady"),pTag.getDouble("headz"));
+        Optional<Double> headX = input.read("headx", Codec.DOUBLE);
+        Optional<Double> headY = input.read("heady", Codec.DOUBLE);
+        Optional<Double> headZ = input.read("headz", Codec.DOUBLE);
+        if(headX.isPresent() && headY.isPresent() && headZ.isPresent()){
+           headBonePos = new Vec3(headX.get(),headY.get(),headZ.get());
         }
 
-        if(pTag.contains("mate_uuid")){
-            Optional<UUID> mate_uuid = Optional.of(pTag.getUUID("mate_uuid"));
-            this.entityData.set(DINO_MATE, mate_uuid);
-        } else this.entityData.set(DINO_MATE, Optional.empty());
-
-        if(pTag.contains("family_uuid")){
-            Optional<UUID> mate_uuid = Optional.of(pTag.getUUID("family_uuid"));
-            this.entityData.set(DINO_FAMILY_UUID, mate_uuid);
-        } else this.entityData.set(DINO_FAMILY_UUID, Optional.empty());
+        this.entityData.set(DINO_MATE, input.read("mate_uuid", UUIDUtil.CODEC));
+        this.entityData.set(DINO_FAMILY_UUID, input.read("family_uuid", UUIDUtil.CODEC));
 
     }
 
@@ -472,8 +472,8 @@ public abstract class Dinosaur extends TamableAnimal implements FossilRevived, G
 
     // TODO(BUG): always applies a generic damage source, discarding the real source (attacker,
     // armor bypass flags, etc.) passed in by the part entity.
-    public boolean hurtFromPart(DinosaurPart part, DamageSource source, float amount) {
-        return this.hurt(this.damageSources().generic(), amount);
+    public boolean hurtFromPart(DinosaurPart part, ServerLevel level, DamageSource source, float amount) {
+        return this.hurtServer(level, this.damageSources().generic(), amount);
     }
 
     public boolean canTarget(LivingEntity target) {

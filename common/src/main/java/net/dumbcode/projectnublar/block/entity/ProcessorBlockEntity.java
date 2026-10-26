@@ -12,6 +12,7 @@ import net.dumbcode.projectnublar.item.TankItem;
 import net.dumbcode.projectnublar.menutypes.ProcessorMenu;
 import net.dumbcode.projectnublar.registry.BlockInit;
 import net.dumbcode.projectnublar.registry.ItemInit;
+import net.dumbcode.projectnublar.util.SaveVersion;
 import net.minecraft.ChatFormatting;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.NonNullList;
@@ -27,6 +28,8 @@ import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.state.BlockState;
+import net.minecraft.world.level.storage.ValueInput;
+import net.minecraft.world.level.storage.ValueOutput;
 import net.minecraft.world.phys.AABB;
 import software.bernie.geckolib.animatable.GeoBlockEntity;
 import software.bernie.geckolib.core.animatable.instance.AnimatableInstanceCache;
@@ -207,35 +210,37 @@ public class ProcessorBlockEntity extends SyncingContainerBlockEntity
     }
 
     @Override
-    public void saveData(CompoundTag tag) {
-        tag.put(WATER_TAG, water.save(new CompoundTag()));
-        tag.put(INPUT_TAG, input.save(new CompoundTag()));
-        tag.put(TEST_TUBE_TAG, testTube.save(new CompoundTag()));
+    public void saveData(ValueOutput data) {
+        SaveVersion.write(data);
+        data.store(WATER_TAG, ItemStack.OPTIONAL_CODEC, water);
+        data.store(INPUT_TAG, ItemStack.OPTIONAL_CODEC, input);
+        data.store(TEST_TUBE_TAG, ItemStack.OPTIONAL_CODEC, testTube);
         for (int i = 0; i < output.size(); i++) {
-            tag.put(OUTPUT_ITEM_TAG_PREFIX + i, output.get(i).save(new CompoundTag()));
+            data.store(OUTPUT_ITEM_TAG_PREFIX + i, ItemStack.OPTIONAL_CODEC, output.get(i));
         }
-        tag.putFloat(FLUID_LEVEL_TAG, fluidLevel);
-        tag.putInt(COOKING_PROGRESS_TAG, cookingProgress);
-        tag.put(FILTER_TAG, filter.save(new CompoundTag()));
-        tag.put(TANK_UPGRADE_TAG, tankUpgrade.save(new CompoundTag()));
-        tag.put(CHIP_UPGRADE_TAG, chipUpgrade.save(new CompoundTag()));
-        tag.put(ENERGY_TAG, energyContainer.serialize(new CompoundTag()));
+        data.putFloat(FLUID_LEVEL_TAG, fluidLevel);
+        data.putInt(COOKING_PROGRESS_TAG, cookingProgress);
+        data.store(FILTER_TAG, ItemStack.OPTIONAL_CODEC, filter);
+        data.store(TANK_UPGRADE_TAG, ItemStack.OPTIONAL_CODEC, tankUpgrade);
+        data.store(CHIP_UPGRADE_TAG, ItemStack.OPTIONAL_CODEC, chipUpgrade);
+        // Botarium still serializes to a CompoundTag (Task 5 replaces it); stored through the tag codec.
+        data.store(ENERGY_TAG, CompoundTag.CODEC, energyContainer.serialize(new CompoundTag()));
     }
 
     @Override
-    public void loadData(CompoundTag tag) {
-        water = ItemStack.of(tag.getCompound(WATER_TAG));
-        input = ItemStack.of(tag.getCompound(INPUT_TAG));
-        testTube = ItemStack.of(tag.getCompound(TEST_TUBE_TAG));
+    public void loadData(ValueInput data) {
+        water = data.read(WATER_TAG, ItemStack.OPTIONAL_CODEC).orElse(ItemStack.EMPTY);
+        input = data.read(INPUT_TAG, ItemStack.OPTIONAL_CODEC).orElse(ItemStack.EMPTY);
+        testTube = data.read(TEST_TUBE_TAG, ItemStack.OPTIONAL_CODEC).orElse(ItemStack.EMPTY);
         for (int i = 0; i < output.size(); i++) {
-            output.set(i, ItemStack.of(tag.getCompound(OUTPUT_ITEM_TAG_PREFIX + i)));
+            output.set(i, data.read(OUTPUT_ITEM_TAG_PREFIX + i, ItemStack.OPTIONAL_CODEC).orElse(ItemStack.EMPTY));
         }
-        fluidLevel = tag.getFloat(FLUID_LEVEL_TAG);
-        cookingProgress = tag.getInt(COOKING_PROGRESS_TAG);
-        filter = ItemStack.of(tag.getCompound(FILTER_TAG));
-        tankUpgrade = ItemStack.of(tag.getCompound(TANK_UPGRADE_TAG));
-        chipUpgrade = ItemStack.of(tag.getCompound(CHIP_UPGRADE_TAG));
-        energyContainer.deserialize(tag.getCompound(ENERGY_TAG));
+        fluidLevel = data.getFloatOr(FLUID_LEVEL_TAG, 0F);
+        cookingProgress = data.getIntOr(COOKING_PROGRESS_TAG, 0);
+        filter = data.read(FILTER_TAG, ItemStack.OPTIONAL_CODEC).orElse(ItemStack.EMPTY);
+        tankUpgrade = data.read(TANK_UPGRADE_TAG, ItemStack.OPTIONAL_CODEC).orElse(ItemStack.EMPTY);
+        chipUpgrade = data.read(CHIP_UPGRADE_TAG, ItemStack.OPTIONAL_CODEC).orElse(ItemStack.EMPTY);
+        energyContainer.deserialize(data.read(ENERGY_TAG, CompoundTag.CODEC).orElseGet(CompoundTag::new));
     }
 
     @Override

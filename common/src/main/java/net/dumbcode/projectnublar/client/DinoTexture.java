@@ -4,7 +4,7 @@ import com.mojang.blaze3d.platform.NativeImage;
 import com.mojang.blaze3d.platform.TextureUtil;
 import com.mojang.blaze3d.systems.RenderSystem;
 import net.minecraft.client.renderer.texture.SimpleTexture;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.server.packs.resources.ResourceManager;
 import org.lwjgl.system.MemoryStack;
 
@@ -18,16 +18,16 @@ public class DinoTexture extends SimpleTexture {
     private static final Set<UUID> usedIds = new HashSet<>();
     private final ByteBuffer dataRef;
 
-    public static DinoTexture create(ResourceLocation name, ByteBuffer data) {
+    public static DinoTexture create(Identifier name, ByteBuffer data) {
         return new DinoTexture(name, data);
     }
 
-    private DinoTexture(ResourceLocation location, ByteBuffer data) {
+    private DinoTexture(Identifier location, ByteBuffer data) {
         super(location);
         this.dataRef = data;
     }
 
-    public ResourceLocation getLocation() {
+    public Identifier getLocation() {
         return this.location;
     }
 

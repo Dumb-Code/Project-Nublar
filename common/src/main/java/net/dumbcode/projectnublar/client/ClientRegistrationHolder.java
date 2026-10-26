@@ -27,7 +27,7 @@ import net.minecraft.client.renderer.entity.EntityRenderer;
 import net.minecraft.client.renderer.entity.EntityRenderers;
 import net.minecraft.client.renderer.item.ItemProperties;
 import net.minecraft.client.renderer.texture.AbstractTexture;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import org.jetbrains.annotations.Nullable;
 import software.bernie.geckolib.cache.object.GeoBone;
 import software.bernie.geckolib.model.DefaultedBlockGeoModel;
@@ -38,7 +38,7 @@ public class ClientRegistrationHolder {
     public static void registerEntityRenderers() {
         EntityRenderers.register(EntityInit.DINOSAUR_PART.get(),context -> new EntityRenderer<DinosaurPart>(context) {
             @Override
-            public ResourceLocation getTextureLocation(DinosaurPart entity) {
+            public Identifier getTextureLocation(DinosaurPart entity) {
                 return null;
             }
         });
@@ -67,8 +67,8 @@ public class ClientRegistrationHolder {
         BlockEntityRenderers.register(BlockInit.FEEDER_BLOCK_ENTITY.get(), (context) -> new CarnivoreFeederRenderer());
         BlockEntityRenderers.register(BlockInit.PROCESSOR_BLOCK_ENTITY.get(), (context) -> new ProcessorRenderer());
          BlockEntityRenderers.register(BlockInit.SEQUENCER_BLOCK_ENTITY.get(), (context) -> new SequencerRenderer());
-         BlockEntityRenderers.register(BlockInit.EGG_PRINTER_BLOCK_ENTITY.get(), (context) -> new GeoBlockRenderer<>(new DefaultedBlockGeoModel<>(new ResourceLocation(Constants.MODID, "egg_printer"))));
-         BlockEntityRenderers.register(BlockInit.INCUBATOR_BLOCK_ENTITY.get(), (context) -> new GeoBlockRenderer<IncubatorBlockEntity>(new DefaultedBlockGeoModel<>(new ResourceLocation(Constants.MODID, "incubator"))) {
+         BlockEntityRenderers.register(BlockInit.EGG_PRINTER_BLOCK_ENTITY.get(), (context) -> new GeoBlockRenderer<>(new DefaultedBlockGeoModel<>(Identifier.fromNamespaceAndPath(Constants.MODID,"egg_printer"))));
+         BlockEntityRenderers.register(BlockInit.INCUBATOR_BLOCK_ENTITY.get(), (context) -> new GeoBlockRenderer<IncubatorBlockEntity>(new DefaultedBlockGeoModel<>(Identifier.fromNamespaceAndPath(Constants.MODID,"incubator"))) {
             @Override
             public void renderRecursively(PoseStack poseStack, IncubatorBlockEntity animatable, GeoBone bone, RenderType renderType, MultiBufferSource bufferSource, VertexConsumer buffer, boolean isReRender, float partialTick, int packedLight, int packedOverlay, float red, float green, float blue, float alpha) {
                 if (bone.getName().equals("nest")) {
@@ -88,7 +88,7 @@ public class ClientRegistrationHolder {
             }
 
             @Override
-            public RenderType getRenderType(IncubatorBlockEntity animatable, ResourceLocation texture, @Nullable MultiBufferSource bufferSource, float partialTick) {
+            public RenderType getRenderType(IncubatorBlockEntity animatable, Identifier texture, @Nullable MultiBufferSource bufferSource, float partialTick) {
                 return RenderType.entityTranslucent(texture);
             }
         });
@@ -112,15 +112,15 @@ public class ClientRegistrationHolder {
      * so the old alias to {@code male/gallimimus.png} doubled them. It also gave female animals the male base.
      */
     private static class GallimimusBaseModel extends DinosaurGeoModel {
-        private static final ResourceLocation MALE_BASE = Constants.modLoc("textures/entity/gallimimus/male/base.png");
-        private static final ResourceLocation FEMALE_BASE = Constants.modLoc("textures/entity/gallimimus/female/base.png");
+        private static final Identifier MALE_BASE = Constants.modLoc("textures/entity/gallimimus/male/base.png");
+        private static final Identifier FEMALE_BASE = Constants.modLoc("textures/entity/gallimimus/female/base.png");
 
         GallimimusBaseModel() {
             super(Constants.modLoc("gallimimus"));
         }
 
         @Override
-        public ResourceLocation getTextureResource(Dinosaur animatable) {
+        public Identifier getTextureResource(Dinosaur animatable) {
             // Same rule as Dinosaur.getStringDinoGender: gene value 2.0 is male, anything else female.
             return animatable.getDinoGender() == 2.0D ? MALE_BASE : FEMALE_BASE;
         }
