@@ -15,6 +15,7 @@ import net.dumbcode.projectnublar.entity.dinosaur.herbivore.BrachiosaurusEntity;
 import net.dumbcode.projectnublar.entity.dinosaur.herbivore.TriceratopsEntity;
 import net.dumbcode.projectnublar.entity.dinosaur.omnivore.GallimimusEntity;
 import net.minecraft.core.registries.Registries;
+import net.minecraft.resources.ResourceKey;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.entity.LivingEntity;
@@ -25,7 +26,8 @@ import net.minecraft.world.entity.ai.attributes.AttributeSupplier;
  * Registers every mod entity type and collects the attribute suppliers that the loader-specific
  * code (e.g. Forge's attribute-creation event) applies later.
  *
- * <p>The registered id strings are registry contracts and must never change.
+ * <p>The registered id strings are registry contracts and must never change. On 26.2 an entity
+ * type is built with its registry key, so {@code registerEntity} is the only place that builds one.
  */
 public class EntityInit {
     public static final DeferredRegister<EntityType<?>> ENTITIES =
@@ -72,7 +74,8 @@ public class EntityInit {
 
     private static <T extends Entity> DeferredSupplier<EntityType<T>> registerEntity(
             String name, Supplier<EntityType.Builder<T>> supplier) {
-        return ENTITIES.register(name, () -> supplier.get().build(Constants.MODID + ":" + name));
+        return ENTITIES.register(name, () -> supplier.get()
+                .build(ResourceKey.create(Registries.ENTITY_TYPE, Constants.modLoc(name))));
     }
 
     private static <T extends LivingEntity> DeferredSupplier<EntityType<T>> registerEntity(

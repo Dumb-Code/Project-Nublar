@@ -12,7 +12,6 @@ import net.dumbcode.projectnublar.item.PlantTankItem;
 import net.dumbcode.projectnublar.platform.Services;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
-import net.minecraft.network.FriendlyByteBuf;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.InteractionResult;
@@ -108,9 +107,7 @@ public class IncubatorBlock extends MultiEntityBlock {
     protected void openContainer(Level pLevel, BlockPos pPos, Player pPlayer) {
         BlockEntity blockentity = pLevel.getBlockEntity(pPos);
         if (blockentity instanceof IncubatorBlockEntity) {
-            Services.PLATFORM.openMenu((ServerPlayer) pPlayer, (MenuProvider) blockentity, buf -> {
-                ((FriendlyByteBuf) buf).writeBlockPos(pPos);
-            });
+            Services.PLATFORM.openMenu((ServerPlayer) pPlayer, (MenuProvider) blockentity, blockentity.getBlockPos());
 
             //todo: add stat
 //            pPlayer.awardStat(getOpenState());

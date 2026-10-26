@@ -5,6 +5,7 @@ import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.stream.Collectors;
+import net.dumbcode.projectnublar.api.gene.Genes;
 import net.dumbcode.projectnublar.network.NetworkInit;
 import net.dumbcode.projectnublar.registry.AttributesInit;
 import net.dumbcode.projectnublar.registry.BlockInit;
@@ -36,7 +37,7 @@ public class ProjectNublar {
 
     public static void init() {
         RegistrarManager registrarManager = RegistrarManager.get(Constants.MODID);
-        registrarManager.builder(GeneInit.GENE_KEY.identifier(), new GeneInit[0]).build();
+        registrarManager.builder(GeneInit.GENE_KEY.identifier(), new Genes.Gene[0]).build();
         EntityInit.loadClass();
         BlockInit.loadClass();
         ItemInit.loadClass();

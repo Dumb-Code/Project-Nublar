@@ -6,7 +6,6 @@ import net.dumbcode.projectnublar.registry.TagInit;
 import net.minecraft.client.Minecraft;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.NonNullList;
-import net.minecraft.network.FriendlyByteBuf;
 import net.minecraft.world.Container;
 import net.minecraft.world.SimpleContainer;
 import net.minecraft.world.entity.player.Inventory;
@@ -31,11 +30,8 @@ public class IncubatorMenu extends AbstractContainerMenu {
     private BlockPos pos;
     private ContainerData data;
 
-    public IncubatorMenu(int pContainerId, Inventory playerInventory, FriendlyByteBuf buf) {
-        this(pContainerId, playerInventory, buf.readBlockPos());
-    }
-
-    public IncubatorMenu(int pContainerId, Inventory playerInventory,BlockPos pos) {
+    /** The client-side menu; {@code pos} is the incubator that the server opened. */
+    public IncubatorMenu(int pContainerId, Inventory playerInventory, BlockPos pos) {
         this(pContainerId, playerInventory ,new SimpleContainer(10), new SimpleContainerData(11), pos);
     }
     public IncubatorMenu (int containerId, Inventory playerInventory,  Container container, ContainerData data,BlockPos pos) {
@@ -70,7 +66,8 @@ public class IncubatorMenu extends AbstractContainerMenu {
         return data;
     }
 
-    public BlockPos getPos() {
+    /** The incubator block's position. */
+    public BlockPos pos() {
         return pos;
     }
 

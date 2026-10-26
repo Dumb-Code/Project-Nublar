@@ -13,7 +13,6 @@ import net.dumbcode.projectnublar.item.TestTubeItem;
 import net.dumbcode.projectnublar.network.c2s.UpdateEditInfoPacket;
 import net.dumbcode.projectnublar.registry.MenuTypeInit;
 import net.minecraft.core.BlockPos;
-import net.minecraft.network.FriendlyByteBuf;
 import net.minecraft.tags.ItemTags;
 import net.minecraft.world.Container;
 import net.minecraft.world.SimpleContainer;
@@ -100,9 +99,15 @@ public class SequencerMenu extends AbstractContainerMenu {
         addPlayerInventorySlots(playerInventory);
     }
 
-    public SequencerMenu(int containerId, Inventory inventory, FriendlyByteBuf buf) {
+    /** The client-side menu; {@code pos} is the sequencer that the server opened. */
+    public SequencerMenu(int containerId, Inventory inventory, BlockPos pos) {
         this(containerId, inventory);
-        this.pos = buf.readBlockPos();
+        this.pos = pos;
+    }
+
+    /** The sequencer block's position; set on the client only, {@code null} on the server. */
+    public BlockPos pos() {
+        return pos;
     }
 
     private void addMachineSlots(Container container) {
@@ -168,10 +173,6 @@ public class SequencerMenu extends AbstractContainerMenu {
             inventorySlots.add((ToggleSlot) this.addSlot(
                     new ToggleSlot(playerInventory, column, 8 + column * 18 + 87, 143)));
         }
-    }
-
-    public BlockPos getPos() {
-        return pos;
     }
 
     public int getDataSlot(int slot) {

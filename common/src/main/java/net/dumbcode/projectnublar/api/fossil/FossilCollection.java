@@ -12,6 +12,7 @@ import net.dumbcode.projectnublar.item.fossil.FossilBlockItem;
 import net.dumbcode.projectnublar.registry.BlockInit;
 import net.dumbcode.projectnublar.registry.ItemInit;
 import net.minecraft.resources.Identifier;
+import net.minecraft.world.item.BlockItem;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.state.BlockBehaviour;
@@ -54,28 +55,44 @@ public record FossilCollection(
             for (FossilPiece piece : pieces) {
                 String blockId = blockId(entityType, base, piece);
                 DeferredSupplier<Block> block = BlockInit.BLOCKS.register(blockId, () -> new FossilBlock(
-                        BlockBehaviour.Properties.copy(base.getBlock()).noOcclusion(), entityType, piece, base));
+                        stoneCopy(base, blockId), entityType, piece, base));
                 blocks.put(piece, block);
 
                 // Common goes last: the last item registered for a block becomes block.asItem().
+                // Every quality item shows the block's name, as a 1.20.1 BlockItem did.
                 Map<Quality, DeferredSupplier<Item>> qualityItems = new EnumMap<>(Quality.class);
                 for (Quality quality : List.of(Quality.FRAGMENTED, Quality.POOR, Quality.PRISTINE, Quality.COMMON)) {
-                    qualityItems.put(quality, ItemInit.ITEMS.register(itemId(blockId, quality),
-                            () -> new FossilBlockItem(block.get(), ItemInit.getItemProperties(), quality)));
+                    String itemId = itemId(blockId, quality);
+                    qualityItems.put(quality, ItemInit.ITEMS.register(itemId, () -> new FossilBlockItem(block.get(),
+                            ItemInit.getItemProperties(itemId).overrideDescription(block.get().getDescriptionId()),
+                            quality)));
                 }
                 items.put(piece, qualityItems);
             }
             fossilBlocks.put(base, blocks);
             fossilItems.put(base, items);
-            amberBlocks.put(base, BlockInit.registerBlock(base.getName() + "_" + entityType.getPath() + "_amber",
-                    () -> new AmberBlock(BlockBehaviour.Properties.copy(base.getBlock()).noOcclusion(),
-                            entityType, base.getBlock())));
+
+            String amberId = base.getName() + "_" + entityType.getPath() + "_amber";
+            DeferredSupplier<Block> amber = BlockInit.BLOCKS.register(amberId,
+                    () -> new AmberBlock(stoneCopy(base, amberId), entityType, base.getBlock()));
+            ItemInit.ITEMS.register(amberId, () -> new BlockItem(amber.get(),
+                    ItemInit.getItemProperties(amberId).useBlockDescriptionPrefix()));
+            amberBlocks.put(base, amber);
         }
 
         FossilCollection collection =
                 new FossilCollection(entityType, period, pieces, fossilBlocks, fossilItems, amberBlocks);
         COLLECTIONS.put(entityType, collection);
         return collection;
+    }
+
+    /**
+     * The host stone's properties for the block {@code id}, without occlusion. {@code ofLegacyCopy}
+     * is the 1.20.1 {@code copy}: unlike {@code ofFullCopy} it keeps the block's own loot table and
+     * name instead of the stone's.
+     */
+    private static BlockBehaviour.Properties stoneCopy(FossilBase base, String id) {
+        return BlockBehaviour.Properties.ofLegacyCopy(base.getBlock()).noOcclusion().setId(BlockInit.blockKey(id));
     }
 
     /** Every fossil block of this collection. */

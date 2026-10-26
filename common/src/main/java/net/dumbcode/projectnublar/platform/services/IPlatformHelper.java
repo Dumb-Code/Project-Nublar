@@ -2,13 +2,12 @@ package net.dumbcode.projectnublar.platform.services;
 
 import net.dumbcode.projectnublar.menutypes.IncubatorMenu;
 import net.dumbcode.projectnublar.menutypes.SequencerMenu;
-import net.minecraft.network.FriendlyByteBuf;
+import net.minecraft.core.BlockPos;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.MenuProvider;
 import net.minecraft.world.inventory.MenuType;
 
-import java.util.function.Consumer;
-
+/** The loader-specific services that common code calls through {@code Services.PLATFORM}. */
 public interface IPlatformHelper {
 
     /**
@@ -44,8 +43,16 @@ public interface IPlatformHelper {
     }
 
 
+    /** Creates the sequencer menu type; its client factory reads the machine's {@link BlockPos}. */
     MenuType<SequencerMenu> registerSequenceMenu();
+
+    /** Creates the incubator menu type; its client factory reads the machine's {@link BlockPos}. */
     MenuType<IncubatorMenu> registerIncubatorMenu();
-    void openMenu(ServerPlayer player, MenuProvider provider, Consumer<FriendlyByteBuf> buf);
+
+    /**
+     * Opens a menu for the player and sends {@code pos} to the client, where the sequencer or
+     * incubator menu type's client factory reads it.
+     */
+    void openMenu(ServerPlayer player, MenuProvider provider, BlockPos pos);
 
 }

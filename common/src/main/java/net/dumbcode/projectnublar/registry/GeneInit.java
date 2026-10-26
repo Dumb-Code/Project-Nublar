@@ -80,7 +80,7 @@ public class GeneInit {
                         .orElseGet(() -> DataResult.error(
                                 () -> "Unknown registry key in " + GENE_KEY + ": " + location)),
                 gene -> GENES.getRegistrar().getKey(gene)
-                        .map(ResourceKey::location)
+                        .map(ResourceKey::identifier)
                         .map(DataResult::success)
                         .orElseGet(() -> DataResult.error(
                                 () -> "Unknown registry element in " + GENE_KEY + ":" + gene)));
