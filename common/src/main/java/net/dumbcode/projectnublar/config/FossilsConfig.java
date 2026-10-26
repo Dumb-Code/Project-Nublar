@@ -8,13 +8,15 @@ import net.dumbcode.projectnublar.Constants;
 import net.dumbcode.projectnublar.api.fossil.FossilPieces;
 import net.minecraft.resources.Identifier;
 import net.minecraft.world.level.biome.Biomes;
-import net.minecraftforge.common.ForgeConfigSpec;
+import net.neoforged.neoforge.common.ModConfigSpec;
 import org.apache.commons.lang3.tuple.Pair;
 
 /**
  * The fossil generation settings, read from {@code config/projectnublar-fossils.toml}: which
  * species generate in which period, their piece sets and weights, the depth band and rarity of
- * each period, and the weight and DNA yield of each quality.
+ * each period, and the weight and DNA yield of each quality. It also holds two switches that no
+ * other config file owns yet: {@code compat.team_reborn_energy_bridge} and
+ * {@code size.use_scale_attribute}.
  *
  * <p>The values are the defaults of the {@code fossils-1.20.1} branch and are not tuned yet.
  */
@@ -26,14 +28,22 @@ public class FossilsConfig {
     /** In the order {@link #getPeriod} tests the bands; the first band that holds the y wins. */
     private static final Map<String, PeriodDepth> PERIODS = new LinkedHashMap<>();
 
-    public static final ForgeConfigSpec CONFIG_SPEC;
+    public static final ModConfigSpec CONFIG_SPEC;
+
+    /**
+     * {@code size.use_scale_attribute}: whether the scale attribute sets dinosaur size. Public so
+     * that a GameTest can set it.
+     */
+    public static ModConfigSpec.BooleanValue USE_SCALE_ATTRIBUTE;
+
+    private static ModConfigSpec.BooleanValue teamRebornEnergyBridge;
 
     static {
-        Pair<FossilsConfig, ForgeConfigSpec> pair = new ForgeConfigSpec.Builder().configure(FossilsConfig::new);
+        Pair<FossilsConfig, ModConfigSpec> pair = new ModConfigSpec.Builder().configure(FossilsConfig::new);
         CONFIG_SPEC = pair.getRight();
     }
 
-    private FossilsConfig(ForgeConfigSpec.Builder builder) {
+    private FossilsConfig(ModConfigSpec.Builder builder) {
         builder.push("fossils");
         builder.comment("defines the configured information for each type of fossil");
         builder.push("tyrannosaurus_rex");
@@ -69,18 +79,28 @@ public class FossilsConfig {
         registerQuality(builder, "common", 15, 10.0);
         registerQuality(builder, "pristine", 4, 30.0);
         builder.pop();
+
+        builder.push("compat");
+        teamRebornEnergyBridge = builder.comment("Fabric only. When false, Nublar blocks do not offer energy to Team Reborn Energy consumers. NeoForge ignores this key.")
+                .define("team_reborn_energy_bridge", true);
+        builder.pop();
+
+        builder.push("size");
+        USE_SCALE_ATTRIBUTE = builder.comment("When true, the scale attribute sets each dinosaur's model and hitbox size from its size gene and growth stage, with the corrected base hitboxes. Off until M2 (lead, 2026-10-25). Read once when the animal is added to the level.")
+                .define("use_scale_attribute", false);
+        builder.pop();
     }
 
     private static void registerFossil(String entityPath, SpeciesFossils fossil) {
         FOSSILS.put(Constants.modLoc(entityPath), fossil);
     }
 
-    private static void registerSet(String setName, ForgeConfigSpec.ConfigValue<List<? extends String>> pieces,
-                                    ForgeConfigSpec.ConfigValue<List<? extends Integer>> weights) {
+    private static void registerSet(String setName, ModConfigSpec.ConfigValue<List<? extends String>> pieces,
+                                    ModConfigSpec.ConfigValue<List<? extends Integer>> weights) {
         SETS.put(setName, new PieceSet(pieces, weights));
     }
 
-    private static void registerPeriod(ForgeConfigSpec.Builder builder, String period, int minY, int maxY, double rarity) {
+    private static void registerPeriod(ModConfigSpec.Builder builder, String period, int minY, int maxY, double rarity) {
         builder.push(period);
         PERIODS.put(period, new PeriodDepth(
                 builder.comment("the min y level that this period generates in").defineInRange("min_y", minY, -64, 255),
@@ -89,12 +109,22 @@ public class FossilsConfig {
         builder.pop();
     }
 
-    private static void registerQuality(ForgeConfigSpec.Builder builder, String quality, int weight, double dnaYield) {
+    private static void registerQuality(ModConfigSpec.Builder builder, String quality, int weight, double dnaYield) {
         builder.push(quality);
         QUALITIES.put(quality, new QualityWeights(
                 builder.defineInRange("weight", weight, 0, Integer.MAX_VALUE),
                 builder.defineInRange("dna_yield", dnaYield, 0, 100)));
         builder.pop();
+    }
+
+    /** Whether Nublar blocks offer energy to Team Reborn Energy consumers; read by Fabric only. */
+    public static boolean teamRebornEnergyBridge() {
+        return teamRebornEnergyBridge.get();
+    }
+
+    /** Whether the scale attribute sets dinosaur size; read once when an animal is added to the level. */
+    public static boolean useScaleAttribute() {
+        return USE_SCALE_ATTRIBUTE.get();
     }
 
     /** The configured species, keyed by entity type id. */
@@ -141,14 +171,14 @@ public class FossilsConfig {
 
     /** The fossil settings of one species. */
     public static class SpeciesFossils {
-        private final ForgeConfigSpec.ConfigValue<String> pieces;
-        private final ForgeConfigSpec.ConfigValue<List<? extends String>> specialPieces;
-        private final ForgeConfigSpec.ConfigValue<List<? extends Integer>> specialWeights;
-        private final ForgeConfigSpec.IntValue weight;
-        private final ForgeConfigSpec.ConfigValue<List<? extends String>> periods;
-        private final ForgeConfigSpec.ConfigValue<List<? extends String>> biomes;
+        private final ModConfigSpec.ConfigValue<String> pieces;
+        private final ModConfigSpec.ConfigValue<List<? extends String>> specialPieces;
+        private final ModConfigSpec.ConfigValue<List<? extends Integer>> specialWeights;
+        private final ModConfigSpec.IntValue weight;
+        private final ModConfigSpec.ConfigValue<List<? extends String>> periods;
+        private final ModConfigSpec.ConfigValue<List<? extends String>> biomes;
 
-        SpeciesFossils(ForgeConfigSpec.Builder builder, String setName, List<String> specialPieces,
+        SpeciesFossils(ModConfigSpec.Builder builder, String setName, List<String> specialPieces,
                        List<Integer> specialWeights, int weight, List<String> periods, List<Identifier> biomes) {
             this.pieces = builder.comment("The pieces that make up this fossil").define("pieces", setName);
             this.specialPieces = builder.comment("optional field to include if a species has a special identifiable fossil type").defineList("special_pieces", specialPieces,
@@ -160,40 +190,40 @@ public class FossilsConfig {
         }
 
         /** The name of the piece set of this species. */
-        public ForgeConfigSpec.ConfigValue<String> getPieces() {
+        public ModConfigSpec.ConfigValue<String> getPieces() {
             return pieces;
         }
 
-        public ForgeConfigSpec.ConfigValue<List<? extends String>> getSpecialPieces() {
+        public ModConfigSpec.ConfigValue<List<? extends String>> getSpecialPieces() {
             return specialPieces;
         }
 
-        public ForgeConfigSpec.ConfigValue<List<? extends Integer>> getSpecialWeights() {
+        public ModConfigSpec.ConfigValue<List<? extends Integer>> getSpecialWeights() {
             return specialWeights;
         }
 
-        public ForgeConfigSpec.IntValue getWeight() {
+        public ModConfigSpec.IntValue getWeight() {
             return weight;
         }
 
-        public ForgeConfigSpec.ConfigValue<List<? extends String>> getPeriods() {
+        public ModConfigSpec.ConfigValue<List<? extends String>> getPeriods() {
             return periods;
         }
 
-        public ForgeConfigSpec.ConfigValue<List<? extends String>> getBiomes() {
+        public ModConfigSpec.ConfigValue<List<? extends String>> getBiomes() {
             return biomes;
         }
     }
 
     /** A shared piece set and the weight of each piece, in the same order. */
-    public record PieceSet(ForgeConfigSpec.ConfigValue<List<? extends String>> pieces,
-                           ForgeConfigSpec.ConfigValue<List<? extends Integer>> weights) {
+    public record PieceSet(ModConfigSpec.ConfigValue<List<? extends String>> pieces,
+                           ModConfigSpec.ConfigValue<List<? extends Integer>> weights) {
     }
 
-    public record PeriodDepth(ForgeConfigSpec.IntValue minY, ForgeConfigSpec.IntValue maxY,
-                              ForgeConfigSpec.DoubleValue rarityModifier) {
+    public record PeriodDepth(ModConfigSpec.IntValue minY, ModConfigSpec.IntValue maxY,
+                              ModConfigSpec.DoubleValue rarityModifier) {
     }
 
-    public record QualityWeights(ForgeConfigSpec.IntValue weight, ForgeConfigSpec.DoubleValue dnaYield) {
+    public record QualityWeights(ModConfigSpec.IntValue weight, ModConfigSpec.DoubleValue dnaYield) {
     }
 }
