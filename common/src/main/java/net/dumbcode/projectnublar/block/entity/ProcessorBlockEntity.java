@@ -112,7 +112,15 @@ public class ProcessorBlockEntity extends SyncingContainerBlockEntity
     private final NonNullList<ItemStack> output = NonNullList.withSize(OUTPUT_SLOT_COUNT, ItemStack.EMPTY);
     private float fluidLevel = 0;
     private int cookingProgress = 0;
-    private final EnergyStorage energyStorage = new DefaultEnergyStorage(ENERGY_CAPACITY, ENERGY_MAX_TRANSFER, 0);
+    /** Insert-only buffer; a change updates and syncs this block entity, as 1.20.1 did on every insert. */
+    private final EnergyStorage energyStorage = new DefaultEnergyStorage(ENERGY_CAPACITY, ENERGY_MAX_TRANSFER, 0) {
+        @Override
+        public void setChanged() {
+            if (getLevel() != null) {
+                updateBlock();
+            }
+        }
+    };
     private final WaterTank waterTank = new WaterTank();
 
     protected final ContainerData dataAccess = new ContainerData() {

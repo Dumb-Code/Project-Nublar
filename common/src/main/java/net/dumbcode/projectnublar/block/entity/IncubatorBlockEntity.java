@@ -100,7 +100,15 @@ public class IncubatorBlockEntity extends SyncingContainerBlockEntity
     private ItemStack lidStack = ItemStack.EMPTY;
     private ItemStack baseStack = ItemStack.EMPTY;
     private ItemStack armStack = ItemStack.EMPTY;
-    private final EnergyStorage energyStorage = new DefaultEnergyStorage(ENERGY_CAPACITY, ENERGY_MAX_TRANSFER, 0);
+    /** Insert-only buffer; a change updates and syncs this block entity, as 1.20.1 did on every insert. */
+    private final EnergyStorage energyStorage = new DefaultEnergyStorage(ENERGY_CAPACITY, ENERGY_MAX_TRANSFER, 0) {
+        @Override
+        public void setChanged() {
+            if (getLevel() != null) {
+                updateBlock();
+            }
+        }
+    };
 
     public IncubatorBlockEntity(BlockPos pos, BlockState state) {
         super(BlockInit.INCUBATOR_BLOCK_ENTITY.get(), pos, state);

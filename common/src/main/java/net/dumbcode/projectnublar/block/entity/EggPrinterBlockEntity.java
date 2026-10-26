@@ -120,7 +120,15 @@ public class EggPrinterBlockEntity extends SyncingContainerBlockEntity
     /** Multiblock parts; not persisted to NBT (see class Javadoc). */
     private ItemStack sensor = ItemStack.EMPTY;
     private ItemStack chip = ItemStack.EMPTY;
-    private final EnergyStorage energyStorage = new DefaultEnergyStorage(ENERGY_CAPACITY, ENERGY_MAX_TRANSFER, 0);
+    /** Insert-only buffer; a change updates and syncs this block entity, as 1.20.1 did on every insert. */
+    private final EnergyStorage energyStorage = new DefaultEnergyStorage(ENERGY_CAPACITY, ENERGY_MAX_TRANSFER, 0) {
+        @Override
+        public void setChanged() {
+            if (getLevel() != null) {
+                updateBlock();
+            }
+        }
+    };
 
     public EggPrinterBlockEntity(BlockPos pos, BlockState state) {
         super(BlockInit.EGG_PRINTER_BLOCK_ENTITY.get(), pos, state);

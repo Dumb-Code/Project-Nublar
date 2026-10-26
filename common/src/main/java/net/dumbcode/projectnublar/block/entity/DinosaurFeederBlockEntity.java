@@ -33,7 +33,6 @@ import software.bernie.geckolib.util.GeckoLibUtil;
 public class DinosaurFeederBlockEntity extends SyncingContainerBlockEntity implements GeoBlockEntity, BalmEnergyStorageProvider {
 
     private AnimatableInstanceCache INSTANCE = GeckoLibUtil.createInstanceCache(this);
-    private WrappedBlockEnergyContainer energyContainer;
 
     protected static final RawAnimation CLOSED_IDLE = RawAnimation.begin().thenPlayAndHold("idle");
     protected static final RawAnimation DISPENSE_FOOD = RawAnimation.begin().thenPlayAndHold("open");

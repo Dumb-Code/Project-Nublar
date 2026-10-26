@@ -141,7 +141,15 @@ public class SequencerBlockEntity extends SyncingContainerBlockEntity
     private DinoData dinoData = new DinoData();
     private boolean isSynthesizing = false;
     private int synthTime = 0;
-    private final EnergyStorage energyStorage = new DefaultEnergyStorage(ENERGY_CAPACITY, ENERGY_MAX_TRANSFER, 0);
+    /** Insert-only buffer; a change updates and syncs this block entity, as 1.20.1 did on every insert. */
+    private final EnergyStorage energyStorage = new DefaultEnergyStorage(ENERGY_CAPACITY, ENERGY_MAX_TRANSFER, 0) {
+        @Override
+        public void setChanged() {
+            if (getLevel() != null) {
+                updateBlock();
+            }
+        }
+    };
 
     protected final ContainerData dataAccess = new ContainerData() {
         @Override
