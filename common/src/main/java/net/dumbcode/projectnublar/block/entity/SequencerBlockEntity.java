@@ -457,7 +457,7 @@ public class SequencerBlockEntity extends SyncingContainerBlockEntity
 
     @Override
     protected AbstractContainerMenu createMenu(int containerId, Inventory inventory) {
-        return new SequencerMenu(containerId, inventory, null, this, dataAccess);
+        return new SequencerMenu(containerId, inventory, null, this, dataAccess, worldPosition);
     }
 
     // TODO(BUG): reports 3 while slots 0–8 are used; SequencerMenu works around this with its own

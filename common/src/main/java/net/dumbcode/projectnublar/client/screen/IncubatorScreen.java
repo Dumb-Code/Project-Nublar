@@ -1,10 +1,10 @@
 package net.dumbcode.projectnublar.client.screen;
 
-import commonnetwork.api.Network;
 import java.util.List;
 import net.dumbcode.projectnublar.Constants;
 import net.dumbcode.projectnublar.menutypes.IncubatorMenu;
 import net.dumbcode.projectnublar.network.c2s.UpdateIncubatorSlotPacket;
+import net.dumbcode.projectnublar.platform.Services;
 import net.dumbcode.projectnublar.registry.ItemInit;
 import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.gui.screens.inventory.AbstractContainerScreen;
@@ -26,6 +26,8 @@ import net.minecraft.world.inventory.Slot;
 public class IncubatorScreen extends AbstractContainerScreen<IncubatorMenu> {
     private static final Identifier TEXTURE = Identifier.fromNamespaceAndPath(Constants.MODID,"textures/gui/incubator.png");
 
+    /** The egg bed's left and top offset inside the screen; the server checks egg positions against the bed. */
+    public static final int BED_OFFSET = 9;
     public static final int BED_WIDTH = 158;
     public static final int BED_HEIGHT = 115;
 
@@ -49,7 +51,7 @@ public class IncubatorScreen extends AbstractContainerScreen<IncubatorMenu> {
         int x = this.leftPos;
         int y = (this.height - this.imageHeight) / 2;
         pGuiGraphics.blit(TEXTURE, x, y, 0, 0, imageWidth, imageHeight, 334, 222);
-        pGuiGraphics.blit(TEXTURE, x + 9, y + 9, imageWidth, 0, BED_WIDTH, BED_HEIGHT, 334, 222);
+        pGuiGraphics.blit(TEXTURE, x + BED_OFFSET, y + BED_OFFSET, imageWidth, 0, BED_WIDTH, BED_HEIGHT, 334, 222);
         int plantmatterMax = this.menu.getData().get(1);
         int plantmatter = this.menu.getData().get(0);
         int progress = Mth.floor(((plantmatter / (float) plantmatterMax)) * 63);
@@ -68,7 +70,7 @@ public class IncubatorScreen extends AbstractContainerScreen<IncubatorMenu> {
                     y = -100;
                 }
                 // pSlotId is the menu slot index; the block entity subtracts 1
-                Network.getNetworkHandler().sendToServer(new UpdateIncubatorSlotPacket(menu.getPos(), pSlotId, x, y));
+                Services.NETWORK.sendToServer(new UpdateIncubatorSlotPacket(menu.pos(), pSlotId, x, y));
             }
         }
     }
@@ -95,7 +97,7 @@ public class IncubatorScreen extends AbstractContainerScreen<IncubatorMenu> {
         menu.slots.forEach(
                 slot -> {
                     if (slot instanceof IncubatorMenu.IncubatorSlot)
-                        Network.getNetworkHandler().sendToServer(new UpdateIncubatorSlotPacket(menu.getPos(), menu.slots.indexOf(slot), slot.x, slot.y));
+                        Services.NETWORK.sendToServer(new UpdateIncubatorSlotPacket(menu.pos(), menu.slots.indexOf(slot), slot.x, slot.y));
                 }
         );
     }

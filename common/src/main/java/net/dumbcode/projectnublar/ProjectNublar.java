@@ -6,7 +6,6 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.stream.Collectors;
 import net.dumbcode.projectnublar.api.gene.Genes;
-import net.dumbcode.projectnublar.network.NetworkInit;
 import net.dumbcode.projectnublar.registry.AttributesInit;
 import net.dumbcode.projectnublar.registry.BlockInit;
 import net.dumbcode.projectnublar.registry.CreativeTabInit;
@@ -47,7 +46,6 @@ public class ProjectNublar {
         MenuTypeInit.loadClass();
         CreativeTabInit.loadClass();
         DataSerializerInit.loadClass();
-        NetworkInit.registerPackets();
         RecipeInit.loadClass();
         AttributesInit.loadClass();
         GeneInit.loadClass();

@@ -107,6 +107,11 @@ public class DinoData {
         return basePercentage;
     }
 
+    /** The gene values set explicitly in the sequencer's edit tab, read-only; the server validates them. */
+    public Map<Genes.Gene, Double> getAdvancedGenes() {
+        return Collections.unmodifiableMap(advancedGenes);
+    }
+
     public EntityType<?> getBaseDino() {
         return baseDino;
     }

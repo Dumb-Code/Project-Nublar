@@ -1,6 +1,5 @@
 package net.dumbcode.projectnublar.menutypes;
 
-import commonnetwork.api.Network;
 import java.util.ArrayList;
 import java.util.List;
 import net.dumbcode.projectnublar.api.dinosaur.DinoData;
@@ -11,6 +10,7 @@ import net.dumbcode.projectnublar.item.DiskStorageItem;
 import net.dumbcode.projectnublar.item.SyringeItem;
 import net.dumbcode.projectnublar.item.TestTubeItem;
 import net.dumbcode.projectnublar.network.c2s.UpdateEditInfoPacket;
+import net.dumbcode.projectnublar.platform.Services;
 import net.dumbcode.projectnublar.registry.MenuTypeInit;
 import net.minecraft.core.BlockPos;
 import net.minecraft.tags.ItemTags;
@@ -77,16 +77,22 @@ public class SequencerMenu extends AbstractContainerMenu {
     public Container container;
 
     public List<ToggleSlot> inventorySlots = new ArrayList<>();
-    public BlockPos pos;
+    private final BlockPos pos;
 
-    public SequencerMenu(int containerId, Inventory playerInventory) {
+    /** The client-side menu; {@code pos} is the sequencer that the server opened. */
+    public SequencerMenu(int containerId, Inventory playerInventory, BlockPos pos) {
         this(containerId, playerInventory, ContainerLevelAccess.NULL,
-                new SimpleContainer(9), new SimpleContainerData(10));
+                new SimpleContainer(9), new SimpleContainerData(10), pos);
     }
 
+    /**
+     * The server-side menu, built by {@link SequencerBlockEntity}; {@code pos} is that block
+     * entity's position, so the edit-info packet can check that its position matches this menu.
+     */
     public SequencerMenu(int containerId, Inventory playerInventory, ContainerLevelAccess access,
-            Container container, ContainerData data) {
+            Container container, ContainerData data, BlockPos pos) {
         super(MenuTypeInit.SEQUENCER.get(), containerId);
+        this.pos = pos;
         checkContainerSize(container, 3);
         // TODO(BUG): validates against a data count of 0 even though 10 data slots are synced;
         // the check is effectively disabled.
@@ -99,13 +105,7 @@ public class SequencerMenu extends AbstractContainerMenu {
         addPlayerInventorySlots(playerInventory);
     }
 
-    /** The client-side menu; {@code pos} is the sequencer that the server opened. */
-    public SequencerMenu(int containerId, Inventory inventory, BlockPos pos) {
-        this(containerId, inventory);
-        this.pos = pos;
-    }
-
-    /** The sequencer block's position; set on the client only, {@code null} on the server. */
+    /** The sequencer block's position, on the client and on the server. */
     public BlockPos pos() {
         return pos;
     }
@@ -274,7 +274,8 @@ public class SequencerMenu extends AbstractContainerMenu {
         return true;
     }
 
+    /** Client only: sends the edit tab's {@link DinoData} to this sequencer on the server. */
     public void sendUpdate(DinoData data) {
-        Network.getNetworkHandler().sendToServer(new UpdateEditInfoPacket(data, pos), true);
+        Services.NETWORK.sendToServer(new UpdateEditInfoPacket(data, pos));
     }
 }
