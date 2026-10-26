@@ -12,14 +12,14 @@ import net.dumbcode.projectnublar.api.fossil.FossilCollection;
 import net.dumbcode.projectnublar.api.fossil.FossilPieces;
 import net.dumbcode.projectnublar.api.fossil.Quality;
 import net.dumbcode.projectnublar.entity.dinosaur.Dinosaur;
+import net.minecraft.core.HolderLookup;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.core.registries.Registries;
-import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.chat.Component;
 import net.minecraft.resources.Identifier;
 import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.entity.ai.attributes.DefaultAttributes;
-import net.minecraft.world.entity.animal.Parrot;
+import net.minecraft.world.entity.animal.parrot.Parrot;
 import net.minecraft.world.item.CreativeModeTab;
 import net.minecraft.world.item.ItemStack;
 
@@ -112,7 +112,7 @@ public class CreativeTabInit {
                                     DNAData dnaData = new DNAData();
                                     dnaData.setEntityType(type.get());
                                     dnaData.setDnaPercentage(0.5);
-                                    stack.getOrCreateTag().put("DNAData", dnaData.saveToNBT(new CompoundTag()));
+                                    dnaData.saveTo(stack);
                                     output.accept(stack);
                                 });
                             })
@@ -123,8 +123,8 @@ public class CreativeTabInit {
                     () -> CreativeModeTab.builder(CreativeModeTab.Row.TOP, 0)
                             .title(Component.translatable("itemGroup." + Constants.MODID + ".syringe"))
                             .icon(() -> new ItemStack(ItemInit.SYRINGE.get()))
-                            .displayItems(
-                                    (itemDisplayParameters, output) -> addSyringesForAllEntities(output))
+                            .displayItems((itemDisplayParameters, output) ->
+                                    addSyringesForAllEntities(itemDisplayParameters.holders(), output))
                             .build());
 
     public static final DeferredSupplier<CreativeModeTab> EGG_TAB =
@@ -154,9 +154,9 @@ public class CreativeTabInit {
 
     /**
      * Adds one filled syringe per living vanilla entity, with one entry per variant for parrots
-     * and cats.
+     * and cats. Cat variants are data-driven on 26.2, so they come from the tab's registries.
      */
-    private static void addSyringesForAllEntities(CreativeModeTab.Output output) {
+    private static void addSyringesForAllEntities(HolderLookup.Provider registries, CreativeModeTab.Output output) {
         output.accept(ItemInit.SYRINGE.get());
         for (Identifier entry : BuiltInRegistries.ENTITY_TYPE.keySet()) {
             if (entry.getPath().contains("parrot")) {
@@ -164,12 +164,12 @@ public class CreativeTabInit {
                     output.accept(createSyringe(entry, variant.getSerializedName(), 1.0));
                 }
             } else if (entry.getPath().contains("cat")) {
-                BuiltInRegistries.CAT_VARIANT.keySet().forEach(
-                        catVariant -> output.accept(createSyringe(entry, catVariant.toString(), 0.5)));
+                registries.lookupOrThrow(Registries.CAT_VARIANT).listElementIds().forEach(
+                        catVariant -> output.accept(createSyringe(entry, catVariant.identifier().toString(), 0.5)));
             } else {
                 // Living entity types are the ones with default attributes; this needs no level,
                 // so the dedicated server can load this class.
-                if (DefaultAttributes.hasSupplier(BuiltInRegistries.ENTITY_TYPE.get(entry))) {
+                if (DefaultAttributes.hasSupplier(BuiltInRegistries.ENTITY_TYPE.getValue(entry))) {
                     output.accept(createSyringe(entry, null, 0.5));
                 }
             }
@@ -180,12 +180,12 @@ public class CreativeTabInit {
             Identifier entityId, String variant, double dnaPercentage) {
         ItemStack stack = new ItemStack(ItemInit.SYRINGE.get());
         DNAData dnaData = new DNAData();
-        dnaData.setEntityType(BuiltInRegistries.ENTITY_TYPE.get(entityId));
+        dnaData.setEntityType(BuiltInRegistries.ENTITY_TYPE.getValue(entityId));
         if (variant != null) {
             dnaData.setVariant(variant);
         }
         dnaData.setDnaPercentage(dnaPercentage);
-        stack.getOrCreateTag().put("DNAData", dnaData.saveToNBT(new CompoundTag()));
+        dnaData.saveTo(stack);
         return stack;
     }
 
@@ -203,8 +203,8 @@ public class CreativeTabInit {
         dnaData.setBaseDino(dinosaur);
         dnaData.setGeneValue(GeneInit.GENDER.get(), gender);
         dnaData.setBasePercentage(basePercentage);
-        dnaData.toStack(incubatedEgg);
-        dnaData.copy().toStack(unincubatedEgg);
+        dnaData.saveTo(incubatedEgg);
+        dnaData.copy().saveTo(unincubatedEgg);
 
         dinoEggs.add(incubatedEgg);
         dinoEggs.add(unincubatedEgg);

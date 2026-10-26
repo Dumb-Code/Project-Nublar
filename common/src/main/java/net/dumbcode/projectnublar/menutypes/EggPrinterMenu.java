@@ -2,6 +2,7 @@ package net.dumbcode.projectnublar.menutypes;
 
 import net.dumbcode.projectnublar.registry.MenuTypeInit;
 import net.dumbcode.projectnublar.registry.TagInit;
+import net.minecraft.core.component.DataComponents;
 import net.minecraft.world.Container;
 import net.minecraft.world.SimpleContainer;
 import net.minecraft.world.entity.player.Inventory;
@@ -13,6 +14,7 @@ import net.minecraft.world.inventory.MenuType;
 import net.minecraft.world.inventory.SimpleContainerData;
 import net.minecraft.world.inventory.Slot;
 import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.item.component.CustomData;
 import org.jetbrains.annotations.Nullable;
 
 /** Menu for the egg printer. Slot indices 0–3 are frozen contracts with the block entity. */
@@ -33,7 +35,7 @@ public class EggPrinterMenu extends AbstractContainerMenu {
                 // TODO(BUG): checks the root-level "Embryo" boolean written by SyringeItem, not
                 // DNAData's "isEmbryo" field inside the compound - the two can disagree. Both the
                 // tag name and the inconsistency are frozen contracts.
-                return pStack.hasTag() && pStack.getTag().contains("Embryo");
+                return pStack.getOrDefault(DataComponents.CUSTOM_DATA, CustomData.EMPTY).copyTag().contains("Embryo");
             }
         });
         this.addSlot(new Slot(container, 1, 15, 80){

@@ -18,7 +18,6 @@ import net.dumbcode.projectnublar.util.SaveVersion;
 import net.minecraft.ChatFormatting;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.NonNullList;
-import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.chat.Component;
 import net.minecraft.util.Mth;
 import net.minecraft.world.Container;
@@ -184,14 +183,14 @@ public class ProcessorBlockEntity extends SyncingContainerBlockEntity
     private void finishProcessing() {
         cookingProgress = 0;
         ItemStack stack = new ItemStack(ItemInit.TEST_TUBE_ITEM.get());
-        DNAData dnaData = DNAData.loadFromNBT(input.getTag().getCompound("DNAData"));
+        DNAData dnaData = DNAData.fromStack(input);
         double dnaPercentage = dnaData.getDnaPercentage();
         DNAData testTubeData = new DNAData();
         testTubeData.setDnaPercentage(
                 NublarMath.round(dnaPercentage * getFilterEfficiency(), DNA_PERCENT_DECIMALS));
         testTubeData.setEntityType(dnaData.getEntityType());
         testTubeData.setVariant(dnaData.getVariant());
-        stack.getOrCreateTag().put("DNAData", testTubeData.saveToNBT(new CompoundTag()));
+        testTubeData.saveTo(stack);
         input.shrink(1);
         testTube.shrink(1);
         addToOutput(stack);

@@ -7,17 +7,22 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.function.Consumer;
 import net.dumbcode.projectnublar.api.gene.GeneData;
 import net.dumbcode.projectnublar.api.gene.Genes;
 import net.dumbcode.projectnublar.api.util.NublarMath;
 import net.dumbcode.projectnublar.registry.GeneInit;
+import net.minecraft.SharedConstants;
+import net.minecraft.core.component.DataComponents;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.chat.MutableComponent;
+import net.minecraft.resources.Identifier;
 import net.minecraft.util.StringUtil;
 import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.item.component.CustomData;
 import org.jetbrains.annotations.Nullable;
 
 /**
@@ -69,8 +74,14 @@ public class DinoData {
         return layerColors;
     }
 
+    /**
+     * Reads the data from the stack's custom data under the {@code DinoData} key; a stack without
+     * it gives an empty DinoData, as the 1.20.1 read of a missing compound did. Temporary bridge:
+     * Task 16 replaces it with a data component.
+     */
     public static DinoData fromStack(ItemStack stack) {
-        return fromNBT(stack.getTag().getCompound(DINO_DATA_TAG));
+        CompoundTag customData = stack.getOrDefault(DataComponents.CUSTOM_DATA, CustomData.EMPTY).copyTag();
+        return fromNBT(customData.getCompoundOrEmpty(DINO_DATA_TAG));
     }
 
     public Map<EntityInfo, Double> getEntityPercentages() {
@@ -121,18 +132,19 @@ public class DinoData {
     }
 
     /** Appends incubation status and final gene tooltips to the item tooltip. */
-    public void createToolTip(List<Component> components) {
+    public void createToolTip(Consumer<Component> tooltip) {
         if (incubationProgress != NOT_SET) {
             int incubationPercentage = (int) NublarMath.round(incubationProgress * 100, 0);
-            components.add(Component.literal("Incubation Progress: " + incubationPercentage + "%"));
+            tooltip.accept(Component.literal("Incubation Progress: " + incubationPercentage + "%"));
         }
         if (incubationTimeLeft != NOT_SET) {
-            components.add(Component.literal(StringUtil.formatTickDuration(incubationTimeLeft)));
+            tooltip.accept(Component.literal(
+                    StringUtil.formatTickDuration(incubationTimeLeft, SharedConstants.TICKS_PER_SECOND)));
         }
         if (finalGenes.isEmpty()) {
             finalizeGenes();
         }
-        finalGenes.forEach((gene, value) -> components.add(gene.getTooltip(value)));
+        finalGenes.forEach((gene, value) -> tooltip.accept(gene.getTooltip(value)));
     }
 
     public void finalizeGenes() {
@@ -200,21 +212,22 @@ public class DinoData {
     }
 
     public static DinoData fromNBT(CompoundTag tag) {
-        double basePercentage = tag.getDouble(BASE_PERCENTAGE_KEY);
+        double basePercentage = tag.getDoubleOr(BASE_PERCENTAGE_KEY, 0);
         Map<EntityInfo, Double> entityPercentages =
-                readEntityPercentages(tag.getCompound(ENTITY_PERCENTAGES_KEY));
+                readEntityPercentages(tag.getCompoundOrEmpty(ENTITY_PERCENTAGES_KEY));
         DinoData data = new DinoData();
-        data.advancedGenes.putAll(readAdvancedGenes(tag.getCompound(GENES_KEY)));
+        data.advancedGenes.putAll(readAdvancedGenes(tag.getCompoundOrEmpty(GENES_KEY)));
         data.basePercentage = basePercentage;
         data.entityPercentages = entityPercentages;
         if (tag.contains(BASE_DINO_KEY)) {
-            data.baseDino = EntityType.byString(tag.getString(BASE_DINO_KEY)).get();
+            data.baseDino = BuiltInRegistries.ENTITY_TYPE
+                    .getOptional(Identifier.tryParse(tag.getStringOr(BASE_DINO_KEY, ""))).get();
         }
         if (tag.contains(INCUBATION_PROGRESS_KEY)) {
-            data.incubationProgress = tag.getDouble(INCUBATION_PROGRESS_KEY);
+            data.incubationProgress = tag.getDoubleOr(INCUBATION_PROGRESS_KEY, 0);
         }
         if (tag.contains(INCUBATION_TIME_LEFT_KEY)) {
-            data.incubationTimeLeft = tag.getInt(INCUBATION_TIME_LEFT_KEY);
+            data.incubationTimeLeft = tag.getIntOr(INCUBATION_TIME_LEFT_KEY, 0);
         }
         return data;
     }
@@ -249,8 +262,14 @@ public class DinoData {
         incubationProgress = progress;
     }
 
-    public void toStack(ItemStack stack) {
-        stack.getOrCreateTag().put(DINO_DATA_TAG, toNBT());
+    /**
+     * Writes the data into the stack's custom data under the {@code DinoData} key and keeps the
+     * other keys. Temporary bridge: Task 16 replaces it with a data component.
+     */
+    public void saveTo(ItemStack stack) {
+        CompoundTag customData = stack.getOrDefault(DataComponents.CUSTOM_DATA, CustomData.EMPTY).copyTag();
+        customData.put(DINO_DATA_TAG, toNBT());
+        CustomData.set(DataComponents.CUSTOM_DATA, stack, customData);
     }
 
     public double getIncubationProgress() {
@@ -288,12 +307,13 @@ public class DinoData {
 
     private static Map<EntityInfo, Double> readEntityPercentages(CompoundTag entityTag) {
         Map<EntityInfo, Double> entityPercentages = new HashMap<>();
-        for (String key : entityTag.getAllKeys()) {
-            CompoundTag entityInfo = entityTag.getCompound(key);
-            EntityType<?> type = EntityType.byString(entityInfo.getString(TYPE_KEY)).get();
+        for (String key : entityTag.keySet()) {
+            CompoundTag entityInfo = entityTag.getCompoundOrEmpty(key);
+            EntityType<?> type = BuiltInRegistries.ENTITY_TYPE
+                    .getOptional(Identifier.tryParse(entityInfo.getStringOr(TYPE_KEY, ""))).get();
             String variant =
-                    entityInfo.contains(VARIANT_KEY) ? entityInfo.getString(VARIANT_KEY) : null;
-            double percentage = entityInfo.getDouble(PERCENTAGE_KEY);
+                    entityInfo.contains(VARIANT_KEY) ? entityInfo.getStringOr(VARIANT_KEY, "") : null;
+            double percentage = entityInfo.getDoubleOr(PERCENTAGE_KEY, 0);
             entityPercentages.put(new EntityInfo(type, variant), percentage);
         }
         return entityPercentages;
@@ -301,8 +321,8 @@ public class DinoData {
 
     private static Map<Genes.Gene, Double> readAdvancedGenes(CompoundTag geneTag) {
         Map<Genes.Gene, Double> advancedGenes = new HashMap<>();
-        for (String key : geneTag.getAllKeys()) {
-            advancedGenes.put(Genes.byName(key), geneTag.getDouble(key));
+        for (String key : geneTag.keySet()) {
+            advancedGenes.put(Genes.byName(key), geneTag.getDoubleOr(key, 0));
         }
         return advancedGenes;
     }

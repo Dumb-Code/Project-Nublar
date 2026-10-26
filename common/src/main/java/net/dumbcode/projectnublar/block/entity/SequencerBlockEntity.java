@@ -19,6 +19,7 @@ import net.dumbcode.projectnublar.util.SaveVersion;
 import net.minecraft.ChatFormatting;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.NonNullList;
+import net.minecraft.core.component.DataComponents;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.chat.Component;
 import net.minecraft.util.Mth;
@@ -28,6 +29,7 @@ import net.minecraft.world.inventory.AbstractContainerMenu;
 import net.minecraft.world.inventory.ContainerData;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
+import net.minecraft.world.item.component.CustomData;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.storage.ValueInput;
@@ -271,15 +273,15 @@ public class SequencerBlockEntity extends SyncingContainerBlockEntity
      * time, and ejects an empty vial when a sample completes.
      */
     private boolean tickSequencing() {
-        if (!storage.isEmpty() && !dnaInput.isEmpty() && dnaInput.hasTag()
+        if (!storage.isEmpty() && !dnaInput.isEmpty() && dnaInput.has(DataComponents.CUSTOM_DATA)
                 && ((emptyVialOutput.isEmpty() || emptyVialOutput.is(dnaInput.getItem()))
                         || emptyVialOutput.getCount() < VIAL_OUTPUT_STACK_LIMIT)) {
             double currentPercent = 0;
-            DNAData dnaData = DNAData.loadFromNBT(dnaInput.getTag().getCompound("DNAData"));
+            DNAData dnaData = DNAData.fromStack(dnaInput);
             String storageName = dnaData.getStorageName();
             DNAData storedDna = null;
-            if (storage.getOrCreateTag().contains(dnaData.getStorageName())) {
-                storedDna = DNAData.loadFromNBT(storage.getTag().getCompound(storageName));
+            if (storage.getOrDefault(DataComponents.CUSTOM_DATA, CustomData.EMPTY).copyTag().contains(dnaData.getStorageName())) {
+                storedDna = DNAData.loadFromNBT(storage.getOrDefault(DataComponents.CUSTOM_DATA, CustomData.EMPTY).copyTag().getCompoundOrEmpty(storageName));
                 currentPercent = storedDna.getDnaPercentage();
             }
             if (currentPercent < 1) {
@@ -292,9 +294,9 @@ public class SequencerBlockEntity extends SyncingContainerBlockEntity
                     }
                     if (storedDna != null) {
                         DNAData combinedDna = DNAData.combineDNA(storedDna, dnaData);
-                        storage.getOrCreateTag().put(storageName, combinedDna.saveToNBT(new CompoundTag()));
+                        CustomData.update(DataComponents.CUSTOM_DATA, storage, tag -> tag.put(storageName, combinedDna.saveToNBT(new CompoundTag())));
                     } else {
-                        storage.getOrCreateTag().put(storageName, dnaData.saveToNBT(new CompoundTag()));
+                        CustomData.update(DataComponents.CUSTOM_DATA, storage, tag -> tag.put(storageName, dnaData.saveToNBT(new CompoundTag())));
                     }
 
                     dnaInput.shrink(1);
@@ -366,7 +368,7 @@ public class SequencerBlockEntity extends SyncingContainerBlockEntity
             if (synthTime > getMaxSynthTime()) {
                 synthTime = 0;
                 dnaTestTubeOutput = new ItemStack(ItemInit.TEST_TUBE_ITEM.get());
-                dnaTestTubeOutput.getOrCreateTag().put(DINO_DATA_TAG, dinoData.toNBT());
+                dinoData.saveTo(dnaTestTubeOutput);
                 waterLevel -= SYNTH_WATER_COST;
                 boneMatterLevel -= SYNTH_RESOURCE_COST;
                 sugarLevel -= SYNTH_RESOURCE_COST;

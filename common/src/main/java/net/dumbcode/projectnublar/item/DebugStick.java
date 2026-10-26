@@ -14,7 +14,6 @@ import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.InteractionResult;
-import net.minecraft.world.InteractionResultHolder;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.ai.Brain;
 import net.minecraft.world.entity.ai.memory.MemoryModuleType;
@@ -53,23 +52,23 @@ public class DebugStick extends Item {
             if (!dinosaur.level().isClientSide()) {
                 DinoGroup group = GroupManager.groupOf(dinosaur);
                 if (group == null) {
-                    player.displayClientMessage(Component.literal("Herd visuals: no herd"), true);
+                    player.sendOverlayMessage(Component.literal("Herd visuals: no herd"));
                 } else {
                     group.setDebugVisuals(!group.debugVisuals());
-                    player.displayClientMessage(Component.literal("Herd visuals: " + (group.debugVisuals() ? "on" : "off")), true);
+                    player.sendOverlayMessage(Component.literal("Herd visuals: " + (group.debugVisuals() ? "on" : "off")));
                 }
             }
-            return InteractionResult.sidedSuccess(dinosaur.level().isClientSide());
+            return InteractionResult.SUCCESS;
         }
         if (interactionTarget instanceof Dinosaur dinosaur && player.isShiftKeyDown()) {
             // Sneak-use on a dinosaur: switch the herd travel spacing. Consumed on both sides, so the
             // sneak-use in the air (colour layers) does not also fire.
             if (!dinosaur.level().isClientSide()) {
                 DebugFlags.fixedTravelSpacing = !DebugFlags.fixedTravelSpacing;
-                player.displayClientMessage(Component.literal("Herd travel spacing: "
-                        + (DebugFlags.fixedTravelSpacing ? "tight everywhere (comparing)" : "open in the open, tight when tight")), true);
+                player.sendOverlayMessage(Component.literal("Herd travel spacing: "
+                        + (DebugFlags.fixedTravelSpacing ? "tight everywhere (comparing)" : "open in the open, tight when tight")));
             }
-            return InteractionResult.sidedSuccess(dinosaur.level().isClientSide());
+            return InteractionResult.SUCCESS;
         }
         if(interactionTarget instanceof Dinosaur dinosaur) {
             if (!dinosaur.level().isClientSide()) {
@@ -91,8 +90,8 @@ public class DebugStick extends Item {
                     }
                 }
                 // A leash restricts the animal to 5 blocks round the holder; journeys cannot leave a restriction.
-                lines.add("Leashed: " + dinosaur.isLeashed() + ", restriction: " + (dinosaur.hasRestriction()
-                        ? "centre " + dinosaur.getRestrictCenter().toShortString() + ", radius " + dinosaur.getRestrictRadius()
+                lines.add("Leashed: " + dinosaur.isLeashed() + ", restriction: " + (dinosaur.hasHome()
+                        ? "centre " + dinosaur.getHomePosition().toShortString() + ", radius " + dinosaur.getHomeRadius()
                         : "none"));
                 addMovementDebug(dinosaur, level, lines);
                 lines.add(String.format("Herd AI: average %.3f ms/tick, worst %.3f ms (last %d ticks with herd work)",
@@ -113,16 +112,16 @@ public class DebugStick extends Item {
 
     /** Sneak and use in the air: switches the dinosaur colour layers off and on, to measure their frame-rate cost. */
     @Override
-    public InteractionResultHolder<ItemStack> use(Level level, Player player, InteractionHand hand) {
+    public InteractionResult use(Level level, Player player, InteractionHand hand) {
         if (!player.isShiftKeyDown()) {
             return super.use(level, player, hand);
         }
         if (level.isClientSide()) {
             DebugFlags.skipDinoColourLayers = !DebugFlags.skipDinoColourLayers;
-            player.displayClientMessage(Component.literal("Dinosaur colour layers: "
-                    + (DebugFlags.skipDinoColourLayers ? "off (measuring)" : "on")), true);
+            player.sendOverlayMessage(Component.literal("Dinosaur colour layers: "
+                    + (DebugFlags.skipDinoColourLayers ? "off (measuring)" : "on")));
         }
-        return InteractionResultHolder.sidedSuccess(player.getItemInHand(hand), level.isClientSide());
+        return InteractionResult.SUCCESS;
     }
 
     /** What the brain and navigation are doing, to find out why an animal stands still. */

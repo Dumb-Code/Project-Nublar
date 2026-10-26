@@ -1,23 +1,24 @@
 package net.dumbcode.projectnublar.api.loot.functions;
 
-import com.google.gson.JsonDeserializationContext;
-import com.google.gson.JsonObject;
-import com.google.gson.JsonSerializationContext;
+import com.mojang.serialization.MapCodec;
+import com.mojang.serialization.codecs.RecordCodecBuilder;
+import java.util.List;
 import net.dumbcode.projectnublar.api.dinosaur.DNAData;
 import net.dumbcode.projectnublar.api.util.NublarMath;
 import net.dumbcode.projectnublar.block.AmberBlock;
 import net.dumbcode.projectnublar.registry.ItemInit;
-import net.dumbcode.projectnublar.registry.LootFunctionInit;
+import net.minecraft.core.Holder;
 import net.minecraft.core.registries.BuiltInRegistries;
-import net.minecraft.nbt.CompoundTag;
+import net.minecraft.core.registries.Registries;
 import net.minecraft.resources.Identifier;
 import net.minecraft.world.item.BlockItem;
+import net.minecraft.world.item.ItemInstance;
 import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.item.enchantment.Enchantment;
 import net.minecraft.world.item.enchantment.EnchantmentHelper;
 import net.minecraft.world.item.enchantment.Enchantments;
 import net.minecraft.world.level.storage.loot.LootContext;
 import net.minecraft.world.level.storage.loot.functions.LootItemConditionalFunction;
-import net.minecraft.world.level.storage.loot.functions.LootItemFunctionType;
 import net.minecraft.world.level.storage.loot.parameters.LootContextParams;
 import net.minecraft.world.level.storage.loot.predicates.LootItemCondition;
 
@@ -27,11 +28,15 @@ import net.minecraft.world.level.storage.loot.predicates.LootItemCondition;
  */
 public class AmberItemFunction extends LootItemConditionalFunction {
 
+    /** The function has no fields of its own, only the shared {@code conditions} list. */
+    public static final MapCodec<AmberItemFunction> MAP_CODEC =
+            RecordCodecBuilder.mapCodec(i -> commonFields(i).apply(i, AmberItemFunction::new));
+
     /** Exponent skewing the random DNA roll toward higher percentages. */
     private static final double DNA_ROLL_EXPONENT = 0.8d;
     private static final int DNA_ROLL_DECIMALS = 2;
 
-    public AmberItemFunction(LootItemCondition[] conditions) {
+    public AmberItemFunction(List<LootItemCondition> conditions) {
         super(conditions);
     }
 
@@ -43,44 +48,26 @@ public class AmberItemFunction extends LootItemConditionalFunction {
     protected ItemStack run(ItemStack itemStack, LootContext lootContext) {
         AmberBlock block = (AmberBlock) ((BlockItem) itemStack.getItem()).getBlock();
         Identifier dino = block.getEntityType();
-        ItemStack toolStack = lootContext.getParamOrNull(LootContextParams.TOOL);
+        ItemInstance toolStack = lootContext.getOptionalParameter(LootContextParams.TOOL);
         if (toolStack != null) {
-            // here the fortune level is computed but unused
-            int fortuneLevel =
-                    EnchantmentHelper.getItemEnchantmentLevel(Enchantments.BLOCK_FORTUNE, toolStack);
-            boolean hasSilkTouch = EnchantmentHelper.hasSilkTouch(toolStack);
+            Holder<Enchantment> silkTouch = lootContext.getLevel().registryAccess()
+                    .lookupOrThrow(Registries.ENCHANTMENT).getOrThrow(Enchantments.SILK_TOUCH);
+            boolean hasSilkTouch = EnchantmentHelper.getItemEnchantmentLevel(silkTouch, toolStack) > 0;
             if (!hasSilkTouch) {
                 itemStack = new ItemStack(ItemInit.AMBER_ITEM.get());
                 DNAData dnaData = new DNAData();
-                dnaData.setEntityType(BuiltInRegistries.ENTITY_TYPE.get(dino));
+                dnaData.setEntityType(BuiltInRegistries.ENTITY_TYPE.getValue(dino));
                 dnaData.setDnaPercentage(NublarMath.round(
                         Math.pow(lootContext.getRandom().nextDouble(), DNA_ROLL_EXPONENT),
                         DNA_ROLL_DECIMALS));
-                itemStack.getOrCreateTag().put("DNAData", dnaData.saveToNBT(new CompoundTag()));
+                dnaData.saveTo(itemStack);
             }
         }
         return itemStack;
     }
 
     @Override
-    public LootItemFunctionType getType() {
-        return LootFunctionInit.AMBER_FUNCTION.get();
-    }
-
-    public static class Serializer extends LootItemConditionalFunction.Serializer<AmberItemFunction> {
-        public Serializer() {
-        }
-
-        @Override
-        public void serialize(
-                JsonObject json, AmberItemFunction function, JsonSerializationContext context) {
-            super.serialize(json, function, context);
-        }
-
-        @Override
-        public AmberItemFunction deserialize(
-                JsonObject json, JsonDeserializationContext context, LootItemCondition[] conditions) {
-            return new AmberItemFunction(conditions);
-        }
+    public MapCodec<AmberItemFunction> codec() {
+        return MAP_CODEC;
     }
 }

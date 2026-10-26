@@ -6,10 +6,8 @@ import net.minecraft.resources.Identifier;
 import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.item.DyeColor;
 
-import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
-import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
@@ -40,22 +38,19 @@ public class DiskStorage {
                     BuiltInRegistries.ENTITY_TYPE.getKey(entry.getKey()).toString(), entry.getValue());
         }
         tag.put(SYNTHED_ENTITIES_KEY, synthedEntityTag);
-        List<Integer> colors = new ArrayList<>();
-        for (DyeColor color : tropicalFishColors) {
-            colors.add(color.getId());
-        }
+        int[] colors = tropicalFishColors.stream().mapToInt(DyeColor::getId).toArray();
         tag.putIntArray(TROPICAL_FISH_COLORS_KEY, colors);
         return tag;
     }
 
     public void load(CompoundTag tag) {
-        CompoundTag synthedEntityTag = tag.getCompound(SYNTHED_ENTITIES_KEY);
-        for (String key : synthedEntityTag.getAllKeys()) {
+        CompoundTag synthedEntityTag = tag.getCompoundOrEmpty(SYNTHED_ENTITIES_KEY);
+        for (String key : synthedEntityTag.keySet()) {
             synthedEntityMap.put(
-                    BuiltInRegistries.ENTITY_TYPE.get(Identifier.tryParse(key)),
-                    synthedEntityTag.getDouble(key));
+                    BuiltInRegistries.ENTITY_TYPE.getValue(Identifier.tryParse(key)),
+                    synthedEntityTag.getDoubleOr(key, 0));
         }
-        for (int color : tag.getIntArray(TROPICAL_FISH_COLORS_KEY)) {
+        for (int color : tag.getIntArray(TROPICAL_FISH_COLORS_KEY).orElse(new int[0])) {
             tropicalFishColors.add(DyeColor.byId(color));
         }
     }

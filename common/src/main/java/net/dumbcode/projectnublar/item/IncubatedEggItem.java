@@ -27,7 +27,7 @@ public class IncubatedEggItem extends DNADataItem {
     @Override
     public InteractionResult useOn(UseOnContext pContext) {
         if (pContext.getLevel().isClientSide()) {
-            return InteractionResult.sidedSuccess(true);
+            return InteractionResult.SUCCESS;
         }
         if(pContext.getHand() == InteractionHand.OFF_HAND){
             return InteractionResult.FAIL;

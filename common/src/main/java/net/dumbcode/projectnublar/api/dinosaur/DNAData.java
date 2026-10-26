@@ -1,12 +1,13 @@
 package net.dumbcode.projectnublar.api.dinosaur;
 
-import java.util.List;
+import java.util.function.Consumer;
 import net.dumbcode.projectnublar.Constants;
 import net.dumbcode.projectnublar.ProjectNublar;
 import net.dumbcode.projectnublar.api.fossil.FossilPiece;
 import net.dumbcode.projectnublar.api.fossil.FossilPieces;
 import net.dumbcode.projectnublar.api.fossil.Quality;
 import net.dumbcode.projectnublar.config.FossilsConfig;
+import net.minecraft.core.component.DataComponents;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.chat.Component;
@@ -14,9 +15,10 @@ import net.minecraft.network.chat.MutableComponent;
 import net.minecraft.resources.Identifier;
 import net.minecraft.util.Mth;
 import net.minecraft.world.entity.EntityType;
-import net.minecraft.world.entity.animal.TropicalFish;
+import net.minecraft.world.entity.animal.fish.TropicalFish;
 import net.minecraft.world.item.DyeColor;
 import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.item.component.CustomData;
 
 /**
  * A single DNA sample: source entity type (plus optional variant), DNA percentage, originating
@@ -124,15 +126,16 @@ public class DNAData {
         return createStorageKey(entityType, variant);
     }
 
-    public static void createTooltip(ItemStack stack, List<Component> tooltip) {
-        if (stack.hasTag()) {
-            DNAData dnaData = loadFromNBT(stack.getTag().getCompound(DNA_DATA_TAG));
-            tooltip.add(dnaData.getFormattedType());
+    /** Adds the sample's type, DNA, quality, variant and tropical-fish lines to the item tooltip. */
+    public static void createTooltip(ItemStack stack, Consumer<Component> tooltip) {
+        if (stack.has(DataComponents.CUSTOM_DATA)) {
+            DNAData dnaData = fromStack(stack);
+            tooltip.accept(dnaData.getFormattedType());
             if (dnaData.getDnaPercentage() != 0) {
-                tooltip.add(dnaData.getFormattedDNA());
+                tooltip.accept(dnaData.getFormattedDNA());
             }
             if (dnaData.getQuality() != null) {
-                tooltip.add(
+                tooltip.accept(
                         Component.translatable(
                                 QUALITY_TRANSLATION_PREFIX
                                         + Constants.MODID
@@ -140,15 +143,16 @@ public class DNAData {
                                         + dnaData.getQuality().getName()));
             }
             if (dnaData.variant != null) {
-                tooltip.add(Component.literal(ProjectNublar.checkReplace(dnaData.variant)));
+                tooltip.accept(Component.literal(ProjectNublar.checkReplace(dnaData.variant)));
             }
             dnaData.addTFishTT(tooltip);
         }
     }
 
-    public void addTFishTT(List<Component> tooltip) {
+    /** Adds the tropical-fish colour line when the sample came from a tropical fish. */
+    public void addTFishTT(Consumer<Component> tooltip) {
         if (tFish1 != DyeColor.BLACK) {
-            tooltip.add(
+            tooltip.accept(
                     Component.translatable(
                             TROPICAL_TOOLTIP_KEY,
                             Component.translatable(COLOR_TRANSLATION_PREFIX + tFish1.getName()),
@@ -215,27 +219,47 @@ public class DNAData {
 
     public static DNAData loadFromNBT(CompoundTag tag) {
         DNAData dnaData = new DNAData();
-        dnaData.setEntityType(
-                BuiltInRegistries.ENTITY_TYPE.get(Identifier.parse(tag.getString(ENTITY_TYPE_KEY))));
+        dnaData.setEntityType(BuiltInRegistries.ENTITY_TYPE.getValue(
+                Identifier.parse(tag.getStringOr(ENTITY_TYPE_KEY, ""))));
         if (tag.contains(DNA_PERCENTAGE_KEY)) {
-            dnaData.setDnaPercentage(tag.getDouble(DNA_PERCENTAGE_KEY));
+            dnaData.setDnaPercentage(tag.getDoubleOr(DNA_PERCENTAGE_KEY, 0));
         }
         if (tag.contains(VARIANT_KEY)) {
-            dnaData.setVariant(tag.getString(VARIANT_KEY));
+            dnaData.setVariant(tag.getStringOr(VARIANT_KEY, ""));
         }
         if (tag.contains(FOSSIL_PIECE_KEY)) {
-            dnaData.setFossilPiece(FossilPieces.byName(tag.getString(FOSSIL_PIECE_KEY)));
+            dnaData.setFossilPiece(FossilPieces.byName(tag.getStringOr(FOSSIL_PIECE_KEY, "")));
         }
         if (tag.contains(QUALITY_KEY)) {
-            dnaData.setQuality(Quality.byName(tag.getString(QUALITY_KEY)));
+            dnaData.setQuality(Quality.byName(tag.getStringOr(QUALITY_KEY, "")));
         }
-        dnaData.setEmbryo(tag.getBoolean(IS_EMBRYO_KEY));
+        dnaData.setEmbryo(tag.getBooleanOr(IS_EMBRYO_KEY, false));
         return dnaData;
+    }
+
+    /**
+     * Reads the sample from the stack's custom data under the {@code DNAData} key; a stack without
+     * it gives the sample of an empty compound, as the 1.20.1 read of a missing compound did.
+     * Temporary bridge: Task 16 replaces it with a data component.
+     */
+    public static DNAData fromStack(ItemStack stack) {
+        CompoundTag customData = stack.getOrDefault(DataComponents.CUSTOM_DATA, CustomData.EMPTY).copyTag();
+        return loadFromNBT(customData.getCompoundOrEmpty(DNA_DATA_TAG));
+    }
+
+    /**
+     * Writes the sample into the stack's custom data under the {@code DNAData} key and keeps the
+     * other keys. Temporary bridge: Task 16 replaces it with a data component.
+     */
+    public void saveTo(ItemStack stack) {
+        CompoundTag customData = stack.getOrDefault(DataComponents.CUSTOM_DATA, CustomData.EMPTY).copyTag();
+        customData.put(DNA_DATA_TAG, saveToNBT(new CompoundTag()));
+        CustomData.set(DataComponents.CUSTOM_DATA, stack, customData);
     }
 
     /** Reads the sample from a storage-drive stack; the entityType parameter is unused. */
     public static DNAData fromDrive(ItemStack stack, EntityType<?> entityType) {
-        return loadFromNBT(stack.getTag().getCompound(DNA_DATA_TAG));
+        return fromStack(stack);
     }
 
     public static String createStorageKey(EntityType<?> entityType, String variant) {

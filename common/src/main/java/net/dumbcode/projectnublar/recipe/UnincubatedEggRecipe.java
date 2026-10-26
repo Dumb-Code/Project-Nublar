@@ -9,6 +9,7 @@ import net.dumbcode.projectnublar.registry.ItemInit;
 import net.dumbcode.projectnublar.registry.RecipeInit;
 import net.minecraft.core.NonNullList;
 import net.minecraft.core.RegistryAccess;
+import net.minecraft.core.component.DataComponents;
 import net.minecraft.network.FriendlyByteBuf;
 import net.minecraft.resources.Identifier;
 import net.minecraft.util.GsonHelper;
@@ -90,12 +91,12 @@ public class UnincubatedEggRecipe implements CraftingRecipe {
         if (testTubeItem.isEmpty()) {
             return ItemStack.EMPTY;
         }
-        if (!testTubeItem.hasTag())
+        if (!testTubeItem.has(DataComponents.CUSTOM_DATA))
             return ItemStack.EMPTY;
 
-        DinoData dinoData = DinoData.fromNBT(testTubeItem.getTag().getCompound("DinoData"));
+        DinoData dinoData = DinoData.fromStack(testTubeItem);
         dinoData.setIncubationProgress(0);
-        result.getOrCreateTag().put("DinoData",dinoData.toNBT());
+        dinoData.saveTo(result);
         return result;
     }
 

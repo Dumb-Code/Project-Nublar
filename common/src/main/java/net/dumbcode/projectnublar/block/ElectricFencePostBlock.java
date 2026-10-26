@@ -11,6 +11,7 @@ import net.dumbcode.projectnublar.registry.BlockInit;
 import net.dumbcode.projectnublar.registry.ItemInit;
 import net.dumbcode.projectnublar.util.LineUtils;
 import net.minecraft.core.BlockPos;
+import net.minecraft.core.component.DataComponents;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.nbt.NbtUtils;
 import net.minecraft.nbt.Tag;
@@ -20,6 +21,7 @@ import net.minecraft.world.InteractionHand;
 import net.minecraft.world.InteractionResult;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.item.component.CustomData;
 import net.minecraft.world.item.context.BlockPlaceContext;
 import net.minecraft.world.level.BlockGetter;
 import net.minecraft.world.level.Level;
@@ -168,7 +170,8 @@ public class ElectricFencePostBlock extends BlockConnectableBase implements Enti
      * strings wires from the stored post to this one (within {@link #LIMIT}), consuming spools.
      */
     private void handleWireSpoolUse(Level world, BlockPos pos, Player player, ItemStack stack) {
-        CompoundTag nbt = stack.getOrCreateTagElement(Constants.MODID);
+        CompoundTag customData = stack.getOrDefault(DataComponents.CUSTOM_DATA, CustomData.EMPTY).copyTag();
+        CompoundTag nbt = customData.getCompoundOrEmpty(Constants.MODID);
         if (nbt.contains(FENCE_POSITION_TAG, Tag.TAG_COMPOUND)) {
             BlockPos other = NbtUtils.readBlockPos(nbt.getCompound(FENCE_POSITION_TAG));
             double dist = Math.sqrt(other.distSqr(pos));
@@ -184,6 +187,9 @@ public class ElectricFencePostBlock extends BlockConnectableBase implements Enti
         } else {
             nbt.put(FENCE_POSITION_TAG, NbtUtils.writeBlockPos(pos));
         }
+        // Custom data is a copy on 26.2, so the stored post is written back (temporary, until Task 16).
+        customData.put(Constants.MODID, nbt);
+        CustomData.set(DataComponents.CUSTOM_DATA, stack, customData);
     }
 
     /** Collects enough spool items across the inventory, then strings every wire of the run. */

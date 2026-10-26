@@ -4,20 +4,19 @@ import net.dumbcode.projectnublar.api.dinosaur.DNAData;
 import net.dumbcode.projectnublar.api.util.NublarMath;
 import net.dumbcode.projectnublar.registry.TagInit;
 import net.dumbcode.projectnublar.item.api.DNADataItem;
-import net.minecraft.core.registries.BuiltInRegistries;
-import net.minecraft.nbt.CompoundTag;
+import net.minecraft.core.component.DataComponents;
 import net.minecraft.network.chat.Component;
 import net.minecraft.util.RandomSource;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.InteractionResult;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.Mob;
-import net.minecraft.world.entity.VariantHolder;
 import net.minecraft.world.entity.animal.Animal;
-import net.minecraft.world.entity.animal.Cat;
-import net.minecraft.world.entity.animal.Parrot;
+import net.minecraft.world.entity.animal.feline.Cat;
+import net.minecraft.world.entity.animal.parrot.Parrot;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.item.component.CustomData;
 
 public class SyringeItem extends DNADataItem {
     public SyringeItem(Properties $$0) {
@@ -26,27 +25,25 @@ public class SyringeItem extends DNADataItem {
 
     @Override
     public InteractionResult interactLivingEntity(ItemStack stack, Player player, LivingEntity target, InteractionHand hand) {
-        if (player.getItemInHand(hand).is(this) && !player.getItemInHand(hand).hasTag()) {
+        if (player.getItemInHand(hand).is(this) && !player.getItemInHand(hand).has(DataComponents.CUSTOM_DATA)) {
             if (target.isAlive()) {
-                if(target.getType().is(TagInit.EMBRYO_ENTITY) && target instanceof Animal mob && mob.isInLove()){
+                if(target.is(TagInit.EMBRYO_ENTITY) && target instanceof Animal mob && mob.isInLove()){
                     ItemStack embryoStack = player.getItemInHand(hand).copyWithCount(1);
-                    embryoStack.getOrCreateTag().putBoolean("Embryo", true);
+                    CustomData.update(DataComponents.CUSTOM_DATA, embryoStack, tag -> tag.putBoolean("Embryo", true));
                     player.getInventory().add(embryoStack);
                 } else {
                     DNAData dnaData = new DNAData();
                     dnaData.setEntityType(target.getType());
                     dnaData.setDnaPercentage(NublarMath.round(RandomSource.create().nextDouble(), 2));
-                    if (target instanceof VariantHolder<?>) {
-                        if (target instanceof Parrot parrot) {
-                            dnaData.setVariant(parrot.getVariant().getSerializedName());
-                        }
-                        if (target instanceof Cat cat) {
-                            dnaData.setVariant(BuiltInRegistries.CAT_VARIANT.getKey(cat.getVariant()).toString());
-                        }
+                    if (target instanceof Parrot parrot) {
+                        dnaData.setVariant(parrot.getVariant().getSerializedName());
+                    }
+                    if (target instanceof Cat cat) {
+                        dnaData.setVariant(cat.getVariant().getRegisteredName());
                     }
                     dnaData.setEmbryo(false);
                     ItemStack dnaSyringe = new ItemStack(this);
-                    dnaSyringe.getOrCreateTag().put("DNAData", dnaData.saveToNBT(new CompoundTag()));
+                    dnaData.saveTo(dnaSyringe);
                     player.getInventory().add(dnaSyringe);
                     player.getItemInHand(hand).shrink(1);
                 }
@@ -58,7 +55,7 @@ public class SyringeItem extends DNADataItem {
 
     @Override
     public Component getName(ItemStack pStack) {
-        if(pStack.hasTag() && pStack.getTag().contains("Embryo")){
+        if(pStack.getOrDefault(DataComponents.CUSTOM_DATA, CustomData.EMPTY).copyTag().contains("Embryo")){
             return Component.literal("Embryo Filled Syringe");
         }
         return super.getName(pStack);

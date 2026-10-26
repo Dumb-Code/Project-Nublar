@@ -116,7 +116,7 @@ public class ClientRegistrationHolder {
     }
 
     public static void registerItemProperties() {
-        ItemProperties.register(ItemInit.SYRINGE.get(), Constants.modLoc("filled"), (stack, world, entity, i) -> stack.hasTag() ? stack.getTag().getBoolean("dna_percentage") ? 0.5F : 1.0F : 0f);
+        ItemProperties.register(ItemInit.SYRINGE.get(), Constants.modLoc("filled"), (stack, world, entity, i) -> stack.has(net.minecraft.core.component.DataComponents.CUSTOM_DATA) ? stack.get(net.minecraft.core.component.DataComponents.CUSTOM_DATA).copyTag().getBooleanOr("dna_percentage", false) ? 0.5F : 1.0F : 0f);
     }
 
     public static AbstractTexture createRexTexture() {return Minecraft.getInstance().getTextureManager().getTexture(Constants.modLoc("textures/entity/tyrannosaurus_rex/female/tyrannosaurus_rex.png"));}

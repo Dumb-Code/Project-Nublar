@@ -399,13 +399,13 @@ public class IncubatorBlockEntity extends SyncingContainerBlockEntity
                                 data.getIncubationProgress() + INCUBATION_PROGRESS_PER_STEP);
                         data.setIncubationTimeLeft(Mth.floor(
                                 getTicksPerPercent() * ((1 - data.getIncubationProgress()) * 100)));
-                        data.toStack(slot.stack);
+                        data.saveTo(slot.stack);
                         updateBlock();
                     } else if (data.getIncubationProgress() >= 1) {
                         ItemStack dinoEgg = ItemInit.INCUBATED_EGG.get().getDefaultInstance();
                         data.setIncubationProgress(-1);
                         data.setIncubationTimeLeft(-1);
-                        data.toStack(dinoEgg);
+                        data.saveTo(dinoEgg);
                         slot = slot.withStack(dinoEgg);
                         items.set(i, slot);
                         updateBlock();
