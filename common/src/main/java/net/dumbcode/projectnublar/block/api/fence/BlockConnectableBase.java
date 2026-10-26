@@ -18,6 +18,7 @@ import net.minecraft.world.InteractionResult;
 import net.minecraft.world.damagesource.DamageSource;
 import net.minecraft.world.damagesource.DamageTypes;
 import net.minecraft.world.entity.Entity;
+import net.minecraft.world.entity.InsideBlockEffectApplier;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
@@ -64,7 +65,7 @@ public class BlockConnectableBase extends Block {
     }
 
     @Override
-    public void entityInside(BlockState state, Level worldIn, BlockPos pos, Entity entityIn) {
+    protected void entityInside(BlockState state, Level worldIn, BlockPos pos, Entity entityIn, InsideBlockEffectApplier effectApplier, boolean isPrecise) {
         BlockEntity te = worldIn.getBlockEntity(pos);
         AABB entityBox = entityIn.getBoundingBox();
         if (te instanceof ConnectableBlockEntity) {
@@ -94,7 +95,7 @@ public class BlockConnectableBase extends Block {
 
 
     @Override
-    public boolean isPathfindable(BlockState pState, BlockGetter pLevel, BlockPos pPos, PathComputationType pType) {
+    protected boolean isPathfindable(BlockState pState, PathComputationType pType) {
         return false;
     }
 
@@ -275,7 +276,7 @@ public class BlockConnectableBase extends Block {
     }
 
     public static int breakUnsupportedFloatingConnections(Level world, Iterable<Connection> boundaryConnections, boolean dropItems) {
-        if (world.isClientSide) {
+        if (world.isClientSide()) {
             return 0;
         }
 
@@ -411,10 +412,14 @@ public class BlockConnectableBase extends Block {
         return false;
     }
 
+    /**
+     * Breaks the wire the player is looking at and any run left floating. It does not call the
+     * vanilla body (destroy particles, piglin anger, game event), as on 1.20.1, and keeps the state.
+     */
     @Override
-    public void playerWillDestroy(Level world, BlockPos pos, BlockState state, Player player) {
-        if (world.isClientSide) {
-            return;
+    public BlockState playerWillDestroy(Level world, BlockPos pos, BlockState state, Player player) {
+        if (world.isClientSide()) {
+            return state;
         }
         HitChunk chunk = getHitChunk(player);
         if (chunk != null) {
@@ -432,12 +437,13 @@ public class BlockConnectableBase extends Block {
             breakUnsupportedFloatingConnections(world, List.of(brokenConnection), true);
 
         }
+        return state;
     }
 
 
     @Override
-    public InteractionResult use(BlockState state, Level world, BlockPos pos, Player player, InteractionHand hand, BlockHitResult ray) {
-        if (world.isClientSide) {
+    protected InteractionResult useItemOn(ItemStack itemStack, BlockState state, Level world, BlockPos pos, Player player, InteractionHand hand, BlockHitResult ray) {
+        if (world.isClientSide()) {
             return InteractionResult.SUCCESS;
         }
 

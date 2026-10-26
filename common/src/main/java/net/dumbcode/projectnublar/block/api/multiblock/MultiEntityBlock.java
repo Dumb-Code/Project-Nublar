@@ -1,14 +1,19 @@
 package net.dumbcode.projectnublar.block.api.multiblock;
 
+import com.mojang.datafixers.util.Function4;
+import com.mojang.serialization.Codec;
+import com.mojang.serialization.MapCodec;
+import com.mojang.serialization.codecs.RecordCodecBuilder;
 import net.dumbcode.projectnublar.client.ModShapes;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
-import net.minecraft.world.Container;
+import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.Containers;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.InteractionResult;
 import net.minecraft.world.MenuProvider;
 import net.minecraft.world.entity.player.Player;
+import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.context.BlockPlaceContext;
 import net.minecraft.world.level.BlockGetter;
 import net.minecraft.world.level.Level;
@@ -54,8 +59,22 @@ public abstract class MultiEntityBlock extends BaseEntityBlock implements MultiB
         this.depth = depth;
     }
 
-    public InteractionResult use(BlockState pState, Level pLevel, BlockPos pPos, Player pPlayer, InteractionHand pHand, BlockHitResult pHit) {
-        if (pLevel.isClientSide) {
+    /**
+     * Builds the codec of a multiblock subclass: the block properties plus the rows, columns and
+     * depth its constructor takes.
+     */
+    protected static <B extends MultiEntityBlock> MapCodec<B> multiBlockCodec(Function4<Properties, Integer, Integer, Integer, B> constructor) {
+        return RecordCodecBuilder.mapCodec(i -> i.group(
+                        propertiesCodec(),
+                        Codec.INT.fieldOf("rows").forGetter(block -> ((MultiEntityBlock) block).rows),
+                        Codec.INT.fieldOf("columns").forGetter(block -> ((MultiEntityBlock) block).columns),
+                        Codec.INT.fieldOf("depth").forGetter(block -> ((MultiEntityBlock) block).depth))
+                .apply(i, constructor));
+    }
+
+    @Override
+    protected InteractionResult useItemOn(ItemStack pStack, BlockState pState, Level pLevel, BlockPos pPos, Player pPlayer, InteractionHand pHand, BlockHitResult pHit) {
+        if (pLevel.isClientSide()) {
             return InteractionResult.SUCCESS;
         } else {
             BlockPos corePos = MultiBlock.getCorePos(pState, pPos);
@@ -93,24 +112,26 @@ public abstract class MultiEntityBlock extends BaseEntityBlock implements MultiB
             default -> getShapeForDirection(direction);
         });
     }
+
+    /**
+     * The block model has only a particle texture, so the chunk mesh draws nothing and the block
+     * entity renderer draws the machine. 26.2 dropped {@code ENTITYBLOCK_ANIMATED}; vanilla chests
+     * moved to {@code MODEL} with the same kind of particle-only model.
+     */
     @Override
     public RenderShape getRenderShape(BlockState state) {
-        return RenderShape.ENTITYBLOCK_ANIMATED;
+        return RenderShape.MODEL;
     }
 
-    public void onRemove(BlockState pState, Level pLevel, BlockPos pPos, BlockState pNewState, boolean pIsMoving) {
+    /**
+     * Runs on the server after this block is replaced by a different block: updates comparators
+     * at the core and breaks the other blocks of the multiblock. The core's inventory and machine
+     * parts drop before this, in the block entity's {@code preRemoveSideEffects}.
+     */
+    @Override
+    protected void affectNeighborsAfterRemoval(BlockState pState, ServerLevel pLevel, BlockPos pPos, boolean pMovedByPiston) {
         if (pState.getValue(ROWS) == 0 && pState.getValue(COLUMNS) == 0 && pState.getValue(DEPTH) == 0) {
-            if (!pState.is(pNewState.getBlock())) {
-                BlockEntity blockentity = pLevel.getBlockEntity(pPos);
-                if (blockentity instanceof Container) {
-                    Containers.dropContents(pLevel, pPos, (Container) blockentity);
-                    pLevel.updateNeighbourForOutputSignal(pPos, this);
-                }
-                if(blockentity instanceof IMachineParts){
-                    Containers.dropContents(pLevel, pPos, ((IMachineParts) blockentity).getMachineParts());
-                }
-
-            }
+            Containers.updateNeighboursAfterDestroy(pState, pLevel, pPos);
         }
         //break the other blocks
         Direction direction = pState.getValue(FACING);
@@ -128,7 +149,7 @@ public abstract class MultiEntityBlock extends BaseEntityBlock implements MultiB
         }
 
 
-        super.onRemove(pState, pLevel, pPos, pNewState, pIsMoving);
+        super.affectNeighborsAfterRemoval(pState, pLevel, pPos, pMovedByPiston);
     }
 
 

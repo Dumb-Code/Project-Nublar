@@ -1,5 +1,6 @@
 package net.dumbcode.projectnublar.block;
 
+import com.mojang.serialization.MapCodec;
 import net.dumbcode.projectnublar.block.api.multiblock.MultiEntityBlock;
 import net.dumbcode.projectnublar.block.entity.ProcessorBlockEntity;
 import net.dumbcode.projectnublar.client.ModShapes;
@@ -17,9 +18,16 @@ import net.minecraft.world.phys.shapes.VoxelShape;
 import org.jetbrains.annotations.Nullable;
 
 public class ProcessorBlock extends MultiEntityBlock {
+    /** Codec of this block type: the properties plus the multiblock size. */
+    public static final MapCodec<ProcessorBlock> CODEC = multiBlockCodec(ProcessorBlock::new);
 
     public ProcessorBlock(Properties properties, int rows, int columns, int depth) {
         super(properties, rows, columns, depth);
+    }
+
+    @Override
+    protected MapCodec<ProcessorBlock> codec() {
+        return CODEC;
     }
     @Override
     public BlockEntity createBlockEntity(BlockPos blockPos, BlockState blockState) {

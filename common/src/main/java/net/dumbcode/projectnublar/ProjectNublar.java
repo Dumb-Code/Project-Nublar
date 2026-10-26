@@ -20,7 +20,7 @@ import net.dumbcode.projectnublar.registry.MenuTypeInit;
 import net.dumbcode.projectnublar.registry.PlacementModifierInit;
 import net.dumbcode.projectnublar.registry.RecipeInit;
 import net.dumbcode.projectnublar.registry.SoundInit;
-import net.minecraft.util.random.SimpleWeightedRandomList;
+import net.minecraft.util.random.WeightedList;
 import org.apache.commons.lang3.StringUtils;
 
 /**
@@ -31,7 +31,7 @@ import org.apache.commons.lang3.StringUtils;
  */
 public class ProjectNublar {
     /** Period name, then biome name, then the weighted fossil ids; filled by the fossil config reload listener. */
-    public static Map<String, Map<String, SimpleWeightedRandomList.Builder<String>>>
+    public static Map<String, Map<String, WeightedList.Builder<String>>>
             WEIGHTED_PERIOD_BIOME_FOSSIL_MAP = new HashMap<>();
 
     public static void init() {

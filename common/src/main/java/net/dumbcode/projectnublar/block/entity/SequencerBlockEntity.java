@@ -23,6 +23,7 @@ import net.minecraft.core.component.DataComponents;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.chat.Component;
 import net.minecraft.util.Mth;
+import net.minecraft.world.Containers;
 import net.minecraft.world.entity.player.Inventory;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.inventory.AbstractContainerMenu;
@@ -254,7 +255,7 @@ public class SequencerBlockEntity extends SyncingContainerBlockEntity
     }
 
     public void tick(Level world, BlockPos pos, BlockState state, SequencerBlockEntity blockEntity) {
-        if (!world.isClientSide) {
+        if (!world.isClientSide()) {
             boolean shouldUpdate = false;
             shouldUpdate |= tickSequencing();
             shouldUpdate |= intakeWater();
@@ -544,7 +545,7 @@ public class SequencerBlockEntity extends SyncingContainerBlockEntity
                 sequencingTime = 0;
             }
             case SLOT_DNA_INPUT -> {
-                if (!ItemStack.isSameItemSameTags(dnaInput, itemStack)) {
+                if (!ItemStack.isSameItemSameComponents(dnaInput, itemStack)) {
                     sequencingTime = 0;
                 }
                 dnaInput = itemStack;
@@ -570,6 +571,15 @@ public class SequencerBlockEntity extends SyncingContainerBlockEntity
         storage = ItemStack.EMPTY;
         dnaInput = ItemStack.EMPTY;
         emptyVialOutput = ItemStack.EMPTY;
+    }
+
+    /** Drops the machine parts after the inventory (26.2 drops the inventory), as 1.20.1 did. */
+    @Override
+    public void preRemoveSideEffects(BlockPos pos, BlockState state) {
+        super.preRemoveSideEffects(pos, state);
+        if (this.level != null) {
+            Containers.dropContents(this.level, pos, this.getMachineParts());
+        }
     }
 
     @Override

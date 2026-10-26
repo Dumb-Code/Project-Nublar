@@ -4,6 +4,7 @@ import net.dumbcode.projectnublar.api.fossil.FossilBase;
 import net.dumbcode.projectnublar.api.fossil.FossilPiece;
 import net.dumbcode.projectnublar.api.fossil.Quality;
 import net.minecraft.resources.Identifier;
+import net.minecraft.util.valueproviders.ConstantInt;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.DropExperienceBlock;
 import net.minecraft.world.level.block.state.BlockState;
@@ -22,7 +23,7 @@ public class FossilBlock extends DropExperienceBlock {
     private final FossilBase base;
 
     public FossilBlock(Properties properties, Identifier entityType, FossilPiece piece, FossilBase base) {
-        super(properties);
+        super(ConstantInt.of(0), properties);
         this.entityType = entityType;
         this.fossilPiece = piece;
         this.base = base;

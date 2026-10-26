@@ -1,5 +1,6 @@
 package net.dumbcode.projectnublar.block;
 
+import com.mojang.serialization.MapCodec;
 import net.dumbcode.projectnublar.block.api.multiblock.MultiBlock;
 import net.dumbcode.projectnublar.block.api.multiblock.MultiEntityBlock;
 import net.dumbcode.projectnublar.block.entity.IncubatorBlockEntity;
@@ -29,13 +30,21 @@ import net.minecraft.world.phys.shapes.VoxelShape;
 import org.jetbrains.annotations.Nullable;
 
 public class IncubatorBlock extends MultiEntityBlock {
+    /** Codec of this block type: the properties plus the multiblock size. */
+    public static final MapCodec<IncubatorBlock> CODEC = multiBlockCodec(IncubatorBlock::new);
 
     public IncubatorBlock(Properties properties, int rows, int columns, int depth) {
         super(properties, rows, columns, depth);
     }
+
     @Override
-    public InteractionResult use(BlockState pState, Level pLevel, BlockPos pPos, Player pPlayer, InteractionHand pHand, BlockHitResult pHit) {
-        if (!pLevel.isClientSide && pHand == InteractionHand.MAIN_HAND) {
+    protected MapCodec<IncubatorBlock> codec() {
+        return CODEC;
+    }
+
+    @Override
+    protected InteractionResult useItemOn(ItemStack pStack, BlockState pState, Level pLevel, BlockPos pPos, Player pPlayer, InteractionHand pHand, BlockHitResult pHit) {
+        if (!pLevel.isClientSide() && pHand == InteractionHand.MAIN_HAND) {
             BlockEntity blockEntity = pLevel.getBlockEntity(MultiBlock.getCorePos(pState, pPos));
             ItemStack stack = pPlayer.getMainHandItem();
             if (blockEntity instanceof IncubatorBlockEntity incubator) {
@@ -100,7 +109,7 @@ public class IncubatorBlock extends MultiEntityBlock {
                 }
             }
         }
-        return super.use(pState, pLevel, pPos, pPlayer, pHand, pHit);
+        return super.useItemOn(pStack, pState, pLevel, pPos, pPlayer, pHand, pHit);
     }
 
     @Override

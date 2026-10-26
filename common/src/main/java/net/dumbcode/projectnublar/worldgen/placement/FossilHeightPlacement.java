@@ -1,6 +1,6 @@
 package net.dumbcode.projectnublar.worldgen.placement;
 
-import com.mojang.serialization.Codec;
+import com.mojang.serialization.MapCodec;
 import net.dumbcode.projectnublar.config.FossilsConfig;
 import net.dumbcode.projectnublar.registry.PlacementModifierInit;
 import net.minecraft.core.BlockPos;
@@ -19,8 +19,8 @@ import java.util.stream.Stream;
  * from the config at each placement, so an edited config applies without new worldgen data.
  */
 public class FossilHeightPlacement extends PlacementModifier {
-    public static final Codec<FossilHeightPlacement> CODEC =
-            ExtraCodecs.NON_EMPTY_STRING.fieldOf("period").xmap(FossilHeightPlacement::new, placement -> placement.period).codec();
+    public static final MapCodec<FossilHeightPlacement> CODEC =
+            ExtraCodecs.NON_EMPTY_STRING.fieldOf("period").xmap(FossilHeightPlacement::new, placement -> placement.period);
     private final String period;
 
     private FossilHeightPlacement(String period) {

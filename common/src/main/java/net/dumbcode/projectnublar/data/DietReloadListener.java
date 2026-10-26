@@ -12,13 +12,15 @@ import java.util.Map;
 import javax.annotation.Nullable;
 import net.dumbcode.projectnublar.Constants;
 import net.dumbcode.projectnublar.api.dinosaur.DinoDietData;
+import net.minecraft.resources.FileToIdConverter;
 import net.minecraft.resources.Identifier;
 import net.minecraft.server.packs.resources.ResourceManager;
 import net.minecraft.server.packs.resources.SimpleJsonResourceReloadListener;
+import net.minecraft.util.ExtraCodecs;
 import net.minecraft.util.GsonHelper;
 import net.minecraft.util.profiling.ProfilerFiller;
 
-public class DietReloadListener extends SimpleJsonResourceReloadListener {
+public class DietReloadListener extends SimpleJsonResourceReloadListener<JsonElement> {
 
     private static final Gson GSON = new GsonBuilder().setPrettyPrinting().disableHtmlEscaping().create();
     private static final String FOLDER_PATH = "diet";
@@ -29,7 +31,7 @@ public class DietReloadListener extends SimpleJsonResourceReloadListener {
     public static Map<String, DinoDietData> dietDataMap = Collections.emptyMap();
 
     public DietReloadListener() {
-        super(GSON, FOLDER_PATH);
+        super(ExtraCodecs.JSON, FileToIdConverter.json(FOLDER_PATH));
     }
 
     @Override

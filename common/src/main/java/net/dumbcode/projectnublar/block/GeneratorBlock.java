@@ -1,5 +1,8 @@
 package net.dumbcode.projectnublar.block;
 
+import com.mojang.serialization.Codec;
+import com.mojang.serialization.MapCodec;
+import com.mojang.serialization.codecs.RecordCodecBuilder;
 import net.dumbcode.projectnublar.block.api.multiblock.MultiBlock;
 import net.dumbcode.projectnublar.block.entity.BlockEntityElectricFencePole;
 import net.dumbcode.projectnublar.block.entity.GeneratorBlockEntity;
@@ -8,6 +11,7 @@ import net.minecraft.world.InteractionHand;
 import net.minecraft.world.InteractionResult;
 import net.minecraft.world.MenuProvider;
 import net.minecraft.world.entity.player.Player;
+import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.BaseEntityBlock;
 import net.minecraft.world.level.block.RenderShape;
@@ -20,6 +24,14 @@ import net.minecraft.world.phys.BlockHitResult;
 import org.jetbrains.annotations.Nullable;
 
 public class GeneratorBlock extends BaseEntityBlock {
+    /** Codec of this block type: the properties plus the three energy values. */
+    public static final MapCodec<GeneratorBlock> CODEC = RecordCodecBuilder.mapCodec(i -> i.group(
+                    propertiesCodec(),
+                    Codec.INT.fieldOf("max_energy").forGetter(GeneratorBlock::getMaxEnergy),
+                    Codec.INT.fieldOf("energy_output").forGetter(GeneratorBlock::getEnergyOutput),
+                    Codec.INT.fieldOf("energy_input").forGetter(GeneratorBlock::getEnergyInput))
+            .apply(i, GeneratorBlock::new));
+
     private final int maxEnergy;
     private final int energyOutput;
     private final int energyInput;
@@ -30,8 +42,15 @@ public class GeneratorBlock extends BaseEntityBlock {
         this.energyInput = energyInput;
         this.energyOutput = energyOutput;
     }
-    public InteractionResult use(BlockState pState, Level pLevel, BlockPos pPos, Player pPlayer, InteractionHand pHand, BlockHitResult pHit) {
-        if (pLevel.isClientSide) {
+
+    @Override
+    protected MapCodec<GeneratorBlock> codec() {
+        return CODEC;
+    }
+
+    @Override
+    protected InteractionResult useItemOn(ItemStack pStack, BlockState pState, Level pLevel, BlockPos pPos, Player pPlayer, InteractionHand pHand, BlockHitResult pHit) {
+        if (pLevel.isClientSide()) {
             return InteractionResult.SUCCESS;
         } else {
             this.openContainer(pLevel, pPos, pPlayer);

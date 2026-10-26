@@ -1,11 +1,6 @@
 package net.dumbcode.projectnublar.block.api.geometry;
 
-import com.mojang.blaze3d.platform.Lighting;
 import com.mojang.blaze3d.vertex.PoseStack;
-import com.mojang.blaze3d.vertex.VertexConsumer;
-import net.minecraft.client.renderer.LevelRenderer;
-import net.minecraft.client.renderer.MultiBufferSource;
-import net.minecraft.client.renderer.RenderType;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.core.Position;
@@ -79,12 +74,12 @@ public class RotatedRayBox {
             this.transform(hitVec, this.backwards);
 
 
-            Vec3i vec = result.getDirection().getNormal();
+            Vec3i vec = result.getDirection().getUnitVec3i();
             Vector3f sidevec = new Vector3f(vec.getX(), vec.getY(), vec.getZ());
             this.transform(sidevec, this.backwards);
 
 
-            result = new BlockHitResult(new Vec3(hitVec), Direction.getNearest(sidevec.x(), sidevec.y(), sidevec.z()), BlockPos.ZERO, true);
+            result = new BlockHitResult(new Vec3(hitVec), Direction.getApproximateNearest(sidevec.x(), sidevec.y(), sidevec.z()), BlockPos.ZERO, true);
 
             return new Result(this, result, hitDir, start, end, startIn, endIn, hit, dist);
         }
@@ -154,47 +149,5 @@ public class RotatedRayBox {
 
 
     public record Result(RotatedRayBox parent, BlockHitResult result, Direction hitDir, Vector3f startRotated, Vector3f endRotated, Position start, Position end, Vec3 hitRotated, double distance) {
-
-
-        public void debugRender(PoseStack stack, MultiBufferSource buffers, double x, double y, double z) {
-            stack.pushPose();
-            stack.translate(x + this.parent.origin.x(), y + this.parent.origin.y(), z + this.parent.origin.z());
-            Matrix4f pose = stack.last().pose();
-
-
-            Vec3 sv = new Vec3(this.startRotated.x(), this.startRotated.y(), this.startRotated.z());
-            Vec3 ev = new Vec3(this.endRotated.x(), this.endRotated.y(), this.endRotated.z());
-
-            Vec3 diff = sv.subtract(ev);
-
-            //Due to the calculations, the points can appear inside the aabb, meaning the aabb calcualtion is wrong. This is just to extend both points a substantial amount to make it work
-            sv = sv.add(diff.x()*100, diff.y()*100, diff.z()*100);
-            ev = ev.subtract(diff.x()*100, diff.y()*100, diff.z()*100);
-
-            //Draw a line from the where the players eyes are, and where theyre looking in transformed space
-            VertexConsumer buff = buffers.getBuffer(RenderType.lines());
-            buff.vertex(pose, (float) sv.x, (float) sv.y, (float) sv.z).color(1f, 0, 0, 1).endVertex();
-            buff.vertex(pose, (float) ev.x, (float) ev.y, (float) ev.z).color(0f, 1f, 0f, 1f).endVertex();
-
-            //Draw a light blue line where the vector is hit in transformed space
-            buff.vertex(pose, (float) this.hitRotated.x, (float) this.hitRotated.y, (float) this.hitRotated.z).color(0f, 1f, 1, 1F).endVertex();
-            buff.vertex(pose, (float) this.hitRotated.x, (float) this.hitRotated.y+0.25F, (float) this.hitRotated.z).color(0f, 1f, 1f, 1F).endVertex();
-
-            //Draw a yellow line where the vector is hit in real space (should be right in front of the mouse)
-            Vec3 hitVec = result.getLocation();
-            buff.vertex(pose, (float) hitVec.x, (float) hitVec.y, (float) hitVec.z).color(1f, 1f, 0, 1F).endVertex();
-            buff.vertex(pose, (float) hitVec.x, (float) hitVec.y+0.25F, (float) hitVec.z).color(1f, 1f, 0f, 1F).endVertex();
-
-            //Draw a cubeoid of the transformed collision box
-            Lighting.setupForFlatItems();
-            AABB aabb = this.parent.box;
-            LevelRenderer.renderLineBox(stack, buff, aabb, 1, 0, 0, 1F);
-
-            RenderUtils.drawCubeoid(stack, new Vec3(aabb.minX, aabb.minY, aabb.minZ), new Vec3(aabb.maxX, aabb.maxY, aabb.maxZ), buffers.getBuffer(RenderType.lightning()));
-
-            //We need the lines type to begin buffering again.
-            buffers.getBuffer(RenderType.lines());
-            stack.popPose();
-        }
     }
 }

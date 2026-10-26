@@ -124,8 +124,21 @@ public class BlockEntityElectricFencePole extends BlockEntityElectricFence imple
             this.cachedRotation = rotation;
             world.sendBlockUpdated(this.getBlockPos(), this.getBlockState(), this.getBlockState(), 3);
         }
-        if (!world.isClientSide) {
+        if (!world.isClientSide()) {
             tickEnergy(world, blockPos);
+        }
+    }
+
+    /**
+     * Breaks the column's wire runs and removes its other blocks before this block entity goes.
+     * 26.2 removed {@code Block.onRemove}; the block keeps the logic in
+     * {@link ElectricFencePostBlock#onColumnBlockRemoved}.
+     */
+    @Override
+    public void preRemoveSideEffects(BlockPos pos, BlockState state) {
+        super.preRemoveSideEffects(pos, state);
+        if (this.level != null && state.getBlock() instanceof ElectricFencePostBlock post) {
+            post.onColumnBlockRemoved(this.level, pos, state);
         }
     }
 
@@ -422,7 +435,7 @@ public class BlockEntityElectricFencePole extends BlockEntityElectricFence imple
     private void onEnergyChanged() {
         this.invalidatePowerCache();
         this.setChanged();
-        if (this.level == null || this.level.isClientSide) {
+        if (this.level == null || this.level.isClientSide()) {
             return;
         }
         BlockState state = this.level.getBlockState(this.getBlockPos());

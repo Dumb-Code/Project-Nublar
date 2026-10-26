@@ -14,6 +14,7 @@ import net.dumbcode.projectnublar.util.SaveVersion;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.NonNullList;
 import net.minecraft.network.chat.Component;
+import net.minecraft.world.Containers;
 import net.minecraft.world.entity.player.Inventory;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.inventory.AbstractContainerMenu;
@@ -178,7 +179,7 @@ public class EggPrinterBlockEntity extends SyncingContainerBlockEntity
         bonemealAmount -= BONEMEAL_PER_PRINT;
         isPrinting = false;
         eggOutput = new ItemStack(
-                level.random.nextInt(CRACK_ROLL_BOUND) == getBreakChance()
+                level.getRandom().nextInt(CRACK_ROLL_BOUND) == getBreakChance()
                         ? ItemInit.CRACKED_ARTIFICIAL_EGG.get()
                         : ItemInit.ARTIFICIAL_EGG.get());
         embryoInput = ItemStack.EMPTY;
@@ -327,6 +328,15 @@ public class EggPrinterBlockEntity extends SyncingContainerBlockEntity
         bonemealInput = ItemStack.EMPTY;
         eggOutput = ItemStack.EMPTY;
         syringeOutput = ItemStack.EMPTY;
+    }
+
+    /** Drops the machine parts after the inventory (26.2 drops the inventory), as 1.20.1 did. */
+    @Override
+    public void preRemoveSideEffects(BlockPos pos, BlockState state) {
+        super.preRemoveSideEffects(pos, state);
+        if (this.level != null) {
+            Containers.dropContents(this.level, pos, this.getMachineParts());
+        }
     }
 
     @Override

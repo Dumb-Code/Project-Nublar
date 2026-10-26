@@ -165,6 +165,16 @@ public class GeneratorBlockEntity extends SyncingContainerBlockEntity implements
         fuelStack = ItemStack.EMPTY;
     }
 
+    /**
+     * Drops nothing when the generator is broken, as on 1.20.1. 26.2 drops a container's items by
+     * default.
+     */
+    // TODO(BUG): 1.20.1 loses the fuel when the generator is broken. Deleting this override makes the
+    // fuel drop (the 26.2 default), which is a gameplay change for the lead to decide.
+    @Override
+    public void preRemoveSideEffects(BlockPos pos, BlockState state) {
+    }
+
     private void tickCreativeGenerator(Level level, BlockPos pos) {
         generate(CREATIVE_ENERGY_INSERT_AMOUNT);
         pushToNeighbours(level, pos, CREATIVE_DISTRIBUTION_LIMIT);

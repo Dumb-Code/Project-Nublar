@@ -19,9 +19,11 @@ import net.dumbcode.projectnublar.api.fossil.FossilSets;
 import net.dumbcode.projectnublar.api.fossil.Fossils;
 import net.dumbcode.projectnublar.api.fossil.TraceFossils;
 import net.minecraft.core.registries.BuiltInRegistries;
+import net.minecraft.resources.FileToIdConverter;
 import net.minecraft.resources.Identifier;
 import net.minecraft.server.packs.resources.ResourceManager;
 import net.minecraft.server.packs.resources.SimpleJsonResourceReloadListener;
+import net.minecraft.util.ExtraCodecs;
 import net.minecraft.util.GsonHelper;
 import net.minecraft.util.profiling.ProfilerFiller;
 import net.minecraft.world.entity.EntityType;
@@ -34,7 +36,7 @@ import org.jetbrains.annotations.Nullable;
  * <p>Note: like all of this mod's reload listeners, this is registered <b>only on Forge</b>
  * ({@code CommonForgeEvents}); Fabric never receives this data.
  */
-public class FossilConfigReloadListener extends SimpleJsonResourceReloadListener {
+public class FossilConfigReloadListener extends SimpleJsonResourceReloadListener<JsonElement> {
     private static final Gson GSON = new GsonBuilder().setPrettyPrinting().disableHtmlEscaping().create();
     private static final String LOCATION = "config/fossils";
     private static final String FOSSIL_PERIOD = "time_periods";
@@ -76,7 +78,7 @@ public class FossilConfigReloadListener extends SimpleJsonResourceReloadListener
     private static Map<String, AmberFossils> amberFossilsMap = Collections.emptyMap();
 
     public FossilConfigReloadListener() {
-        super(GSON, LOCATION);
+        super(ExtraCodecs.JSON, FileToIdConverter.json(LOCATION));
         Constants.LOG.info("Fossil Config initialized, scanning folder: data/'{}'", LOCATION);
     }
 

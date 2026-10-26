@@ -396,7 +396,7 @@ public class ProcessorBlockEntity extends SyncingContainerBlockEntity
             if (output.get(i).isEmpty()) {
                 output.set(i, stack);
                 return true;
-            } else if (ItemStack.isSameItemSameTags(output.get(i), stack)) {
+            } else if (ItemStack.isSameItemSameComponents(output.get(i), stack)) {
                 output.get(i).grow(stack.getCount());
                 return true;
             }

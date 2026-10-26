@@ -1,15 +1,16 @@
 package net.dumbcode.projectnublar.data;
 
-import com.google.gson.Gson;
-import com.google.gson.GsonBuilder;
 import com.google.gson.JsonElement;
 import com.mojang.serialization.JsonOps;
 import java.util.Map;
 import net.dumbcode.projectnublar.api.gene.GeneData;
 import net.dumbcode.projectnublar.api.gene.Genes;
+import net.minecraft.core.registries.BuiltInRegistries;
+import net.minecraft.resources.FileToIdConverter;
 import net.minecraft.resources.Identifier;
 import net.minecraft.server.packs.resources.ResourceManager;
 import net.minecraft.server.packs.resources.SimpleJsonResourceReloadListener;
+import net.minecraft.util.ExtraCodecs;
 import net.minecraft.util.profiling.ProfilerFiller;
 import net.minecraft.world.entity.EntityType;
 
@@ -20,12 +21,11 @@ import net.minecraft.world.entity.EntityType;
  *
  * <p>Registered only on Forge; Fabric never receives this data?
  */
-public class GeneDataReloadListener extends SimpleJsonResourceReloadListener {
-    private static final Gson GSON = new GsonBuilder().setPrettyPrinting().disableHtmlEscaping().create();
+public class GeneDataReloadListener extends SimpleJsonResourceReloadListener<JsonElement> {
     private static final String FOLDER_PATH = "gene_data";
 
     public GeneDataReloadListener() {
-        super(GSON, FOLDER_PATH);
+        super(ExtraCodecs.JSON, FileToIdConverter.json(FOLDER_PATH));
     }
 
     @Override
@@ -37,7 +37,7 @@ public class GeneDataReloadListener extends SimpleJsonResourceReloadListener {
     }
 
     private static void loadGeneData(Identifier resourceLocation, JsonElement jsonElement) {
-        EntityType<?> type = EntityType.byString(resourceLocation.toString()).orElse(null);
+        EntityType<?> type = BuiltInRegistries.ENTITY_TYPE.getOptional(resourceLocation).orElse(null);
         if (type != null) {
             // TODO(BUG): .result().get() has no error handling; a malformed gene_data file
             // throws NoSuchElementException and aborts the whole reload.

@@ -1,5 +1,8 @@
 package net.dumbcode.projectnublar.block;
 
+import com.mojang.serialization.Codec;
+import com.mojang.serialization.MapCodec;
+import com.mojang.serialization.codecs.RecordCodecBuilder;
 import net.dumbcode.projectnublar.block.entity.DinosaurFeederBlockEntity;
 import net.dumbcode.projectnublar.registry.BlockInit;
 import net.dumbcode.projectnublar.registry.TagInit;
@@ -22,6 +25,11 @@ import net.minecraft.world.phys.BlockHitResult;
 import org.jetbrains.annotations.Nullable;
 
 public class DinosaurFeederBlock extends BaseEntityBlock {
+    /** Codec of this block type: the properties plus the texture path. */
+    public static final MapCodec<DinosaurFeederBlock> CODEC = RecordCodecBuilder.mapCodec(i -> i.group(
+                    propertiesCodec(),
+                    Codec.STRING.fieldOf("path").forGetter(block -> block.path))
+            .apply(i, DinosaurFeederBlock::new));
 
     public final String path;
     public DinosaurFeederBlock(Properties properties, String path) {
@@ -30,13 +38,18 @@ public class DinosaurFeederBlock extends BaseEntityBlock {
     }
 
     @Override
+    protected MapCodec<DinosaurFeederBlock> codec() {
+        return CODEC;
+    }
+
+    @Override
     public void onPlace(BlockState state, Level level, BlockPos pos, BlockState oldState, boolean movedByPiston) {
         super.onPlace(state, level, pos, oldState, movedByPiston);
     }
 
     @Override
-    public InteractionResult use(BlockState state, Level level, BlockPos pos, Player player, InteractionHand hand, BlockHitResult hit) {
-        if(!level.isClientSide){
+    protected InteractionResult useItemOn(ItemStack itemStack, BlockState state, Level level, BlockPos pos, Player player, InteractionHand hand, BlockHitResult hit) {
+        if(!level.isClientSide()){
             BlockEntity blockEntity = level.getBlockEntity(pos);
 
             if(blockEntity instanceof DinosaurFeederBlockEntity fbe) {
@@ -88,7 +101,7 @@ public class DinosaurFeederBlock extends BaseEntityBlock {
             }
 
         }
-        if(level.isClientSide){
+        if(level.isClientSide()){
             BlockEntity blockEntity = level.getBlockEntity(pos);
             if(blockEntity instanceof DinosaurFeederBlockEntity fbe) {
                 if (player.getItemInHand(hand).is(Items.PORKCHOP)|| player.getItemInHand(hand).is(Items.BEEF)|| player.getItemInHand(hand).is(Items.CHICKEN)) {
@@ -98,12 +111,17 @@ public class DinosaurFeederBlock extends BaseEntityBlock {
                 }
             }
         }
-        return super.use(state, level, pos, player, hand, hit);
+        return super.useItemOn(itemStack, state, level, pos, player, hand, hit);
     }
 
+    /**
+     * The block model has only a particle texture, so the chunk mesh draws nothing and the block
+     * entity renderer draws the feeder. 26.2 dropped {@code ENTITYBLOCK_ANIMATED}; vanilla chests
+     * moved to {@code MODEL} with the same kind of particle-only model.
+     */
     @Override
     public RenderShape getRenderShape(BlockState state) {
-        return RenderShape.ENTITYBLOCK_ANIMATED;
+        return RenderShape.MODEL;
     }
 
     @Override

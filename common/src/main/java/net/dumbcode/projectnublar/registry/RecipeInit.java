@@ -10,7 +10,8 @@ import net.minecraft.world.item.crafting.RecipeSerializer;
 /** Registers the mod's recipe serializers. The id strings are frozen contracts. */
 public class RecipeInit {
     public static DeferredRegister<RecipeSerializer<?>> RECIPE_TYPE = DeferredRegister.create(Constants.MODID, Registries.RECIPE_SERIALIZER);
-    public static DeferredSupplier<RecipeSerializer<UnincubatedEggRecipe>> UNINCUBATED_EGG = RECIPE_TYPE.register("unincubated_egg", UnincubatedEggRecipe.Serializer::new);
+    public static DeferredSupplier<RecipeSerializer<UnincubatedEggRecipe>> UNINCUBATED_EGG = RECIPE_TYPE.register("unincubated_egg",
+            () -> new RecipeSerializer<>(UnincubatedEggRecipe.MAP_CODEC, UnincubatedEggRecipe.STREAM_CODEC));
 
     public static void loadClass() {
         RECIPE_TYPE.register();

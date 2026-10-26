@@ -1,65 +1,67 @@
 package net.dumbcode.projectnublar.recipe;
 
 import com.google.common.collect.Lists;
-import com.google.gson.JsonArray;
-import com.google.gson.JsonObject;
 import java.util.List;
-import java.util.function.Consumer;
 import javax.annotation.Nullable;
 
-import net.dumbcode.projectnublar.registry.RecipeInit;
-import net.minecraft.advancements.Advancement;
-import net.minecraft.advancements.AdvancementRewards;
-import net.minecraft.advancements.CriterionTriggerInstance;
-import net.minecraft.advancements.RequirementsStrategy;
-import net.minecraft.advancements.critereon.RecipeUnlockedTrigger;
-import net.minecraft.core.registries.BuiltInRegistries;
-import net.minecraft.data.recipes.CraftingRecipeBuilder;
-import net.minecraft.data.recipes.FinishedRecipe;
+import net.minecraft.advancements.triggers.Criterion;
+import net.minecraft.core.HolderGetter;
 import net.minecraft.data.recipes.RecipeBuilder;
 import net.minecraft.data.recipes.RecipeCategory;
-import net.minecraft.resources.Identifier;
+import net.minecraft.data.recipes.RecipeOutput;
+import net.minecraft.data.recipes.RecipeUnlockAdvancementBuilder;
+import net.minecraft.resources.ResourceKey;
 import net.minecraft.tags.TagKey;
 import net.minecraft.world.item.Item;
-import net.minecraft.world.item.crafting.CraftingBookCategory;
+import net.minecraft.world.item.ItemStackTemplate;
 import net.minecraft.world.item.crafting.Ingredient;
-import net.minecraft.world.item.crafting.RecipeSerializer;
+import net.minecraft.world.item.crafting.Recipe;
 import net.minecraft.world.level.ItemLike;
 
-public class UnincubatedEggRecipeBuilder extends CraftingRecipeBuilder implements RecipeBuilder {
+/**
+ * Datagen builder for {@link UnincubatedEggRecipe}. A copy of vanilla's {@code ShapelessRecipeBuilder}
+ * that saves the egg recipe type instead of the vanilla shapeless type.
+ */
+public class UnincubatedEggRecipeBuilder implements RecipeBuilder {
+   private final HolderGetter<Item> items;
    private final RecipeCategory category;
-   private final Item result;
-   private final int count;
+   private final ItemStackTemplate result;
    private final List<Ingredient> ingredients = Lists.newArrayList();
-   private final Advancement.Builder advancement = Advancement.Builder.recipeAdvancement();
+   private final RecipeUnlockAdvancementBuilder advancementBuilder = new RecipeUnlockAdvancementBuilder();
    @Nullable
    private String group;
 
-   public UnincubatedEggRecipeBuilder(RecipeCategory pCategory, ItemLike pResult, int pCount) {
+   /**
+    * @param pItems the item lookup of the data provider, used to resolve item tags
+    * @param pCategory the recipe category, which also sets the recipe book category
+    * @param pResult the item the recipe makes
+    * @param pCount how many items the recipe makes
+    */
+   public UnincubatedEggRecipeBuilder(HolderGetter<Item> pItems, RecipeCategory pCategory, ItemLike pResult, int pCount) {
+      this.items = pItems;
       this.category = pCategory;
-      this.result = pResult.asItem();
-      this.count = pCount;
+      this.result = new ItemStackTemplate(pResult.asItem(), pCount);
    }
 
    /**
     * Creates a new builder for a shapeless recipe.
     */
-   public static UnincubatedEggRecipeBuilder shapeless(RecipeCategory pCategory, ItemLike pResult) {
-      return new UnincubatedEggRecipeBuilder(pCategory, pResult, 1);
+   public static UnincubatedEggRecipeBuilder shapeless(HolderGetter<Item> pItems, RecipeCategory pCategory, ItemLike pResult) {
+      return new UnincubatedEggRecipeBuilder(pItems, pCategory, pResult, 1);
    }
 
    /**
     * Creates a new builder for a shapeless recipe.
     */
-   public static UnincubatedEggRecipeBuilder shapeless(RecipeCategory pCategory, ItemLike pResult, int pCount) {
-      return new UnincubatedEggRecipeBuilder(pCategory, pResult, pCount);
+   public static UnincubatedEggRecipeBuilder shapeless(HolderGetter<Item> pItems, RecipeCategory pCategory, ItemLike pResult, int pCount) {
+      return new UnincubatedEggRecipeBuilder(pItems, pCategory, pResult, pCount);
    }
 
    /**
     * Adds an ingredient that can be any item in the given tag.
     */
    public UnincubatedEggRecipeBuilder requires(TagKey<Item> pTag) {
-      return this.requires(Ingredient.of(pTag));
+      return this.requires(Ingredient.of(this.items.getOrThrow(pTag)));
    }
 
    /**
@@ -98,99 +100,31 @@ public class UnincubatedEggRecipeBuilder extends CraftingRecipeBuilder implement
       return this;
    }
 
-   public UnincubatedEggRecipeBuilder unlockedBy(String pCriterionName, CriterionTriggerInstance pCriterionTrigger) {
-      this.advancement.addCriterion(pCriterionName, pCriterionTrigger);
+   @Override
+   public UnincubatedEggRecipeBuilder unlockedBy(String pCriterionName, Criterion<?> pCriterion) {
+      this.advancementBuilder.unlockedBy(pCriterionName, pCriterion);
       return this;
    }
 
+   @Override
    public UnincubatedEggRecipeBuilder group(@Nullable String pGroupName) {
       this.group = pGroupName;
       return this;
    }
 
-   public Item getResult() {
-      return this.result;
-   }
-
-   public void save(Consumer<FinishedRecipe> pFinishedRecipeConsumer, Identifier pRecipeId) {
-      this.ensureValid(pRecipeId);
-      this.advancement.parent(ROOT_RECIPE_ADVANCEMENT).addCriterion("has_the_recipe", RecipeUnlockedTrigger.unlocked(pRecipeId)).rewards(AdvancementRewards.Builder.recipe(pRecipeId)).requirements(RequirementsStrategy.OR);
-      pFinishedRecipeConsumer.accept(new UnincubatedEggRecipeBuilder.Result(pRecipeId, this.result, this.count, this.group == null ? "" : this.group, determineBookCategory(this.category), this.ingredients, this.advancement, pRecipeId.withPrefix("recipes/" + this.category.getFolderName() + "/")));
+   @Override
+   public ResourceKey<Recipe<?>> defaultId() {
+      return RecipeBuilder.getDefaultRecipeId(this.result);
    }
 
    /**
-    * Makes sure that this recipe is valid and obtainable.
+    * Writes the recipe and its unlock advancement. Throws if no {@link #unlockedBy} criterion was
+    * added, because nothing could unlock the recipe then.
     */
-   private void ensureValid(Identifier pId) {
-      if (this.advancement.getCriteria().isEmpty()) {
-         throw new IllegalStateException("No way of obtaining recipe " + pId);
-      }
-   }
-
-   public static class Result extends CraftingRecipeBuilder.CraftingResult {
-      private final Identifier id;
-      private final Item result;
-      private final int count;
-      private final String group;
-      private final List<Ingredient> ingredients;
-      private final Advancement.Builder advancement;
-      private final Identifier advancementId;
-
-      public Result(Identifier pId, Item pResult, int pCount, String pGroup, CraftingBookCategory pCategory, List<Ingredient> pIngredients, Advancement.Builder pAdvancement, Identifier pAdvancementId) {
-         super(pCategory);
-         this.id = pId;
-         this.result = pResult;
-         this.count = pCount;
-         this.group = pGroup;
-         this.ingredients = pIngredients;
-         this.advancement = pAdvancement;
-         this.advancementId = pAdvancementId;
-      }
-
-      public void serializeRecipeData(JsonObject pJson) {
-         super.serializeRecipeData(pJson);
-         if (!this.group.isEmpty()) {
-            pJson.addProperty("group", this.group);
-         }
-
-         JsonArray jsonarray = new JsonArray();
-
-         for(Ingredient ingredient : this.ingredients) {
-            jsonarray.add(ingredient.toJson());
-         }
-
-         pJson.add("ingredients", jsonarray);
-         JsonObject jsonobject = new JsonObject();
-         jsonobject.addProperty("item", BuiltInRegistries.ITEM.getKey(this.result).toString());
-         if (this.count > 1) {
-            jsonobject.addProperty("count", this.count);
-         }
-
-         pJson.add("result", jsonobject);
-      }
-
-      public RecipeSerializer<?> getType() {
-         return RecipeInit.UNINCUBATED_EGG.get();
-      }
-
-      /**
-       * Gets the ID for the recipe.
-       */
-      public Identifier getId() {
-         return this.id;
-      }
-
-      /**
-       * Gets the JSON for the advancement that unlocks this recipe. Null if there is no advancement.
-       */
-      @Nullable
-      public JsonObject serializeAdvancement() {
-         return this.advancement.serializeToJson();
-      }
-
-      @Nullable
-      public Identifier getAdvancementId() {
-         return this.advancementId;
-      }
+   @Override
+   public void save(RecipeOutput pOutput, ResourceKey<Recipe<?>> pRecipeId) {
+      UnincubatedEggRecipe recipe = new UnincubatedEggRecipe(
+              RecipeBuilder.createCraftingBookInfo(this.category, this.group), this.result, this.ingredients);
+      pOutput.accept(pRecipeId, recipe, this.advancementBuilder.build(pOutput, pRecipeId, this.category));
    }
 }

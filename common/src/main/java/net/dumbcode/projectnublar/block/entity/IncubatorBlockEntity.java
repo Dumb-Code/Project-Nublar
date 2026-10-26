@@ -17,6 +17,7 @@ import net.minecraft.core.BlockPos;
 import net.minecraft.core.NonNullList;
 import net.minecraft.network.chat.Component;
 import net.minecraft.util.Mth;
+import net.minecraft.world.Containers;
 import net.minecraft.world.entity.player.Inventory;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.inventory.AbstractContainerMenu;
@@ -360,8 +361,17 @@ public class IncubatorBlockEntity extends SyncingContainerBlockEntity
         items = NonNullList.withSize(EGG_SLOT_COUNT, Slot.EMPTY);
     }
 
+    /** Drops the machine parts after the inventory (26.2 drops the inventory), as 1.20.1 did. */
+    @Override
+    public void preRemoveSideEffects(BlockPos pos, BlockState state) {
+        super.preRemoveSideEffects(pos, state);
+        if (this.level != null) {
+            Containers.dropContents(this.level, pos, this.getMachineParts());
+        }
+    }
+
     public void tick(Level world, BlockPos pos, BlockState state, IncubatorBlockEntity blockEntity) {
-        if (!world.isClientSide) {
+        if (!world.isClientSide()) {
             blockEntity.intakePlantMatter();
             if (level.getGameTime() % getTicksPerPercent() == 0) {
                 blockEntity.incubateEggs();

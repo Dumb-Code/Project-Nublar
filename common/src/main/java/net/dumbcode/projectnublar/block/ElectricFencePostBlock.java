@@ -13,8 +13,6 @@ import net.dumbcode.projectnublar.util.LineUtils;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.component.DataComponents;
 import net.minecraft.nbt.CompoundTag;
-import net.minecraft.nbt.NbtUtils;
-import net.minecraft.nbt.Tag;
 import net.minecraft.network.chat.Component;
 import net.minecraft.util.Mth;
 import net.minecraft.world.InteractionHand;
@@ -47,6 +45,7 @@ import net.minecraft.world.phys.shapes.VoxelShape;
 import javax.annotation.Nullable;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 
 /**
  * A fence post column. Each post is {@code type.getHeight()} blocks tall; the
@@ -81,9 +80,14 @@ public class ElectricFencePostBlock extends BlockConnectableBase implements Enti
         super.createBlockStateDefinition(builder);
     }
 
+    /**
+     * The GeckoLib block entity renderer ({@code ElectricFenceRenderer}) draws the post. Not
+     * {@code MODEL}: the post blocks have no blockstate or model, so {@code MODEL} would draw the
+     * missing-model cube (P81).
+     */
     @Override
     public RenderShape getRenderShape(BlockState pState) {
-        return RenderShape.ENTITYBLOCK_ANIMATED;
+        return RenderShape.INVISIBLE;
     }
 
     @Override
@@ -100,6 +104,8 @@ public class ElectricFencePostBlock extends BlockConnectableBase implements Enti
     public boolean canSurvive(BlockState state, LevelReader world, BlockPos pos) {
         boolean flag = true;
         for (int i = 0; i < this.type.getHeight(); i++) {
+            // TODO(BUG): the block above is asked with the post's own state, not its own, so this
+            // passes for almost any block above (kept as on 1.20.1; the AT/AW makes the call public, P82).
             flag &= world.getBlockState(pos.above(i)).getBlock().canBeReplaced(state, Fluids.EMPTY);
         }
         return flag;
@@ -114,7 +120,7 @@ public class ElectricFencePostBlock extends BlockConnectableBase implements Enti
 
     @Override
     public void onPlace(BlockState state, Level world, BlockPos pos, BlockState old, boolean p_220082_5_) {
-        if (!world.isClientSide && !state.is(old.getBlock()) && state.getValue(indexProperty) == 0) {
+        if (!world.isClientSide() && !state.is(old.getBlock()) && state.getValue(indexProperty) == 0) {
             for (int i = 1; i < this.type.getHeight(); i++) {
                 world.setBlock(pos.above(i), this.defaultBlockState().setValue(indexProperty, i), 3);
             }
@@ -125,12 +131,12 @@ public class ElectricFencePostBlock extends BlockConnectableBase implements Enti
 
 
     @Override
-    public InteractionResult use(BlockState state, Level world, BlockPos pos, Player player, InteractionHand hand, BlockHitResult ray) {
+    protected InteractionResult useItemOn(ItemStack itemStack, BlockState state, Level world, BlockPos pos, Player player, InteractionHand hand, BlockHitResult ray) {
         int index = state.getValue(indexProperty);
         if (index == 0) {
             ItemStack stack = player.getItemInHand(hand);
             if (stack.isEmpty()) {
-                if (world.isClientSide) {
+                if (world.isClientSide()) {
                     return InteractionResult.SUCCESS;
                 }
                 BlockEntity te = world.getBlockEntity(pos);
@@ -139,7 +145,7 @@ public class ElectricFencePostBlock extends BlockConnectableBase implements Enti
                     return InteractionResult.SUCCESS;
                 }
             } else if (stack.getItem() == ItemInit.WIRE_SPOOL.get()) {
-                if (world.isClientSide) {
+                if (world.isClientSide()) {
                     return InteractionResult.SUCCESS;
                 }
                 // Pre-existing note: this could live on the wire-spool item class instead.
@@ -148,9 +154,9 @@ public class ElectricFencePostBlock extends BlockConnectableBase implements Enti
             }
         } else if (world.getBlockState(pos.below(index)).getBlock() == this) {
             // Clicks on upper column blocks are redirected to the base block.
-            return this.use(world.getBlockState(pos.below(index)), world, pos.below(index), player, hand, ray);
+            return this.useItemOn(itemStack, world.getBlockState(pos.below(index)), world, pos.below(index), player, hand, ray);
         }
-        return super.use(state, world, pos, player, hand, ray);
+        return super.useItemOn(itemStack, state, world, pos, player, hand, ray);
     }
 
     /** Empty-hand interaction: flips the pole's facing and refreshes the column's models. */
@@ -172,20 +178,21 @@ public class ElectricFencePostBlock extends BlockConnectableBase implements Enti
     private void handleWireSpoolUse(Level world, BlockPos pos, Player player, ItemStack stack) {
         CompoundTag customData = stack.getOrDefault(DataComponents.CUSTOM_DATA, CustomData.EMPTY).copyTag();
         CompoundTag nbt = customData.getCompoundOrEmpty(Constants.MODID);
-        if (nbt.contains(FENCE_POSITION_TAG, Tag.TAG_COMPOUND)) {
-            BlockPos other = NbtUtils.readBlockPos(nbt.getCompound(FENCE_POSITION_TAG));
+        Optional<BlockPos> storedPost = nbt.read(FENCE_POSITION_TAG, BlockPos.CODEC);
+        if (storedPost.isPresent()) {
+            BlockPos other = storedPost.get();
             double dist = Math.sqrt(other.distSqr(pos));
             if (dist > LIMIT) {
-                player.displayClientMessage(Component.literal("Fence run is too long (" + Math.round(dist) + "/" + LIMIT + " blocks)"), true);
-                nbt.put(FENCE_POSITION_TAG, NbtUtils.writeBlockPos(pos));
+                player.sendOverlayMessage(Component.literal("Fence run is too long (" + Math.round(dist) + "/" + LIMIT + " blocks)"));
+                nbt.store(FENCE_POSITION_TAG, BlockPos.CODEC, pos);
             } else if (world.getBlockState(other).getBlock() == this && !other.equals(pos)) {
                 placeWireRun(world, pos, other, player, stack, dist);
-                nbt.put(FENCE_POSITION_TAG, NbtUtils.writeBlockPos(pos));
+                nbt.store(FENCE_POSITION_TAG, BlockPos.CODEC, pos);
             } else {
                 nbt.remove(FENCE_POSITION_TAG);
             }
         } else {
-            nbt.put(FENCE_POSITION_TAG, NbtUtils.writeBlockPos(pos));
+            nbt.store(FENCE_POSITION_TAG, BlockPos.CODEC, pos);
         }
         // Custom data is a copy on 26.2, so the stored post is written back (temporary, until Task 16).
         customData.put(Constants.MODID, nbt);
@@ -202,7 +209,7 @@ public class ElectricFencePostBlock extends BlockConnectableBase implements Enti
 
         SpoolInventoryUse inventoryUse = collectWireSpools(player, stack, required);
         if (!inventoryUse.hasEnough()) {
-            player.displayClientMessage(Component.translatable("projectnublar.fences.length.notenough", required, inventoryUse.totalFound()), true);
+            player.sendOverlayMessage(Component.translatable("projectnublar.fences.length.notenough", required, inventoryUse.totalFound()));
         } else {
             if (!player.isCreative()) {
                 inventoryUse.consume();
@@ -309,7 +316,7 @@ public class ElectricFencePostBlock extends BlockConnectableBase implements Enti
             remaining -= fromHeld;
         }
 
-        for (ItemStack itemStack : player.getInventory().items) {
+        for (ItemStack itemStack : player.getInventory().getNonEquipmentItems()) {
             if (remaining <= 0) {
                 break;
             }
@@ -326,20 +333,22 @@ public class ElectricFencePostBlock extends BlockConnectableBase implements Enti
         return new SpoolInventoryUse(required, totalFound, stacks);
     }
 
-    @Override
-    public void onRemove(BlockState state, Level level, BlockPos pos, BlockState newState, boolean movedByPiston) {
-        if (state.is(newState.getBlock())) {
-            super.onRemove(state, level, pos, newState, movedByPiston);
-            return;
-        }
-
-        if (!level.isClientSide && !destroying) {
+    /**
+     * Breaks every wire run that ends on this column, then removes the column's other blocks. The
+     * post's block entity calls this on the server just before it is removed, when a different block
+     * replaces this one (1.20.1 did this in {@code onRemove}). {@link #isDestroying()} keeps the
+     * column's own removals from running it again.
+     *
+     * @param level the level the block is removed from
+     * @param pos the position of the removed column block
+     * @param state the removed column block's state
+     */
+    public void onColumnBlockRemoved(Level level, BlockPos pos, BlockState state) {
+        if (!destroying) {
             BlockPos base = pos.below(state.getValue(this.indexProperty));
             breakRunsForRemovedColumn(level, base);
             removeColumnBlocks(level, pos, state);
         }
-
-        super.onRemove(state, level, pos, newState, movedByPiston);
     }
 
     private void breakRunsForRemovedColumn(Level level, BlockPos base) {
@@ -418,7 +427,7 @@ public class ElectricFencePostBlock extends BlockConnectableBase implements Enti
 
 
     @Override
-    public int getLightBlock(BlockState state, BlockGetter world, BlockPos pos) {
+    protected int getLightDampening(BlockState state) {
         return state.getValue(POWERED_PROPERTY) && state.getValue(indexProperty) == this.type.getHeight() - 1 ? this.type.getLightLevel() : 0;
     }
 

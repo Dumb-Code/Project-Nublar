@@ -1,6 +1,6 @@
 package net.dumbcode.projectnublar.block;
 
-import com.google.common.collect.ImmutableMap;
+import com.mojang.serialization.MapCodec;
 import net.dumbcode.projectnublar.block.api.multiblock.MultiBlock;
 import net.dumbcode.projectnublar.block.api.multiblock.MultiEntityBlock;
 import net.dumbcode.projectnublar.block.entity.EggPrinterBlockEntity;
@@ -13,6 +13,7 @@ import net.minecraft.core.Direction;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.InteractionResult;
 import net.minecraft.world.entity.player.Player;
+import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.entity.BlockEntityTicker;
@@ -25,15 +26,21 @@ import org.jetbrains.annotations.Nullable;
 import java.util.function.Function;
 
 public class EggPrinterBlock extends MultiEntityBlock {
+    /** Codec of this block type: the properties plus the multiblock size. */
+    public static final MapCodec<EggPrinterBlock> CODEC = multiBlockCodec(EggPrinterBlock::new);
 
     public EggPrinterBlock(Properties properties, int rows, int columns, int depth) {
         super(properties, rows, columns, depth);
     }
 
+    @Override
+    protected MapCodec<EggPrinterBlock> codec() {
+        return CODEC;
+    }
 
     @Override
-    public InteractionResult use(BlockState pState, Level pLevel, BlockPos pPos, Player pPlayer, InteractionHand pHand, BlockHitResult pHit) {
-        if (!pLevel.isClientSide) {
+    protected InteractionResult useItemOn(ItemStack pStack, BlockState pState, Level pLevel, BlockPos pPos, Player pPlayer, InteractionHand pHand, BlockHitResult pHit) {
+        if (!pLevel.isClientSide()) {
             BlockEntity blockEntity = pLevel.getBlockEntity(MultiBlock.getCorePos(pState, pPos));
             if (blockEntity instanceof EggPrinterBlockEntity sbe) {
                 if (pPlayer.getItemInHand(pHand).is(ItemInit.LEVELING_SENSOR.get())) {
@@ -47,9 +54,9 @@ public class EggPrinterBlock extends MultiEntityBlock {
                     return InteractionResult.CONSUME;
                 }
             }
-            return super.use(pState, pLevel, pPos, pPlayer, pHand, pHit);
+            return super.useItemOn(pStack, pState, pLevel, pPos, pPlayer, pHand, pHit);
         }
-        return InteractionResult.sidedSuccess(pLevel.isClientSide);
+        return InteractionResult.SUCCESS;
     }
 
     @Override
@@ -68,7 +75,7 @@ public class EggPrinterBlock extends MultiEntityBlock {
     }
 
     @Override
-    protected ImmutableMap<BlockState, VoxelShape> getShapeForEachState(Function<BlockState, VoxelShape> pShapeGetter) {
+    protected Function<BlockState, VoxelShape> getShapeForEachState(Function<BlockState, VoxelShape> pShapeGetter) {
         return super.getShapeForEachState(pShapeGetter);
     }
 

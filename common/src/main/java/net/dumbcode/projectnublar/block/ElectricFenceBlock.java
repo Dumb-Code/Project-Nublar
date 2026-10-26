@@ -30,9 +30,13 @@ public class ElectricFenceBlock extends BlockConnectableBase implements EntityBl
         super(properties.noOcclusion());
     }
 
+    /**
+     * The block entity renderer ({@code ElectricWireRenderer}) draws the wires. Not {@code MODEL}:
+     * this block has no blockstate or model, so {@code MODEL} would draw the missing-model cube (P81).
+     */
     @Override
     public RenderShape getRenderShape(BlockState pState) {
-        return RenderShape.ENTITYBLOCK_ANIMATED;
+        return RenderShape.INVISIBLE;
     }
 
     @Override

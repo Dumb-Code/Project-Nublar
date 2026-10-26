@@ -1,7 +1,5 @@
 package net.dumbcode.projectnublar.data;
 
-import com.google.gson.Gson;
-import com.google.gson.GsonBuilder;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonSyntaxException;
@@ -11,16 +9,17 @@ import java.util.Map;
 import net.dumbcode.projectnublar.Constants;
 import net.dumbcode.projectnublar.api.dinosaur.DinoBehaviourData;
 import net.minecraft.core.registries.BuiltInRegistries;
+import net.minecraft.resources.FileToIdConverter;
 import net.minecraft.resources.Identifier;
 import net.minecraft.server.packs.resources.ResourceManager;
 import net.minecraft.server.packs.resources.SimpleJsonResourceReloadListener;
+import net.minecraft.util.ExtraCodecs;
 import net.minecraft.util.GsonHelper;
 import net.minecraft.util.profiling.ProfilerFiller;
 import net.minecraft.world.entity.EntityType;
 import org.jetbrains.annotations.Nullable;
 
-public class BehaviourDataReloadListener extends SimpleJsonResourceReloadListener {
-    private static final Gson GSON = new GsonBuilder().setPrettyPrinting().disableHtmlEscaping().create();
+public class BehaviourDataReloadListener extends SimpleJsonResourceReloadListener<JsonElement> {
     private static final String LOCATION = "config/dinosaurs";
     private static final String SPECIES_ID_KEY = "species_id";
     private static final String DIET_ID_KEY = "diet_id";
@@ -59,7 +58,7 @@ public class BehaviourDataReloadListener extends SimpleJsonResourceReloadListene
     private static Map<EntityType<?>, DinoBehaviourData> behaviourDataMap = Collections.emptyMap();
 
     public BehaviourDataReloadListener() {
-        super(GSON, LOCATION);
+        super(ExtraCodecs.JSON, FileToIdConverter.json(LOCATION));
         Constants.LOG.info("Dino behaviour manager initialized, scanning folder: data/'{}'", LOCATION);
     }
 

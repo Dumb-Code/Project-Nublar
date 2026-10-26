@@ -1,93 +1,125 @@
 package net.dumbcode.projectnublar.recipe;
 
-import com.google.gson.JsonArray;
-import com.google.gson.JsonObject;
-import com.google.gson.JsonParseException;
-import it.unimi.dsi.fastutil.ints.IntList;
+import com.mojang.serialization.MapCodec;
+import com.mojang.serialization.codecs.RecordCodecBuilder;
+import java.util.List;
 import net.dumbcode.projectnublar.api.dinosaur.DinoData;
 import net.dumbcode.projectnublar.registry.ItemInit;
 import net.dumbcode.projectnublar.registry.RecipeInit;
-import net.minecraft.core.NonNullList;
-import net.minecraft.core.RegistryAccess;
 import net.minecraft.core.component.DataComponents;
-import net.minecraft.network.FriendlyByteBuf;
-import net.minecraft.resources.Identifier;
-import net.minecraft.util.GsonHelper;
-import net.minecraft.world.entity.player.StackedContents;
-import net.minecraft.world.inventory.CraftingContainer;
+import net.minecraft.network.RegistryFriendlyByteBuf;
+import net.minecraft.network.codec.ByteBufCodecs;
+import net.minecraft.network.codec.StreamCodec;
 import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.item.ItemStackTemplate;
+import net.minecraft.world.item.Items;
 import net.minecraft.world.item.crafting.CraftingBookCategory;
+import net.minecraft.world.item.crafting.CraftingInput;
 import net.minecraft.world.item.crafting.CraftingRecipe;
 import net.minecraft.world.item.crafting.Ingredient;
+import net.minecraft.world.item.crafting.PlacementInfo;
 import net.minecraft.world.item.crafting.RecipeSerializer;
-import net.minecraft.world.item.crafting.ShapedRecipe;
+import net.minecraft.world.item.crafting.display.RecipeDisplay;
+import net.minecraft.world.item.crafting.display.ShapelessCraftingRecipeDisplay;
+import net.minecraft.world.item.crafting.display.SlotDisplay;
 import net.minecraft.world.level.Level;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
+/**
+ * Shapeless crafting recipe for the unincubated egg: it copies the dinosaur data of the test tube
+ * in the grid onto the egg and resets its incubation progress.
+ *
+ * <p>Matching, placement and the recipe book display follow vanilla's {@code ShapelessRecipe}. The
+ * JSON fields are the 1.20.1 ones: {@code group}, {@code category}, {@code ingredients} (1 to 9) and
+ * {@code result}.
+ */
 public class UnincubatedEggRecipe implements CraftingRecipe {
-    private final Identifier id;
-    final String group;
-    final CraftingBookCategory category;
-    final ItemStack result;
-    final NonNullList<Ingredient> ingredients;
+    /** JSON form of the recipe, read by the serializer registered in {@link RecipeInit}. */
+    public static final MapCodec<UnincubatedEggRecipe> MAP_CODEC = RecordCodecBuilder.mapCodec(
+            i -> i.group(
+                            CraftingRecipe.CraftingBookInfo.MAP_CODEC.forGetter(recipe -> recipe.bookInfo),
+                            ItemStackTemplate.CODEC.fieldOf("result").forGetter(recipe -> recipe.result),
+                            Ingredient.CODEC.listOf(1, 9).fieldOf("ingredients").forGetter(recipe -> recipe.ingredients))
+                    .apply(i, UnincubatedEggRecipe::new));
+    /** Network form of the recipe, sent to clients with the recipe sync. */
+    public static final StreamCodec<RegistryFriendlyByteBuf, UnincubatedEggRecipe> STREAM_CODEC = StreamCodec.composite(
+            CraftingRecipe.CraftingBookInfo.STREAM_CODEC,
+            recipe -> recipe.bookInfo,
+            ItemStackTemplate.STREAM_CODEC,
+            recipe -> recipe.result,
+            Ingredient.CONTENTS_STREAM_CODEC.apply(ByteBufCodecs.list()),
+            recipe -> recipe.ingredients,
+            UnincubatedEggRecipe::new);
 
-    public UnincubatedEggRecipe(Identifier pId, String pGroup, CraftingBookCategory pCategory, ItemStack pResult, NonNullList<Ingredient> pIngredients) {
-        this.id = pId;
-        this.group = pGroup;
-        this.category = pCategory;
-        this.result = pResult;
-        this.ingredients = pIngredients;
+    private final CraftingRecipe.CraftingBookInfo bookInfo;
+    private final ItemStackTemplate result;
+    private final List<Ingredient> ingredients;
+    @Nullable
+    private PlacementInfo placementInfo;
+
+    /**
+     * @param bookInfo the recipe book group and category
+     * @param result the egg the recipe makes, before the dinosaur data is added
+     * @param ingredients the items the grid must hold, in any order
+     */
+    public UnincubatedEggRecipe(CraftingRecipe.CraftingBookInfo bookInfo, ItemStackTemplate result, List<Ingredient> ingredients) {
+        this.bookInfo = bookInfo;
+        this.result = result;
+        this.ingredients = ingredients;
     }
 
-
-    public Identifier getId() {
-        return this.id;
-    }
-
-    public RecipeSerializer<?> getSerializer() {
+    @Override
+    public RecipeSerializer<UnincubatedEggRecipe> getSerializer() {
         return RecipeInit.UNINCUBATED_EGG.get();
     }
 
     /**
      * Recipes with equal group are combined into one button in the recipe book
      */
-    public String getGroup() {
-        return this.group;
+    @Override
+    public String group() {
+        return this.bookInfo.group();
     }
 
+    @Override
     public CraftingBookCategory category() {
-        return this.category;
+        return this.bookInfo.category();
     }
 
-    public ItemStack getResultItem(RegistryAccess pRegistryAccess) {
-        return this.result;
+    /** Always true, as the 1.20.1 recipe had it (the old {@code Recipe} default). */
+    @Override
+    public boolean showNotification() {
+        return true;
     }
 
-    public NonNullList<Ingredient> getIngredients() {
-        return this.ingredients;
+    @Override
+    public PlacementInfo placementInfo() {
+        if (this.placementInfo == null) {
+            this.placementInfo = PlacementInfo.create(this.ingredients);
+        }
+
+        return this.placementInfo;
     }
 
     /**
      * Used to check if a recipe matches current crafting inventory
      */
-    public boolean matches(CraftingContainer pInv, Level pLevel) {
-        StackedContents stackedcontents = new StackedContents();
-        int i = 0;
-
-        for (int j = 0; j < pInv.getContainerSize(); ++j) {
-            ItemStack itemstack = pInv.getItem(j);
-            if (!itemstack.isEmpty()) {
-                ++i;
-                stackedcontents.accountStack(itemstack, 1);
-            }
+    @Override
+    public boolean matches(CraftingInput input, Level level) {
+        if (input.ingredientCount() != this.ingredients.size()) {
+            return false;
+        } else {
+            return input.size() == 1 && this.ingredients.size() == 1
+                    ? this.ingredients.getFirst().test(input.getItem(0))
+                    : input.stackedContents().canCraft(this, null);
         }
-
-        return i == this.ingredients.size() && stackedcontents.canCraft(this, (IntList) null);
     }
 
-    public @NotNull ItemStack assemble(CraftingContainer pContainer, RegistryAccess pRegistryAccess) {
-        ItemStack result = this.result.copy();
-        ItemStack testTubeItem = pContainer.getItems().stream().filter(itemStack -> itemStack.is(ItemInit.TEST_TUBE_ITEM.get())).findFirst().orElse(ItemStack.EMPTY);
+    @Override
+    public @NotNull ItemStack assemble(CraftingInput input) {
+        ItemStack result = this.result.create();
+        ItemStack testTubeItem = input.items().stream().filter(itemStack -> itemStack.is(ItemInit.TEST_TUBE_ITEM.get())).findFirst().orElse(ItemStack.EMPTY);
         if (testTubeItem.isEmpty()) {
             return ItemStack.EMPTY;
         }
@@ -100,65 +132,13 @@ public class UnincubatedEggRecipe implements CraftingRecipe {
         return result;
     }
 
-    /**
-     * Used to determine if this recipe can fit in a grid of the given width/height
-     */
-    public boolean canCraftInDimensions(int pWidth, int pHeight) {
-        return pWidth * pHeight >= this.ingredients.size();
-    }
-
-    public static class Serializer implements RecipeSerializer<UnincubatedEggRecipe> {
-        public UnincubatedEggRecipe fromJson(Identifier pRecipeId, JsonObject pJson) {
-            String s = GsonHelper.getAsString(pJson, "group", "");
-            CraftingBookCategory craftingbookcategory = CraftingBookCategory.CODEC.byName(GsonHelper.getAsString(pJson, "category", (String) null), CraftingBookCategory.MISC);
-            NonNullList<Ingredient> nonnulllist = itemsFromJson(GsonHelper.getAsJsonArray(pJson, "ingredients"));
-            if (nonnulllist.isEmpty()) {
-                throw new JsonParseException("No ingredients for shapeless recipe");
-            } else if (nonnulllist.size() > 9) {
-                throw new JsonParseException("Too many ingredients for shapeless recipe");
-            } else {
-                ItemStack itemstack = ShapedRecipe.itemStackFromJson(GsonHelper.getAsJsonObject(pJson, "result"));
-                return new UnincubatedEggRecipe(pRecipeId, s, craftingbookcategory, itemstack, nonnulllist);
-            }
-        }
-
-        private static NonNullList<Ingredient> itemsFromJson(JsonArray pIngredientArray) {
-            NonNullList<Ingredient> nonnulllist = NonNullList.create();
-
-            for (int i = 0; i < pIngredientArray.size(); ++i) {
-                Ingredient ingredient = Ingredient.fromJson(pIngredientArray.get(i), false);
-                if (!ingredient.isEmpty()) {
-                    nonnulllist.add(ingredient);
-                }
-            }
-
-            return nonnulllist;
-        }
-
-        public UnincubatedEggRecipe fromNetwork(Identifier pRecipeId, FriendlyByteBuf pBuffer) {
-            String s = pBuffer.readUtf();
-            CraftingBookCategory craftingbookcategory = pBuffer.readEnum(CraftingBookCategory.class);
-            int i = pBuffer.readVarInt();
-            NonNullList<Ingredient> nonnulllist = NonNullList.withSize(i, Ingredient.EMPTY);
-
-            for (int j = 0; j < nonnulllist.size(); ++j) {
-                nonnulllist.set(j, Ingredient.fromNetwork(pBuffer));
-            }
-
-            ItemStack itemstack = pBuffer.readItem();
-            return new UnincubatedEggRecipe(pRecipeId, s, craftingbookcategory, itemstack, nonnulllist);
-        }
-
-        public void toNetwork(FriendlyByteBuf pBuffer, UnincubatedEggRecipe pRecipe) {
-            pBuffer.writeUtf(pRecipe.group);
-            pBuffer.writeEnum(pRecipe.category);
-            pBuffer.writeVarInt(pRecipe.ingredients.size());
-
-            for (Ingredient ingredient : pRecipe.ingredients) {
-                ingredient.toNetwork(pBuffer);
-            }
-
-            pBuffer.writeItem(pRecipe.result);
-        }
+    /** The recipe book entry: the ingredients, the plain egg and the crafting table. */
+    @Override
+    public List<RecipeDisplay> display() {
+        return List.of(
+                new ShapelessCraftingRecipeDisplay(
+                        this.ingredients.stream().map(Ingredient::display).toList(),
+                        new SlotDisplay.ItemStackSlotDisplay(this.result),
+                        new SlotDisplay.ItemSlotDisplay(Items.CRAFTING_TABLE)));
     }
 }

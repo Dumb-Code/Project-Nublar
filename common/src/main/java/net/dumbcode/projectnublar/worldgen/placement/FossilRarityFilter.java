@@ -1,6 +1,6 @@
 package net.dumbcode.projectnublar.worldgen.placement;
 
-import com.mojang.serialization.Codec;
+import com.mojang.serialization.MapCodec;
 import net.dumbcode.projectnublar.config.FossilsConfig;
 import net.dumbcode.projectnublar.registry.PlacementModifierInit;
 import net.dumbcode.projectnublar.worldgen.FossilRolls;
@@ -16,8 +16,8 @@ import net.minecraft.world.level.levelgen.placement.PlacementModifierType;
  * config at each placement, so an edited config applies without new worldgen data.
  */
 public class FossilRarityFilter extends PlacementFilter {
-    public static final Codec<FossilRarityFilter> CODEC =
-            ExtraCodecs.NON_EMPTY_STRING.fieldOf("period").xmap(FossilRarityFilter::new, filter -> filter.period).codec();
+    public static final MapCodec<FossilRarityFilter> CODEC =
+            ExtraCodecs.NON_EMPTY_STRING.fieldOf("period").xmap(FossilRarityFilter::new, filter -> filter.period);
     private final String period;
 
     private FossilRarityFilter(String period) {

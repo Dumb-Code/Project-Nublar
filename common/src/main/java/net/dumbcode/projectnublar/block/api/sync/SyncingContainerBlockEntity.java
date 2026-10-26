@@ -2,11 +2,13 @@ package net.dumbcode.projectnublar.block.api.sync;
 
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.HolderLookup;
+import net.minecraft.core.NonNullList;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.protocol.Packet;
 import net.minecraft.network.protocol.game.ClientGamePacketListener;
 import net.minecraft.network.protocol.game.ClientboundBlockEntityDataPacket;
 import net.minecraft.util.ProblemReporter;
+import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.block.entity.BaseContainerBlockEntity;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.entity.BlockEntityType;
@@ -60,5 +62,21 @@ public abstract class SyncingContainerBlockEntity extends BaseContainerBlockEnti
         BlockState blockState = this.getLevel().getBlockState(this.getBlockPos());
         this.getLevel().sendBlockUpdated(this.getBlockPos(), blockState, blockState, 3);
         this.setChanged();
+    }
+
+    /**
+     * Always empty: every subclass keeps its slots in its own fields (fuel, food, machine inputs
+     * and outputs) and overrides each container method to read them. 26.2 copies this list into an
+     * item's container component on pick-block and back on placement; the empty list keeps that
+     * component empty, as 1.20.1 had no such component (P85).
+     */
+    @Override
+    protected NonNullList<ItemStack> getItems() {
+        return NonNullList.create();
+    }
+
+    /** Ignored, see {@link #getItems()}. */
+    @Override
+    protected void setItems(NonNullList<ItemStack> items) {
     }
 }
