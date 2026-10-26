@@ -1,28 +1,27 @@
 package net.dumbcode.projectnublar.entity.dinosaur.ai.task;
 
-import com.mojang.datafixers.util.Pair;
-import it.unimi.dsi.fastutil.objects.ObjectArrayList;
 import net.dumbcode.projectnublar.entity.dinosaur.Dinosaur;
 import net.dumbcode.projectnublar.registry.MemoryModuleTypeInit;
 import net.minecraft.core.BlockPos;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.entity.ai.behavior.BlockPosTracker;
+import net.minecraft.world.entity.ai.behavior.declarative.MemoryCondition;
 import net.minecraft.world.entity.ai.memory.MemoryModuleType;
-import net.minecraft.world.entity.ai.memory.MemoryStatus;
 import net.minecraft.world.entity.ai.memory.WalkTarget;
-import net.tslat.smartbrainlib.api.core.behaviour.ExtendedBehaviour;
-import net.tslat.smartbrainlib.util.BrainUtils;
+import net.tslat.smartbrainlib.api.core.behaviour.base.ExtendedBehaviour;
+import net.tslat.smartbrainlib.library.object.MemoryTest;
+import net.tslat.smartbrainlib.util.BrainUtil;
 
 
-import java.util.List;
+import java.util.Set;
 import java.util.function.BiFunction;
 import java.util.function.BiPredicate;
 
 public class SetWalkTargetToWaterSource<E extends Dinosaur> extends ExtendedBehaviour<E> {
 
-    private static final List<Pair<MemoryModuleType<?>, MemoryStatus>> MEMORY_REQUIREMENTS = ObjectArrayList.of(
-            Pair.of(MemoryModuleTypeInit.HAS_FOUND_WATER.get(), MemoryStatus.VALUE_PRESENT),
-            Pair.of(MemoryModuleTypeInit.IS_THIRSTY.get(), MemoryStatus.VALUE_PRESENT));
+    private static final MemoryTest MEMORY_REQUIREMENTS = MemoryTest.builder(2)
+            .hasMemory(MemoryModuleTypeInit.HAS_FOUND_WATER.get())
+            .hasMemory(MemoryModuleTypeInit.IS_THIRSTY.get());
 
 
     protected BiPredicate<E, BlockPos> predicate = (entity, block) -> true;
@@ -31,7 +30,7 @@ public class SetWalkTargetToWaterSource<E extends Dinosaur> extends ExtendedBeha
 
     protected BlockPos target = null;
     @Override
-    protected List<Pair<MemoryModuleType<?>, MemoryStatus>> getMemoryRequirements() {
+    public Set<MemoryCondition<?, ?>> getMemoryRequirements() {
         return MEMORY_REQUIREMENTS;
     }
     public SetWalkTargetToWaterSource<E> predicate(final BiPredicate<E, BlockPos> predicate) {
@@ -54,14 +53,14 @@ public class SetWalkTargetToWaterSource<E extends Dinosaur> extends ExtendedBeha
 
     @Override
     protected boolean checkExtraStartConditions(ServerLevel level, E entity) {
-        this.target = BrainUtils.getMemory(entity, MemoryModuleTypeInit.HAS_FOUND_WATER.get());
+        this.target = BrainUtil.getMemory(entity, MemoryModuleTypeInit.HAS_FOUND_WATER.get());
         return this.target != null;
     }
 
     @Override
     protected void start(E entity) {
-        BrainUtils.setMemory(entity, MemoryModuleType.WALK_TARGET, new WalkTarget(this.target, this.speedMod.apply(entity, this.target), this.closeEnoughDist.apply(entity, this.target)));
-        BrainUtils.setMemory(entity, MemoryModuleType.LOOK_TARGET, new BlockPosTracker(this.target));
+        BrainUtil.setMemory(entity, MemoryModuleType.WALK_TARGET, new WalkTarget(this.target, this.speedMod.apply(entity, this.target), this.closeEnoughDist.apply(entity, this.target)));
+        BrainUtil.setMemory(entity, MemoryModuleType.LOOK_TARGET, new BlockPosTracker(this.target));
     }
 
     @Override

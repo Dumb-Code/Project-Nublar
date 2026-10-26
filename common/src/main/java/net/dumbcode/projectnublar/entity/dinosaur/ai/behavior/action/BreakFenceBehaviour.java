@@ -1,7 +1,5 @@
 package net.dumbcode.projectnublar.entity.dinosaur.ai.behavior.action;
 
-import com.mojang.datafixers.util.Pair;
-import it.unimi.dsi.fastutil.objects.ObjectArrayList;
 import net.dumbcode.projectnublar.block.entity.BlockEntityElectricFence;
 import net.dumbcode.projectnublar.entity.dinosaur.Dinosaur;
 import net.dumbcode.projectnublar.registry.BlockInit;
@@ -10,19 +8,20 @@ import net.dumbcode.projectnublar.util.DinoAnimationUtils;
 import net.minecraft.core.BlockPos;
 import net.minecraft.network.chat.Component;
 import net.minecraft.server.level.ServerLevel;
-import net.minecraft.world.entity.ai.memory.MemoryModuleType;
-import net.minecraft.world.entity.ai.memory.MemoryStatus;
+import net.minecraft.world.entity.ai.behavior.declarative.MemoryCondition;
 import net.minecraft.world.level.block.entity.BlockEntity;
-import net.minecraft.world.level.block.state.BlockState;
-import net.tslat.smartbrainlib.api.core.behaviour.DelayedBehaviour;
+import net.minecraft.world.level.block.state.pattern.BlockInWorld;
+import net.tslat.smartbrainlib.api.core.behaviour.base.DelayedBehaviour;
+import net.tslat.smartbrainlib.library.object.MemoryTest;
 import net.tslat.smartbrainlib.registry.SBLMemoryTypes;
-import net.tslat.smartbrainlib.util.BrainUtils;
+import net.tslat.smartbrainlib.util.BrainUtil;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.List;
+import java.util.Set;
 
 public class BreakFenceBehaviour<E extends Dinosaur> extends DelayedBehaviour<E> {
-    private static final List<Pair<MemoryModuleType<?>, MemoryStatus>> MEMORY_REQUIREMENTS = ObjectArrayList.of(Pair.of(MemoryModuleTypeInit.WANTS_TO_BREAK_FENCE.get(), MemoryStatus.VALUE_PRESENT));
+    private static final MemoryTest MEMORY_REQUIREMENTS = MemoryTest.builder(1).hasMemory(MemoryModuleTypeInit.WANTS_TO_BREAK_FENCE.get());
 
     @Nullable
     private BlockPos targetFencePos;
@@ -35,14 +34,14 @@ public class BreakFenceBehaviour<E extends Dinosaur> extends DelayedBehaviour<E>
     protected boolean checkExtraStartConditions(ServerLevel level, E entity) {
         this.targetFencePos = null;
         double closestDistance = Double.MAX_VALUE;
-        if(BrainUtils.hasMemory(entity, SBLMemoryTypes.NEARBY_BLOCKS.get())){
-            List<Pair<BlockPos, BlockState>> nearby_blocks = BrainUtils.getMemory(entity, SBLMemoryTypes.NEARBY_BLOCKS.get());
+        if(BrainUtil.hasMemory(entity, SBLMemoryTypes.NEARBY_BLOCKS.get())){
+            List<BlockInWorld> nearby_blocks = BrainUtil.getMemory(entity, SBLMemoryTypes.NEARBY_BLOCKS.get());
 
             if(nearby_blocks == null) {return false;}
 
-            for(Pair<BlockPos,BlockState> blockToTest: nearby_blocks){
-                if (blockToTest.getSecond().is(BlockInit.ELECTRIC_FENCE.get())){
-                    BlockPos testPos = blockToTest.getFirst();
+            for(BlockInWorld blockToTest: nearby_blocks){
+                if (blockToTest.getState().is(BlockInit.ELECTRIC_FENCE.get())){
+                    BlockPos testPos = blockToTest.getPos();
                     BlockEntity blockEntity = level.getBlockEntity(testPos);
                     double distance = entity.distanceToSqr(testPos.getCenter());
                     if(blockEntity instanceof BlockEntityElectricFence && distance < 2 && distance < closestDistance) {
@@ -58,8 +57,8 @@ public class BreakFenceBehaviour<E extends Dinosaur> extends DelayedBehaviour<E>
 
     @Override
     protected void start(E entity) {
-        BrainUtils.clearMemory(entity, MemoryModuleTypeInit.WANTS_TO_BREAK_FENCE.get());
-        BrainUtils.clearMemory(entity,SBLMemoryTypes.NEARBY_BLOCKS.get());
+        BrainUtil.clearMemory(entity, MemoryModuleTypeInit.WANTS_TO_BREAK_FENCE.get());
+        BrainUtil.clearMemory(entity,SBLMemoryTypes.NEARBY_BLOCKS.get());
         DinoAnimationUtils.setAnimationState(entity,"attack", true);
 
     }
@@ -83,7 +82,7 @@ public class BreakFenceBehaviour<E extends Dinosaur> extends DelayedBehaviour<E>
     }
 
     @Override
-    protected List<Pair<MemoryModuleType<?>, MemoryStatus>> getMemoryRequirements() {
+    public Set<MemoryCondition<?, ?>> getMemoryRequirements() {
         return MEMORY_REQUIREMENTS;
     }
 }

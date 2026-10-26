@@ -18,7 +18,7 @@ import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.phys.Vec3;
-import net.tslat.smartbrainlib.util.BrainUtils;
+import net.tslat.smartbrainlib.util.BrainUtil;
 import org.jetbrains.annotations.Nullable;
 
 /**
@@ -185,7 +185,7 @@ public class DinoNeedsUtils {
 
         dinosaur.getEntityData().set(HUNGER, newCurrentHunger);
         //Let brain know dinosaur is hungry
-        BrainUtils.setMemory(dinosaur, MemoryModuleTypeInit.IS_HUNGRY.get(), true);
+        BrainUtil.setMemory(dinosaur, MemoryModuleTypeInit.IS_HUNGRY.get(), true);
     }
     public static void tickThirst(Dinosaur dinosaur, int timeSinceLastDrink, int dehydrationTime){
         float currentThirst = dinosaur.getEntityData().get(THIRST);
@@ -206,7 +206,7 @@ public class DinoNeedsUtils {
         }
 
         dinosaur.getEntityData().set(THIRST, newCurrentThirst);
-        BrainUtils.setMemory(dinosaur, MemoryModuleTypeInit.IS_THIRSTY.get(), true);
+        BrainUtil.setMemory(dinosaur, MemoryModuleTypeInit.IS_THIRSTY.get(), true);
     }
     public static void setDinoBaseNeeds(Dinosaur dinosaur, DinoBehaviourData data){
         dinosaur.getAttribute(Attributes.MAX_HEALTH).setBaseValue(data.maxHealth());
@@ -260,14 +260,14 @@ public class DinoNeedsUtils {
         int eatCount;
 
         if(pCurrentHunger >= maxHunger) {
-            if (BrainUtils.hasMemory(dinosaur, MemoryModuleTypeInit.MEAL_COUNTER.get())) {
-                eatCount = BrainUtils.getMemory(dinosaur, MemoryModuleTypeInit.MEAL_COUNTER.get());
+            if (BrainUtil.hasMemory(dinosaur, MemoryModuleTypeInit.MEAL_COUNTER.get())) {
+                eatCount = BrainUtil.getMemory(dinosaur, MemoryModuleTypeInit.MEAL_COUNTER.get());
                 eatCount++;
             } else eatCount = 1;
-            BrainUtils.setMemory(dinosaur, MemoryModuleTypeInit.MEAL_COUNTER.get(), eatCount);
+            BrainUtil.setMemory(dinosaur, MemoryModuleTypeInit.MEAL_COUNTER.get(), eatCount);
         }
 
-        BrainUtils.setMemory(dinosaur, MemoryModuleTypeInit.DAYS_SINCE_LAST_FED.get(), 0);
+        BrainUtil.setMemory(dinosaur, MemoryModuleTypeInit.DAYS_SINCE_LAST_FED.get(), 0);
 
         DinoNeedsUtils.setCurrentHunger(dinosaur, Math.min(pCurrentHunger, maxHunger));
 

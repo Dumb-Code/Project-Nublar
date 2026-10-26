@@ -11,14 +11,14 @@ import net.minecraft.world.entity.ai.memory.MemoryModuleType;
 import net.minecraft.world.entity.ai.sensing.SensorType;
 import net.minecraft.world.level.block.state.BlockState;
 import net.tslat.smartbrainlib.api.core.sensor.ExtendedSensor;
-import net.tslat.smartbrainlib.api.core.sensor.PredicateSensor;
-import net.tslat.smartbrainlib.object.SquareRadius;
-import net.tslat.smartbrainlib.util.BrainUtils;
+import net.tslat.smartbrainlib.api.core.sensor.base.PredicateSensor;
+import net.tslat.smartbrainlib.library.object.SquareRadius;
+import net.tslat.smartbrainlib.util.BrainUtil;
 
 import javax.annotation.Nullable;
 import java.util.List;
 
-public class NearestFeederSensor<E extends Dinosaur> extends PredicateSensor<BlockState, E> {
+public class NearestFeederSensor<E extends Dinosaur> extends PredicateSensor<E, BlockState> {
 
     private static final List<MemoryModuleType<?>> MEMORIES = ObjectArrayList.of(
             MemoryModuleTypeInit.IS_HUNGRY.get());
@@ -50,7 +50,7 @@ protected SquareRadius radius = new SquareRadius(10, 3);
             for (BlockPos pos : BlockPos.betweenClosed(entity.blockPosition().subtract(this.radius.toVec3i()), entity.blockPosition().offset(this.radius.toVec3i()))) {
                 BlockState state = level.getBlockState(pos);
 
-                if (this.predicate().test(state, entity))
+                if (this.predicate().test(entity, state))
                     blocks.add(Pair.of(pos.immutable(), state));
             }
 
@@ -66,7 +66,7 @@ protected SquareRadius radius = new SquareRadius(10, 3);
 
             if (nearestFeeder != null) {
                 System.out.println("Feeder found by dinosaur at :" + nearestFeeder);
-                BrainUtils.setMemory(entity, MemoryModuleTypeInit.HAS_FOUND_FEEDER.get(), nearestFeeder);
+                BrainUtil.setMemory(entity, MemoryModuleTypeInit.HAS_FOUND_FEEDER.get(), nearestFeeder);
             }
         }
 

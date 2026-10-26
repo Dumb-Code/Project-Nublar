@@ -3,7 +3,7 @@ package net.dumbcode.projectnublar.entity.dinosaur.ai.behavior.social;
 import net.dumbcode.projectnublar.entity.dinosaur.Dinosaur;
 import net.dumbcode.projectnublar.registry.MemoryModuleTypeInit;
 import net.dumbcode.projectnublar.util.DinoNeedsUtils;
-import net.tslat.smartbrainlib.util.BrainUtils;
+import net.tslat.smartbrainlib.util.BrainUtil;
 import org.jetbrains.annotations.Nullable;
 
 /**
@@ -42,13 +42,13 @@ public final class HerdNeeds {
     /** {@link #isDown} for an animal. */
     static boolean isDown(Dinosaur dinosaur) {
         return isDown(dinosaur.isSitting(), dinosaur.isResting(), dinosaur.isRising(),
-                BrainUtils.hasMemory(dinosaur, MemoryModuleTypeInit.IS_RESTING.get()),
-                BrainUtils.hasMemory(dinosaur, MemoryModuleTypeInit.GETTING_UP.get()));
+                BrainUtil.hasMemory(dinosaur, MemoryModuleTypeInit.IS_RESTING.get()),
+                BrainUtil.hasMemory(dinosaur, MemoryModuleTypeInit.GETTING_UP.get()));
     }
 
     /** The animal gets up from a rest: the get-up state, or the getting-up memory (fix round 1, item 2). */
     static boolean isRising(Dinosaur dinosaur) {
-        return dinosaur.isRising() || BrainUtils.hasMemory(dinosaur, MemoryModuleTypeInit.GETTING_UP.get());
+        return dinosaur.isRising() || BrainUtil.hasMemory(dinosaur, MemoryModuleTypeInit.GETTING_UP.get());
     }
 
     /**
@@ -59,8 +59,8 @@ public final class HerdNeeds {
      * 1, item 5), so the mark is dropped again if it never rests ({@link #dropUnusedTired}).
      */
     static void lieDown(Dinosaur dinosaur, DinoGroup group) {
-        if (!BrainUtils.hasMemory(dinosaur, MemoryModuleTypeInit.IS_TIRED.get())) {
-            BrainUtils.setMemory(dinosaur, MemoryModuleTypeInit.IS_TIRED.get(), true);
+        if (!BrainUtil.hasMemory(dinosaur, MemoryModuleTypeInit.IS_TIRED.get())) {
+            BrainUtil.setMemory(dinosaur, MemoryModuleTypeInit.IS_TIRED.get(), true);
             group.markTired(dinosaur.getUUID());
         }
     }
@@ -71,11 +71,11 @@ public final class HerdNeeds {
      */
     static void dropUnusedTired(Dinosaur dinosaur) {
         if (!isDown(dinosaur) && !DinoNeedsUtils.isTired(dinosaur)) {
-            BrainUtils.clearMemory(dinosaur, MemoryModuleTypeInit.IS_TIRED.get());
+            BrainUtil.clearMemory(dinosaur, MemoryModuleTypeInit.IS_TIRED.get());
         }
     }
 
-    /** Start condition for the need walk-target behaviours in {@code Dinosaur.getCoreTasks}. */
+    /** Start condition for the need walk-target behaviours in {@code Dinosaur.getAlwaysRunningBehaviours}. */
     public static boolean mayLeaveForNeeds(Dinosaur dinosaur) {
         if (!isTravellingFollower(dinosaur, GroupManager.groupOf(dinosaur))) {
             return true;
@@ -101,7 +101,7 @@ public final class HerdNeeds {
     }
 
     /**
-     * Start condition for {@code Rest} in {@code Dinosaur.getIdleTasks}: a rest begun before a journey ends on
+     * Start condition for {@code Rest} in {@code Dinosaur.getIdleBehaviours}: a rest begun before a journey ends on
      * its own. Never while a make-way side step is in progress ({@link #mayStartRest}).
      */
     public static boolean mayRest(Dinosaur dinosaur) {

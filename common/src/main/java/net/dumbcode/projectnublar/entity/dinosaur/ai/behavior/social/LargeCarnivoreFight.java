@@ -1,17 +1,16 @@
 package net.dumbcode.projectnublar.entity.dinosaur.ai.behavior.social;
 
-import com.mojang.datafixers.util.Pair;
-import it.unimi.dsi.fastutil.objects.ObjectArrayList;
 import net.dumbcode.projectnublar.entity.dinosaur.Dinosaur;
 import net.dumbcode.projectnublar.registry.MemoryModuleTypeInit;
 import net.minecraft.server.level.ServerLevel;
+import net.minecraft.world.entity.ai.behavior.declarative.MemoryCondition;
 import net.minecraft.world.entity.ai.memory.MemoryModuleType;
-import net.minecraft.world.entity.ai.memory.MemoryStatus;
 import net.minecraft.world.entity.ai.memory.WalkTarget;
-import net.tslat.smartbrainlib.api.core.behaviour.ExtendedBehaviour;
-import net.tslat.smartbrainlib.util.BrainUtils;
+import net.tslat.smartbrainlib.api.core.behaviour.base.ExtendedBehaviour;
+import net.tslat.smartbrainlib.library.object.MemoryTest;
+import net.tslat.smartbrainlib.util.BrainUtil;
 
-import java.util.List;
+import java.util.Set;
 
 /**
  * Turf-war behaviour between two large carnivores (approach, roar exchange, then fight/flee).
@@ -21,7 +20,7 @@ import java.util.List;
  */
 public class LargeCarnivoreFight<E extends Dinosaur> extends ExtendedBehaviour<E> {
 
-    private static final List<Pair<MemoryModuleType<?>, MemoryStatus>> MEMORY_REQUIREMENTS = ObjectArrayList.of(Pair.of(MemoryModuleTypeInit.INITIATED_TURF_WAR.get(), MemoryStatus.VALUE_PRESENT));
+    private static final MemoryTest MEMORY_REQUIREMENTS = MemoryTest.builder(1).hasMemory(MemoryModuleTypeInit.INITIATED_TURF_WAR.get());
     private int turfWarTicks;
     private Dinosaur host;
     private Dinosaur socialTarget;
@@ -34,7 +33,7 @@ public class LargeCarnivoreFight<E extends Dinosaur> extends ExtendedBehaviour<E
 
     @Override
     protected boolean checkExtraStartConditions(ServerLevel level, E entity) {
-        if(BrainUtils.hasMemory(entity, MemoryModuleTypeInit.INITIATED_TURF_WAR.get())) {
+        if(BrainUtil.hasMemory(entity, MemoryModuleTypeInit.INITIATED_TURF_WAR.get())) {
             if(!this.turfWarStarted){
                 this.turfWarStarted = true;
                 return true;
@@ -43,20 +42,20 @@ public class LargeCarnivoreFight<E extends Dinosaur> extends ExtendedBehaviour<E
     }
 
     @Override
-    protected List<Pair<MemoryModuleType<?>, MemoryStatus>> getMemoryRequirements() {
-        return List.of();
+    public Set<MemoryCondition<?, ?>> getMemoryRequirements() {
+        return Set.of();
     }
 
     @Override
     protected void start(E dinosaur) {
-        if(BrainUtils.hasMemory(dinosaur, MemoryModuleTypeInit.INITIATED_TURF_WAR.get())) {
-            int dinoMember = BrainUtils.getMemory(dinosaur, MemoryModuleTypeInit.TURF_WAR_MEMBER.get());
+        if(BrainUtil.hasMemory(dinosaur, MemoryModuleTypeInit.INITIATED_TURF_WAR.get())) {
+            int dinoMember = BrainUtil.getMemory(dinosaur, MemoryModuleTypeInit.TURF_WAR_MEMBER.get());
 
             if (dinoMember == 1) {
                 this.host = dinosaur;
-                this.socialTarget = BrainUtils.getMemory(dinosaur, MemoryModuleTypeInit.SOCIAL_TARGET.get());
+                this.socialTarget = BrainUtil.getMemory(dinosaur, MemoryModuleTypeInit.SOCIAL_TARGET.get());
             } else {
-                this.host = BrainUtils.getMemory(dinosaur, MemoryModuleTypeInit.SOCIAL_TARGET.get());
+                this.host = BrainUtil.getMemory(dinosaur, MemoryModuleTypeInit.SOCIAL_TARGET.get());
                 this.socialTarget = dinosaur;
             }
         }
@@ -74,7 +73,7 @@ public class LargeCarnivoreFight<E extends Dinosaur> extends ExtendedBehaviour<E
             Dinosaur target = getTarget();
 
             if (host.distanceTo(target) > 10 && turfWarTicks == 0) {
-                BrainUtils.setMemory(host, MemoryModuleType.WALK_TARGET, new WalkTarget(target.position(), 1.0F, 10));
+                BrainUtil.setMemory(host, MemoryModuleType.WALK_TARGET, new WalkTarget(target.position(), 1.0F, 10));
             }
 
             if (host.distanceTo(target) < 12) {
@@ -86,21 +85,21 @@ public class LargeCarnivoreFight<E extends Dinosaur> extends ExtendedBehaviour<E
             //Maybe Roar at beginning
             if (turfWarTicks == 40) {
                 if (getTurfWarIdNo() == 1) {
-                    BrainUtils.setMemory(host, MemoryModuleTypeInit.IS_ROARING.get(), true);
+                    BrainUtil.setMemory(host, MemoryModuleTypeInit.IS_ROARING.get(), true);
                 }
 
             }
             if (turfWarTicks == 80) {
                 if (getTurfWarIdNo() == 2) {
-                    BrainUtils.setMemory(host, MemoryModuleTypeInit.IS_ROARING.get(), true);
+                    BrainUtil.setMemory(host, MemoryModuleTypeInit.IS_ROARING.get(), true);
                 }
             }
 
 
             if (turfWarTicks == 100) {
 
-                if (BrainUtils.hasMemory(host, MemoryModuleTypeInit.TURF_WAR_OUTCOME.get())) {
-                    int outcome = BrainUtils.getMemory(host, MemoryModuleTypeInit.TURF_WAR_OUTCOME.get());
+                if (BrainUtil.hasMemory(host, MemoryModuleTypeInit.TURF_WAR_OUTCOME.get())) {
+                    int outcome = BrainUtil.getMemory(host, MemoryModuleTypeInit.TURF_WAR_OUTCOME.get());
 
                     if (outcome == 1) {
                         doFight(entity);
@@ -121,8 +120,8 @@ public class LargeCarnivoreFight<E extends Dinosaur> extends ExtendedBehaviour<E
         super.tick(entity);
     }
     public int getTurfWarIdNo(){
-        if(BrainUtils.hasMemory(getHost(), MemoryModuleTypeInit.TURF_WAR_MEMBER.get())) {
-            return BrainUtils.getMemory(getHost(), MemoryModuleTypeInit.TURF_WAR_MEMBER.get());
+        if(BrainUtil.hasMemory(getHost(), MemoryModuleTypeInit.TURF_WAR_MEMBER.get())) {
+            return BrainUtil.getMemory(getHost(), MemoryModuleTypeInit.TURF_WAR_MEMBER.get());
         } else return 1;
     }
     public Dinosaur getHost(){
@@ -132,19 +131,19 @@ public class LargeCarnivoreFight<E extends Dinosaur> extends ExtendedBehaviour<E
         return this.socialTarget;
     }
     public void doFight(E entity){
-        BrainUtils.clearMemory(getHost(), MemoryModuleType.WALK_TARGET);
-        BrainUtils.setTargetOfEntity(getHost(), getTarget());
-        BrainUtils.clearMemory(getHost(), MemoryModuleType.CANT_REACH_WALK_TARGET_SINCE);
+        BrainUtil.clearMemory(getHost(), MemoryModuleType.WALK_TARGET);
+        BrainUtil.setTargetOfEntity(getHost(), getTarget());
+        BrainUtil.clearMemory(getHost(), MemoryModuleType.CANT_REACH_WALK_TARGET_SINCE);
         this.stop(entity);
     }
     public void doThreatDisplayTargetFlees(E entity) {
-        BrainUtils.setMemory(getHost(), MemoryModuleTypeInit.IS_ROARING.get(), true);
-        BrainUtils.setMemory(getTarget(), MemoryModuleType.IS_PANICKING, true);
+        BrainUtil.setMemory(getHost(), MemoryModuleTypeInit.IS_ROARING.get(), true);
+        BrainUtil.setMemory(getTarget(), MemoryModuleType.IS_PANICKING, true);
         this.stop(entity);
     }
     @Override
     protected void stop(E entity) {
-        BrainUtils.clearMemory(entity, MemoryModuleTypeInit.INITIATED_TURF_WAR.get());
-        BrainUtils.clearMemory(entity, MemoryModuleTypeInit.TURF_WAR_MEMBER.get());
+        BrainUtil.clearMemory(entity, MemoryModuleTypeInit.INITIATED_TURF_WAR.get());
+        BrainUtil.clearMemory(entity, MemoryModuleTypeInit.TURF_WAR_MEMBER.get());
     }
 }

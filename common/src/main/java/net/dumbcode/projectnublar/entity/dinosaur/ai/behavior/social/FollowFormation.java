@@ -1,23 +1,23 @@
 package net.dumbcode.projectnublar.entity.dinosaur.ai.behavior.social;
 
-import com.mojang.datafixers.util.Pair;
-import it.unimi.dsi.fastutil.objects.ObjectArrayList;
 import net.dumbcode.projectnublar.entity.dinosaur.Dinosaur;
 import net.dumbcode.projectnublar.util.DebugFlags;
 import net.dumbcode.projectnublar.util.DinoNeedsUtils;
 import net.minecraft.core.BlockPos;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.util.RandomSource;
+import net.minecraft.world.entity.ai.behavior.declarative.MemoryCondition;
 import net.minecraft.world.entity.ai.memory.MemoryModuleType;
-import net.minecraft.world.entity.ai.memory.MemoryStatus;
 import net.minecraft.world.entity.ai.memory.WalkTarget;
 import net.minecraft.world.phys.Vec3;
-import net.tslat.smartbrainlib.api.core.behaviour.ExtendedBehaviour;
-import net.tslat.smartbrainlib.util.BrainUtils;
+import net.tslat.smartbrainlib.api.core.behaviour.base.ExtendedBehaviour;
+import net.tslat.smartbrainlib.library.object.MemoryTest;
+import net.tslat.smartbrainlib.util.BrainUtil;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Set;
 import java.util.function.DoubleSupplier;
 
 /**
@@ -40,8 +40,8 @@ import java.util.function.DoubleSupplier;
  */
 public class FollowFormation<E extends Dinosaur> extends ExtendedBehaviour<E> {
 
-    private static final List<Pair<MemoryModuleType<?>, MemoryStatus>> MEMORY_REQUIREMENTS = ObjectArrayList.of(
-            Pair.of(MemoryModuleType.WALK_TARGET, MemoryStatus.VALUE_ABSENT));
+    private static final MemoryTest MEMORY_REQUIREMENTS = MemoryTest.builder(1)
+            .noMemory(MemoryModuleType.WALK_TARGET);
 
     /**
      * The old build's graze modifier: 0.049 blocks per tick (speed is quadratic in the modifier, {@link GroundSpeed}).
@@ -129,7 +129,7 @@ public class FollowFormation<E extends Dinosaur> extends ExtendedBehaviour<E> {
     }
 
     @Override
-    protected List<Pair<MemoryModuleType<?>, MemoryStatus>> getMemoryRequirements() {
+    public Set<MemoryCondition<?, ?>> getMemoryRequirements() {
         return MEMORY_REQUIREMENTS;
     }
 
@@ -140,7 +140,7 @@ public class FollowFormation<E extends Dinosaur> extends ExtendedBehaviour<E> {
 
     @Override
     protected boolean shouldKeepRunning(E entity) {
-        return canFollow(entity) && !BrainUtils.hasMemory(entity, MemoryModuleType.WALK_TARGET);
+        return canFollow(entity) && !BrainUtil.hasMemory(entity, MemoryModuleType.WALK_TARGET);
     }
 
     @Override
@@ -664,7 +664,7 @@ public class FollowFormation<E extends Dinosaur> extends ExtendedBehaviour<E> {
         }
         control.stopSteering();
         BlockPos goal = BlockPos.containing(x, y, z);
-        BrainUtils.setMemory(entity, MemoryModuleType.WALK_TARGET, new WalkTarget(goal, (float) speed, FALLBACK_CLOSE_ENOUGH));
+        BrainUtil.setMemory(entity, MemoryModuleType.WALK_TARGET, new WalkTarget(goal, (float) speed, FALLBACK_CLOSE_ENOUGH));
         // The path the walk behaviour computes for this goal is a herd fallback path: the guard's hold may end it.
         control.fallbackRequested(goal);
         this.progress.reset(Double.NaN, level.getGameTime());

@@ -1,15 +1,13 @@
 package net.dumbcode.projectnublar.entity.dinosaur.ai.behavior.social;
 
-import com.mojang.datafixers.util.Pair;
-import it.unimi.dsi.fastutil.objects.ObjectArrayList;
 import net.dumbcode.projectnublar.api.gene.Genes;
 import net.dumbcode.projectnublar.entity.dinosaur.CarnivoreDinosaur;
 import net.dumbcode.projectnublar.entity.dinosaur.Dinosaur;
 import net.dumbcode.projectnublar.registry.GeneInit;
 import net.minecraft.server.level.ServerLevel;
-import net.minecraft.world.entity.ai.memory.MemoryModuleType;
-import net.minecraft.world.entity.ai.memory.MemoryStatus;
-import net.tslat.smartbrainlib.api.core.behaviour.ExtendedBehaviour;
+import net.minecraft.world.entity.ai.behavior.declarative.MemoryCondition;
+import net.tslat.smartbrainlib.api.core.behaviour.base.ExtendedBehaviour;
+import net.tslat.smartbrainlib.library.object.MemoryTest;
 import net.tslat.smartbrainlib.util.EntityRetrievalUtil;
 
 import java.util.Comparator;
@@ -36,7 +34,7 @@ import java.util.UUID;
  */
 public class JoinGroup<E extends Dinosaur> extends ExtendedBehaviour<E> {
 
-    private static final List<Pair<MemoryModuleType<?>, MemoryStatus>> MEMORY_REQUIREMENTS = ObjectArrayList.of();
+    private static final MemoryTest MEMORY_REQUIREMENTS = MemoryTest.builder();
 
     private double radius = 24D;
 
@@ -52,7 +50,7 @@ public class JoinGroup<E extends Dinosaur> extends ExtendedBehaviour<E> {
     }
 
     @Override
-    protected List<Pair<MemoryModuleType<?>, MemoryStatus>> getMemoryRequirements() {
+    public Set<MemoryCondition<?, ?>> getMemoryRequirements() {
         return MEMORY_REQUIREMENTS;
     }
 
@@ -71,9 +69,8 @@ public class JoinGroup<E extends Dinosaur> extends ExtendedBehaviour<E> {
         }
 
         double reach = this.radius + 2D * entity.getBbWidth();
-        List<Dinosaur> nearby = EntityRetrievalUtil.getEntities(level, entity.getBoundingBox().inflate(reach),
-                other -> other != entity && other.getType() == entity.getType()
-                        && other instanceof Dinosaur dinosaur && canBeGrouped(dinosaur));
+        List<Dinosaur> nearby = EntityRetrievalUtil.getEntities(level, entity.getBoundingBox().inflate(reach), Dinosaur.class,
+                other -> other != entity && other.getType() == entity.getType() && canBeGrouped(other));
         nearby.sort(Comparator.comparingDouble(entity::distanceToSqr));
 
         DinoGroup.Roster roster = GroupManager.roster(level);

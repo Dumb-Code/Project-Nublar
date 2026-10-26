@@ -1,20 +1,19 @@
 package net.dumbcode.projectnublar.entity.dinosaur.ai.task;
 
-import com.mojang.datafixers.util.Pair;
-import it.unimi.dsi.fastutil.objects.ObjectArrayList;
 import net.dumbcode.projectnublar.entity.dinosaur.CarnivoreDinosaur;
 import net.dumbcode.projectnublar.entity.dinosaur.Dinosaur;
 import net.dumbcode.projectnublar.registry.MemoryModuleTypeInit;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.entity.LivingEntity;
+import net.minecraft.world.entity.ai.behavior.declarative.MemoryCondition;
 import net.minecraft.world.entity.ai.memory.MemoryModuleType;
-import net.minecraft.world.entity.ai.memory.MemoryStatus;
 import net.minecraft.world.entity.ai.memory.NearestVisibleLivingEntities;
-import net.tslat.smartbrainlib.api.core.behaviour.ExtendedBehaviour;
-import net.tslat.smartbrainlib.util.BrainUtils;
+import net.tslat.smartbrainlib.api.core.behaviour.base.ExtendedBehaviour;
+import net.tslat.smartbrainlib.library.object.MemoryTest;
+import net.tslat.smartbrainlib.util.BrainUtil;
 import org.jetbrains.annotations.Nullable;
 
-import java.util.List;
+import java.util.Set;
 import java.util.function.BiPredicate;
 import java.util.function.Predicate;
 
@@ -25,11 +24,11 @@ public class SetMateFromNearbyDinosaurs<E extends Dinosaur> extends ExtendedBeha
    @Nullable protected LivingEntity pMate = null;
 
 
-    private static final List<Pair<MemoryModuleType<?>, MemoryStatus>> MEMORY_REQUIREMENTS = ObjectArrayList.of(
-            Pair.of(MemoryModuleTypeInit.MATE_UUID.get(), MemoryStatus.VALUE_ABSENT),
-            Pair.of(MemoryModuleType.NEAREST_VISIBLE_LIVING_ENTITIES, MemoryStatus.VALUE_PRESENT));
+    private static final MemoryTest MEMORY_REQUIREMENTS = MemoryTest.builder(2)
+            .noMemory(MemoryModuleTypeInit.MATE_UUID.get())
+            .hasMemory(MemoryModuleType.NEAREST_VISIBLE_LIVING_ENTITIES);
     @Override
-    protected List<Pair<MemoryModuleType<?>, MemoryStatus>> getMemoryRequirements() {
+    public Set<MemoryCondition<?, ?>> getMemoryRequirements() {
         return MEMORY_REQUIREMENTS;
     }
 
@@ -46,7 +45,7 @@ protected BiPredicate<E, LivingEntity> canChooseAsMatePredicate = (dinosaur, pMa
     @Override
     protected boolean checkExtraStartConditions(ServerLevel level, E entity) {
         if(this.pMate == null){
-            NearestVisibleLivingEntities nearyByEntities = BrainUtils.getMemory(entity, MemoryModuleType.NEAREST_VISIBLE_LIVING_ENTITIES);
+            NearestVisibleLivingEntities nearyByEntities = BrainUtil.getMemory(entity, MemoryModuleType.NEAREST_VISIBLE_LIVING_ENTITIES);
             this.pMate = nearyByEntities.findClosest(this.canChoosePredicate).orElse(null);
             if(this.pMate == null){
                 return false;
@@ -58,10 +57,10 @@ protected BiPredicate<E, LivingEntity> canChooseAsMatePredicate = (dinosaur, pMa
     @Override
     protected void start(E entity) {
         if(this.pMate instanceof Dinosaur dinosaur) {
-            BrainUtils.setMemory(entity, MemoryModuleTypeInit.MATE_UUID.get(), dinosaur.getUUID());
-            BrainUtils.setMemory(dinosaur, MemoryModuleTypeInit.MATE_UUID.get(), entity.getUUID());
-            BrainUtils.setMemory(entity, MemoryModuleTypeInit.MATE.get(), dinosaur);
-            BrainUtils.setMemory(dinosaur, MemoryModuleTypeInit.MATE.get(), entity);
+            BrainUtil.setMemory(entity, MemoryModuleTypeInit.MATE_UUID.get(), dinosaur.getUUID());
+            BrainUtil.setMemory(dinosaur, MemoryModuleTypeInit.MATE_UUID.get(), entity.getUUID());
+            BrainUtil.setMemory(entity, MemoryModuleTypeInit.MATE.get(), dinosaur);
+            BrainUtil.setMemory(dinosaur, MemoryModuleTypeInit.MATE.get(), entity);
             dinosaur.createDinosaurFamily(entity);
             dinosaur.registerDinoMate(entity.getUUID());
             entity.registerDinoMate(dinosaur.getUUID());

@@ -37,9 +37,9 @@ import net.minecraft.world.InteractionHand;
 import net.minecraft.world.InteractionResult;
 import net.minecraft.world.damagesource.DamageSource;
 import net.minecraft.world.entity.*;
-import net.minecraft.world.entity.ai.Brain;
 import net.minecraft.world.entity.ai.attributes.AttributeSupplier;
 import net.minecraft.world.entity.ai.attributes.Attributes;
+import net.minecraft.world.entity.ai.behavior.BehaviorControl;
 import net.minecraft.world.entity.ai.control.BodyRotationControl;
 import net.minecraft.world.entity.ai.memory.MemoryModuleType;
 import net.minecraft.world.entity.ai.navigation.PathNavigation;
@@ -58,7 +58,6 @@ import net.minecraft.world.level.storage.ValueInput;
 import net.minecraft.world.level.storage.ValueOutput;
 import net.minecraft.world.phys.Vec3;
 import net.tslat.smartbrainlib.api.SmartBrainOwner;
-import net.tslat.smartbrainlib.api.core.BrainActivityGroup;
 import net.dumbcode.projectnublar.entity.dinosaur.ai.behavior.social.ChallengeGroupLeader;
 import net.dumbcode.projectnublar.entity.dinosaur.ai.behavior.social.DinoGroup;
 import net.dumbcode.projectnublar.entity.dinosaur.ai.behavior.social.FollowFormation;
@@ -76,9 +75,7 @@ import net.dumbcode.projectnublar.entity.dinosaur.animation.AnimationChoice;
 import net.dumbcode.projectnublar.entity.dinosaur.animation.DinoAnimator;
 import net.dumbcode.projectnublar.entity.dinosaur.animation.DinoOneShots;
 import net.dumbcode.projectnublar.entity.dinosaur.animation.OneShotAction;
-import net.tslat.smartbrainlib.api.core.SmartBrainProvider;
-import net.tslat.smartbrainlib.api.core.behaviour.FirstApplicableBehaviour;
-import net.tslat.smartbrainlib.api.core.behaviour.OneRandomBehaviour;
+import net.tslat.smartbrainlib.api.core.behaviour.base.FirstApplicableBehaviour;
 import net.tslat.smartbrainlib.api.core.behaviour.custom.attack.AnimatableMeleeAttack;
 import net.tslat.smartbrainlib.api.core.behaviour.custom.move.FollowParent;
 import net.tslat.smartbrainlib.api.core.behaviour.custom.move.MoveToWalkTarget;
@@ -89,7 +86,7 @@ import net.tslat.smartbrainlib.api.core.sensor.ExtendedSensor;
 import net.tslat.smartbrainlib.api.core.sensor.custom.NearbyBlocksSensor;
 import net.tslat.smartbrainlib.api.core.sensor.vanilla.NearbyLivingEntitySensor;
 import net.tslat.smartbrainlib.api.core.sensor.vanilla.NearestItemSensor;
-import net.tslat.smartbrainlib.util.BrainUtils;
+import net.tslat.smartbrainlib.util.BrainUtil;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.joml.Vector3f;
@@ -110,6 +107,9 @@ import static net.dumbcode.projectnublar.util.DinoAnimationUtils.IS_ROARING_STAT
  * Base class of every dinosaur entity: genetics ({@link DinoData}), datapack behaviour profile,
  * needs (hunger/thirst/stamina/social), breeding, growth stages, multipart support, and the
  * SmartBrainLib brain definition.
+ *
+ * <p>SmartBrainLib 2 builds and ticks the brain; nothing here ticks it. Its mixin runs the brain once per
+ * tick, right after {@link #customServerAiStep}.
  *
  * <p><b>Frozen invariants:</b> the {@link EntityDataAccessor} declarations below must stay in
  * this class and in this order (their ids depend on class-load order together with
@@ -485,8 +485,8 @@ public abstract class Dinosaur extends TamableAnimal implements FossilRevived, G
     }
 
     public boolean isHuntingBlocked(){
-        return BrainUtils.hasMemory(this, MemoryModuleTypeInit.IS_RESTING.get()) ||BrainUtils.hasMemory(this, MemoryModuleType.NEAREST_VISIBLE_WANTED_ITEM) || BrainUtils.hasMemory(this, MemoryModuleTypeInit.IS_EATING.get()) ||
-                BrainUtils.hasMemory(this, MemoryModuleTypeInit.IS_DRINKING.get());
+        return BrainUtil.hasMemory(this, MemoryModuleTypeInit.IS_RESTING.get()) ||BrainUtil.hasMemory(this, MemoryModuleType.NEAREST_VISIBLE_WANTED_ITEM) || BrainUtil.hasMemory(this, MemoryModuleTypeInit.IS_EATING.get()) ||
+                BrainUtil.hasMemory(this, MemoryModuleTypeInit.IS_DRINKING.get());
     }
 
     public boolean canTargetFeeder(BlockState target){
@@ -576,13 +576,6 @@ public abstract class Dinosaur extends TamableAnimal implements FossilRevived, G
     //BRAIN
 
     @Override
-    protected Brain.Provider<Dinosaur> brainProvider() {
-        return new SmartBrainProvider<>(this);
-    }
-
-
-
-    @Override
     public double getMeleeAttackRangeSqr(LivingEntity entity) {
         return (double)(this.getBbWidth() * 3.0F * this.getBbWidth() * 3.0F + entity.getBbWidth());
     }
@@ -604,11 +597,11 @@ public abstract class Dinosaur extends TamableAnimal implements FossilRevived, G
     }
 
     @Override
-    protected void customServerAiStep() {
-        super.customServerAiStep();
+    protected void customServerAiStep(ServerLevel level) {
+        super.customServerAiStep(level);
         // Before the brain: no behaviour starts from the walk of a leader that lost or took the lead (L1, L2).
         HerdLeading.settleLeaderChange(this);
-        this.tickBrain(this);
+        // SmartBrainLib 2 ticks the brain after this method returns, so the steps below read last tick's brain result.
         // Stamina drains only while the animal moves under its own power: a navigation path, a wanted
         // position in the move control or herd steering, and the body actually moving (playtest 2 fix P8a: a
         // member the guard holds in a jam, speed 0, does not tire and lie down there). Not velocity alone: a
@@ -632,18 +625,20 @@ public abstract class Dinosaur extends TamableAnimal implements FossilRevived, G
     }
 
     @Override
-    public List<? extends ExtendedSensor<? extends Dinosaur>> getSensors() {
+    public List<? extends ExtendedSensor<? extends Dinosaur>> getSensors(Dinosaur owner) {
         NearestWaterSourceSensor<Dinosaur> waterSourceSensor = new NearestWaterSourceSensor<>();
-        waterSourceSensor.setPredicate((block, dinosaur) -> dinosaur.canTargetWaterSource(block));
+        waterSourceSensor.setPredicate((dinosaur, block) -> dinosaur.canTargetWaterSource(block));
         waterSourceSensor.setRadius(20);
         NearestFeederSensor<Dinosaur> feederSensor = new NearestFeederSensor<>();
-        feederSensor.setPredicate((block, dinosaur) -> dinosaur.canTargetFeeder(block));
+        feederSensor.setPredicate((dinosaur, block) -> dinosaur.canTargetFeeder(block));
         feederSensor.setRadius(20);
         NearbyBlocksSensor<Dinosaur> fenceProximinitySensor = new NearbyBlocksSensor<>();
-        fenceProximinitySensor.setRadius(10.0);
-        fenceProximinitySensor.setPredicate((block, dinosaur) -> block.is(BlockInit.ELECTRIC_FENCE.get()) && DinoNeedsUtils.starving(dinosaur));
+        fenceProximinitySensor.detectionRadius(10.0);
+        // SmartBrainLib 2 scans blocks every 30 ticks by default; 20 is the 1.x rate this sensor always had.
+        fenceProximinitySensor.scanRate(20);
+        fenceProximinitySensor.setPredicate((dinosaur, block) -> block.getSecond().is(BlockInit.ELECTRIC_FENCE.get()) && DinoNeedsUtils.starving(dinosaur));
         NearestItemSensor<Dinosaur> foodItemSensor = new NearestItemSensor<>();
-        foodItemSensor.setPredicate((item, dinosaur) -> dinosaur.canTargetFoodItem(item)) ;
+        foodItemSensor.setPredicate((dinosaur, item) -> dinosaur.canTargetFoodItem(item)) ;
         foodItemSensor.setRadius(20);
         NearbyLivingEntitySensor<Dinosaur> nearbyLivingEntitySensor = new NearbyLivingEntitySensor<>();
         return List.of(
@@ -656,9 +651,10 @@ public abstract class Dinosaur extends TamableAnimal implements FossilRevived, G
     }
 
 
+    /** The core activity: always active, next to the idle or the fight activity. */
     @Override
-    public BrainActivityGroup<? extends Dinosaur> getCoreTasks() {
-        return BrainActivityGroup.coreTasks(
+    public List<? extends BehaviorControl<?>> getAlwaysRunningBehaviours(Dinosaur owner) {
+        return List.of(
                 new DinosaurLookAtTarget<>().stopIf((entity) -> (entity instanceof Dinosaur dinosaur) && (dinosaur.isResting() || dinosaur.isDrinking() || dinosaur.isDeadOrDying())),
                 new MoveToWalkTarget<>().stopIf((entity) -> (entity instanceof Dinosaur dinosaur) && (dinosaur.isResting() || dinosaur.isDrinking() || dinosaur.isDeadOrDying())) ,
                 new SetHunting<>(),
@@ -675,9 +671,9 @@ public abstract class Dinosaur extends TamableAnimal implements FossilRevived, G
 
 
     @Override
-    public BrainActivityGroup<? extends Dinosaur> getIdleTasks() {
-        return BrainActivityGroup.idleTasks(
-                new FirstApplicableBehaviour(
+    public List<? extends BehaviorControl<?>> getIdleBehaviours(Dinosaur owner) {
+        return List.of(
+                new FirstApplicableBehaviour<Dinosaur>(
                         // TODO(DEAD): a Panic behaviour was commented out here; left unwired.
                         // Lead decision 8: a travelling follower stops to drink or eat only for a critical need (HerdNeeds).
                         new Drink<>(100).startCondition(HerdNeeds::mayLeaveForNeeds)
@@ -707,24 +703,25 @@ public abstract class Dinosaur extends TamableAnimal implements FossilRevived, G
                         new SoloHuntRoamBehaviour<>()
                                 .dontAvoidWater()
                                 .setRadius(40.0D)
-                                .stopIf(dino -> BrainUtils.hasMemory(dino, MemoryModuleType.ATTACK_TARGET)),
+                                .stopIf(dino -> BrainUtil.hasMemory(dino, MemoryModuleType.ATTACK_TARGET)),
                 new ChallengeGroupLeader<>(),
                 // The leader grazes in short moves and sets off on journeys every few minutes (LeaderJourney);
                 // HerdLeading runs the journey and sets the herd state.
                 new LeaderJourney<>(),
                 // Animals without a group wander on their own, as before. Followers move with FollowFormation.
                 new SetRandomWalkTarget<Dinosaur>().dontAvoidWater().setRadius(10, 4)
-                        .walkTargetPredicate((dinosaur, pos) -> !BrainUtils.hasMemory(dinosaur, MemoryModuleTypeInit.BRAIN_OVERRIDE.get()))
+                        .isValidPositionIf((dinosaur, pos) -> !BrainUtil.hasMemory(dinosaur, MemoryModuleTypeInit.BRAIN_OVERRIDE.get()))
                         .startCondition(dinosaur -> dinosaur.isIdle() && !dinosaur.hasGroup())
                 ));
     }
 
+    /** The fight activity: SmartBrainLib runs it while the attack target is set and clears the target when it ends. */
     @Override
-    public BrainActivityGroup<? extends Dinosaur> getFightTasks() {
-        return BrainActivityGroup.fightTasks(
+    public List<? extends BehaviorControl<?>> getFightingBehaviours(Dinosaur owner) {
+        return List.of(
                 new InvalidateAttackTarget<>()
                         .invalidateIf((entity, target) -> (target instanceof Player pl && (pl.isCreative() || pl.isSpectator())) || target.isDeadOrDying()),
-                new SetWalkTargetToAttackTarget<>().speedMod((owner, target) -> 1.5f),
+                new SetWalkTargetToAttackTarget<>().speedModifier((attacker, target) -> 1.5f),
                 new BreakFenceBehaviour<>(20),
                 new AnimatableMeleeAttack<>(20)
                         .whenStarting(dinosaur -> DinoAnimationUtils.setAnimationState((Dinosaur) dinosaur,"attack",true))
@@ -771,8 +768,8 @@ public abstract class Dinosaur extends TamableAnimal implements FossilRevived, G
             }
             processThirstSchedule();
             processHungerSchedule();
-            if(!DinoNeedsUtils.isHungry(this) && BrainUtils.hasMemory(this, MemoryModuleTypeInit.HUNTING.get())){
-                BrainUtils.clearMemory(this, MemoryModuleTypeInit.HUNTING.get());
+            if(!DinoNeedsUtils.isHungry(this) && BrainUtil.hasMemory(this, MemoryModuleTypeInit.HUNTING.get())){
+                BrainUtil.clearMemory(this, MemoryModuleTypeInit.HUNTING.get());
             }
         }
     }
@@ -837,8 +834,8 @@ public abstract class Dinosaur extends TamableAnimal implements FossilRevived, G
     private void tickStaminaDrain() {
         if(this.staminaDrainTick >= STAMINA_DRAIN_INTERVAL_TICKS && this.shouldTickStamina()){
             DinoNeedsUtils.tickStamina(this);
-            if(DinoNeedsUtils.isTired(this) && !BrainUtils.hasMemory(this, MemoryModuleTypeInit.IS_TIRED.get())){
-                BrainUtils.setMemory(this, MemoryModuleTypeInit.IS_TIRED.get(), true);
+            if(DinoNeedsUtils.isTired(this) && !BrainUtil.hasMemory(this, MemoryModuleTypeInit.IS_TIRED.get())){
+                BrainUtil.setMemory(this, MemoryModuleTypeInit.IS_TIRED.get(), true);
             }
             this.staminaDrainTick = 0;
         }
@@ -877,30 +874,30 @@ public abstract class Dinosaur extends TamableAnimal implements FossilRevived, G
      * species' active hours.
      */
     private void processNewDay() {
-        boolean eatenToday = Boolean.TRUE.equals(BrainUtils.getMemory(this, MemoryModuleTypeInit.EATEN_TODAY.get()));
-        boolean drankToday = Boolean.TRUE.equals(BrainUtils.getMemory(this, MemoryModuleTypeInit.DRANK_TODAY.get()));
+        boolean eatenToday = Boolean.TRUE.equals(BrainUtil.getMemory(this, MemoryModuleTypeInit.EATEN_TODAY.get()));
+        boolean drankToday = Boolean.TRUE.equals(BrainUtil.getMemory(this, MemoryModuleTypeInit.DRANK_TODAY.get()));
         if(!eatenToday){
-            if(BrainUtils.hasMemory(this,MemoryModuleTypeInit.DAYS_SINCE_LAST_FED.get())) {
-                daysSincelastAte = BrainUtils.getMemory(this,MemoryModuleTypeInit.DAYS_SINCE_LAST_FED.get());
+            if(BrainUtil.hasMemory(this,MemoryModuleTypeInit.DAYS_SINCE_LAST_FED.get())) {
+                daysSincelastAte = BrainUtil.getMemory(this,MemoryModuleTypeInit.DAYS_SINCE_LAST_FED.get());
             } else { daysSincelastAte = 0; }
             daysSincelastAte++;
 
-            BrainUtils.setMemory(this, MemoryModuleTypeInit.DAYS_SINCE_LAST_FED.get(), daysSincelastAte);
+            BrainUtil.setMemory(this, MemoryModuleTypeInit.DAYS_SINCE_LAST_FED.get(), daysSincelastAte);
         }
         if(!drankToday){
-            if(BrainUtils.hasMemory(this,MemoryModuleTypeInit.DAYS_SINCE_LAST_DRANK.get())) {
-                daysSincelastDrink = BrainUtils.getMemory(this,MemoryModuleTypeInit.DAYS_SINCE_LAST_DRANK.get());
+            if(BrainUtil.hasMemory(this,MemoryModuleTypeInit.DAYS_SINCE_LAST_DRANK.get())) {
+                daysSincelastDrink = BrainUtil.getMemory(this,MemoryModuleTypeInit.DAYS_SINCE_LAST_DRANK.get());
             } else { daysSincelastDrink = 0;}
 
             daysSincelastDrink++;
 
-            BrainUtils.setMemory(this, MemoryModuleTypeInit.DAYS_SINCE_LAST_DRANK.get(), daysSincelastDrink);
+            BrainUtil.setMemory(this, MemoryModuleTypeInit.DAYS_SINCE_LAST_DRANK.get(), daysSincelastDrink);
         }
 
         this.isNewDay = false;
-        BrainUtils.setMemory(this,MemoryModuleTypeInit.MEAL_COUNTER.get(), 0);
-        BrainUtils.setMemory(this, MemoryModuleTypeInit.DRANK_TODAY.get(), false);
-        BrainUtils.setMemory(this, MemoryModuleTypeInit.EATEN_TODAY.get(), false);
+        BrainUtil.setMemory(this,MemoryModuleTypeInit.MEAL_COUNTER.get(), 0);
+        BrainUtil.setMemory(this, MemoryModuleTypeInit.DRANK_TODAY.get(), false);
+        BrainUtil.setMemory(this, MemoryModuleTypeInit.EATEN_TODAY.get(), false);
         DinoNeedsUtils.tickThirst(this,this.daysSincelastDrink,this.getDinoBehaviour().dehydrationLimit());
         DinoNeedsUtils.tickHunger(this,this.daysSincelastAte,this.getDinoBehaviour().starvationLimit());
 
@@ -973,7 +970,7 @@ public abstract class Dinosaur extends TamableAnimal implements FossilRevived, G
         int attempt = random.nextInt(0,100);
         if(attempt > BREEDING_ATTEMPT_THRESHOLD) {
             this.setInLove(null);
-            @Nullable Dinosaur mate = BrainUtils.getMemory(this, MemoryModuleTypeInit.MATE.get());
+            @Nullable Dinosaur mate = BrainUtil.getMemory(this, MemoryModuleTypeInit.MATE.get());
 
             if(mate != null) {
                 mate.setInLove(null);
@@ -1053,8 +1050,8 @@ public abstract class Dinosaur extends TamableAnimal implements FossilRevived, G
     // return early when the player is *not* in the map - so reputation is permanently inert.
     @Nullable
     public Map<Player,Integer> getPlayerReputationMap(){
-        if(BrainUtils.hasMemory(this, MemoryModuleTypeInit.PLAYER_REPUTATION.get())){
-            return BrainUtils.getMemory(this, MemoryModuleTypeInit.PLAYER_REPUTATION.get());
+        if(BrainUtil.hasMemory(this, MemoryModuleTypeInit.PLAYER_REPUTATION.get())){
+            return BrainUtil.getMemory(this, MemoryModuleTypeInit.PLAYER_REPUTATION.get());
         } else return null;
     }
 

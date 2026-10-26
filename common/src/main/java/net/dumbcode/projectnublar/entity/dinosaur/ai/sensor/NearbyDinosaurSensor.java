@@ -9,23 +9,23 @@ import net.minecraft.world.entity.ai.attributes.Attributes;
 import net.minecraft.world.entity.ai.memory.MemoryModuleType;
 import net.minecraft.world.entity.ai.sensing.SensorType;
 import net.tslat.smartbrainlib.api.core.sensor.ExtendedSensor;
-import net.tslat.smartbrainlib.api.core.sensor.PredicateSensor;
-import net.tslat.smartbrainlib.object.SquareRadius;
-import net.tslat.smartbrainlib.util.BrainUtils;
+import net.tslat.smartbrainlib.api.core.sensor.base.PredicateSensor;
+import net.tslat.smartbrainlib.library.object.SquareRadius;
+import net.tslat.smartbrainlib.util.BrainUtil;
 import net.tslat.smartbrainlib.util.EntityRetrievalUtil;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.Comparator;
 import java.util.List;
 
-public class NearbyDinosaurSensor <E extends Dinosaur> extends PredicateSensor<Dinosaur, E> {
+public class NearbyDinosaurSensor <E extends Dinosaur> extends PredicateSensor<E, Dinosaur> {
     private static final List<MemoryModuleType<?>> MEMORIES = ObjectArrayList.of(MemoryModuleTypeInit.NEAREST_DINOSAURS.get());
 
     @Nullable
     protected SquareRadius radius = null;
 
     public NearbyDinosaurSensor() {
-        super((target, entity) -> target != entity && target.isAlive());
+        super((owner, target) -> target != owner && target.isAlive());
     }
 
     /**
@@ -71,10 +71,10 @@ public class NearbyDinosaurSensor <E extends Dinosaur> extends PredicateSensor<D
             radius = new SquareRadius(dist, dist);
         }
 
-        List<Dinosaur> entities = EntityRetrievalUtil.getEntities(level, entity.getBoundingBox().inflate(radius.xzRadius(), radius.yRadius(), radius.xzRadius()), obj -> obj instanceof Dinosaur dinosaur && predicate().test(dinosaur, entity));
+        List<Dinosaur> entities = EntityRetrievalUtil.getEntities(level, entity.getBoundingBox().inflate(radius.xzRadius(), radius.yRadius(), radius.xzRadius()), Dinosaur.class, dinosaur -> predicate().test(entity, dinosaur));
 
         entities.sort(Comparator.comparingDouble(entity::distanceToSqr));
 
-        BrainUtils.setMemory(entity, MemoryModuleTypeInit.NEAREST_DINOSAURS.get(), entities);
+        BrainUtil.setMemory(entity, MemoryModuleTypeInit.NEAREST_DINOSAURS.get(), entities);
     }
 }

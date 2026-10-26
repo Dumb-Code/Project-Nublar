@@ -1,17 +1,16 @@
 package net.dumbcode.projectnublar.entity.dinosaur.ai.behavior.social;
 
-import com.mojang.datafixers.util.Pair;
-import it.unimi.dsi.fastutil.objects.ObjectArrayList;
 import net.dumbcode.projectnublar.entity.dinosaur.Dinosaur;
 import net.dumbcode.projectnublar.registry.MemoryModuleTypeInit;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.entity.ai.behavior.EntityTracker;
+import net.minecraft.world.entity.ai.behavior.declarative.MemoryCondition;
 import net.minecraft.world.entity.ai.memory.MemoryModuleType;
-import net.minecraft.world.entity.ai.memory.MemoryStatus;
-import net.tslat.smartbrainlib.api.core.behaviour.ExtendedBehaviour;
-import net.tslat.smartbrainlib.util.BrainUtils;
+import net.tslat.smartbrainlib.api.core.behaviour.base.ExtendedBehaviour;
+import net.tslat.smartbrainlib.library.object.MemoryTest;
+import net.tslat.smartbrainlib.util.BrainUtil;
 
-import java.util.List;
+import java.util.Set;
 
 /**
  * A rank contest with no damage (plan B18). A follower near its leader takes the lead if its dominance
@@ -31,9 +30,9 @@ import java.util.List;
  */
 public class ChallengeGroupLeader<E extends Dinosaur> extends ExtendedBehaviour<E> {
 
-    private static final List<Pair<MemoryModuleType<?>, MemoryStatus>> MEMORY_REQUIREMENTS = ObjectArrayList.of(
-            Pair.of(MemoryModuleTypeInit.IS_ROARING.get(), MemoryStatus.REGISTERED),
-            Pair.of(MemoryModuleType.LOOK_TARGET, MemoryStatus.REGISTERED));
+    private static final MemoryTest MEMORY_REQUIREMENTS = MemoryTest.builder(2)
+            .usesMemory(MemoryModuleTypeInit.IS_ROARING.get())
+            .usesMemory(MemoryModuleType.LOOK_TARGET);
 
     /** Contest range in blocks, before the body-width allowance. */
     private static final double CONTEST_RANGE = 8D;
@@ -61,7 +60,7 @@ public class ChallengeGroupLeader<E extends Dinosaur> extends ExtendedBehaviour<
     }
 
     @Override
-    protected List<Pair<MemoryModuleType<?>, MemoryStatus>> getMemoryRequirements() {
+    public Set<MemoryCondition<?, ?>> getMemoryRequirements() {
         return MEMORY_REQUIREMENTS;
     }
 
@@ -87,9 +86,9 @@ public class ChallengeGroupLeader<E extends Dinosaur> extends ExtendedBehaviour<
     }
 
     private static void faceOff(Dinosaur dinosaur, Dinosaur rival) {
-        BrainUtils.clearMemory(dinosaur, MemoryModuleType.WALK_TARGET);
-        BrainUtils.setForgettableMemory(dinosaur, MemoryModuleType.LOOK_TARGET,
+        BrainUtil.clearMemory(dinosaur, MemoryModuleType.WALK_TARGET);
+        BrainUtil.setForgettableMemory(dinosaur, MemoryModuleType.LOOK_TARGET,
                 new EntityTracker(rival, true), FACE_OFF_TICKS);
-        BrainUtils.setMemory(dinosaur, MemoryModuleTypeInit.IS_ROARING.get(), true);
+        BrainUtil.setMemory(dinosaur, MemoryModuleTypeInit.IS_ROARING.get(), true);
     }
 }

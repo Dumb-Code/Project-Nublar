@@ -1,21 +1,21 @@
 package net.dumbcode.projectnublar.entity.dinosaur.ai.behavior.social;
 
-import com.mojang.datafixers.util.Pair;
-import it.unimi.dsi.fastutil.objects.ObjectArrayList;
 import net.dumbcode.projectnublar.entity.dinosaur.Dinosaur;
 import net.dumbcode.projectnublar.registry.MemoryModuleTypeInit;
 import net.dumbcode.projectnublar.util.DinoNeedsUtils;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.util.RandomSource;
+import net.minecraft.world.entity.ai.behavior.declarative.MemoryCondition;
 import net.minecraft.world.entity.ai.memory.MemoryModuleType;
-import net.minecraft.world.entity.ai.memory.MemoryStatus;
 import net.minecraft.world.entity.ai.memory.WalkTarget;
 import net.minecraft.world.phys.Vec3;
-import net.tslat.smartbrainlib.api.core.behaviour.ExtendedBehaviour;
-import net.tslat.smartbrainlib.util.BrainUtils;
+import net.tslat.smartbrainlib.api.core.behaviour.base.ExtendedBehaviour;
+import net.tslat.smartbrainlib.library.object.MemoryTest;
+import net.tslat.smartbrainlib.util.BrainUtil;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.List;
+import java.util.Set;
 
 /**
  * The herd leader's own moves while the herd grazes (spec "Leader", lead decision 3), in place of the old
@@ -37,8 +37,8 @@ import java.util.List;
  */
 public class LeaderJourney<E extends Dinosaur> extends ExtendedBehaviour<E> {
 
-    private static final List<Pair<MemoryModuleType<?>, MemoryStatus>> MEMORY_REQUIREMENTS = ObjectArrayList.of(
-            Pair.of(MemoryModuleType.WALK_TARGET, MemoryStatus.VALUE_ABSENT));
+    private static final MemoryTest MEMORY_REQUIREMENTS = MemoryTest.builder(1)
+            .noMemory(MemoryModuleType.WALK_TARGET);
 
     /** A journey's walk target counts as reached this close (Manhattan, block positions). */
     static final int CLOSE_ENOUGH = 2;
@@ -51,7 +51,7 @@ public class LeaderJourney<E extends Dinosaur> extends ExtendedBehaviour<E> {
     }
 
     @Override
-    protected List<Pair<MemoryModuleType<?>, MemoryStatus>> getMemoryRequirements() {
+    public Set<MemoryCondition<?, ?>> getMemoryRequirements() {
         return MEMORY_REQUIREMENTS;
     }
 
@@ -59,7 +59,7 @@ public class LeaderJourney<E extends Dinosaur> extends ExtendedBehaviour<E> {
     protected boolean checkExtraStartConditions(ServerLevel level, E entity) {
         DinoGroup group = GroupManager.groupOf(entity);
         if (group == null || !group.isLeader(entity.getUUID()) || !entity.isIdle()
-                || BrainUtils.hasMemory(entity, MemoryModuleTypeInit.BRAIN_OVERRIDE.get())
+                || BrainUtil.hasMemory(entity, MemoryModuleTypeInit.BRAIN_OVERRIDE.get())
                 || group.state() != HerdState.GRAZE || !group.hasCentre()) {
             return false;
         }
@@ -97,7 +97,7 @@ public class LeaderJourney<E extends Dinosaur> extends ExtendedBehaviour<E> {
             Vec3 spot = entity.isLeashed() ? null : grazeMove(level, entity, group);
             if (spot != null) {
                 group.reserveSpot(entity.getUUID(), spot.x, spot.z);
-                BrainUtils.setMemory(entity, MemoryModuleType.WALK_TARGET,
+                BrainUtil.setMemory(entity, MemoryModuleType.WALK_TARGET,
                         new WalkTarget(spot, JourneyPolicy.GRAZE_MOVE_SPEED, GRAZE_MOVE_CLOSE_ENOUGH));
             }
         }

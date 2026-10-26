@@ -6,7 +6,7 @@ import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.entity.ai.memory.MemoryModuleType;
 import net.minecraft.world.entity.ai.memory.WalkTarget;
 import net.minecraft.world.phys.Vec3;
-import net.tslat.smartbrainlib.util.BrainUtils;
+import net.tslat.smartbrainlib.util.BrainUtil;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.ArrayList;
@@ -127,7 +127,7 @@ public final class HerdLeading {
     }
 
     private static void dropWalk(Dinosaur dinosaur) {
-        BrainUtils.clearMemory(dinosaur, MemoryModuleType.WALK_TARGET);
+        BrainUtil.clearMemory(dinosaur, MemoryModuleType.WALK_TARGET);
         dinosaur.getNavigation().stop();
     }
 
@@ -179,15 +179,15 @@ public final class HerdLeading {
             if (group.leaderSlowed() && leader.getNavigation().isInProgress()) {
                 leader.getNavigation().setSpeedModifier(JourneyPolicy.JOURNEY_SPEED);
             }
-            BrainUtils.clearMemory(leader, MemoryModuleType.WALK_TARGET);
+            BrainUtil.clearMemory(leader, MemoryModuleType.WALK_TARGET);
             group.becomeDrag(leader.getX(), leader.getY(), leader.getZ());
         }
         if (group.dragged()) {
-            WalkTarget walkTarget = BrainUtils.getMemory(leader, MemoryModuleType.WALK_TARGET);
+            WalkTarget walkTarget = BrainUtil.getMemory(leader, MemoryModuleType.WALK_TARGET);
             if (walkTarget == null || leader.isLeashed()) {
                 if (walkTarget != null) {
                     // A leashed leader stays dragged: a need's walk set during the drag would fight the lead.
-                    BrainUtils.clearMemory(leader, MemoryModuleType.WALK_TARGET);
+                    BrainUtil.clearMemory(leader, MemoryModuleType.WALK_TARGET);
                 }
                 followDrag(leader, group);
                 return;
@@ -217,7 +217,7 @@ public final class HerdLeading {
         double dz = group.journeyZ() - leader.getZ();
         double distance = Math.sqrt(dx * dx + dz * dz);
         // P13a ruling 3a: the leader never stands for stragglers (a slow walk), so every walk end is a path end.
-        boolean pathEnded = !BrainUtils.hasMemory(leader, MemoryModuleType.WALK_TARGET) && !leader.getNavigation().isInProgress();
+        boolean pathEnded = !BrainUtil.hasMemory(leader, MemoryModuleType.WALK_TARGET) && !leader.getNavigation().isInProgress();
         boolean noLeg = false;
         if (pathEnded && distance > JourneyPolicy.ARRIVE_DISTANCE && group.journeyKind() == JourneyPolicy.Kind.ROAM
                 && group.pathEnded(leader.getX(), leader.getZ())) {
@@ -373,7 +373,7 @@ public final class HerdLeading {
         if (leg == null) {
             return false;
         }
-        BrainUtils.setMemory(leader, MemoryModuleType.WALK_TARGET, new WalkTarget(leg, JourneyPolicy.JOURNEY_SPEED, LeaderJourney.CLOSE_ENOUGH));
+        BrainUtil.setMemory(leader, MemoryModuleType.WALK_TARGET, new WalkTarget(leg, JourneyPolicy.JOURNEY_SPEED, LeaderJourney.CLOSE_ENOUGH));
         return true;
     }
 
@@ -450,7 +450,7 @@ public final class HerdLeading {
         double fromCentreZ = leader.getZ() - group.centreZ();
         double fromCentre = Math.sqrt(fromCentreX * fromCentreX + fromCentreZ * fromCentreZ);
         boolean outside = !HerdArea.inside(group.centreX(), group.centreZ(), radius, leader.getX(), leader.getZ());
-        WalkTarget walkTarget = BrainUtils.getMemory(leader, MemoryModuleType.WALK_TARGET);
+        WalkTarget walkTarget = BrainUtil.getMemory(leader, MemoryModuleType.WALK_TARGET);
         // A leashed leader has no walk of its own: the lead moves it, whatever walk target it still holds.
         boolean ownWalk = walkTarget != null && !leader.isLeashed();
         // Not a drag: a fight's knockback (the fight owns the leader's moves), or a ride (the vehicle moves it).
@@ -458,7 +458,7 @@ public final class HerdLeading {
         if (!group.grazePinned() && free && JourneyPolicy.dragStarts(fromCentre, radius, ownWalk, step)) {
             if (walkTarget != null) {
                 // A graze move (or a need's walk) would pull against the lead.
-                BrainUtils.clearMemory(leader, MemoryModuleType.WALK_TARGET);
+                BrainUtil.clearMemory(leader, MemoryModuleType.WALK_TARGET);
             }
             group.startDrag(leader.getX(), leader.getY(), leader.getZ(), followersByDistance(level, group, leader), now);
             return;

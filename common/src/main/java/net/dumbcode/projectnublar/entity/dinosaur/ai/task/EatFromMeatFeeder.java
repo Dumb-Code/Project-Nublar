@@ -1,24 +1,23 @@
 package net.dumbcode.projectnublar.entity.dinosaur.ai.task;
 
-import com.mojang.datafixers.util.Pair;
-import it.unimi.dsi.fastutil.objects.ObjectArrayList;
 import net.dumbcode.projectnublar.block.entity.DinosaurFeederBlockEntity;
 import net.dumbcode.projectnublar.entity.dinosaur.Dinosaur;
 import net.dumbcode.projectnublar.registry.MemoryModuleTypeInit;
 import net.dumbcode.projectnublar.util.DinoNeedsUtils;
 import net.minecraft.server.level.ServerLevel;
+import net.minecraft.world.entity.ai.behavior.declarative.MemoryCondition;
 import net.minecraft.world.entity.ai.memory.MemoryModuleType;
-import net.minecraft.world.entity.ai.memory.MemoryStatus;
-import net.tslat.smartbrainlib.api.core.behaviour.DelayedBehaviour;
-import net.tslat.smartbrainlib.util.BrainUtils;
+import net.tslat.smartbrainlib.api.core.behaviour.base.DelayedBehaviour;
+import net.tslat.smartbrainlib.library.object.MemoryTest;
+import net.tslat.smartbrainlib.util.BrainUtil;
 
-import java.util.List;
+import java.util.Set;
 import java.util.function.BiPredicate;
 
 public class EatFromMeatFeeder<E extends Dinosaur> extends DelayedBehaviour<E> {
-    private static final List<Pair<MemoryModuleType<?>, MemoryStatus>> MEMORY_REQUIREMENTS =
-            ObjectArrayList.of(Pair.of(MemoryModuleType.WALK_TARGET, MemoryStatus.VALUE_PRESENT),
-                    Pair.of(MemoryModuleTypeInit.IS_HUNGRY.get(), MemoryStatus.VALUE_PRESENT));
+    private static final MemoryTest MEMORY_REQUIREMENTS =
+            MemoryTest.builder(2).hasMemory(MemoryModuleType.WALK_TARGET)
+                    .hasMemory(MemoryModuleTypeInit.IS_HUNGRY.get());
 
     protected BiPredicate<E,? extends DinosaurFeederBlockEntity> targetPredicate = (dinosaur, feeder) -> true ;
 
@@ -29,14 +28,14 @@ public class EatFromMeatFeeder<E extends Dinosaur> extends DelayedBehaviour<E> {
     }
 
     @Override
-    protected List<Pair<MemoryModuleType<?>, MemoryStatus>> getMemoryRequirements() {
+    public Set<MemoryCondition<?, ?>> getMemoryRequirements() {
         return MEMORY_REQUIREMENTS;
     }
 
     @Override
     protected boolean checkExtraStartConditions(ServerLevel level, E dinosaur) {
 
-        if(level.getBlockEntity(BrainUtils.getMemory(dinosaur,MemoryModuleType.WALK_TARGET).getTarget().currentBlockPosition()) instanceof DinosaurFeederBlockEntity fbe) {
+        if(level.getBlockEntity(BrainUtil.getMemory(dinosaur,MemoryModuleType.WALK_TARGET).getTarget().currentBlockPosition()) instanceof DinosaurFeederBlockEntity fbe) {
             feeder = fbe;
             return dinosaur.distanceToSqr(feeder.getBlockPos().getCenter()) <=2;
         } else return false;
@@ -88,17 +87,17 @@ public class EatFromMeatFeeder<E extends Dinosaur> extends DelayedBehaviour<E> {
 
     @Override
     protected void start(E dinosaur) {
-        BrainUtils.clearMemory(dinosaur,MemoryModuleTypeInit.HAS_FOUND_FEEDER.get());
-      BrainUtils.setMemory(dinosaur, MemoryModuleTypeInit.IS_EATING.get(), true);
+        BrainUtil.clearMemory(dinosaur,MemoryModuleTypeInit.HAS_FOUND_FEEDER.get());
+      BrainUtil.setMemory(dinosaur, MemoryModuleTypeInit.IS_EATING.get(), true);
     }
 
     @Override
     protected void stop(E dinosaur) {
 
-        BrainUtils.clearMemory(dinosaur,MemoryModuleTypeInit.HAS_FOUND_FEEDER.get());
-        BrainUtils.clearMemory(dinosaur,MemoryModuleTypeInit.IS_EATING.get());
-        BrainUtils.clearMemory(dinosaur, MemoryModuleType.WALK_TARGET);
-        BrainUtils.clearMemory(dinosaur, MemoryModuleType.LOOK_TARGET);
+        BrainUtil.clearMemory(dinosaur,MemoryModuleTypeInit.HAS_FOUND_FEEDER.get());
+        BrainUtil.clearMemory(dinosaur,MemoryModuleTypeInit.IS_EATING.get());
+        BrainUtil.clearMemory(dinosaur, MemoryModuleType.WALK_TARGET);
+        BrainUtil.clearMemory(dinosaur, MemoryModuleType.LOOK_TARGET);
     }
 
 }

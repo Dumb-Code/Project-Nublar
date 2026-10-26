@@ -3,7 +3,7 @@ package net.dumbcode.projectnublar.entity.dinosaur.ai.behavior.social;
 import net.dumbcode.projectnublar.entity.dinosaur.Dinosaur;
 import net.minecraft.world.entity.ai.memory.MemoryModuleType;
 import net.minecraft.world.phys.Vec3;
-import net.tslat.smartbrainlib.util.BrainUtils;
+import net.tslat.smartbrainlib.util.BrainUtil;
 
 import java.util.List;
 
@@ -45,7 +45,7 @@ public final class HerdSpacing {
      * Add later exceptions here (mating, playing, ...), so every part of the spacing obeys them.
      */
     public static boolean applies(Dinosaur dinosaur) {
-        return GroupManager.groupOf(dinosaur) != null && !BrainUtils.hasMemory(dinosaur, MemoryModuleType.ATTACK_TARGET);
+        return GroupManager.groupOf(dinosaur) != null && !BrainUtil.hasMemory(dinosaur, MemoryModuleType.ATTACK_TARGET);
     }
 
     /** Centre-to-centre distance two bodies keep: half of each width plus the gap. */

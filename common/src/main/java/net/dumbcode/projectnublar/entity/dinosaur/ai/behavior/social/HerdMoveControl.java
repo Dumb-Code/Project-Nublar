@@ -10,7 +10,7 @@ import net.minecraft.world.entity.ai.control.MoveControl;
 import net.minecraft.world.entity.ai.memory.MemoryModuleType;
 import net.minecraft.world.level.pathfinder.Path;
 import net.minecraft.world.phys.Vec3;
-import net.tslat.smartbrainlib.util.BrainUtils;
+import net.tslat.smartbrainlib.util.BrainUtil;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.List;
@@ -666,7 +666,7 @@ public class HerdMoveControl extends MoveControl {
         if (requested && this.dinosaur.isResting()) {
             // The leader's ask (answersMakeWay): get up first, as before P12b. Rest stops on the brain's next
             // tick, which runs before this move control's next tick, so tick() no longer sees it lying down.
-            BrainUtils.clearMemory(this.dinosaur, MemoryModuleTypeInit.IS_RESTING.get());
+            BrainUtil.clearMemory(this.dinosaur, MemoryModuleTypeInit.IS_RESTING.get());
         }
         return requested;
     }
@@ -1090,7 +1090,7 @@ public class HerdMoveControl extends MoveControl {
         Path path = this.mob.getNavigation().getPath();
         boolean inProgress = this.mob.getNavigation().isInProgress() && path != null;
         if (inProgress ? !this.fallbackGoal.equals(path.getTarget())
-                : !BrainUtils.hasMemory(this.dinosaur, MemoryModuleType.WALK_TARGET)) {
+                : !BrainUtil.hasMemory(this.dinosaur, MemoryModuleType.WALK_TARGET)) {
             this.fallbackGoal = null;
             return false;
         }

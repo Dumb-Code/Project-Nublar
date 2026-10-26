@@ -1,32 +1,30 @@
 package net.dumbcode.projectnublar.entity.dinosaur.ai.task;
 
-import com.mojang.datafixers.util.Pair;
-import it.unimi.dsi.fastutil.objects.ObjectArrayList;
 import net.dumbcode.projectnublar.block.entity.DinosaurFeederBlockEntity;
 import net.dumbcode.projectnublar.entity.dinosaur.CarnivoreDinosaur;
 import net.dumbcode.projectnublar.entity.dinosaur.Dinosaur;
 import net.dumbcode.projectnublar.registry.MemoryModuleTypeInit;
 import net.dumbcode.projectnublar.util.DinoNeedsUtils;
 import net.minecraft.server.level.ServerLevel;
-import net.minecraft.world.entity.ai.memory.MemoryModuleType;
-import net.minecraft.world.entity.ai.memory.MemoryStatus;
+import net.minecraft.world.entity.ai.behavior.declarative.MemoryCondition;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.entity.BlockEntity;
-import net.tslat.smartbrainlib.api.core.behaviour.ExtendedBehaviour;
-import net.tslat.smartbrainlib.util.BrainUtils;
+import net.tslat.smartbrainlib.api.core.behaviour.base.ExtendedBehaviour;
+import net.tslat.smartbrainlib.library.object.MemoryTest;
+import net.tslat.smartbrainlib.util.BrainUtil;
 
-import java.util.List;
+import java.util.Set;
 import java.util.function.Predicate;
 
 public class SetHunting<E extends Dinosaur> extends ExtendedBehaviour<E> {
 
-    private static final List<Pair<MemoryModuleType<?>, MemoryStatus>> MEMORY_REQUIREMENTS = ObjectArrayList.of(
-            Pair.of(MemoryModuleTypeInit.IS_HUNGRY.get(), MemoryStatus.VALUE_PRESENT),
-            Pair.of(MemoryModuleTypeInit.IS_DEHYDRATED.get(),MemoryStatus.VALUE_ABSENT),
-            Pair.of(MemoryModuleTypeInit.HUNTING.get(), MemoryStatus.VALUE_ABSENT));
+    private static final MemoryTest MEMORY_REQUIREMENTS = MemoryTest.builder(3)
+            .hasMemory(MemoryModuleTypeInit.IS_HUNGRY.get())
+            .noMemory(MemoryModuleTypeInit.IS_DEHYDRATED.get())
+            .noMemory(MemoryModuleTypeInit.HUNTING.get());
 
     @Override
-    protected List<Pair<MemoryModuleType<?>, MemoryStatus>> getMemoryRequirements() {
+    public Set<MemoryCondition<?, ?>> getMemoryRequirements() {
         return MEMORY_REQUIREMENTS;
     }
 
@@ -42,14 +40,14 @@ public class SetHunting<E extends Dinosaur> extends ExtendedBehaviour<E> {
     protected boolean checkExtraStartConditions(ServerLevel level, E entity) {
 
         //Check for feeder first before starting hunt
-        if(BrainUtils.hasMemory(entity, MemoryModuleTypeInit.HAS_FOUND_FEEDER.get())){
-            BlockEntity block = level.getBlockEntity(BrainUtils.getMemory(entity,MemoryModuleTypeInit.HAS_FOUND_FEEDER.get()));
+        if(BrainUtil.hasMemory(entity, MemoryModuleTypeInit.HAS_FOUND_FEEDER.get())){
+            BlockEntity block = level.getBlockEntity(BrainUtil.getMemory(entity,MemoryModuleTypeInit.HAS_FOUND_FEEDER.get()));
             if(block instanceof DinosaurFeederBlockEntity fbe){
                 return !fbe.shouldDisplayFood;
             }
         }
 
-        if(BrainUtils.hasMemory(entity, MemoryModuleTypeInit.HUNTING.get())){
+        if(BrainUtil.hasMemory(entity, MemoryModuleTypeInit.HUNTING.get())){
             return false;
         }
 
@@ -58,6 +56,6 @@ public class SetHunting<E extends Dinosaur> extends ExtendedBehaviour<E> {
 
     @Override
     protected void start(E entity) {
-        BrainUtils.setMemory(entity, MemoryModuleTypeInit.HUNTING.get(), true);
+        BrainUtil.setMemory(entity, MemoryModuleTypeInit.HUNTING.get(), true);
     }
 }

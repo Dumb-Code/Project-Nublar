@@ -11,7 +11,7 @@ import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.ai.memory.MemoryModuleType;
 import net.minecraft.world.entity.monster.Enemy;
 import net.minecraft.world.entity.player.Player;
-import net.tslat.smartbrainlib.util.BrainUtils;
+import net.tslat.smartbrainlib.util.BrainUtil;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.List;
@@ -114,7 +114,7 @@ public final class DinoOneShots {
     /** The herd leader stands in GRAZE and is not eating, drinking, resting, roaring or attacking. */
     private boolean sentryAllowed() {
         Dinosaur dino = this.dinosaur;
-        if (!dino.isIdle() || resting(dino) || BrainUtils.hasMemory(dino, MemoryModuleType.WALK_TARGET)
+        if (!dino.isIdle() || resting(dino) || BrainUtil.hasMemory(dino, MemoryModuleType.WALK_TARGET)
                 || dino.getNavigation().isInProgress()) {
             return false;
         }
@@ -125,7 +125,7 @@ public final class DinoOneShots {
     private void checkStartle(long now) {
         Dinosaur dino = this.dinosaur;
         this.startle.beginCheck();
-        List<LivingEntity> nearby = BrainUtils.getMemory(dino, MemoryModuleType.NEAREST_LIVING_ENTITIES);
+        List<LivingEntity> nearby = BrainUtil.getMemory(dino, MemoryModuleType.NEAREST_LIVING_ENTITIES);
         if (nearby != null) {
             DinoGroup group = GroupManager.groupOf(dino);
             for (LivingEntity other : nearby) {
@@ -134,7 +134,7 @@ public final class DinoOneShots {
                 }
             }
         }
-        boolean allowed = !dino.isAttacking() && !BrainUtils.hasMemory(dino, MemoryModuleType.ATTACK_TARGET) && !resting(dino);
+        boolean allowed = !dino.isAttacking() && !BrainUtil.hasMemory(dino, MemoryModuleType.ATTACK_TARGET) && !resting(dino);
         if (this.startle.endCheck(now, allowed)) {
             start(OneShotAction.STARTLED);
         }
@@ -154,6 +154,6 @@ public final class DinoOneShots {
     /** Sitting down, resting or getting up. */
     private static boolean resting(Dinosaur dino) {
         return dino.isSitting() || dino.isResting() || dino.isRising()
-                || BrainUtils.hasMemory(dino, MemoryModuleTypeInit.IS_RESTING.get());
+                || BrainUtil.hasMemory(dino, MemoryModuleTypeInit.IS_RESTING.get());
     }
 }

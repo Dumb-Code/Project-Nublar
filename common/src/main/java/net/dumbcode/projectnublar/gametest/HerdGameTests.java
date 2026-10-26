@@ -20,7 +20,7 @@ import net.minecraft.world.entity.ai.memory.MemoryModuleType;
 import net.minecraft.world.entity.ai.memory.WalkTarget;
 import net.minecraft.world.phys.AABB;
 import net.minecraft.world.phys.Vec3;
-import net.tslat.smartbrainlib.util.BrainUtils;
+import net.tslat.smartbrainlib.util.BrainUtil;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.ArrayList;
@@ -453,7 +453,7 @@ public final class HerdGameTests {
                     checkLeaderMoved(helper, ordered[0], orderedFrom);
                 }
                 double direction = leader.getX() > group.centreX() ? -1D : 1D;
-                BrainUtils.setMemory(leader, MemoryModuleType.WALK_TARGET, new WalkTarget(
+                BrainUtil.setMemory(leader, MemoryModuleType.WALK_TARGET, new WalkTarget(
                         new Vec3(leader.getX() + direction * LEADER_MOVE_DISTANCE, leader.getY(), leader.getZ()), LEADER_MOVE_SPEED, 0));
                 ordered[0] = leader;
                 orderedFrom[0] = leader.getX();
