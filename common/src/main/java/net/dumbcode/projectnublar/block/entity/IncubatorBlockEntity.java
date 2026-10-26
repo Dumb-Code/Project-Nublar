@@ -210,9 +210,11 @@ public class IncubatorBlockEntity extends SyncingContainerBlockEntity
     protected void loadData(ValueInput input) {
         for (int i = 0; i < EGG_SLOT_COUNT; i++) {
             ValueInput slotInput = input.childOrEmpty(SLOT_TAG_PREFIX + i);
-            items.set(i, new Slot(
-                    slotInput.read(ItemStack.MAP_CODEC).orElse(ItemStack.EMPTY),
-                    slotInput.getIntOr(SLOT_X_TAG, 0), slotInput.getIntOr(SLOT_Y_TAG, 0)));
+            // An empty slot has no "id"; decoding it anyway would log a serialization problem on every sync.
+            ItemStack stack = slotInput.getString("id").isPresent()
+                    ? slotInput.read(ItemStack.MAP_CODEC).orElse(ItemStack.EMPTY)
+                    : ItemStack.EMPTY;
+            items.set(i, new Slot(stack, slotInput.getIntOr(SLOT_X_TAG, 0), slotInput.getIntOr(SLOT_Y_TAG, 0)));
         }
         plantMatterStack = input.read(PLANT_MATTER_STACK_TAG, ItemStack.OPTIONAL_CODEC).orElse(ItemStack.EMPTY);
         plantMatter = input.getIntOr(PLANT_MATTER_TAG, 0);
