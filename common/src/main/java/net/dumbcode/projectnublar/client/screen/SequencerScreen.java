@@ -644,10 +644,11 @@ public class SequencerScreen extends AbstractContainerScreen<SequencerMenu> {
         if (showInventory()) {
             guiGraphics.disableScissor();
             guiGraphics.fillGradient(0, 0, this.width, this.height, -1072689136, -804253680);
+            guiGraphics.blit(RenderPipelines.GUI_TEXTURED, INVENTORY, x, y, 0, 0, imageWidth, imageHeight, 351, 199);
         }
-        // The labels and the turning dinosaur come after the inventory dim: on 1.20.1 depth kept them
-        // in front of it (P76). Nothing above overlaps the labels, and the dinosaur still comes after
-        // the text boxes it overlaps.
+        // The labels and the turning dinosaur come after the inventory dim and overlay: on 1.20.1
+        // depth kept them in front of both (P76). Nothing above overlaps the labels, and the dinosaur
+        // still comes after the text boxes it overlaps.
         Component text = Component.translatable("button." + Constants.MODID + ".regular");
         int textWidth = this.font.width(text);
         guiGraphics.text(this.font, Component.translatable("button." + Constants.MODID + ".regular"), this.leftPos + 174 - textWidth, this.topPos + 22, 0xFFFFFFFF);
@@ -660,9 +661,6 @@ public class SequencerScreen extends AbstractContainerScreen<SequencerMenu> {
             if (showInventory()) {
                 guiGraphics.disableScissor();
             }
-        }
-        if (showInventory()) {
-            guiGraphics.blit(RenderPipelines.GUI_TEXTURED, INVENTORY, x, y, 0, 0, imageWidth, imageHeight, 351, 199);
         }
     }
 
@@ -711,16 +709,14 @@ public class SequencerScreen extends AbstractContainerScreen<SequencerMenu> {
         if (showInventory()) {
             guiGraphics.disableScissor();
             guiGraphics.fillGradient(0, 0, this.width, this.height, -1072689136, -804253680);
+            guiGraphics.blit(RenderPipelines.GUI_TEXTURED, INVENTORY, x, y, 0, 0, imageWidth, imageHeight, imageWidth, 199);
         }
-        // The labels come after the inventory dim: on 1.20.1 depth kept them in front of it (P76).
-        // Nothing drawn earlier in this tab overlaps them.
+        // The labels come after the inventory dim and overlay: on 1.20.1 depth kept them in front of
+        // both (P76). Nothing drawn earlier in this tab overlaps them.
         guiGraphics.centeredText(this.font, Component.literal("Water"), leftPos + 58, topPos + 58, 0xFFFFFFFF);
         guiGraphics.centeredText(this.font, Component.literal("Bone Matter"), leftPos + 58 + 236, topPos + 58, 0xFFFFFFFF);
         guiGraphics.centeredText(this.font, Component.literal("Plant Matter"), leftPos + 58 + 236, topPos + 58 + 70, 0xFFFFFFFF);
         guiGraphics.centeredText(this.font, Component.literal("Sugar"), leftPos + 58, topPos + 58 + 70, 0xFFFFFFFF);
-        if (showInventory()) {
-            guiGraphics.blit(RenderPipelines.GUI_TEXTURED, INVENTORY, x, y, 0, 0, imageWidth, imageHeight, imageWidth, 199);
-        }
     }
 
     public void renderAdvancedEditScreen(GuiGraphicsExtractor guiGraphics, float partialTicks, int mouseX, int mouseY) {
