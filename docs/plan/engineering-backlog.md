@@ -2398,6 +2398,9 @@ F1.10 is the code that every lab machine shares: parts, the master block, upgrad
   - Its meaning is not stated. Stored energy, with the red tick showing "running" (proposal, lead decides).
 - [ ] Every machine screen darkens the world behind it, as vanilla screens do, and survives a window resize.
 - [ ] Shift-click works in every machine screen. A removed tube leaves the screen.
+- [ ] Nublar widget look (D289): sliders, dropdown arrows, buttons and text boxes on machine screens draw the mod's own sprites in the Sequencer style.
+  - The sprites are nine-sliced in the mod's GUI sprites, like vanilla's widget sprites, so resource packs can restyle them.
+  - The `nublar-gui` slider and dropdown widgets take a sprite set; until the art exists they keep the vanilla 26.2 sprites.
 - [ ] One layout record per machine drives the menu, the screen, the item handler and any recipe viewer.
   - The record holds a name, a screen size (default 176 × 166), a slot list and the player inventory position.
   - A slot entry holds index, x, y, role, accept test, outside-insert and outside-extract flags and a side mask.
@@ -2542,7 +2545,7 @@ See Art list → Lab items (chip and tank upgrade sprites), Screens (GUI) (tab f
 - Every machine uses `ENTITYBLOCK_ANIMATED`.
 - In the lead's playtest of 2026-10-24 the machines caused visible lag.
 
-**Changed since last review:** At most 3 upgrades per machine. A replaced upgrade returns to the player. Only chips and bulbs cost extra power, by the run-cost factor. Part names follow the video. Upgrade looks use existing bones only. No NO_BULB fault. No comparator output. Two creative items per machine, with full energy. Status panel: 8 blocks, per-player key and switch. Glow regions and one glow mask per machine. Machine gate set.
+**Changed since last review:** At most 3 upgrades per machine. A replaced upgrade returns to the player. Only chips and bulbs cost extra power, by the run-cost factor. Part names follow the video. Upgrade looks use existing bones only. No NO_BULB fault. No comparator output. Two creative items per machine, with full energy. Status panel: 8 blocks, per-player key and switch. Glow regions and one glow mask per machine. Machine gate set. Nublar widget look for sliders, dropdown arrows, buttons and text boxes.
 
 ### F1.11: Lab power
 
@@ -6812,6 +6815,7 @@ These rows come from a review of the specs against mechanics in other games.
 | D286 | F2.0, F2.6 | Taming has no values, and nothing limits repeat hand-feeding. The plan gives a capped trust score per player, a daily decay and a threshold, with no numbers. As written, a player can feed one calm animal again and again and tame it in seconds. What are the trust values, and what limits hand-feeding? | Answered 2026-10-25 (lead): approved as proposed. 100 trust tames, divided by the tamability gene. A player within 16 blocks of a calm animal gets +1 per minute (1,200 ticks). A hand-feed gives +10, at most once per 2 minutes (2,400 ticks) for each animal, and only while its hunger is 75 % or lower. Decay is −10 per in-game day (24,000 ticks). Example: at the fastest rate, a feed every 2 minutes, a calm raptor is tame in about 20 minutes. A player who only stands near it needs about 10 in-game days. All values are config values | Answered |
 | D287 | F2.0, F2.6 | Hand-feeding puts the player inside the animal's personal space (5 to 10 blocks). There, a noticed player gets a warning and then an attack, and a Gallimimus flees at once. The rules have no exception for a player who tames. Example: a player who walks up to a calm T. rex with meat in hand gets a roar and a bite. How does a player get close enough to hand-feed? | Answered 2026-10-25 (lead): approved as proposed. While the animal is calm (stress below 20), a sneaking player who holds its food can enter the personal space with no warning. Any other act, or stress of 20 or more, brings back the normal rule | Answered |
 | D288 | F4.2 | Lead (2026-10-25): a basic level of arcade racing makes the vehicles more fun. Which handling moves ship, on which vehicles, and when? | Answered 2026-10-25 (lead): drift boost, slipstream, air pitch control and air trick boost. The Jeep has them, and so does the Explorer while the player drives it by hand. They ship in Beta. The question also offered a countdown start boost, and the lead did not pick it. The values in F4.2 are proposals | Answered |
+| D289 | F1.10 | The 26.2 port draws the machine-screen sliders and dropdown arrows with vanilla's sprites, because vanilla removed the old slider texture. Should machine screens use their own look? | Answered 2026-10-25 (lead): yes. Sliders, dropdown arrows, buttons and text boxes on machine screens get Nublar sprites in the Sequencer style, in F1.10. Until the art exists they use the vanilla 26.2 sprites and plain code-drawn frames | Answered |
 
 ---
 
@@ -6895,3 +6899,4 @@ These rows come from a review of the specs against mechanics in other games.
 - **2026-10-25 (design review):** register D286 (taming trust values and a limit on repeat hand-feeding) and D287 (hand-feeding inside the personal space). F2.6 gets the trust values and two acceptance lines. The lead approved both proposals the same day.
 - **2026-10-25 (lead: vehicle handling):** D288 answered. F4.2 gets arcade handling in Beta: drift boost, slipstream, air pitch and air tricks on the Jeep and the hand-driven Explorer. The values are proposals.
 - **2026-10-25 (lead: M0.P0 and playtest items):** D274, D275 and D277 to D283 answered. Fence `brokenSide` fix confirmed with no save migration. F1.1 gets fossil blocks for all six species per sprite, and no species fallback for fossil ore. F1.5 preview look set. F1.10 gets the status panel, the glow regions, two creative items per machine and the machine gate. F1.8 lamp glows and gives light whenever powered. The bird Embryo Syringe takes the 1.12 texture.
+- **2026-10-25 (lead: machine screen widgets):** D289 answered. F1.10 gets a Nublar widget look for sliders, dropdown arrows, buttons and text boxes, in the Sequencer style. Four Missing art rows under Machine shared parts.

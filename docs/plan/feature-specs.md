@@ -1108,6 +1108,8 @@ F1.10 sets the shared rules for every lab machine: it is built from parts, upgra
   - The panel shows within 8 blocks of the player. The range is a client config value.
   - A client key and a client config switch turn the panels off and on. The switch changes only the view of that player.
 - **Power symbol.** The machine itself shows the same powered or unpowered symbol as the panel dot.
+- **Widget look.** Sliders, dropdown arrows, buttons and text boxes on every machine screen use Nublar sprites in the Sequencer style: slanted cyan and dark-blue bars.
+  - Until that art exists, sliders and dropdown arrows use the vanilla 26.2 sprites, and buttons and text boxes use plain code-drawn frames.
 
 #### Faults and effects
 
@@ -1136,7 +1138,7 @@ F1.10 sets the shared rules for every lab machine: it is built from parts, upgra
 
 #### Art needed
 
-See Art list → Screens (GUI) (linked-machine tabs, pop-up slot dialog, status bar), Machine shared parts (power symbol), Lab items (machine part sprites), and the glow mask of each machine.
+See Art list → Screens (GUI) (linked-machine tabs, pop-up slot dialog, status bar), Machine shared parts (power symbol), Lab items (machine part sprites), the Nublar widget kit (Machine shared parts), and the glow mask of each machine.
 
 #### Today in the code
 
@@ -1146,7 +1148,7 @@ See Art list → Screens (GUI) (linked-machine tabs, pop-up slot dialog, status 
 
 **Engineering:** backlog F1.10.
 
-**Changed since last review:** Part names follow the video. 3 shared chips. Upgrades change the look with no new part. Extra power only for chips and bulbs. No "No bulb" fault. Two creative items per machine: assembled and max-upgraded, both with full energy. Status panel above each machine, 8 blocks, per-player toggle. Glow regions set for all four machines. Machine performance gate set.
+**Changed since last review:** Part names follow the video. 3 shared chips. Upgrades change the look with no new part. Extra power only for chips and bulbs. No "No bulb" fault. Two creative items per machine: assembled and max-upgraded, both with full energy. Status panel above each machine, 8 blocks, per-player toggle. Glow regions set for all four machines. Machine performance gate set. Nublar widget look for sliders, dropdown arrows, buttons and text boxes.
 
 ---
 

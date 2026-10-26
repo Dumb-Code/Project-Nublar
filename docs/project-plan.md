@@ -5,7 +5,7 @@ Mirror of the shared page tab "Beta and Release 1 project plan" (the master copy
 The Beta is a survival Jurassic Park mod for Minecraft 26.2 on Fabric and NeoForge. The player finds fossils, clones and edits six dinosaur species, and keeps them in a powered, fenced, fed park.
 
 - **Status:** no milestone is started. Nothing blocks M0.
-- **Largest gap:** art. 444 of the 1009 Beta art assets are missing or are placeholders. 272 more need importing, exporting, converting or checking in game.
+- **Largest gap:** art. 448 of the 1013 Beta art assets are missing or are placeholders. 272 more need importing, exporting, converting or checking in game.
 
 ## Roadmap
 
@@ -23,7 +23,7 @@ flowchart LR
 | Milestone | When it ends, the player can | Features | Art: done · to check · to import or export · missing | Status |
 | --- | --- | --- | --- | --- |
 | M0 Port and foundation | Play the current mod on 26.2, on both loaders | Branch merge, CI, port to 26.2, config and species data | Not applicable | Not started |
-| M1 Fossil to egg | Find fossils and amber, extract and edit DNA, print and incubate an egg, and hatch a baby | Fossils and amber, DNA from animals, Fossil Processor, Sequencer (sequencing, editing, synthesis), Egg Printer, Incubator, eggs and hatching, machine building, lab power, lab recipes | 49 · 12 · 32 · 96 | Not started |
+| M1 Fossil to egg | Find fossils and amber, extract and edit DNA, print and incubate an egg, and hatch a baby | Fossils and amber, DNA from animals, Fossil Processor, Sequencer (sequencing, editing, synthesis), Egg Printer, Incubator, eggs and hatching, machine building, lab power, lab recipes | 49 · 12 · 32 · 100 | Not started |
 | M2 Dinosaurs | Raise six species that eat, drink, rest, socialise, breed and react to the player | Behaviour model and contentment, species core, appearance, animations and sounds and effects, needs, herds and packs, the player, special genes | 192 · 11 · 186 · 277 | Not started |
 | M3 Park | Hold dinosaurs in a powered, fenced paddock with feeders | Fences, power grid, feeders, park recipes | 9 · 0 · 22 · 36 | Not started |
 | M4 World and vehicles | Find digsites and traders, build and drive the Jeep, run Ford Explorer tours | Digsites and maps, vehicles, guns (blocked) | 1 · 0 · 8 · 33 | Not started |
