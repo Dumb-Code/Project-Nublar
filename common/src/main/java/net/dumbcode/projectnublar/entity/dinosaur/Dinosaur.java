@@ -173,7 +173,10 @@ public abstract class Dinosaur extends TamableAnimal implements FossilRevived, G
      * server read this value, never the config, so both pick the same box and render path.
      */
     public static final EntityDataAccessor<Boolean> SCALE_MODE = SynchedEntityData.defineId(Dinosaur.class, EntityDataSerializers.BOOLEAN);
-    /** Save key of {@link #SCALE_MODE}; an animal saved without it is undecided until its first server tick (P66). */
+    /**
+     * Save key of {@link #SCALE_MODE}, written only once the mode is decided: an undecided animal is saved without it,
+     * and an animal loaded without it is undecided until its first server tick (P66).
+     */
     private static final String SCALE_MODE_KEY = "scale_mode";
     /**
      * Largest change of body yaw per tick, in degrees ({@link #setYRot}): the top rate of the eased turn
@@ -480,7 +483,9 @@ public abstract class Dinosaur extends TamableAnimal implements FossilRevived, G
         output.putBoolean("juvenile_age_boolean", this.entityData.get(JUVENILE_DATA_ID));
         output.putBoolean("sub_adult_age_boolean", this.entityData.get(SUB_ADULT_DATA_ID));
         output.putBoolean("adult_age_boolean", this.entityData.get(ADULT_DATA_ID));
-        output.putBoolean(SCALE_MODE_KEY, this.entityData.get(SCALE_MODE));
+        if (this.scaleModeFixed) {
+            output.putBoolean(SCALE_MODE_KEY, this.entityData.get(SCALE_MODE));
+        }
 
 
         if(headBonePos != null){
