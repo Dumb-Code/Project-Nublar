@@ -93,12 +93,14 @@ public class IncubatorScreen extends AbstractContainerScreen<IncubatorMenu> {
 
     @Override
     public void onClose() {
-        super.onClose();
+        // Send the slot positions before super.onClose(): it sends the container close packet, the
+        // server then closes the menu, and the slot packet's open-menu check would refuse them all.
         menu.slots.forEach(
                 slot -> {
                     if (slot instanceof IncubatorMenu.IncubatorSlot)
                         Services.NETWORK.sendToServer(new UpdateIncubatorSlotPacket(menu.pos(), menu.slots.indexOf(slot), slot.x, slot.y));
                 }
         );
+        super.onClose();
     }
 }

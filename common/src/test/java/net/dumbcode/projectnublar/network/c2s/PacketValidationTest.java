@@ -18,6 +18,7 @@ import net.dumbcode.projectnublar.api.dinosaur.DinoData;
 import net.dumbcode.projectnublar.api.gene.Genes;
 import net.dumbcode.projectnublar.block.entity.IncubatorBlockEntity;
 import net.dumbcode.projectnublar.client.screen.IncubatorScreen;
+import net.minecraft.resources.Identifier;
 import net.minecraft.world.entity.EntityType;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
@@ -90,6 +91,29 @@ class PacketValidationTest {
         DinoData data = new DinoData();
         data.getLayerColors().set(0, 0x80FF0000);
         assertFalse(UpdateEditInfoPacket.isValid(data));
+    }
+
+    /** An incubated egg casts its base species to {@code Dinosaur}; a cow there would throw on the server. */
+    @Test
+    void editInfoWithNonDinosaurBaseIsRejected() {
+        DinoData data = new DinoData();
+        data.setBaseDino(EntityType.COW);
+        assertFalse(UpdateEditInfoPacket.isValid(data));
+
+        assertFalse(UpdateEditInfoPacket.isDinosaurId(Identifier.fromNamespaceAndPath("minecraft", "cow")));
+        // The mod's hitbox helper entity is registered by the mod but is not a dinosaur.
+        assertFalse(UpdateEditInfoPacket.isDinosaurId(Identifier.fromNamespaceAndPath("projectnublar", "dinosaur_part_entity")));
+    }
+
+    /**
+     * The mod's entity types are not in the registry during a unit test, so the dinosaur case is
+     * checked on the id. A DinoData with no base yet is what the screen sends first.
+     */
+    @Test
+    void editInfoWithDinosaurOrNoBaseIsAccepted() {
+        assertTrue(UpdateEditInfoPacket.isDinosaurId(Identifier.fromNamespaceAndPath("projectnublar", "tyrannosaurus_rex")));
+        assertTrue(UpdateEditInfoPacket.isDinosaurId(Identifier.fromNamespaceAndPath("projectnublar", "gallimimus")));
+        assertTrue(UpdateEditInfoPacket.isValid(new DinoData()));
     }
 
     @Test

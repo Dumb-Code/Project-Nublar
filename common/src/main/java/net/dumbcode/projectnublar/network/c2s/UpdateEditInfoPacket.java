@@ -1,17 +1,22 @@
 package net.dumbcode.projectnublar.network.c2s;
 
+import dev.architectury.registry.registries.RegistrySupplier;
 import java.util.Map;
 import net.dumbcode.projectnublar.Constants;
 import net.dumbcode.projectnublar.api.dinosaur.DinoData;
 import net.dumbcode.projectnublar.api.gene.Genes;
 import net.dumbcode.projectnublar.block.entity.SequencerBlockEntity;
 import net.dumbcode.projectnublar.menutypes.SequencerMenu;
+import net.dumbcode.projectnublar.registry.EntityInit;
 import net.minecraft.core.BlockPos;
+import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.network.RegistryFriendlyByteBuf;
 import net.minecraft.network.codec.ByteBufCodecs;
 import net.minecraft.network.codec.StreamCodec;
 import net.minecraft.network.protocol.common.custom.CustomPacketPayload;
+import net.minecraft.resources.Identifier;
 import net.minecraft.server.level.ServerPlayer;
+import net.minecraft.world.entity.EntityType;
 
 /**
  * Client-to-server: pushes the edit-tab {@link DinoData} into the sequencer. Field order on the
@@ -68,6 +73,9 @@ public record UpdateEditInfoPacket(DinoData info, BlockPos pos) implements Custo
      * test tubes the sequencer makes, so values the screen cannot make are refused.
      *
      * <ul>
+     *   <li>{@code baseDino}: {@code null} (none chosen yet) or a mod dinosaur
+     *       ({@link #isDinosaurId}). The entity percentage keys may name any entity, because
+     *       vanilla mob DNA is a legitimate ingredient.</li>
      *   <li>Each entity DNA percentage and {@code basePercentage}: {@link #MIN_PERCENTAGE} to
      *       {@link #MAX_PERCENTAGE} (the main DNA slider's range; the other sliders stop at 50).</li>
      *   <li>Each explicit gene value: {@link #MIN_GENE_VALUE} to {@link #MAX_GENE_VALUE} (the gene
@@ -80,6 +88,10 @@ public record UpdateEditInfoPacket(DinoData info, BlockPos pos) implements Custo
      * <p>{@code NaN} fails every range check, so it is refused too.
      */
     static boolean isValid(DinoData info) {
+        EntityType<?> baseDino = info.getBaseDino();
+        if (baseDino != null && !isDinosaurId(BuiltInRegistries.ENTITY_TYPE.getKey(baseDino))) {
+            return false;
+        }
         if (!inRange(info.getBasePercentage(), MIN_PERCENTAGE, MAX_PERCENTAGE)) {
             return false;
         }
@@ -100,6 +112,24 @@ public record UpdateEditInfoPacket(DinoData info, BlockPos pos) implements Custo
             }
         }
         return true;
+    }
+
+    /**
+     * True when {@code id} names one of the mod's dinosaur entity types: every entity type
+     * {@link EntityInit} registers except {@link EntityInit#DINOSAUR_PART}, the hitbox helper.
+     * An incubated egg spawns its base species and casts it to {@code Dinosaur}, so any other
+     * base would throw on the server.
+     */
+    static boolean isDinosaurId(Identifier id) {
+        if (id.equals(EntityInit.DINOSAUR_PART.getId())) {
+            return false;
+        }
+        for (RegistrySupplier<EntityType<?>> entry : EntityInit.ENTITIES) {
+            if (entry.getId().equals(id)) {
+                return true;
+            }
+        }
+        return false;
     }
 
     private static boolean inRange(double value, double min, double max) {
