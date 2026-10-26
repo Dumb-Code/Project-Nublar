@@ -56,21 +56,21 @@ public class DinosaurFeederBlock extends BaseEntityBlock {
                 if ((player.getItemInHand(hand).is(TagInit.FEEDER_MEAT) && fbe.getItem(0).isEmpty()) || (!fbe.getItem(0).isEmpty() && player.getItemInHand(hand).is(fbe.getItem(0).getItem()))) {
                     fbe.setItem(0, player.getItemInHand(hand));
                     player.getItemInHand(hand).shrink(1);
-                    return InteractionResult.SUCCESS;
+                    return InteractionResult.SUCCESS_SERVER;
                 }
                 if ((player.getItemInHand(hand).is(TagInit.FEEDER_MEAT) && fbe.getItem(1).isEmpty()) || (!fbe.getItem(1).isEmpty() && player.getItemInHand(hand).is(fbe.getItem(1).getItem()))) {
                     fbe.setItem(1, player.getItemInHand(hand));
                     player.getItemInHand(hand).shrink(1);
-                    return InteractionResult.SUCCESS;
+                    return InteractionResult.SUCCESS_SERVER;
                 }
                 if ((player.getItemInHand(hand).is(TagInit.FEEDER_MEAT) && fbe.getItem(2).isEmpty()) || (!fbe.getItem(2).isEmpty() && player.getItemInHand(hand).is(fbe.getItem(2).getItem()))) {
                     fbe.setItem(2, player.getItemInHand(hand));
                     player.getItemInHand(hand).shrink(1);
-                    return InteractionResult.SUCCESS;
+                    return InteractionResult.SUCCESS_SERVER;
                 }
                 if (player.getItemInHand(hand).isEmpty() && !fbe.coolDown && !player.isCrouching()) {
                     fbe.dispenseFood();
-                    return InteractionResult.SUCCESS;
+                    return InteractionResult.SUCCESS_SERVER;
                 }
                 if (player.getItemInHand(hand).isEmpty() && player.isCrouching()) {
                     if(!fbe.getItem(0).isEmpty()){
@@ -79,7 +79,7 @@ public class DinosaurFeederBlock extends BaseEntityBlock {
                         copy.setCount(stack.getCount());
                         player.setItemInHand(hand, copy);
                         fbe.setItem(0, ItemStack.EMPTY);
-                        return InteractionResult.SUCCESS;
+                        return InteractionResult.SUCCESS_SERVER;
                     }
                     if(!fbe.getItem(1).isEmpty()){
                         ItemStack stack = new ItemStack(fbe.getItem(1).getItem());
@@ -87,7 +87,7 @@ public class DinosaurFeederBlock extends BaseEntityBlock {
                         copy.setCount(stack.getCount());
                         player.setItemInHand(hand, copy);
                         fbe.setItem(1, ItemStack.EMPTY);
-                        return InteractionResult.SUCCESS;
+                        return InteractionResult.SUCCESS_SERVER;
                     }
                     if(!fbe.getItem(2).isEmpty()){
                         ItemStack stack = new ItemStack(fbe.getItem(2).getItem());
@@ -95,7 +95,7 @@ public class DinosaurFeederBlock extends BaseEntityBlock {
                         copy.setCount(stack.getCount());
                         player.setItemInHand(hand, copy);
                         fbe.setItem(2, ItemStack.EMPTY);
-                        return InteractionResult.SUCCESS;
+                        return InteractionResult.SUCCESS_SERVER;
                     }
                 }
             }

@@ -1,6 +1,5 @@
 package net.dumbcode.projectnublar.block.api.geometry;
 
-import com.mojang.blaze3d.vertex.PoseStack;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.core.Position;
@@ -121,7 +120,9 @@ public class RotatedRayBox {
     public static class Builder {
         private final AABB box;
         private Vector3f origin = new Vector3f(0, 0, 0);
-        private PoseStack matrix = new PoseStack();
+        // A plain JOML matrix, not PoseStack: PoseStack is client-only and fence wires are built on
+        // the server. PoseStack.mulPose did the same matrix.rotate(quat) on an identity matrix.
+        private final Matrix4f matrix = new Matrix4f();
 
         public Builder(AABB box) {
             this.box = box;
@@ -135,12 +136,12 @@ public class RotatedRayBox {
         public Builder rotate(double angle, float x, float y, float z) {
             Quaternionf quat = new Quaternionf();
             //todo: check if this is correct
-            this.matrix.mulPose(quat.rotateAxis((float) angle, x, y, z,quat));
+            this.matrix.rotate(quat.rotateAxis((float) angle, x, y, z,quat));
             return this;
         }
 
         public RotatedRayBox build() {
-            Matrix4f pose = this.matrix.last().pose();
+            Matrix4f pose = new Matrix4f(this.matrix);
             Matrix4f backwards = new Matrix4f(pose);
             backwards.invert();
             return new RotatedRayBox(this.box, this.origin, pose, backwards);
