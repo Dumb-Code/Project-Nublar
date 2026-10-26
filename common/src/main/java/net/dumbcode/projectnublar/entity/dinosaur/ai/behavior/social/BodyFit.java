@@ -17,7 +17,7 @@ import net.minecraft.world.level.BlockGetter;
 import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.levelgen.Heightmap;
-import net.minecraft.world.level.pathfinder.BlockPathTypes;
+import net.minecraft.world.level.pathfinder.PathType;
 import net.minecraft.world.phys.AABB;
 import net.minecraft.world.phys.shapes.CollisionContext;
 import net.minecraft.world.phys.shapes.VoxelShape;
@@ -50,7 +50,7 @@ public final class BodyFit {
 
     /** Largest drop a herd member steps down, the vanilla safe fall for mobs. */
     static final int MAX_DROP = 3;
-    /** The dinosaurs' step height ({@code Dinosaur} sets {@code setMaxUpStep(1.0F)}). */
+    /** The dinosaurs' step height: the {@code STEP_HEIGHT} attribute of 1.0 ({@code Dinosaur.createAttributes}). */
     static final double STEP_HEIGHT = 1.0D;
     static final double SIDE_ROOM_STEP = 0.5D;
     /** Side room is measured up to this far: 3 lanes 4.2 apart in open ground (Gallimimus) need 4.2 on each side, a wider species more (plan review decision 9). */
@@ -207,8 +207,8 @@ public final class BodyFit {
      * whole footprint and takes {walkable, open} as walkable, so a Gallimimus node with ground under 1 of its 4
      * columns was a walkable node, and A*, with no cost on a rim, ran routes along rims and round pit corners.
      * {@link #typeAt} keeps vanilla's type on a {@link GroundSupport.Edge#FULL} node, makes a
-     * {@link GroundSupport.Edge#RIM} node {@code DANGER_OTHER} (malus 8: the route moves one block in where it
-     * can, and vanilla does not cut corners on it) and a {@link GroundSupport.Edge#HANG} node
+     * {@link GroundSupport.Edge#RIM} node {@code DAMAGING_IN_NEIGHBOR} (malus 8: the route moves one block in
+     * where it can, and vanilla does not cut corners on it) and a {@link GroundSupport.Edge#HANG} node
      * {@code BLOCKED}. Made once per path computation ({@code FenceAwareNodeEvaluator.prepare}); reads blocks
      * only through the path's region (no chunk loads), at most {@link #NODE_GROUND_ROWS} per footprint column,
      * and vanilla caches the type per node for the path.
@@ -232,12 +232,12 @@ public final class BodyFit {
 
         /**
          * The type of the node (x, y, z) given vanilla's {@code vanilla} type: {@code BLOCKED} on a hang,
-         * {@code DANGER_OTHER} on a rim (only when that costs more than vanilla's type), vanilla's otherwise. An
-         * {@code OPEN} node (no ground under any column at the node's own floor) keeps its type: vanilla tests
+         * {@code DAMAGING_IN_NEIGHBOR} on a rim (only when that costs more than vanilla's type), vanilla's
+         * otherwise. An {@code OPEN} node (no ground under any column at the node's own floor) keeps its type: vanilla tests
          * the fall from it itself, and planned drops of up to 3 blocks stay allowed (lead decision).
          */
-        public BlockPathTypes typeAt(BlockGetter region, int x, int y, int z, BlockPathTypes vanilla) {
-            if (vanilla == BlockPathTypes.OPEN) {
+        public PathType typeAt(BlockGetter region, int x, int y, int z, PathType vanilla) {
+            if (vanilla == PathType.OPEN) {
                 return vanilla;
             }
             this.region = region;
@@ -245,11 +245,11 @@ public final class BodyFit {
             GroundSupport.Edge edge = GroundSupport.nodeEdge(x, z, this.footprint, this);
             this.region = null;
             if (edge == GroundSupport.Edge.HANG) {
-                return BlockPathTypes.BLOCKED;
+                return PathType.BLOCKED;
             }
             if (edge == GroundSupport.Edge.RIM
-                    && this.mob.getPathfindingMalus(BlockPathTypes.DANGER_OTHER) > this.mob.getPathfindingMalus(vanilla)) {
-                return BlockPathTypes.DANGER_OTHER;
+                    && this.mob.getPathfindingMalus(PathType.DAMAGING_IN_NEIGHBOR) > this.mob.getPathfindingMalus(vanilla)) {
+                return PathType.DAMAGING_IN_NEIGHBOR;
             }
             return vanilla;
         }

@@ -210,9 +210,6 @@ public abstract class Dinosaur extends TamableAnimal implements FossilRevived, G
     public Dinosaur(EntityType<? extends Dinosaur> $$0, Level $$1, int flinchAnimLength) {
         super($$0, $$1);
         this.flinchAnimLength = flinchAnimLength;
-        // Walk up one-block rises like a horse. With the default 0.6, a body 2 or more blocks wide never
-        // gets close enough to its next path point to trigger MoveControl's jump, so it stalls at the step.
-        this.setMaxUpStep(1.0F);
         // Herd members steer round each other and never step inside a hard minimum (HerdMoveControl: context
         // steering masks and the guard). Vanilla pushing stays on as a backstop for overlaps from spawning,
         // shoves and teleports (turning it off made members stack in playtest 2).
@@ -997,6 +994,9 @@ public abstract class Dinosaur extends TamableAnimal implements FossilRevived, G
                 .add(Attributes.ATTACK_DAMAGE, 3)
                 .add(Attributes.ARMOR, 2)
                 .add(Attributes.SPAWN_REINFORCEMENTS_CHANCE)
+                // Walk up one-block rises like a horse. With the default 0.6, a body 2 or more blocks wide never
+                // gets close enough to its next path point to trigger MoveControl's jump, so it stalls at the step.
+                .add(Attributes.STEP_HEIGHT, 1.0D)
                 .add(AttributesInit.DINO_ENERGY_NEED.get(),100)
                 .add(AttributesInit.DINO_THIRST_NEED.get(), 100)
                 .add(AttributesInit.DINO_HUNGER_NEED.get(),100)
