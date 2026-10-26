@@ -128,7 +128,8 @@ public final class MachineGameTests {
             }
         }
         helper.setBlock(generatorPos, BlockInit.CREATIVE_GENERATOR.get().defaultBlockState());
-        BlockEntity blockEntity = helper.getBlockEntity(CORE);
+        // The level look-up, not 26.2's getBlockEntity(pos, type): that one fails with its own message.
+        BlockEntity blockEntity = helper.getLevel().getBlockEntity(helper.absolutePos(CORE));
         if (!(blockEntity instanceof SequencerBlockEntity sequencer)) {
             helper.fail("no SequencerBlockEntity at the core, found " + blockEntity);
             throw new IllegalStateException("unreachable");

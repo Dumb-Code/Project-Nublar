@@ -34,7 +34,7 @@ public class Rest<E extends Dinosaur> extends DelayedBehaviour<E> {
     protected void tick(E dinosaur) {
         super.tick(dinosaur);
 
-        isNightTime = dinosaur.level().getDayTime() % 24000 > 12000;
+        isNightTime = dinosaur.level().getOverworldClockTime() % 24000 > 12000;
         isNocturnal = dinosaur.getDinoBehaviour().isNocturnal();
 
         if((isNightTime && isNocturnal) || (!isNightTime && !isNocturnal)){

@@ -28,6 +28,8 @@ import net.dumbcode.projectnublar.util.DinoNeedsUtils;
 import net.dumbcode.projectnublar.util.SaveVersion;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.UUIDUtil;
+import net.minecraft.core.component.DataComponents;
+import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.syncher.EntityDataAccessor;
 import net.minecraft.network.syncher.EntityDataSerializers;
@@ -35,6 +37,7 @@ import net.minecraft.network.syncher.SynchedEntityData;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.sounds.SoundEvent;
 import net.minecraft.util.Mth;
+import net.minecraft.util.RandomSource;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.InteractionResult;
 import net.minecraft.world.damagesource.DamageSource;
@@ -56,6 +59,7 @@ import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.state.BlockState;
+import net.minecraft.world.level.gamerules.GameRules;
 import net.minecraft.world.level.storage.ValueInput;
 import net.minecraft.world.level.storage.ValueOutput;
 import net.minecraft.world.phys.Vec3;
@@ -92,6 +96,7 @@ import net.tslat.smartbrainlib.util.BrainUtil;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.joml.Vector3f;
+import org.joml.Vector3fc;
 import com.geckolib.animatable.GeoAnimatable;
 import com.geckolib.animatable.GeoEntity;
 import com.geckolib.animatable.instance.AnimatableInstanceCache;
@@ -146,10 +151,10 @@ public abstract class Dinosaur extends TamableAnimal implements FossilRevived, G
     private static final long DIURNAL_ACTIVE_END = 12000;
 
     public static EntityDataAccessor<DinoData> DINO_DATA = SynchedEntityData.defineId(Dinosaur.class, DataSerializerInit.DINO_DATA);
-    public static EntityDataAccessor<CompoundTag> DINO_BEHAVIOUR = SynchedEntityData.defineId(Dinosaur.class, EntityDataSerializers.COMPOUND_TAG);
+    public static EntityDataAccessor<CompoundTag> DINO_BEHAVIOUR = SynchedEntityData.defineId(Dinosaur.class, DataSerializerInit.COMPOUND_TAG);
 
-    public static EntityDataAccessor<Optional<UUID>> DINO_FAMILY_UUID = SynchedEntityData.defineId(Dinosaur.class, EntityDataSerializers.OPTIONAL_UUID);
-    public static EntityDataAccessor<Optional<UUID>> DINO_MATE = SynchedEntityData.defineId(Dinosaur.class, EntityDataSerializers.OPTIONAL_UUID);
+    public static EntityDataAccessor<Optional<UUID>> DINO_FAMILY_UUID = SynchedEntityData.defineId(Dinosaur.class, DataSerializerInit.OPTIONAL_UUID);
+    public static EntityDataAccessor<Optional<UUID>> DINO_MATE = SynchedEntityData.defineId(Dinosaur.class, DataSerializerInit.OPTIONAL_UUID);
     public static EntityDataAccessor<Boolean> BABY_DATA_ID = SynchedEntityData.defineId(Dinosaur.class, EntityDataSerializers.BOOLEAN);
     public static EntityDataAccessor<Boolean> JUVENILE_DATA_ID = SynchedEntityData.defineId(Dinosaur.class, EntityDataSerializers.BOOLEAN);
     public static EntityDataAccessor<Boolean> SUB_ADULT_DATA_ID = SynchedEntityData.defineId(Dinosaur.class, EntityDataSerializers.BOOLEAN);
@@ -157,7 +162,7 @@ public abstract class Dinosaur extends TamableAnimal implements FossilRevived, G
     public static EntityDataAccessor<Boolean> SHOULD_TICK_STAMINA = SynchedEntityData.defineId(Dinosaur.class, EntityDataSerializers.BOOLEAN);
     /** Mirror of {@link GroupManager#isLeader} for the client, which has no group data. Server writes it once a second. */
     public static final EntityDataAccessor<Boolean> GROUP_LEADER = SynchedEntityData.defineId(Dinosaur.class, EntityDataSerializers.BOOLEAN);
-    public static final EntityDataAccessor<Vector3f> DINOSAUR_HEAD_POS = SynchedEntityData.defineId(Dinosaur.class, EntityDataSerializers.VECTOR3);
+    public static final EntityDataAccessor<Vector3fc> DINOSAUR_HEAD_POS = SynchedEntityData.defineId(Dinosaur.class, EntityDataSerializers.VECTOR3);
     /** The one-shot action the server plays ({@link OneShotAction#id}); one channel for call, sentry and startled (fix P10). */
     public static final EntityDataAccessor<Byte> ONE_SHOT = SynchedEntityData.defineId(Dinosaur.class, EntityDataSerializers.BYTE);
     /**
@@ -581,12 +586,12 @@ public abstract class Dinosaur extends TamableAnimal implements FossilRevived, G
     }
 
     @Override
-    public boolean wantsToPickUp(ItemStack stack) {
+    public boolean wantsToPickUp(ServerLevel level, ItemStack stack) {
         if(this.isSleeping()){
             return false;
         }
         DinoDietData validfood = DietReloadListener.getDietInfoForType(this.getDinoBehaviour().dietID());
-        return validfood.foodMap().containsKey(stack.getDescriptionId());
+        return validfood.foodMap().containsKey(stack.getItem().getDescriptionId());
     }
 
     // TODO(BUG): always applies a generic damage source, discarding the real source (attacker,
@@ -600,7 +605,7 @@ public abstract class Dinosaur extends TamableAnimal implements FossilRevived, G
     }
 
     public boolean isChild(){
-        return this.isBaby() || this.isJuvanile();
+        return this.isDinoBaby() || this.isJuvanile();
     }
 
     public boolean isHuntingBlocked(){
@@ -622,13 +627,13 @@ public abstract class Dinosaur extends TamableAnimal implements FossilRevived, G
         if(this.getDinoDiet() == null){
             return false;
         }
-        return this.getDinoDiet().foodMap().containsKey(target.getItem().getDescriptionId());
+        return this.getDinoDiet().foodMap().containsKey(target.getItem().getItem().getDescriptionId());
     }
 
     @Override
     public boolean isFood(ItemStack stack) {
         DinoDietData validfood = DietReloadListener.getDietInfoForType(this.getDinoBehaviour().dietID());
-        return validfood.foodMap().containsKey(stack.getDescriptionId());
+        return validfood.foodMap().containsKey(stack.getItem().getDescriptionId());
     }
 
     @Override
@@ -694,25 +699,16 @@ public abstract class Dinosaur extends TamableAnimal implements FossilRevived, G
 
     //BRAIN
 
-    @Override
-    public double getMeleeAttackRangeSqr(LivingEntity entity) {
-        return (double)(this.getBbWidth() * 3.0F * this.getBbWidth() * 3.0F + entity.getBbWidth());
-    }
-
     /**
-     * Clears the home restriction the leash set. While leashed, vanilla restricts the animal to 5 blocks round
-     * the holder every tick ({@code PathfinderMob.tickLeash}), and nothing in vanilla clears it when the leash
-     * comes off: it stayed until the animal reloaded, and {@code LandRandomPos} kept every 32-64 block journey
-     * target inside it (playtest 1, R1). Nothing in this mod restricts a dinosaur, so the restriction left when
-     * a leash comes off is the leash's.
+     * The 1.20.1 melee reach, which the brain's attack ({@code AnimatableMeleeAttack}) checks: true when the squared
+     * distance to the target's position is at most (3 x this width)^2 + the target's width. 26.2 vanilla measures
+     * reach from the hitbox instead and has no range method to override, so the 1.20.1 test is kept here. The
+     * 1.20.1 rider-shielding offset (a rider on a camel) is gone, as in vanilla 26.2.
      */
     @Override
-    public void dropLeash(boolean broadcastPacket, boolean dropLeash) {
-        boolean wasLeashed = this.isLeashed();
-        super.dropLeash(broadcastPacket, dropLeash);
-        if (wasLeashed && !this.isLeashed()) {
-            this.clearRestriction();
-        }
+    public boolean isWithinMeleeAttackRange(LivingEntity target) {
+        double range = this.getBbWidth() * 3.0F * this.getBbWidth() * 3.0F + target.getBbWidth();
+        return this.distanceToSqr(target.position()) <= range;
     }
 
     @Override
@@ -781,7 +777,9 @@ public abstract class Dinosaur extends TamableAnimal implements FossilRevived, G
                 new SetWalkTargetToWaterSource<>().closeEnoughWhen((entity, pos)-> 3).startCondition(HerdNeeds::mayLeaveForNeeds),
                 new WalkToNearestFeeder<>().closeEnoughWhen((entity, pos) -> 3).startCondition(HerdNeeds::mayLeaveForNeeds),
                 new SetWalkTargetToFoodItem<>().predicate(Dinosaur::canTargetFoodItem).startCondition(HerdNeeds::mayLeaveForNeeds),
-                new FollowParent<>().parentPredicate((baby, parent)-> baby instanceof Dinosaur dino && dino.isFamily(parent) && !parent.isBaby()),
+                // isFamily is true only for a Dinosaur parent.
+                new FollowParent<>().parentPredicate((baby, parent)-> baby instanceof Dinosaur dino && dino.isFamily(parent)
+                        && !((Dinosaur) parent).isDinoBaby()),
                 new JoinGroup<>(),
                 new ThreatDisplay<>(34),
                 new FollowFormation<>()
@@ -910,9 +908,9 @@ public abstract class Dinosaur extends TamableAnimal implements FossilRevived, G
     /** Mirrors the age-derived growth stage into the synched boolean flags; a new stage updates the size. */
     private void syncGrowthStageFlags() {
         int stage = this.getGrowthStage();
-        if(this.isBaby() && !this.entityData.get(BABY_DATA_ID)){
+        if(this.isDinoBaby() && !this.entityData.get(BABY_DATA_ID)){
             this.entityData.set(BABY_DATA_ID, true);
-        } else if (!this.isBaby() && this.entityData.get(BABY_DATA_ID)){
+        } else if (!this.isDinoBaby() && this.entityData.get(BABY_DATA_ID)){
             this.entityData.set(BABY_DATA_ID, false);
         }
         if(this.isJuvanile() && !this.entityData.get(JUVENILE_DATA_ID)){
@@ -988,8 +986,8 @@ public abstract class Dinosaur extends TamableAnimal implements FossilRevived, G
     }
 
     private void detectNewDay() {
-        if(cachedDayTime != (int) this.level().getDayTime() / DAY_LENGTH){
-            cachedDayTime = (int) (this.level().getDayTime() / DAY_LENGTH);
+        if(cachedDayTime != (int) this.level().getOverworldClockTime() / DAY_LENGTH){
+            cachedDayTime = (int) (this.level().getOverworldClockTime() / DAY_LENGTH);
             this.isNewDay = true;
         }
     }
@@ -1059,7 +1057,7 @@ public abstract class Dinosaur extends TamableAnimal implements FossilRevived, G
             int i = 0;
 
             for (long thirstTime : thirstSchedule) {
-                if (this.level().getDayTime() % DAY_LENGTH >= thirstTime) {
+                if (this.level().getOverworldClockTime() % DAY_LENGTH >= thirstTime) {
                     toRemove = i;
                     DinoNeedsUtils.tickThirst(this, this.daysSincelastDrink, this.getDinoBehaviour().dehydrationLimit());
                 }
@@ -1077,7 +1075,7 @@ public abstract class Dinosaur extends TamableAnimal implements FossilRevived, G
             int i = 0;
 
             for (long hungerTime : hungerSchedule) {
-                if (this.level().getDayTime() % DAY_LENGTH >= hungerTime) {
+                if (this.level().getOverworldClockTime() % DAY_LENGTH >= hungerTime) {
                     toRemove = i;
                     DinoNeedsUtils.tickHunger(this, this.daysSincelastAte, this.getDinoBehaviour().starvationLimit());
                 }
@@ -1107,7 +1105,7 @@ public abstract class Dinosaur extends TamableAnimal implements FossilRevived, G
     }
 
     public boolean isNight(){
-        int day = (int) this.level().getDayTime() % 24000;
+        int day = (int) this.level().getOverworldClockTime() % 24000;
         return day > 12000;
     }
     public boolean isDay(){
@@ -1126,16 +1124,16 @@ public abstract class Dinosaur extends TamableAnimal implements FossilRevived, G
                 // Walk up one-block rises like a horse. With the default 0.6, a body 2 or more blocks wide never
                 // gets close enough to its next path point to trigger MoveControl's jump, so it stalls at the step.
                 .add(Attributes.STEP_HEIGHT, 1.0D)
-                .add(AttributesInit.DINO_ENERGY_NEED.get(),100)
-                .add(AttributesInit.DINO_THIRST_NEED.get(), 100)
-                .add(AttributesInit.DINO_HUNGER_NEED.get(),100)
-                .add(AttributesInit.DINO_SOCIAL_NEED.get(),100)
-                .add(AttributesInit.TRUST_SCORE.get(),1000)
-                .add(AttributesInit.DINO_VISION.get(),100)
-                .add(AttributesInit.DINO_AGGRESSION.get(), 0)
-                .add(AttributesInit.DINO_INTELLIGENCE.get(), 50)
-                .add(AttributesInit.DINO_FERTILITY.get(),50)
-                .add(AttributesInit.DINO_IMMUNITY.get(),0);
+                .add(BuiltInRegistries.ATTRIBUTE.wrapAsHolder(AttributesInit.DINO_ENERGY_NEED.get()),100)
+                .add(BuiltInRegistries.ATTRIBUTE.wrapAsHolder(AttributesInit.DINO_THIRST_NEED.get()), 100)
+                .add(BuiltInRegistries.ATTRIBUTE.wrapAsHolder(AttributesInit.DINO_HUNGER_NEED.get()),100)
+                .add(BuiltInRegistries.ATTRIBUTE.wrapAsHolder(AttributesInit.DINO_SOCIAL_NEED.get()),100)
+                .add(BuiltInRegistries.ATTRIBUTE.wrapAsHolder(AttributesInit.TRUST_SCORE.get()),1000)
+                .add(BuiltInRegistries.ATTRIBUTE.wrapAsHolder(AttributesInit.DINO_VISION.get()),100)
+                .add(BuiltInRegistries.ATTRIBUTE.wrapAsHolder(AttributesInit.DINO_AGGRESSION.get()), 0)
+                .add(BuiltInRegistries.ATTRIBUTE.wrapAsHolder(AttributesInit.DINO_INTELLIGENCE.get()), 50)
+                .add(BuiltInRegistries.ATTRIBUTE.wrapAsHolder(AttributesInit.DINO_FERTILITY.get()),50)
+                .add(BuiltInRegistries.ATTRIBUTE.wrapAsHolder(AttributesInit.DINO_IMMUNITY.get()),0);
     }
 
     public boolean isDrinking() {
@@ -1211,7 +1209,7 @@ public abstract class Dinosaur extends TamableAnimal implements FossilRevived, G
     @Override
     public @Nullable AgeableMob getBreedOffspring(ServerLevel serverLevel, AgeableMob ageableMob) {
         EntityType<?> babyType = this.getDinoData().getBaseDino();
-        return (Dinosaur) babyType.create(serverLevel);
+        return (Dinosaur) babyType.create(serverLevel, EntitySpawnReason.BREEDING);
     }
 
     @Override
@@ -1233,17 +1231,62 @@ public abstract class Dinosaur extends TamableAnimal implements FossilRevived, G
                 dinosaur.getDinoData().setGeneValue(GeneInit.GENDER.get(), random.nextInt(1,2));
                 dinosaur.setBaby(true);
                 dinosaur.setDinoFamilyUuid(this.getFamilyId());
-                dinosaur.moveTo(this.getX(), this.getY(), this.getZ(), 0.0F, 0.0F);
+                dinosaur.snapTo(this.getX(), this.getY(), this.getZ(), 0.0F, 0.0F);
                 this.finalizeSpawnChildFromBreeding(level, mate, dinosaur);
                 level.addFreshEntityWithPassengers(dinosaur);
             }
         }
     }
 
-    @Override
-    public boolean isBaby() {
+    /**
+     * Growth stage 1: the 1.20.1 {@code isBaby()} rule of this mod. On 26.2 vanilla's {@code AgeableMob.isBaby()} is
+     * final and true at any negative age (stages 1 to 3), so this mod's readers call this method instead. It reads
+     * the server's age; on the client the age is not synced, so this is false there, as {@code isBaby()} was on 1.20.1.
+     */
+    public boolean isDinoBaby() {
         int age = this.age;
         return age <= BABY_MAX_AGE;
+    }
+
+    /**
+     * The 1.20.1 box scale: half for a {@link #isDinoBaby() stage 1} animal, else 1. Vanilla scales the default box by
+     * this ({@code LivingEntity.getDefaultDimensions}); 1.20.1 did the same through {@code getScale()} with the
+     * {@code isBaby()} override, so with {@link #SCALE_MODE} false the box is exactly the 1.20.1 box (ruling P9).
+     */
+    @Override
+    public float getAgeScale() {
+        return this.isDinoBaby() ? 0.5F : 1.0F;
+    }
+
+    /**
+     * Vanilla's rule ({@code !isBaby()}) with the 1.20.1 baby test: only a {@link #isDinoBaby() stage 1} animal drops
+     * no XP. On 26.2 {@code isBaby()} is final and true at any negative age, so stages 2 and 3 would drop none (P89).
+     */
+    @Override
+    public boolean shouldDropExperience() {
+        return !this.isDinoBaby();
+    }
+
+    /**
+     * Vanilla's rule ({@code !isBaby()} and the {@code MOB_DROPS} game rule) with the 1.20.1 baby test,
+     * {@link #isDinoBaby()}. On 26.2 {@code isBaby()} is final and true at any negative age (P89).
+     */
+    @Override
+    protected boolean shouldDropLoot(ServerLevel level) {
+        return !this.isDinoBaby() && level.getGameRules().get(GameRules.MOB_DROPS);
+    }
+
+    /**
+     * Vanilla's voice pitch (1.5 for a baby, else 1.0, each moved up to 0.2 at random) with the 1.20.1 baby test:
+     * only a {@link #isDinoBaby() stage 1} animal sounds young. On 26.2 {@code isBaby()} is final and true at any
+     * negative age (P89).
+     */
+    @Override
+    public float getVoicePitch() {
+        RandomSource source = this.getRandom();
+        return this.isDinoBaby()
+                ? (source.nextFloat() - source.nextFloat()) * 0.2F + 1.5F
+                : (source.nextFloat() - source.nextFloat()) * 0.2F + 1.0F;
     }
 
     public boolean isJuvanile(){
@@ -1318,7 +1361,7 @@ public abstract class Dinosaur extends TamableAnimal implements FossilRevived, G
 
     @Override
     public boolean canBreed() {
-        return !this.isBaby() && !this.isJuvanile() && !this.isSubAdult();
+        return !this.isDinoBaby() && !this.isJuvanile() && !this.isSubAdult();
     }
 
     @Override
@@ -1326,7 +1369,7 @@ public abstract class Dinosaur extends TamableAnimal implements FossilRevived, G
         ItemStack itemStack = player.getItemInHand(hand);
         Item item = itemStack.getItem();
 
-        if (this.level().isClientSide) {
+        if (this.level().isClientSide()) {
             boolean flag = this.isOwnedBy(player) || this.isTame() || itemStack.is(Items.STICK) && !(this.getLastHurtByMob() != null && this.getLastAttacker().is(player));
             return flag ? InteractionResult.CONSUME : InteractionResult.PASS;
         } else if (this.isTame()) {
@@ -1334,11 +1377,12 @@ public abstract class Dinosaur extends TamableAnimal implements FossilRevived, G
                 if (!player.getAbilities().instabuild) {
                     itemStack.shrink(1);
                 }
-                this.heal((float) item.getFoodProperties().getNutrition());
+                // TODO(BUG): a diet item without food properties (wheat) throws here, as on 1.20.1.
+                this.heal((float) item.components().get(DataComponents.FOOD).nutrition());
                 return InteractionResult.SUCCESS;
             } else {
-                InteractionResult interactionresult = super.mobInteract(player, hand);
-                if ((!interactionresult.consumesAction() || this.isBaby()) && this.isOwnedBy(player)) {
+                InteractionResult interactionresult = this.superMobInteract(player, hand);
+                if ((!interactionresult.consumesAction() || this.isDinoBaby()) && this.isOwnedBy(player)) {
                     this.setOrderedToSit(!this.isOrderedToSit());
                     this.jumping = false;
                     this.navigation.stop();
@@ -1370,13 +1414,27 @@ public abstract class Dinosaur extends TamableAnimal implements FossilRevived, G
 
 
         } else {
-            return super.mobInteract(player, hand);
+            return this.superMobInteract(player, hand);
         }
+    }
+
+    /**
+     * {@code super.mobInteract} with the 1.20.1 result for a stage 2 or 3 animal fed its food. 26.2's
+     * {@code Animal.mobInteract} ages up any fed animal with a negative age ({@code canAgeUp()} reads the final
+     * {@code isBaby()}, age &lt; 0). On 1.20.1 only a {@link #isDinoBaby() stage 1} animal aged up: a stage 2 or 3
+     * animal fell through {@code Animal.mobInteract} to {@code Mob.mobInteract}, which returns {@code PASS}, and
+     * used no item (P89). Server only: on the client {@link #mobInteract} returns before it calls this.
+     */
+    private InteractionResult superMobInteract(Player player, InteractionHand hand) {
+        if (this.isFood(player.getItemInHand(hand)) && this.getAge() < 0 && !this.isDinoBaby()) {
+            return InteractionResult.PASS;
+        }
+        return super.mobInteract(player, hand);
     }
 
     public boolean canMateWith(Dinosaur pDinosaur, Dinosaur pMate){
 
-        if(pDinosaur.isBaby() || pMate.isBaby()){
+        if(pDinosaur.isDinoBaby() || pMate.isDinoBaby()){
             return false;
         }if(pDinosaur.isJuvanile() || pMate.isJuvanile()){
             return false;
@@ -1442,16 +1500,16 @@ public abstract class Dinosaur extends TamableAnimal implements FossilRevived, G
     }
 
     @Override
-    protected void actuallyHurt(DamageSource damageSource, float damageAmount) {
+    protected void actuallyHurt(ServerLevel level, DamageSource damageSource, float damageAmount) {
         if(damageSource.getEntity() instanceof Player player){
             this.decreaseReputationForPlayer(player, 20);
             if(this.isTame() && this.getOwner().is(player) && this.getReputationForPlayer(player) < 40){
-                this.setTame(false);
-                this.setOwnerUUID(null);
+                this.setTame(false, true);
+                this.setOwnerReference(null);
             }
         }
         DinoAnimationUtils.setAnimationState(this,"flinch", true);
-        super.actuallyHurt(damageSource, damageAmount);
+        super.actuallyHurt(level, damageSource, damageAmount);
 
     }
 }

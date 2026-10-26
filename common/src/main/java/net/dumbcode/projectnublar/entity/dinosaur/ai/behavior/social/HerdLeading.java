@@ -3,6 +3,7 @@ package net.dumbcode.projectnublar.entity.dinosaur.ai.behavior.social;
 import net.dumbcode.projectnublar.Constants;
 import net.dumbcode.projectnublar.entity.dinosaur.Dinosaur;
 import net.minecraft.server.level.ServerLevel;
+import net.minecraft.util.profiling.Profiler;
 import net.minecraft.world.entity.ai.memory.MemoryModuleType;
 import net.minecraft.world.entity.ai.memory.WalkTarget;
 import net.minecraft.world.phys.Vec3;
@@ -62,7 +63,7 @@ public final class HerdLeading {
             return;
         }
         long start = System.nanoTime();
-        level.getProfiler().push("herdLead");
+        Profiler.get().push("herdLead");
         long now = level.getGameTime();
         double width = dinosaur.getBbWidth();
         double radius = group.radius(HerdSpacing.personalSpace(width, width), width);
@@ -81,7 +82,7 @@ public final class HerdLeading {
             // A journey that ended outside a pause's end (arrival, drag, leader change): no tired mark stays.
             dropUnusedTiredMarks(level, group);
         }
-        level.getProfiler().pop();
+        Profiler.get().pop();
         HerdTimings.record(now, System.nanoTime() - start);
         logEnd(group);
         // After the timing: the debug particles (lead's toggle) must not count as herd AI cost.
@@ -259,7 +260,7 @@ public final class HerdLeading {
      * @return {@code true} while the journey is paused this tick
      */
     private static boolean paused(ServerLevel level, Dinosaur leader, DinoGroup group, long now) {
-        boolean restHours = JourneyPolicy.restHours(level.getDayTime(), leader.getDinoBehaviour().isNocturnal());
+        boolean restHours = JourneyPolicy.restHours(level.getOverworldClockTime(), leader.getDinoBehaviour().isNocturnal());
         boolean down = HerdNeeds.isDown(leader);
         if (restHours && !down && leader.onGround() && !leader.isInWater()) {
             // Ruling Q2: the leader lies down for the night; Rest starts on a later brain tick.

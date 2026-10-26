@@ -1,15 +1,14 @@
 package net.dumbcode.projectnublar.entity.dinosaur;
 
+import net.dumbcode.projectnublar.registry.DataSerializerInit;
 import net.minecraft.network.syncher.EntityDataAccessor;
 import net.minecraft.network.syncher.EntityDataSerializers;
 import net.minecraft.network.syncher.SynchedEntityData;
 import net.minecraft.server.level.ServerLevel;
-import net.minecraft.tags.DamageTypeTags;
 import net.minecraft.util.Mth;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.InteractionResult;
 import net.minecraft.world.damagesource.DamageSource;
-import net.minecraft.world.damagesource.DamageTypes;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.EntityDimensions;
 import net.minecraft.world.entity.EntityType;
@@ -19,6 +18,7 @@ import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.storage.ValueInput;
 import net.minecraft.world.level.storage.ValueOutput;
+import net.minecraft.world.phys.Vec3;
 import org.jetbrains.annotations.NotNull;
 
 import javax.annotation.Nullable;
@@ -28,7 +28,7 @@ import java.util.UUID;
 
 
 public abstract class PartEntity extends Entity {
-    private static final EntityDataAccessor<Optional<UUID>> PARENT_UUID = SynchedEntityData.defineId(PartEntity.class, EntityDataSerializers.OPTIONAL_UUID);
+    private static final EntityDataAccessor<Optional<UUID>> PARENT_UUID = SynchedEntityData.defineId(PartEntity.class, DataSerializerInit.OPTIONAL_UUID);
     private static final EntityDataAccessor<Float> SCALE_WIDTH = SynchedEntityData.defineId(PartEntity.class, EntityDataSerializers.FLOAT);
     private static final EntityDataAccessor<Float> SCALE_HEIGHT = SynchedEntityData.defineId(PartEntity.class, EntityDataSerializers.FLOAT);
     private static final EntityDataAccessor<Float> PART_YAW = SynchedEntityData.defineId(PartEntity.class, EntityDataSerializers.FLOAT);
@@ -90,11 +90,11 @@ public abstract class PartEntity extends Entity {
     }
 
     @Override
-    protected void defineSynchedData() {
-        this.entityData.define(PARENT_UUID, Optional.empty());
-        this.entityData.define(SCALE_WIDTH, 0.5F);
-        this.entityData.define(SCALE_HEIGHT, 0.5F);
-        this.entityData.define(PART_YAW, 0F);
+    protected void defineSynchedData(SynchedEntityData.Builder builder) {
+        builder.define(PARENT_UUID, Optional.empty());
+        builder.define(SCALE_WIDTH, 0.5F);
+        builder.define(SCALE_HEIGHT, 0.5F);
+        builder.define(PART_YAW, 0F);
     }
     @Nullable
     public UUID getParentId() {
@@ -141,17 +141,17 @@ public abstract class PartEntity extends Entity {
         if (this.tickCount > 10) {
             Entity parent = getParent();
             refreshDimensions();
-            if (parent != null && !level().isClientSide) {
+            if (parent != null && !level().isClientSide()) {
 
                 this.markHurt();
 
-                if (!this.level().isClientSide) {
+                if (!this.level().isClientSide()) {
                     this.collideWithNearbyEntities();
                 }
-                if (parent.isRemoved() && !level().isClientSide) {
+                if (parent.isRemoved() && !level().isClientSide()) {
                     this.remove(RemovalReason.DISCARDED);
                 }
-            } else if (tickCount > 20 && !level().isClientSide) {
+            } else if (tickCount > 20 && !level().isClientSide()) {
                 remove(RemovalReason.DISCARDED);
             }
         }
@@ -237,26 +237,20 @@ public abstract class PartEntity extends Entity {
     }
 
     @Override
-    public @NotNull InteractionResult interact(@NotNull Player player, @NotNull InteractionHand hand) {
+    public @NotNull InteractionResult interact(@NotNull Player player, @NotNull InteractionHand hand,
+                                               @NotNull Vec3 location) {
         Entity parent = getParent();
-        if (level().isClientSide && parent != null) {
+        if (level().isClientSide() && parent != null) {
            //to do send packet here
         }
-        return parent != null ? parent.interact(player, hand) : InteractionResult.PASS;
+        return parent != null ? parent.interact(player, hand, location) : InteractionResult.PASS;
     }
 
+    /** Passes the damage, scaled by this part's multiplier, to the parent with the real source (ruling P41). */
     @Override
     public boolean hurtServer(ServerLevel level, @NotNull DamageSource source, float damage) {
         Entity parent = getParent();
-        if (level().isClientSide && source.getEntity() instanceof Player && parent != null) {
-            //send packet
-        }
         return parent != null && parent.hurtServer(level, source, damage * this.damageMultiplier);
-    }
-
-    @Override
-    public boolean isInvulnerableTo(@NotNull DamageSource source) {
-        return source.is(DamageTypes.FALL) || source.is(DamageTypes.DROWN) || source.is(DamageTypes.IN_WALL) || source.is(DamageTypes.FALLING_BLOCK) || source.is(DamageTypes.LAVA) || source.is(DamageTypeTags.IS_FIRE) || super.isInvulnerableTo(source);
     }
 
     // TODO(BUG): the logic looks inverted - it reports "continue persisting" when the part is

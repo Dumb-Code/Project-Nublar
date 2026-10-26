@@ -37,7 +37,7 @@ public class Eat<E extends Dinosaur> extends DelayedBehaviour<E> {
     protected boolean checkExtraStartConditions(ServerLevel level, E dinosaur) {
         foodItem = BrainUtil.getMemory(dinosaur, MemoryModuleType.NEAREST_VISIBLE_WANTED_ITEM);
 
-        if(dinosaur.getDinoDiet().foodMap().containsKey(foodItem.getItem().getDescriptionId())){
+        if(dinosaur.getDinoDiet().foodMap().containsKey(foodItem.getItem().getItem().getDescriptionId())){
             return dinosaur.distanceToSqr(foodItem) <= 5;
         } else return false;
     }
@@ -47,8 +47,8 @@ public class Eat<E extends Dinosaur> extends DelayedBehaviour<E> {
        if(foodItem != null) {
            ItemStack foodItemstack = foodItem.getItem();
            //Check to prevent bug where air sometimes ends up in the feed method.
-           if(dinosaur.getDinoDiet().foodMap().containsKey(foodItemstack.getDescriptionId())) {
-               DinoNeedsUtils.feed(dinosaur, foodItemstack.getDescriptionId());
+           if(dinosaur.getDinoDiet().foodMap().containsKey(foodItemstack.getItem().getDescriptionId())) {
+               DinoNeedsUtils.feed(dinosaur, foodItemstack.getItem().getDescriptionId());
            }
            foodItemstack.shrink(1);
        }

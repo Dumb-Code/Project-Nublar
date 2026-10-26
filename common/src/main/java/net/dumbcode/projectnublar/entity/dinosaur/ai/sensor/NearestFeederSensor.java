@@ -10,6 +10,7 @@ import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.entity.ai.memory.MemoryModuleType;
 import net.minecraft.world.entity.ai.sensing.SensorType;
 import net.minecraft.world.level.block.state.BlockState;
+import net.minecraft.world.phys.Vec3;
 import net.tslat.smartbrainlib.api.core.sensor.ExtendedSensor;
 import net.tslat.smartbrainlib.api.core.sensor.base.PredicateSensor;
 import net.tslat.smartbrainlib.library.object.SquareRadius;
@@ -59,7 +60,8 @@ protected SquareRadius radius = new SquareRadius(10, 3);
                 BlockPos currentTarget = blocks.get(i).getFirst();
                 if (nearestFeeder == null) {
                     nearestFeeder = currentTarget;
-                } else if (entity.distanceToSqr(nearestFeeder.getCenter()) > entity.distanceToSqr(currentTarget.getCenter())) {
+                } else if (entity.distanceToSqr(Vec3.atCenterOf(nearestFeeder))
+                        > entity.distanceToSqr(Vec3.atCenterOf(currentTarget))) {
                     nearestFeeder = currentTarget;
                 }
             }

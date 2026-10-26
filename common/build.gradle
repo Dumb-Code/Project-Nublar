@@ -31,10 +31,6 @@ dependencies {
     testRuntimeOnly 'org.junit.platform:junit-platform-launcher:1.10.2'
 }
 
-tasks.named('compileJava') {
-    options.compilerArgs += ['-Xmaxerrs', '10000'] // compile window, removed in Task 11
-}
-
 // Unit tests may use Minecraft value classes (for example Vec3); the main compile classpath holds Minecraft.
 sourceSets.test.compileClasspath += sourceSets.main.compileClasspath
 // The tests load Minecraft value classes and the mod libraries at run time too.

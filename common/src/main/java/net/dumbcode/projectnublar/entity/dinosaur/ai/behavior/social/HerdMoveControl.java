@@ -5,6 +5,7 @@ import net.dumbcode.projectnublar.entity.dinosaur.Dinosaur;
 import net.dumbcode.projectnublar.registry.MemoryModuleTypeInit;
 import net.minecraft.core.BlockPos;
 import net.minecraft.server.level.ServerLevel;
+import net.minecraft.util.profiling.Profiler;
 import net.minecraft.world.entity.ai.attributes.Attributes;
 import net.minecraft.world.entity.ai.control.MoveControl;
 import net.minecraft.world.entity.ai.memory.MemoryModuleType;
@@ -685,7 +686,7 @@ public class HerdMoveControl extends MoveControl {
     public void tick() {
         ServerLevel level = (ServerLevel) this.mob.level();
         long start = System.nanoTime();
-        level.getProfiler().push("herdMove");
+        Profiler.get().push("herdMove");
         this.matchStanding = false;
         if (this.mob.getNavigation().isInProgress()) {
             // A path wins over steering, unstacking and side steps alike.
@@ -762,7 +763,7 @@ public class HerdMoveControl extends MoveControl {
             // Progress on a path: the body moves (a held body coasts under the threshold within a tick).
             markProgress(level.getGameTime());
         }
-        level.getProfiler().pop();
+        Profiler.get().pop();
         HerdTimings.record(level.getGameTime(), System.nanoTime() - start);
     }
 

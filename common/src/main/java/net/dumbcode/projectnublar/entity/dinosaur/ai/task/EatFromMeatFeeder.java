@@ -7,6 +7,7 @@ import net.dumbcode.projectnublar.util.DinoNeedsUtils;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.entity.ai.behavior.declarative.MemoryCondition;
 import net.minecraft.world.entity.ai.memory.MemoryModuleType;
+import net.minecraft.world.phys.Vec3;
 import net.tslat.smartbrainlib.api.core.behaviour.base.DelayedBehaviour;
 import net.tslat.smartbrainlib.library.object.MemoryTest;
 import net.tslat.smartbrainlib.util.BrainUtil;
@@ -37,7 +38,7 @@ public class EatFromMeatFeeder<E extends Dinosaur> extends DelayedBehaviour<E> {
 
         if(level.getBlockEntity(BrainUtil.getMemory(dinosaur,MemoryModuleType.WALK_TARGET).getTarget().currentBlockPosition()) instanceof DinosaurFeederBlockEntity fbe) {
             feeder = fbe;
-            return dinosaur.distanceToSqr(feeder.getBlockPos().getCenter()) <=2;
+            return dinosaur.distanceToSqr(Vec3.atCenterOf(feeder.getBlockPos())) <=2;
         } else return false;
     }
 

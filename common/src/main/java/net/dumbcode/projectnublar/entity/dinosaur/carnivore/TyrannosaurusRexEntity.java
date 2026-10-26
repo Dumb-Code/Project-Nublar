@@ -98,7 +98,7 @@ public class TyrannosaurusRexEntity extends CarnivoreDinosaur {
             serverLevel.addFreshEntity(part);
         }
         part.setParent(parent);
-        if (parent != null && !part.level().isClientSide) {
+        if (parent != null && !part.level().isClientSide()) {
             float renderYawOffset =  parent.yBodyRot;
 
             if(part.getPartName().equals("head")) {

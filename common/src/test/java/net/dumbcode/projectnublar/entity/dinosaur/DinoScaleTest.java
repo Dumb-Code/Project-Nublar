@@ -1,5 +1,7 @@
 package net.dumbcode.projectnublar.entity.dinosaur;
 
+import net.dumbcode.projectnublar.TestBootstrap;
+import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -11,6 +13,12 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
  * of that.
  */
 class DinoScaleTest {
+
+    /** The static call loads {@link Dinosaur}, whose entity superclasses need vanilla's registries. */
+    @BeforeAll
+    static void bootstrap() {
+        TestBootstrap.ensure();
+    }
 
     @Test
     void adultFactorIsGeneOverHundredPlusOffset() {

@@ -6,11 +6,14 @@ import net.dumbcode.projectnublar.entity.dinosaur.CarnivoreDinosaur;
 import net.dumbcode.projectnublar.entity.dinosaur.Dinosaur;
 import net.dumbcode.projectnublar.registry.*;
 import net.minecraft.core.BlockPos;
+import net.minecraft.core.Holder;
+import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.network.syncher.EntityDataAccessor;
 import net.minecraft.network.syncher.EntityDataSerializers;
 import net.minecraft.network.syncher.SynchedEntityData;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.entity.LivingEntity;
+import net.minecraft.world.entity.ai.attributes.Attribute;
 import net.minecraft.world.entity.ai.attributes.AttributeInstance;
 import net.minecraft.world.entity.ai.attributes.Attributes;
 import net.minecraft.world.entity.monster.Monster;
@@ -20,6 +23,8 @@ import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.phys.Vec3;
 import net.tslat.smartbrainlib.util.BrainUtil;
 import org.jetbrains.annotations.Nullable;
+
+import java.util.function.Supplier;
 
 /**
  * Static helpers for the dinosaur need bars (hunger/thirst/stamina/social) and threat scoring.
@@ -42,13 +47,18 @@ public class DinoNeedsUtils {
     public static final EntityDataAccessor<Float> IMMUNITY = SynchedEntityData.defineId(Dinosaur.class, EntityDataSerializers.FLOAT);
     public static final EntityDataAccessor<Float> TAMING_SCORE = SynchedEntityData.defineId(Dinosaur.class, EntityDataSerializers.FLOAT);
 
-    public static float getMaxHunger(Dinosaur dinosaur){return (float) dinosaur.getAttributeValue(AttributesInit.DINO_HUNGER_NEED.get());}
-    public static float getMaxThirst(Dinosaur dinosaur){return (float) dinosaur.getAttributeValue(AttributesInit.DINO_THIRST_NEED.get());}
-    public static float getMaxStamina(Dinosaur dinosaur){return (float) dinosaur.getAttributeValue(AttributesInit.DINO_ENERGY_NEED.get());}
-    public static float getMaxSocial(Dinosaur dinosaur){return (float) dinosaur.getAttributeValue(AttributesInit.DINO_SOCIAL_NEED.get());}
+    /** The registered holder of a mod attribute: 26.2 reads and sets attributes by {@code Holder<Attribute>}. */
+    private static Holder<Attribute> holder(Supplier<Attribute> attribute) {
+        return BuiltInRegistries.ATTRIBUTE.wrapAsHolder(attribute.get());
+    }
+
+    public static float getMaxHunger(Dinosaur dinosaur){return (float) dinosaur.getAttributeValue(holder(AttributesInit.DINO_HUNGER_NEED));}
+    public static float getMaxThirst(Dinosaur dinosaur){return (float) dinosaur.getAttributeValue(holder(AttributesInit.DINO_THIRST_NEED));}
+    public static float getMaxStamina(Dinosaur dinosaur){return (float) dinosaur.getAttributeValue(holder(AttributesInit.DINO_ENERGY_NEED));}
+    public static float getMaxSocial(Dinosaur dinosaur){return (float) dinosaur.getAttributeValue(holder(AttributesInit.DINO_SOCIAL_NEED));}
 
     public static float getAggressionScoreFromStats(Dinosaur dinosaur){
-        double baseAggression = dinosaur.getAttributeValue(AttributesInit.DINO_AGGRESSION.get());
+        double baseAggression = dinosaur.getAttributeValue(holder(AttributesInit.DINO_AGGRESSION));
         double multiplier = dinosaur.getDinoData().getGeneValue(GeneInit.AGGRESSION.get());
         if(multiplier != 0.0D){
             double finalScore = baseAggression * (1.0D + (multiplier/100));
@@ -214,16 +224,16 @@ public class DinoNeedsUtils {
         dinosaur.getAttribute(Attributes.ATTACK_DAMAGE).setBaseValue(data.attackDamage());
         dinosaur.getAttribute(Attributes.ARMOR).setBaseValue(data.resistance());
      //   dinosaur.getAttribute(Attributes.FOLLOW_RANGE).setBaseValue(data.visionQuality());
-        dinosaur.getAttribute(AttributesInit.DINO_THIRST_NEED.get()).setBaseValue(100);
-        dinosaur.getAttribute(AttributesInit.DINO_HUNGER_NEED.get()).setBaseValue(100);
-        dinosaur.getAttribute(AttributesInit.DINO_ENERGY_NEED.get()).setBaseValue(data.maxStamina());
-        dinosaur.getAttribute(AttributesInit.DINO_SOCIAL_NEED.get()).setBaseValue(data.socialNeed());
-        dinosaur.getAttribute(AttributesInit.TRUST_SCORE.get()).setBaseValue(data.trustThreshold());
-        dinosaur.getAttribute(AttributesInit.DINO_VISION.get()).setBaseValue(data.visionQuality());
-        dinosaur.getAttribute(AttributesInit.DINO_AGGRESSION.get()).setBaseValue(data.aggressionLevel());
-        dinosaur.getAttribute(AttributesInit.DINO_INTELLIGENCE.get()).setBaseValue(data.intelligence());
-        dinosaur.getAttribute(AttributesInit.DINO_FERTILITY.get()).setBaseValue(data.fertility());
-        dinosaur.getAttribute(AttributesInit.DINO_IMMUNITY.get()).setBaseValue(data.immunity());
+        dinosaur.getAttribute(holder(AttributesInit.DINO_THIRST_NEED)).setBaseValue(100);
+        dinosaur.getAttribute(holder(AttributesInit.DINO_HUNGER_NEED)).setBaseValue(100);
+        dinosaur.getAttribute(holder(AttributesInit.DINO_ENERGY_NEED)).setBaseValue(data.maxStamina());
+        dinosaur.getAttribute(holder(AttributesInit.DINO_SOCIAL_NEED)).setBaseValue(data.socialNeed());
+        dinosaur.getAttribute(holder(AttributesInit.TRUST_SCORE)).setBaseValue(data.trustThreshold());
+        dinosaur.getAttribute(holder(AttributesInit.DINO_VISION)).setBaseValue(data.visionQuality());
+        dinosaur.getAttribute(holder(AttributesInit.DINO_AGGRESSION)).setBaseValue(data.aggressionLevel());
+        dinosaur.getAttribute(holder(AttributesInit.DINO_INTELLIGENCE)).setBaseValue(data.intelligence());
+        dinosaur.getAttribute(holder(AttributesInit.DINO_FERTILITY)).setBaseValue(data.fertility());
+        dinosaur.getAttribute(holder(AttributesInit.DINO_IMMUNITY)).setBaseValue(data.immunity());
         DinoNeedsUtils.setAggressionScoreFromStats(dinosaur);
     }
 

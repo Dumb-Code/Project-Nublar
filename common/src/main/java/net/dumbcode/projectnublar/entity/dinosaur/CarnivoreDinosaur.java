@@ -14,7 +14,7 @@ public abstract class CarnivoreDinosaur extends Dinosaur {
     }
 
     public boolean canHuntWithPack() {
-        return this.hasGroup() && !this.isBaby() && !this.isJuvanile();
+        return this.hasGroup() && !this.isDinoBaby() && !this.isJuvanile();
     }
     @Override
     public boolean canTarget(LivingEntity target) {

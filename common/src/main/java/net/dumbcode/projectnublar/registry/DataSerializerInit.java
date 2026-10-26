@@ -1,23 +1,29 @@
 package net.dumbcode.projectnublar.registry;
 
-import net.dumbcode.projectnublar.api.dinosaur.DinoBehaviourData;
+import io.netty.buffer.ByteBuf;
 import net.dumbcode.projectnublar.api.dinosaur.DinoData;
-import net.minecraft.network.FriendlyByteBuf;
+import net.minecraft.core.UUIDUtil;
+import net.minecraft.nbt.CompoundTag;
+import net.minecraft.network.codec.ByteBufCodecs;
+import net.minecraft.network.codec.StreamCodec;
 import net.minecraft.network.syncher.EntityDataSerializer;
 import net.minecraft.network.syncher.EntityDataSerializers;
 
-/** Registers the {@link EntityDataSerializer} used to sync {@link DinoData} over the network. */
+import java.util.Optional;
+import java.util.UUID;
+
+/**
+ * The mod's {@link EntityDataSerializer}s. {@link #DINO_DATA} syncs {@link DinoData}; {@link #COMPOUND_TAG} and
+ * {@link #OPTIONAL_UUID} replace the vanilla serializers of the same names, which 26.2 removed (ruling P40). Each
+ * sends its value as 1.20.1 did: an NBT compound, or a present flag and the UUID's two longs.
+ */
 public class DataSerializerInit {
 
-    public static EntityDataSerializer<DinoData> DINO_DATA = new EntityDataSerializer<>() {
+    /** {@link DinoData} as its NBT compound; a copy is a deep copy. */
+    public static final EntityDataSerializer<DinoData> DINO_DATA = new EntityDataSerializer<>() {
         @Override
-        public void write(FriendlyByteBuf buf, DinoData dinoData) {
-            buf.writeNbt(dinoData.toNBT());
-        }
-
-        @Override
-        public DinoData read(FriendlyByteBuf buf) {
-            return DinoData.fromNBT(buf.readNbt());
+        public StreamCodec<ByteBuf, DinoData> codec() {
+            return ByteBufCodecs.COMPOUND_TAG.map(DinoData::fromNBT, DinoData::toNBT);
         }
 
         @Override
@@ -26,9 +32,28 @@ public class DataSerializerInit {
         }
     };
 
+    /** A {@link CompoundTag}; a copy is a deep copy, as with 1.20.1's {@code EntityDataSerializers.COMPOUND_TAG}. */
+    public static final EntityDataSerializer<CompoundTag> COMPOUND_TAG = new EntityDataSerializer<>() {
+        @Override
+        public StreamCodec<ByteBuf, CompoundTag> codec() {
+            return ByteBufCodecs.COMPOUND_TAG;
+        }
 
+        @Override
+        public CompoundTag copy(CompoundTag tag) {
+            return tag.copy();
+        }
+    };
+
+    /** An optional {@link UUID}, kept by reference as with 1.20.1's {@code EntityDataSerializers.OPTIONAL_UUID}. */
+    public static final EntityDataSerializer<Optional<UUID>> OPTIONAL_UUID =
+            EntityDataSerializer.forValueType(ByteBufCodecs.optional(UUIDUtil.STREAM_CODEC));
+
+    /** Registers the serializers with vanilla; {@code ProjectNublar.init} calls it once on both loaders. */
     public static void loadClass(){
         EntityDataSerializers.registerSerializer(DINO_DATA);
+        EntityDataSerializers.registerSerializer(COMPOUND_TAG);
+        EntityDataSerializers.registerSerializer(OPTIONAL_UUID);
     }
 
 }

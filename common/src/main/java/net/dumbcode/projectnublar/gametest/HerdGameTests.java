@@ -15,6 +15,7 @@ import net.dumbcode.projectnublar.registry.GeneInit;
 import net.dumbcode.projectnublar.util.DinoNeedsUtils;
 import net.minecraft.core.BlockPos;
 import net.minecraft.gametest.framework.GameTestHelper;
+import net.minecraft.network.chat.Component;
 import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.entity.ai.memory.MemoryModuleType;
 import net.minecraft.world.entity.ai.memory.WalkTarget;
@@ -287,7 +288,7 @@ public final class HerdGameTests {
                 .thenExecuteAfter(FLOOR_CHECK_TICK, () -> assertOnFloor(helper, List.of(doomed, survivor)))
                 .thenWaitUntil(() -> helper.assertTrue(GroupManager.groupOf(doomed) != null
                         && GroupManager.groupOf(doomed) == GroupManager.groupOf(survivor), "the two have not paired"))
-                .thenExecute(doomed::kill)
+                .thenExecute(() -> helper.kill(doomed))
                 .thenWaitUntil(() -> {
                     helper.assertTrue(GroupManager.groupOf(doomed) == null, "the dead animal is still in the herd");
                     DinoGroup group = GroupManager.groupOf(survivor);
@@ -420,7 +421,8 @@ public final class HerdGameTests {
                 double z = group.spotZ(animal.getUUID());
                 boolean changed = spots[i] != null && (Double.isNaN(x) || spots[i][0] != x || spots[i][1] != z);
                 if (changed && movesBegan && tick - spots[i][2] < SPOT_STAY_MIN_TICKS) {
-                    helper.fail("a follower changed its graze spot while the leader made small moves", animal);
+                    helper.fail(Component.literal("a follower changed its graze spot while the leader made small moves"),
+                            animal);
                 }
                 if (Double.isNaN(x)) {
                     spots[i] = null;
@@ -441,8 +443,8 @@ public final class HerdGameTests {
                 clock[2] = tick;
             }
             if (group.state() != HerdState.GRAZE) {
-                helper.fail(clock[3] == 0 ? "the herd was not grazing when the leader moves were due"
-                        : "a small leader move started a journey", leader);
+                helper.fail(Component.literal(clock[3] == 0 ? "the herd was not grazing when the leader moves were due"
+                        : "a small leader move started a journey"), leader);
             }
             if (clock[3] > 0) {
                 trackLeaderWalk(ordered[0], orderedFrom);
@@ -633,7 +635,8 @@ public final class HerdGameTests {
                 () -> {
                     for (Dinosaur animal : animals) {
                         if (animal.getBoundingBox().intersects(trapdoorGap) || animal.getBoundingBox().intersects(slabGap)) {
-                            helper.fail("a herd member entered a gap lower than its clearance box", animal);
+                            helper.fail(Component.literal("a herd member entered a gap lower than its clearance box"),
+                                    animal);
                         }
                     }
                 },
@@ -676,7 +679,7 @@ public final class HerdGameTests {
                 () -> {
                     for (Dinosaur animal : animals) {
                         if (animal.isInWater()) {
-                            helper.fail("a herd member walked into the water", animal);
+                            helper.fail(Component.literal("a herd member walked into the water"), animal);
                         }
                     }
                 },
@@ -719,7 +722,7 @@ public final class HerdGameTests {
     private static void assertOnFloor(GameTestHelper helper, List<Dinosaur> animals) {
         for (Dinosaur animal : animals) {
             if (helper.relativeVec(animal.position()).y < FLOOR_Y - FLOOR_TOLERANCE) {
-                helper.fail("spawned below the floor", animal);
+                helper.fail(Component.literal("spawned below the floor"), animal);
             }
         }
     }
@@ -741,7 +744,8 @@ public final class HerdGameTests {
                 }
                 close[i][j] = horizontalDistance(a, b) < HerdSpacing.hardMinimumOf(a, b) ? close[i][j] + 1 : 0;
                 if (close[i][j] > CLOSE_TICKS_LIMIT) {
-                    helper.fail("two herd members stayed closer than the hard minimum for over " + CLOSE_TICKS_LIMIT + " ticks", a);
+                    helper.fail(Component.literal("two herd members stayed closer than the hard minimum for over "
+                            + CLOSE_TICKS_LIMIT + " ticks"), a);
                 }
             }
         }
@@ -772,7 +776,7 @@ public final class HerdGameTests {
                 double dx = ax - bx;
                 double dz = az - group.spotZ(animals.get(j).getUUID());
                 if (dx * dx + dz * dz < GRAZE_SPACING * GRAZE_SPACING - 1.0E-6D) {
-                    helper.fail("two graze spots are closer than the graze spacing", animals.get(i));
+                    helper.fail(Component.literal("two graze spots are closer than the graze spacing"), animals.get(i));
                 }
             }
         }
@@ -797,7 +801,8 @@ public final class HerdGameTests {
     private static void checkLeaderMoved(GameTestHelper helper, Dinosaur leader, double[] orderedFrom) {
         double walked = orderedFrom[2];
         if (walked < LEADER_MOVE_MIN_FRACTION * LEADER_MOVE_DISTANCE) {
-            helper.fail("the leader walked only " + walked + " of its ordered " + LEADER_MOVE_DISTANCE + " blocks", leader);
+            helper.fail(Component.literal("the leader walked only " + walked + " of its ordered " + LEADER_MOVE_DISTANCE
+                    + " blocks"), leader);
         }
     }
 
@@ -853,7 +858,7 @@ public final class HerdGameTests {
      */
     private static void runJourney(GameTestHelper helper, List<Dinosaur> animals, BlockPos goal, int limitTicks,
                                    String failure, Runnable everyTick, JourneyCheck check) {
-        helper.getLevel().setDayTime(TRAVEL_DAY_TIME);
+        helper.setTime(TRAVEL_DAY_TIME);
         long[] clock = {0L, -1L}; // ticks, tick the journey started
         helper.onEachTick(() -> {
             long tick = ++clock[0];
@@ -894,7 +899,8 @@ public final class HerdGameTests {
     private static void checkWalls(GameTestHelper helper, List<Dinosaur> animals) {
         for (Dinosaur animal : animals) {
             if (animal.getMoveControl() instanceof HerdMoveControl control && control.wallBlockedTicks() > WALL_PRESS_TICKS) {
-                helper.fail("a herd member pressed into a wall or trunk for over " + WALL_PRESS_TICKS + " ticks", animal);
+                helper.fail(Component.literal("a herd member pressed into a wall or trunk for over " + WALL_PRESS_TICKS
+                        + " ticks"), animal);
             }
         }
     }
@@ -914,7 +920,8 @@ public final class HerdGameTests {
                 continue;
             }
             if (now - control.lastProgressTick() > NO_PROGRESS_TICKS) {
-                helper.fail("a herd member made no progress for " + NO_PROGRESS_TICKS + " ticks", animal);
+                helper.fail(Component.literal("a herd member made no progress for " + NO_PROGRESS_TICKS + " ticks"),
+                        animal);
             }
         }
     }
@@ -955,7 +962,7 @@ public final class HerdGameTests {
                 double otherArc = group.targetArcOf(animals.get(j).getUUID());
                 if (!Double.isNaN(otherArc) && Math.abs(arc - otherArc) < SAME_TARGET
                         && Math.abs(offset - group.laneOffsetOf(animals.get(j).getUUID())) < SAME_TARGET) {
-                    helper.fail("two followers share a target point", animals.get(i));
+                    helper.fail(Component.literal("two followers share a target point"), animals.get(i));
                 }
             }
         }

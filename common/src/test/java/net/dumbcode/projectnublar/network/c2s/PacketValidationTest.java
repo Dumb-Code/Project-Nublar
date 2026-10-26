@@ -17,9 +17,9 @@ import net.dumbcode.projectnublar.TestBootstrap;
 import net.dumbcode.projectnublar.api.dinosaur.DinoData;
 import net.dumbcode.projectnublar.api.gene.Genes;
 import net.dumbcode.projectnublar.block.entity.IncubatorBlockEntity;
-import net.dumbcode.projectnublar.client.screen.IncubatorScreen;
+import net.dumbcode.projectnublar.menutypes.IncubatorMenu;
 import net.minecraft.resources.Identifier;
-import net.minecraft.world.entity.EntityType;
+import net.minecraft.world.entity.EntityTypes;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 
@@ -30,17 +30,18 @@ import org.junit.jupiter.api.Test;
  *
  * <p>The bounds come from the screens: the DNA sliders of {@code SequencerScreen} (0 to 100),
  * the gene sliders of {@code CommonClientClass} (-100 to 100), the colour pickers (opaque ARGB)
- * and the egg bed of {@link IncubatorScreen}.
+ * and the egg bed {@code IncubatorScreen} draws ({@link IncubatorMenu#BED_OFFSET}, {@link IncubatorMenu#BED_WIDTH},
+ * {@link IncubatorMenu#BED_HEIGHT}).
  */
 class PacketValidationTest {
     private static final Genes.Gene GENE = new Genes.Gene("aggression");
-    /** Set after the bootstrap: reading {@code EntityType.PIG} before it fails. */
+    /** Set after the bootstrap: reading {@code EntityTypes.PIG} before it fails. */
     private static DinoData.EntityInfo pig;
 
     @BeforeAll
     static void bootstrap() {
         TestBootstrap.ensure();
-        pig = new DinoData.EntityInfo(EntityType.PIG, null);
+        pig = new DinoData.EntityInfo(EntityTypes.PIG, null);
     }
 
     @Test
@@ -97,7 +98,7 @@ class PacketValidationTest {
     @Test
     void editInfoWithNonDinosaurBaseIsRejected() {
         DinoData data = new DinoData();
-        data.setBaseDino(EntityType.COW);
+        data.setBaseDino(EntityTypes.COW);
         assertFalse(UpdateEditInfoPacket.isValid(data));
 
         assertFalse(UpdateEditInfoPacket.isDinosaurId(Identifier.fromNamespaceAndPath("minecraft", "cow")));
@@ -122,7 +123,7 @@ class PacketValidationTest {
 
         DinoData data = new DinoData();
         data.addEntity(pig, MAX_PERCENTAGE);
-        data.addEntity(new DinoData.EntityInfo(EntityType.COW, null), MIN_PERCENTAGE);
+        data.addEntity(new DinoData.EntityInfo(EntityTypes.COW, null), MIN_PERCENTAGE);
         data.setBasePercentage(MAX_PERCENTAGE);
         data.setGeneValue(GENE, MIN_GENE_VALUE);
         data.setGeneValue(new Genes.Gene("speed"), MAX_GENE_VALUE);

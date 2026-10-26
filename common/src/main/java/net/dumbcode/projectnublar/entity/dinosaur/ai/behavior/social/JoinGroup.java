@@ -119,7 +119,7 @@ public class JoinGroup<E extends Dinosaur> extends ExtendedBehaviour<E> {
     }
 
     private static boolean canBeGrouped(Dinosaur dinosaur) {
-        return dinosaur.isAlive() && !dinosaur.isBaby() && !dinosaur.isTame()
+        return dinosaur.isAlive() && !dinosaur.isDinoBaby() && !dinosaur.isTame()
                 && dinosaur.getDinoBehaviour().canFormGroup();
     }
 

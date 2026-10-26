@@ -4,11 +4,11 @@ import net.dumbcode.projectnublar.entity.dinosaur.Dinosaur;
 import net.minecraft.core.particles.DustParticleOptions;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
+import net.minecraft.util.ARGB;
 import net.minecraft.util.Mth;
 import net.minecraft.world.level.levelgen.Heightmap;
 import net.minecraft.world.level.pathfinder.Node;
 import net.minecraft.world.level.pathfinder.Path;
-import org.joml.Vector3f;
 
 import java.util.List;
 import java.util.UUID;
@@ -117,8 +117,9 @@ final class HerdDebugVisuals {
         }
     }
 
+    /** Dust in the colour of these channels (0 to 1), packed as vanilla packs its own dust colours. */
     private static DustParticleOptions colour(float red, float green, float blue) {
-        return new DustParticleOptions(new Vector3f(red, green, blue), DOT_SIZE);
+        return new DustParticleOptions(ARGB.colorFromFloat(1F, red, green, blue), DOT_SIZE);
     }
 
     private boolean anyPlayerNear() {
@@ -257,7 +258,7 @@ final class HerdDebugVisuals {
         for (int i = 0; i < this.players.size(); i++) {
             ServerPlayer player = this.players.get(i);
             if (playerNear(player)) {
-                this.level.sendParticles(player, options, true, x, y, z, 1, 0D, 0D, 0D, 0D);
+                this.level.sendParticles(player, options, true, false, x, y, z, 1, 0D, 0D, 0D, 0D);
             }
         }
     }

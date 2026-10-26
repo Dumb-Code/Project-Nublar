@@ -6,6 +6,7 @@ import net.dumbcode.projectnublar.util.DinoNeedsUtils;
 import net.minecraft.core.BlockPos;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.util.RandomSource;
+import net.minecraft.util.profiling.Profiler;
 import net.minecraft.world.entity.ai.behavior.declarative.MemoryCondition;
 import net.minecraft.world.entity.ai.memory.MemoryModuleType;
 import net.minecraft.world.entity.ai.memory.WalkTarget;
@@ -163,9 +164,9 @@ public class FollowFormation<E extends Dinosaur> extends ExtendedBehaviour<E> {
     protected void tick(E entity) {
         ServerLevel level = (ServerLevel) entity.level();
         long start = System.nanoTime();
-        level.getProfiler().push("herdFollow");
+        Profiler.get().push("herdFollow");
         follow(level, entity);
-        level.getProfiler().pop();
+        Profiler.get().pop();
         HerdTimings.record(level.getGameTime(), System.nanoTime() - start);
     }
 
@@ -364,7 +365,7 @@ public class FollowFormation<E extends Dinosaur> extends ExtendedBehaviour<E> {
         this.progress.reset(-distance, now);
         control.markProgress(now);
         this.askingUntil = UNSET;
-        boolean restHours = JourneyPolicy.restHours(level.getDayTime(), entity.getDinoBehaviour().isNocturnal());
+        boolean restHours = JourneyPolicy.restHours(level.getOverworldClockTime(), entity.getDinoBehaviour().isNocturnal());
         // Fix round 1, item 2: not once the leader gets up.
         if (JourneyPolicy.sleepsAtSpot(restHours, group.leaderRising(), DinoNeedsUtils.getCurrentStamina(entity),
                 DinoNeedsUtils.getMaxStamina(entity))) {

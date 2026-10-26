@@ -7,6 +7,7 @@ import net.minecraft.core.BlockPos;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.entity.ai.behavior.declarative.MemoryCondition;
 import net.minecraft.world.level.block.state.BlockState;
+import net.minecraft.world.phys.Vec3;
 import net.tslat.smartbrainlib.api.core.behaviour.base.DelayedBehaviour;
 import net.tslat.smartbrainlib.library.object.MemoryTest;
 import net.tslat.smartbrainlib.util.BrainUtil;
@@ -42,7 +43,7 @@ public class Drink<E extends Dinosaur> extends DelayedBehaviour<E> {
     protected boolean checkExtraStartConditions(ServerLevel level, E dinosaur) {
         BlockPos nearestWaterSource = BrainUtil.getMemory(dinosaur, MemoryModuleTypeInit.HAS_FOUND_WATER.get());
 
-        if(dinosaur.distanceToSqr(nearestWaterSource.getCenter()) > 5){
+        if(dinosaur.distanceToSqr(Vec3.atCenterOf(nearestWaterSource)) > 5){
             return false;
         }
 

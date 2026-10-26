@@ -12,10 +12,6 @@ dependencies {
     compileOnly 'org.jetbrains:annotations:24.1.0'
 }
 
-tasks.named('compileJava') {
-    options.compilerArgs += ['-Xmaxerrs', '10000'] // compile window, removed in Task 11
-}
-
 configurations {
     commonJava {
         canBeResolved = false

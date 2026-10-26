@@ -81,7 +81,7 @@ public class LeaderJourney<E extends Dinosaur> extends ExtendedBehaviour<E> {
             // A leashed leader's ROAM journey would only become a drag (P8c), and P13a rulings Q2 and Q3 start
             // none in the rest hours or below 75% stamina: each a failed try, retried as usual (no probes).
             boolean mayStart = !entity.isLeashed() && JourneyPolicy.roamMayStart(
-                    JourneyPolicy.restHours(level.getDayTime(), entity.getDinoBehaviour().isNocturnal()),
+                    JourneyPolicy.restHours(level.getOverworldClockTime(), entity.getDinoBehaviour().isNocturnal()),
                     DinoNeedsUtils.getCurrentStamina(entity), DinoNeedsUtils.getMaxStamina(entity));
             Vec3 target = mayStart ? journeyTarget(level, entity, group) : null;
             boolean started = target != null && begin(entity, target, JourneyPolicy.Kind.ROAM);

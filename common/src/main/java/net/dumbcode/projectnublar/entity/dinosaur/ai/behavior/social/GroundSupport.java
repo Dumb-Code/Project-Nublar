@@ -41,7 +41,7 @@ final class GroundSupport {
     enum Edge {
         /** Ground under every footprint column: vanilla's own type. */
         FULL,
-        /** Ground under the centre, a drop beside it: costly ({@code DANGER_OTHER}), no corner cutting. */
+        /** Ground under the centre, a drop beside it: costly ({@code DAMAGING_IN_NEIGHBOR}), no corner cutting. */
         RIM,
         /** No ground under the centre, but under some column: blocked. */
         HANG,

@@ -11,6 +11,7 @@ import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.entity.ai.behavior.declarative.MemoryCondition;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.state.pattern.BlockInWorld;
+import net.minecraft.world.phys.Vec3;
 import net.tslat.smartbrainlib.api.core.behaviour.base.DelayedBehaviour;
 import net.tslat.smartbrainlib.library.object.MemoryTest;
 import net.tslat.smartbrainlib.registry.SBLMemoryTypes;
@@ -43,7 +44,7 @@ public class BreakFenceBehaviour<E extends Dinosaur> extends DelayedBehaviour<E>
                 if (blockToTest.getState().is(BlockInit.ELECTRIC_FENCE.get())){
                     BlockPos testPos = blockToTest.getPos();
                     BlockEntity blockEntity = level.getBlockEntity(testPos);
-                    double distance = entity.distanceToSqr(testPos.getCenter());
+                    double distance = entity.distanceToSqr(Vec3.atCenterOf(testPos));
                     if(blockEntity instanceof BlockEntityElectricFence && distance < 2 && distance < closestDistance) {
                         closestDistance = distance;
                         this.targetFencePos = testPos;
@@ -68,7 +69,8 @@ public class BreakFenceBehaviour<E extends Dinosaur> extends DelayedBehaviour<E>
         DinoAnimationUtils.setAnimationState(entity, "attack",false);
         if (entity.level() instanceof ServerLevel level && this.targetFencePos != null) {
             BlockEntity blockEntity = level.getBlockEntity(this.targetFencePos);
-            if (blockEntity instanceof BlockEntityElectricFence fence && entity.distanceToSqr(this.targetFencePos.getCenter()) < 2) {
+            if (blockEntity instanceof BlockEntityElectricFence fence
+                    && entity.distanceToSqr(Vec3.atCenterOf(this.targetFencePos)) < 2) {
                 fence.breakFence(10);
                 entity.level().players().forEach(p ->
                         p.sendSystemMessage(Component.literal("WARNING: Fence Destroyed at: " + entity.position() + ", by a: " + entity)));
