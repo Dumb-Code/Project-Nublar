@@ -1,8 +1,8 @@
 package net.dumbcode.projectnublar.block.entity;
 
-import earth.terrarium.botarium.common.energy.base.BotariumEnergyBlock;
-import earth.terrarium.botarium.common.energy.impl.InsertOnlyEnergyContainer;
-import earth.terrarium.botarium.common.energy.impl.WrappedBlockEnergyContainer;
+import net.blay09.mods.balm.platform.energy.BalmEnergyStorageProvider;
+import net.blay09.mods.balm.platform.energy.DefaultEnergyStorage;
+import net.blay09.mods.balm.platform.energy.EnergyStorage;
 import net.dumbcode.projectnublar.block.ElectricFencePostBlock;
 import net.dumbcode.projectnublar.block.api.fence.ConnectableBlockEntity;
 import net.dumbcode.projectnublar.block.api.fence.Connection;
@@ -11,7 +11,6 @@ import net.dumbcode.projectnublar.registry.BlockInit;
 import net.dumbcode.projectnublar.util.LineUtils;
 import net.dumbcode.projectnublar.util.SaveVersion;
 import net.minecraft.core.BlockPos;
-import net.minecraft.nbt.CompoundTag;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.level.block.entity.BlockEntity;
@@ -36,7 +35,7 @@ import java.util.Set;
  * connected poles, and caches the rendered rotation/shape. NBT keys {@code rotation_flipped} and
  * {@code energy} are frozen save contracts.
  */
-public class BlockEntityElectricFencePole extends BlockEntityElectricFence implements ConnectableBlockEntity, GeoBlockEntity, BotariumEnergyBlock<WrappedBlockEnergyContainer> {
+public class BlockEntityElectricFencePole extends BlockEntityElectricFence implements ConnectableBlockEntity, GeoBlockEntity, BalmEnergyStorageProvider {
 
     private static final String ROTATION_FLIPPED_TAG = "rotation_flipped";
     private static final String ENERGY_TAG = "energy";
@@ -76,7 +75,7 @@ public class BlockEntityElectricFencePole extends BlockEntityElectricFence imple
         return shouldRefreshNextTick;
     }
 
-    private WrappedBlockEnergyContainer energyContainer;
+    private NotifyingInsertOnlyEnergyStorage energyStorage;
 
 
     public BlockEntityElectricFencePole(BlockPos pos, BlockState state) {
@@ -87,15 +86,14 @@ public class BlockEntityElectricFencePole extends BlockEntityElectricFence imple
     public void saveData(ValueOutput output) {
         SaveVersion.write(output);
         output.putBoolean(ROTATION_FLIPPED_TAG, this.flippedAround);
-        // Botarium still serializes to a CompoundTag (Task 5 replaces it); stored through the tag codec.
-        output.store(ENERGY_TAG, CompoundTag.CODEC, this.getEnergyStorage().serialize(new CompoundTag()));
+        output.putInt(ENERGY_TAG, this.getEnergyStorage().getEnergy());
         super.saveData(output);
     }
 
     @Override
     public void loadData(ValueInput input) {
         this.flippedAround = input.getBooleanOr(ROTATION_FLIPPED_TAG, false);
-        this.getEnergyStorage().deserialize(input.read(ENERGY_TAG, CompoundTag.CODEC).orElseGet(CompoundTag::new));
+        this.getEnergyStorage().setEnergy(input.getIntOr(ENERGY_TAG, 0));
         super.loadData(input);
     }
 
@@ -138,12 +136,12 @@ public class BlockEntityElectricFencePole extends BlockEntityElectricFence imple
             return;
         }
 
-        if (this.getEnergyStorage().getStoredEnergy() > 0) {
-            this.getEnergyStorage().internalExtract(POWERED_DRAIN_PER_TICK, false);
+        if (this.getEnergyStorage().getEnergy() > 0) {
+            consume(POWERED_DRAIN_PER_TICK);
         }
 
         syncPoweredBlockstates(state);
-        if (this.getEnergyStorage().getStoredEnergy() > DISTRIBUTION_THRESHOLD) {
+        if (this.getEnergyStorage().getEnergy() > DISTRIBUTION_THRESHOLD) {
             distributePowerToConnectedPoles();
         }
     }
@@ -160,7 +158,7 @@ public class BlockEntityElectricFencePole extends BlockEntityElectricFence imple
     }
 
     private void syncPoweredBlockstates(BlockState state) {
-        boolean powered = this.getEnergyStorage().getStoredEnergy() > 0;
+        boolean powered = this.getEnergyStorage().getEnergy() > 0;
         if (state.getBlock() instanceof ElectricFencePostBlock
             && state.getValue(ElectricFencePostBlock.POWERED_PROPERTY) != powered) {
             updatePoweredBlockstates(state, powered);
@@ -189,20 +187,29 @@ public class BlockEntityElectricFencePole extends BlockEntityElectricFence imple
             return;
         }
 
-        List<WrappedBlockEnergyContainer> list = new ArrayList<>();
-        for (BlockEntityElectricFencePole pole : poles) {
-            list.add(pole.getEnergyStorage());
-        }
-        list.sort(Comparator.comparing(WrappedBlockEnergyContainer::getStoredEnergy));
-        long share = DISTRIBUTION_BUDGET / list.size();
+        List<BlockEntityElectricFencePole> list = new ArrayList<>(poles);
+        list.sort(Comparator.comparingInt(pole -> pole.getEnergyStorage().getEnergy()));
+        int share = DISTRIBUTION_BUDGET / list.size();
         if (share <= 0) {
             return;
         }
-        for (WrappedBlockEnergyContainer storage : list) {
-            long sendEnergy = storage.internalInsert(this.getEnergyStorage().internalExtract(share, true), true);
-            this.getEnergyStorage().internalExtract(sendEnergy, false);
-            storage.internalInsert(sendEnergy, false);
+        for (BlockEntityElectricFencePole pole : list) {
+            EnergyStorage storage = pole.getEnergyStorage();
+            int sendEnergy = storage.fill(Math.min(share, this.getEnergyStorage().getEnergy()), true);
+            consume(sendEnergy);
+            storage.fill(sendEnergy, false);
+            pole.updateBlock();
         }
+    }
+
+    /**
+     * Takes up to {@code amount} out of this pole's insert-only storage (its own drain and its
+     * share to other poles), then sends a block update, as the internal extract did on 1.20.1.
+     */
+    private void consume(int amount) {
+        EnergyStorage storage = this.getEnergyStorage();
+        storage.setEnergy(storage.getEnergy() - Math.min(amount, storage.getEnergy()));
+        this.updateBlock();
     }
 
     private void invalidateConnectedPowerCaches() {
@@ -384,19 +391,15 @@ public class BlockEntityElectricFencePole extends BlockEntityElectricFence imple
 
 
     @Override
-    public WrappedBlockEnergyContainer getEnergyStorage() {
+    public EnergyStorage getEnergyStorage() {
         BlockEntityElectricFencePole basePole = this.getBasePoleForEnergyStorage();
         if (basePole != null && basePole != this) {
             return basePole.getEnergyStorage();
         }
-        return energyContainer == null
-                ? this.energyContainer = new WrappedBlockEnergyContainer(
-                        this,
-                        new NotifyingInsertOnlyEnergyContainer(
-                                ENERGY_CAPACITY,
-                                ENERGY_MAX_TRANSFER,
-                                this::onEnergyChanged))
-                : this.energyContainer;
+        return energyStorage == null
+                ? this.energyStorage = new NotifyingInsertOnlyEnergyStorage(
+                        ENERGY_CAPACITY, ENERGY_MAX_TRANSFER, this::onEnergyChanged)
+                : this.energyStorage;
     }
 
     private BlockEntityElectricFencePole getBasePoleForEnergyStorage() {
@@ -429,31 +432,35 @@ public class BlockEntityElectricFencePole extends BlockEntityElectricFence imple
         }
     }
 
-    private static class NotifyingInsertOnlyEnergyContainer extends InsertOnlyEnergyContainer {
+    /**
+     * An insert-only storage that runs {@code onChange} whenever the stored amount changes: on a
+     * fill from a generator or another pole, on the pole's own drain, and on load.
+     */
+    private static class NotifyingInsertOnlyEnergyStorage extends DefaultEnergyStorage {
         private final Runnable onChange;
 
-        private NotifyingInsertOnlyEnergyContainer(long energyCapacity, long maxInsert, Runnable onChange) {
-            super(energyCapacity, maxInsert);
+        private NotifyingInsertOnlyEnergyStorage(int energyCapacity, int maxInsert, Runnable onChange) {
+            super(energyCapacity, maxInsert, 0);
             this.onChange = onChange;
         }
 
         @Override
-        public void setEnergy(long energy) {
-            long previous = this.getStoredEnergy();
-            super.setEnergy(energy);
-            if (previous != this.getStoredEnergy()) {
+        public int fill(int maxFill, boolean simulate) {
+            int previous = this.getEnergy();
+            int filled = super.fill(maxFill, simulate);
+            if (previous != this.getEnergy()) {
                 this.onChange.run();
             }
+            return filled;
         }
 
         @Override
-        public void deserialize(CompoundTag root) {
-            long previous = this.getStoredEnergy();
-            super.deserialize(root);
-            if (previous != this.getStoredEnergy()) {
+        public void setEnergy(int energy) {
+            int previous = this.getEnergy();
+            super.setEnergy(energy);
+            if (previous != this.getEnergy()) {
                 this.onChange.run();
             }
         }
-
     }
 }

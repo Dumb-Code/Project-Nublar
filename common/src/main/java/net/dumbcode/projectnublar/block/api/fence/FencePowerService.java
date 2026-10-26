@@ -86,12 +86,12 @@ public final class FencePowerService {
 
     private static boolean endpointHasEnergy(BlockGetter level, BlockPos endpoint) {
         BlockEntity endpointEntity = isLoaded(level, endpoint) ? level.getBlockEntity(endpoint) : null;
-        if (endpointEntity instanceof BlockEntityElectricFencePole pole && pole.getEnergyStorage().getStoredEnergy() > 0) {
+        if (endpointEntity instanceof BlockEntityElectricFencePole pole && pole.getEnergyStorage().getEnergy() > 0) {
             return true;
         }
 
         BlockEntityElectricFencePole basePole = getBasePole(level, endpoint);
-        return basePole != null && basePole != endpointEntity && basePole.getEnergyStorage().getStoredEnergy() > 0;
+        return basePole != null && basePole != endpointEntity && basePole.getEnergyStorage().getEnergy() > 0;
     }
 
     private static boolean isLoaded(BlockGetter level, BlockPos pos) {

@@ -1,8 +1,8 @@
 package net.dumbcode.projectnublar.block.entity;
 
-import earth.terrarium.botarium.common.energy.base.BotariumEnergyBlock;
-import earth.terrarium.botarium.common.energy.impl.InsertOnlyEnergyContainer;
-import earth.terrarium.botarium.common.energy.impl.WrappedBlockEnergyContainer;
+import net.blay09.mods.balm.platform.energy.BalmEnergyStorageProvider;
+import net.blay09.mods.balm.platform.energy.DefaultEnergyStorage;
+import net.blay09.mods.balm.platform.energy.EnergyStorage;
 import java.util.function.Consumer;
 import net.dumbcode.projectnublar.block.api.multiblock.IMachineParts;
 import net.dumbcode.projectnublar.block.api.sync.SyncingContainerBlockEntity;
@@ -37,7 +37,7 @@ import software.bernie.geckolib.util.GeckoLibUtil;
  * are intentionally <b>not</b> persisted (original behavior - they are lost on reload).
  */
 public class EggPrinterBlockEntity extends SyncingContainerBlockEntity
-        implements GeoBlockEntity, IMachineParts, BotariumEnergyBlock<WrappedBlockEnergyContainer> {
+        implements GeoBlockEntity, IMachineParts, BalmEnergyStorageProvider {
 
     // Container slot indices (frozen contract with EggPrinterMenu).
     public static final int SLOT_EMBRYO_INPUT = 0;
@@ -120,7 +120,7 @@ public class EggPrinterBlockEntity extends SyncingContainerBlockEntity
     /** Multiblock parts; not persisted to NBT (see class Javadoc). */
     private ItemStack sensor = ItemStack.EMPTY;
     private ItemStack chip = ItemStack.EMPTY;
-    private WrappedBlockEnergyContainer energyContainer;
+    private final EnergyStorage energyStorage = new DefaultEnergyStorage(ENERGY_CAPACITY, ENERGY_MAX_TRANSFER, 0);
 
     public EggPrinterBlockEntity(BlockPos pos, BlockState state) {
         super(BlockInit.EGG_PRINTER_BLOCK_ENTITY.get(), pos, state);
@@ -150,9 +150,9 @@ public class EggPrinterBlockEntity extends SyncingContainerBlockEntity
         isPrinting = !embryoInput.isEmpty()
                 && bonemealAmount >= BONEMEAL_PER_PRINT
                 && eggOutput.isEmpty()
-                && getEnergyStorage().getStoredEnergy() > MIN_ENERGY_TO_PRINT;
+                && getEnergyStorage().getEnergy() > MIN_ENERGY_TO_PRINT;
         if (isPrinting) {
-            getEnergyStorage().internalExtract(calculateEnergyConsumption(), true);
+            // TODO(BUG): 1.20.1 simulated the extract (simulate=true), so machines never use energy; fixing it is a machine-package change.
             progress += 1;
             if (progress >= getMaxProgress()) {
                 finishPrinting();
@@ -199,11 +199,8 @@ public class EggPrinterBlockEntity extends SyncingContainerBlockEntity
     }
 
     @Override
-    public WrappedBlockEnergyContainer getEnergyStorage() {
-        return energyContainer == null
-                ? this.energyContainer = new WrappedBlockEnergyContainer(
-                        this, new InsertOnlyEnergyContainer(ENERGY_CAPACITY, ENERGY_MAX_TRANSFER))
-                : this.energyContainer;
+    public EnergyStorage getEnergyStorage() {
+        return energyStorage;
     }
 
     @Override

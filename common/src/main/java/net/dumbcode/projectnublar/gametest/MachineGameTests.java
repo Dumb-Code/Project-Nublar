@@ -104,7 +104,7 @@ public final class MachineGameTests {
         helper.runAfterDelay(SETTLE_TICKS, () -> {
             String now = readings(sequencer);
             Constants.LOG.info("[machinetest] coreEnergy after {} ticks: {}", SETTLE_TICKS, now);
-            long stored = sequencer.getEnergyStorage().getStoredEnergy();
+            long stored = sequencer.getEnergyStorage().getEnergy();
             helper.succeedIf(() -> helper.assertTrue(stored > sequencer.calculateEnergyConsumption(),
                     "the core stored only " + stored + " FE; " + now));
         });
@@ -146,7 +146,7 @@ public final class MachineGameTests {
 
     private static String readings(SequencerBlockEntity sequencer) {
         StringBuilder text = new StringBuilder()
-                .append("energy=").append(sequencer.getEnergyStorage().getStoredEnergy())
+                .append("energy=").append(sequencer.getEnergyStorage().getEnergy())
                 .append(" consumption=").append(sequencer.calculateEnergyConsumption())
                 .append(" canSynth=").append(sequencer.canSynth());
         for (String name : LEVEL_FIELDS) {

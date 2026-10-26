@@ -3,9 +3,11 @@ package net.dumbcode.projectnublar.platform.services;
 import net.dumbcode.projectnublar.menutypes.IncubatorMenu;
 import net.dumbcode.projectnublar.menutypes.SequencerMenu;
 import net.minecraft.core.BlockPos;
+import net.minecraft.core.Direction;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.MenuProvider;
 import net.minecraft.world.inventory.MenuType;
+import net.minecraft.world.level.Level;
 
 /** The loader-specific services that common code calls through {@code Services.PLATFORM}. */
 public interface IPlatformHelper {
@@ -54,5 +56,23 @@ public interface IPlatformHelper {
      * incubator menu type's client factory reads it.
      */
     void openMenu(ServerPlayer player, MenuProvider provider, BlockPos pos);
+
+    /**
+     * Offers energy to a block of another mod through the loader's energy lookup. The generator
+     * calls this only for a neighbour that is not a {@code BalmEnergyStorageProvider}; Nublar
+     * blocks are filled directly in common code.
+     *
+     * <p>NeoForge reads {@code Capabilities.Energy.BLOCK}. Fabric reads Team Reborn Energy's
+     * {@code EnergyStorage.SIDED} and returns 0 when {@code compat.team_reborn_energy_bridge} is
+     * false or Team Reborn Energy is absent.
+     *
+     * @param level    the level of the receiving block
+     * @param pos      the position of the receiving block
+     * @param side     the face of the receiving block that the energy enters
+     * @param amount   the most energy to offer
+     * @param simulate true to only compute the result, false to move the energy
+     * @return the energy that the block accepted, 0 when it has no energy storage on that side
+     */
+    int insertEnergy(Level level, BlockPos pos, Direction side, int amount, boolean simulate);
 
 }

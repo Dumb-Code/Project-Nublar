@@ -1,8 +1,8 @@
 package net.dumbcode.projectnublar.block.entity;
 
-import earth.terrarium.botarium.common.energy.base.BotariumEnergyBlock;
-import earth.terrarium.botarium.common.energy.impl.InsertOnlyEnergyContainer;
-import earth.terrarium.botarium.common.energy.impl.WrappedBlockEnergyContainer;
+import net.blay09.mods.balm.platform.energy.BalmEnergyStorageProvider;
+import net.blay09.mods.balm.platform.energy.DefaultEnergyStorage;
+import net.blay09.mods.balm.platform.energy.EnergyStorage;
 import java.util.function.Consumer;
 import net.dumbcode.projectnublar.api.dinosaur.DNAData;
 import net.dumbcode.projectnublar.api.dinosaur.DinoData;
@@ -52,7 +52,7 @@ import software.bernie.geckolib.util.GeckoLibUtil;
  * contracts. Container slot indices 0–8 and ContainerData indices 0–9 are frozen menu contracts.
  */
 public class SequencerBlockEntity extends SyncingContainerBlockEntity
-        implements GeoBlockEntity, IMachineParts, BotariumEnergyBlock<WrappedBlockEnergyContainer> {
+        implements GeoBlockEntity, IMachineParts, BalmEnergyStorageProvider {
 
     // Container slot indices (frozen contract with SequencerMenu).
     public static final int SLOT_STORAGE = 0;
@@ -141,7 +141,7 @@ public class SequencerBlockEntity extends SyncingContainerBlockEntity
     private DinoData dinoData = new DinoData();
     private boolean isSynthesizing = false;
     private int synthTime = 0;
-    private WrappedBlockEnergyContainer energyContainer;
+    private final EnergyStorage energyStorage = new DefaultEnergyStorage(ENERGY_CAPACITY, ENERGY_MAX_TRANSFER, 0);
 
     protected final ContainerData dataAccess = new ContainerData() {
         @Override
@@ -354,7 +354,7 @@ public class SequencerBlockEntity extends SyncingContainerBlockEntity
     private boolean tickSynthesis() {
         if (isSynthesizing && canSynth()) {
             synthTime++;
-            getEnergyStorage().internalExtract(calculateEnergyConsumption(), true);
+            // TODO(BUG): 1.20.1 simulated the extract (simulate=true), so machines never use energy; fixing it is a machine-package change.
             if (synthTime > getMaxSynthTime()) {
                 synthTime = 0;
                 dnaTestTubeOutput = new ItemStack(ItemInit.TEST_TUBE_ITEM.get());
@@ -383,11 +383,8 @@ public class SequencerBlockEntity extends SyncingContainerBlockEntity
     }
 
     @Override
-    public WrappedBlockEnergyContainer getEnergyStorage() {
-        return energyContainer == null
-                ? this.energyContainer = new WrappedBlockEnergyContainer(
-                        this, new InsertOnlyEnergyContainer(ENERGY_CAPACITY, ENERGY_MAX_TRANSFER))
-                : this.energyContainer;
+    public EnergyStorage getEnergyStorage() {
+        return energyStorage;
     }
 
     @Override
@@ -580,7 +577,7 @@ public class SequencerBlockEntity extends SyncingContainerBlockEntity
                 && sugarLevel >= SYNTH_RESOURCE_COST
                 && boneMatterLevel >= SYNTH_RESOURCE_COST
                 && waterLevel >= SYNTH_WATER_COST
-                && getEnergyStorage().getStoredEnergy() > calculateEnergyConsumption();
+                && getEnergyStorage().getEnergy() > calculateEnergyConsumption();
     }
 
     public void toggleSynth() {

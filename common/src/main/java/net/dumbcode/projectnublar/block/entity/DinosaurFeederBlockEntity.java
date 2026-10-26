@@ -1,7 +1,7 @@
 package net.dumbcode.projectnublar.block.entity;
 
-import earth.terrarium.botarium.common.energy.base.BotariumEnergyBlock;
-import earth.terrarium.botarium.common.energy.impl.WrappedBlockEnergyContainer;
+import net.blay09.mods.balm.platform.energy.BalmEnergyStorageProvider;
+import net.blay09.mods.balm.platform.energy.EnergyStorage;
 import net.dumbcode.projectnublar.block.api.sync.SyncingContainerBlockEntity;
 import net.dumbcode.projectnublar.registry.BlockInit;
 import net.dumbcode.projectnublar.util.SaveVersion;
@@ -30,7 +30,7 @@ import software.bernie.geckolib.core.animation.RawAnimation;
 import software.bernie.geckolib.core.object.PlayState;
 import software.bernie.geckolib.util.GeckoLibUtil;
 
-public class DinosaurFeederBlockEntity extends SyncingContainerBlockEntity implements GeoBlockEntity, BotariumEnergyBlock<WrappedBlockEnergyContainer> {
+public class DinosaurFeederBlockEntity extends SyncingContainerBlockEntity implements GeoBlockEntity, BalmEnergyStorageProvider {
 
     private AnimatableInstanceCache INSTANCE = GeckoLibUtil.createInstanceCache(this);
     private WrappedBlockEnergyContainer energyContainer;
@@ -108,8 +108,9 @@ public class DinosaurFeederBlockEntity extends SyncingContainerBlockEntity imple
         progress = input.getIntOr("progress", 0);
     }
 
+    /** The feeder holds no energy yet, as on 1.20.1; a generator next to it gives it nothing. */
     @Override
-    public WrappedBlockEnergyContainer getEnergyStorage() {
+    public EnergyStorage getEnergyStorage() {
         return null;
     }
 

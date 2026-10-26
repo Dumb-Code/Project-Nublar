@@ -1,15 +1,16 @@
 package net.dumbcode.projectnublar.block.entity;
 
-import earth.terrarium.botarium.common.energy.EnergyApi;
-import earth.terrarium.botarium.common.energy.base.BotariumEnergyBlock;
-import earth.terrarium.botarium.common.energy.impl.SimpleEnergyContainer;
-import earth.terrarium.botarium.common.energy.impl.WrappedBlockEnergyContainer;
+import net.blay09.mods.balm.platform.energy.BalmEnergyStorageProvider;
+import net.blay09.mods.balm.platform.energy.DefaultEnergyStorage;
+import net.blay09.mods.balm.platform.energy.EnergyStorage;
 import net.dumbcode.projectnublar.block.GeneratorBlock;
 import net.dumbcode.projectnublar.block.api.sync.SyncingContainerBlockEntity;
 import net.dumbcode.projectnublar.menutypes.GeneratorMenu;
+import net.dumbcode.projectnublar.platform.Services;
 import net.dumbcode.projectnublar.registry.BlockInit;
 import net.dumbcode.projectnublar.util.SaveVersion;
 import net.minecraft.core.BlockPos;
+import net.minecraft.core.Direction;
 import net.minecraft.network.chat.Component;
 import net.minecraft.world.entity.player.Inventory;
 import net.minecraft.world.entity.player.Player;
@@ -22,7 +23,30 @@ import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.storage.ValueInput;
 import net.minecraft.world.level.storage.ValueOutput;
 
-public class GeneratorBlockEntity extends SyncingContainerBlockEntity implements BotariumEnergyBlock<WrappedBlockEnergyContainer> {
+import java.util.ArrayList;
+import java.util.Comparator;
+import java.util.List;
+
+/**
+ * The coal and creative generators. The coal generator burns one fuel item every 20 ticks for 4
+ * energy; the creative generator refills itself every tick. Both push energy into their six
+ * neighbours every tick.
+ *
+ * <p>The storage takes no energy from outside ({@code canFill()} follows
+ * {@link GeneratorBlock#getEnergyInput()}, 0 for both generators) and gives up to
+ * {@link GeneratorBlock#getEnergyOutput()} per drain. The stored energy is not saved, as on 1.20.1.
+ *
+ * <p>Push path: a neighbour that is a {@link BalmEnergyStorageProvider} (every Nublar block that
+ * holds energy) is filled directly in common code, so Nublar-to-Nublar power never depends on a
+ * loader capability or on the Team Reborn Energy switch. Any other neighbour goes through
+ * {@link net.dumbcode.projectnublar.platform.services.IPlatformHelper#insertEnergy}. Balm 26.2.0.9
+ * has a block lookup ({@code Balm.capabilities().getCapability(level, pos, state, blockEntity, side,
+ * CommonCapabilities.ENERGY_STORAGE)}), but the generator does not use it: on Fabric it is Balm's own
+ * {@code balm:energy_storage} lookup, and Balm's Team Reborn Energy bridge goes one way only (it shows
+ * Balm storages to Team Reborn Energy). So it does not find a block that has Team Reborn Energy
+ * only, and the 1.20.1 energy library did reach those blocks.
+ */
+public class GeneratorBlockEntity extends SyncingContainerBlockEntity implements BalmEnergyStorageProvider {
     private static final String FUEL_TAG = "fuel";
     private static final int CONTAINER_SIZE = 1;
     private static final int STORED_ENERGY_DATA_INDEX = 0;
@@ -33,7 +57,7 @@ public class GeneratorBlockEntity extends SyncingContainerBlockEntity implements
     private static final int FUEL_BURN_INTERVAL_TICKS = 20;
     private static final int ENERGY_PER_FUEL_ITEM = 4;
 
-    private WrappedBlockEnergyContainer energyContainer;
+    private EnergyStorage energyStorage;
     private ItemStack fuelStack = ItemStack.EMPTY;
 
     public GeneratorBlockEntity(BlockPos pos, BlockState state) {
@@ -44,8 +68,8 @@ public class GeneratorBlockEntity extends SyncingContainerBlockEntity implements
         @Override
         public int get(int slot) {
             return switch (slot) {
-                case STORED_ENERGY_DATA_INDEX -> (int) GeneratorBlockEntity.this.energyContainer.getStoredEnergy();
-                case MAX_ENERGY_DATA_INDEX -> (int) GeneratorBlockEntity.this.energyContainer.getMaxCapacity();
+                case STORED_ENERGY_DATA_INDEX -> GeneratorBlockEntity.this.energyStorage.getEnergy();
+                case MAX_ENERGY_DATA_INDEX -> GeneratorBlockEntity.this.energyStorage.getCapacity();
                 default -> 0;
             };
         }
@@ -73,23 +97,21 @@ public class GeneratorBlockEntity extends SyncingContainerBlockEntity implements
     }
 
     @Override
-    public WrappedBlockEnergyContainer getEnergyStorage() {
+    public EnergyStorage getEnergyStorage() {
         Block block = getBlockState().getBlock();
-        if (block instanceof GeneratorBlock gb && this.energyContainer == null) {
-            this.energyContainer =
-                    new WrappedBlockEnergyContainer(
-                            this,
-                            new SimpleEnergyContainer(
-                                    gb.getMaxEnergy(), gb.getEnergyOutput(), gb.getEnergyInput()));
+        if (block instanceof GeneratorBlock gb && this.energyStorage == null) {
+            this.energyStorage =
+                    new DefaultEnergyStorage(gb.getMaxEnergy(), gb.getEnergyInput(), gb.getEnergyOutput());
         }
-        return this.energyContainer;
+        return this.energyStorage;
     }
 
+    /** Runs one generator tick: makes energy, then pushes it into the neighbours. */
     public void tick(Level level, BlockPos pos, BlockState state, GeneratorBlockEntity be) {
         if (state.getBlock() == BlockInit.CREATIVE_GENERATOR.get()) {
-            tickCreativeGenerator();
+            tickCreativeGenerator(level, pos);
         } else {
-            tickFuelGenerator(level, state, be);
+            tickFuelGenerator(level, pos, state, be);
         }
     }
 
@@ -143,28 +165,93 @@ public class GeneratorBlockEntity extends SyncingContainerBlockEntity implements
         fuelStack = ItemStack.EMPTY;
     }
 
-    private void tickCreativeGenerator() {
-        getEnergyStorage().internalInsert(CREATIVE_ENERGY_INSERT_AMOUNT, false);
-        EnergyApi.distributeEnergyNearby(this, CREATIVE_DISTRIBUTION_LIMIT);
+    private void tickCreativeGenerator(Level level, BlockPos pos) {
+        generate(CREATIVE_ENERGY_INSERT_AMOUNT);
+        pushToNeighbours(level, pos, CREATIVE_DISTRIBUTION_LIMIT);
     }
 
-    private void tickFuelGenerator(Level level, BlockState state, GeneratorBlockEntity be) {
+    private void tickFuelGenerator(Level level, BlockPos pos, BlockState state, GeneratorBlockEntity be) {
         if (!fuelStack.isEmpty()) {
             burnFuelItemIfReady(level);
         }
-        EnergyApi.distributeEnergyNearby(
-                this,
+        pushToNeighbours(
+                level,
+                pos,
                 Math.min(
                         ((GeneratorBlock) state.getBlock()).getEnergyOutput(),
-                        be.getEnergyStorage().getStoredEnergy()));
+                        be.getEnergyStorage().getEnergy()));
         updateBlock();
     }
 
     private void burnFuelItemIfReady(Level level) {
         if (level.getGameTime() % FUEL_BURN_INTERVAL_TICKS == 0
-                && getEnergyStorage().getStoredEnergy() < getEnergyStorage().getMaxCapacity()) {
+                && getEnergyStorage().getEnergy() < getEnergyStorage().getCapacity()) {
             fuelStack.shrink(1);
-            getEnergyStorage().internalInsert(ENERGY_PER_FUEL_ITEM, false);
+            generate(ENERGY_PER_FUEL_ITEM);
         }
+    }
+
+    /**
+     * Adds energy the generator made itself. It skips the storage's fill limit (0 for both
+     * generators) and stops at the capacity, as the internal insert did on 1.20.1.
+     */
+    private void generate(int amount) {
+        EnergyStorage storage = getEnergyStorage();
+        storage.setEnergy(Math.min(storage.getCapacity(), storage.getEnergy() + amount));
+        updateBlock();
+    }
+
+    /**
+     * Pushes up to {@code amount} energy into the six neighbours with the split rule of the 1.20.1
+     * energy library's {@code EnergyApi.distributeEnergyNearby}: neighbours in
+     * {@link Direction#values()} order, sorted (stable) by how much of {@code amount} each would
+     * take, least first; each one gets an even share of what is left, so what one cannot take goes
+     * to the next ones. The
+     * generator gives up only what a neighbour accepted. A neighbour that takes nothing is left
+     * out: under the 1.20.1 rule it sorted first and took nothing, so the totals are the same.
+     */
+    private void pushToNeighbours(Level level, BlockPos pos, int amount) {
+        EnergyStorage storage = getEnergyStorage();
+        int remaining = storage.drain(amount, true);
+        if (remaining == 0) {
+            return;
+        }
+        List<Receiver> receivers = new ArrayList<>();
+        for (Direction direction : Direction.values()) {
+            int wouldTake = insertInto(level, pos.relative(direction), direction.getOpposite(), amount, true);
+            if (wouldTake > 0) {
+                receivers.add(new Receiver(direction, wouldTake));
+            }
+        }
+        receivers.sort(Comparator.comparingInt(Receiver::wouldTake));
+        int receiversLeft = receivers.size();
+        for (Receiver receiver : receivers) {
+            BlockPos target = pos.relative(receiver.direction());
+            Direction side = receiver.direction().getOpposite();
+            int offered = storage.drain(remaining / receiversLeft, true);
+            int accepted = insertInto(level, target, side, offered, true);
+            if (accepted > 0) {
+                storage.drain(accepted, false);
+                insertInto(level, target, side, accepted, false);
+            }
+            remaining -= accepted;
+            receiversLeft--;
+        }
+    }
+
+    /**
+     * Offers energy to the block at {@code pos} on {@code side}: directly when it is a
+     * {@link BalmEnergyStorageProvider}, otherwise through the loader's energy lookup.
+     */
+    private static int insertInto(Level level, BlockPos pos, Direction side, int amount, boolean simulate) {
+        if (level.getBlockEntity(pos) instanceof BalmEnergyStorageProvider provider) {
+            EnergyStorage storage = provider.getEnergyStorage(side);
+            return storage == null ? 0 : storage.fill(amount, simulate);
+        }
+        return Services.PLATFORM.insertEnergy(level, pos, side, amount, simulate);
+    }
+
+    /** A neighbour in the push, with how much of the full amount it would take. */
+    private record Receiver(Direction direction, int wouldTake) {
     }
 }

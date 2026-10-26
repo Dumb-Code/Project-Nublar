@@ -1,8 +1,8 @@
 package net.dumbcode.projectnublar.block.entity;
 
-import earth.terrarium.botarium.common.energy.base.BotariumEnergyBlock;
-import earth.terrarium.botarium.common.energy.impl.InsertOnlyEnergyContainer;
-import earth.terrarium.botarium.common.energy.impl.WrappedBlockEnergyContainer;
+import net.blay09.mods.balm.platform.energy.BalmEnergyStorageProvider;
+import net.blay09.mods.balm.platform.energy.DefaultEnergyStorage;
+import net.blay09.mods.balm.platform.energy.EnergyStorage;
 import net.dumbcode.projectnublar.api.dinosaur.DinoData;
 import net.dumbcode.projectnublar.block.api.multiblock.IMachineParts;
 import net.dumbcode.projectnublar.block.api.sync.SyncingContainerBlockEntity;
@@ -15,7 +15,6 @@ import net.dumbcode.projectnublar.registry.ItemInit;
 import net.dumbcode.projectnublar.util.SaveVersion;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.NonNullList;
-import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.chat.Component;
 import net.minecraft.util.Mth;
 import net.minecraft.world.entity.player.Inventory;
@@ -44,7 +43,7 @@ import software.bernie.geckolib.util.GeckoLibUtil;
  * agreement with {@code IncubatorScreen} must be preserved on both ends.
  */
 public class IncubatorBlockEntity extends SyncingContainerBlockEntity
-        implements GeoBlockEntity, IMachineParts, BotariumEnergyBlock<WrappedBlockEnergyContainer> {
+        implements GeoBlockEntity, IMachineParts, BalmEnergyStorageProvider {
 
     // Container layout (frozen contract with IncubatorMenu).
     public static final int EGG_SLOT_COUNT = 9;
@@ -101,7 +100,7 @@ public class IncubatorBlockEntity extends SyncingContainerBlockEntity
     private ItemStack lidStack = ItemStack.EMPTY;
     private ItemStack baseStack = ItemStack.EMPTY;
     private ItemStack armStack = ItemStack.EMPTY;
-    private WrappedBlockEnergyContainer energyContainer;
+    private final EnergyStorage energyStorage = new DefaultEnergyStorage(ENERGY_CAPACITY, ENERGY_MAX_TRANSFER, 0);
 
     public IncubatorBlockEntity(BlockPos pos, BlockState state) {
         super(BlockInit.INCUBATOR_BLOCK_ENTITY.get(), pos, state);
@@ -202,8 +201,7 @@ public class IncubatorBlockEntity extends SyncingContainerBlockEntity
         output.store(LID_STACK_TAG, ItemStack.OPTIONAL_CODEC, lidStack);
         output.store(BASE_STACK_TAG, ItemStack.OPTIONAL_CODEC, baseStack);
         output.store(ARM_STACK_TAG, ItemStack.OPTIONAL_CODEC, armStack);
-        // Botarium still serializes to a CompoundTag (Task 5 replaces it); stored through the tag codec.
-        output.store(ENERGY_TAG, CompoundTag.CODEC, energyContainer.serialize(new CompoundTag()));
+        output.putInt(ENERGY_TAG, energyStorage.getEnergy());
     }
 
     @Override
@@ -225,7 +223,7 @@ public class IncubatorBlockEntity extends SyncingContainerBlockEntity
         lidStack = input.read(LID_STACK_TAG, ItemStack.OPTIONAL_CODEC).orElse(ItemStack.EMPTY);
         baseStack = input.read(BASE_STACK_TAG, ItemStack.OPTIONAL_CODEC).orElse(ItemStack.EMPTY);
         armStack = input.read(ARM_STACK_TAG, ItemStack.OPTIONAL_CODEC).orElse(ItemStack.EMPTY);
-        energyContainer.deserialize(input.read(ENERGY_TAG, CompoundTag.CODEC).orElseGet(CompoundTag::new));
+        energyStorage.setEnergy(input.getIntOr(ENERGY_TAG, 0));
     }
 
     public ItemStack getNestStack() {
@@ -383,7 +381,7 @@ public class IncubatorBlockEntity extends SyncingContainerBlockEntity
      */
     private void incubateEggs() {
         if (items.stream().anyMatch(slot -> !slot.stack.isEmpty())) {
-            getEnergyStorage().internalExtract(calculateEnergyConsumption(), true);
+            // TODO(BUG): 1.20.1 simulated the extract (simulate=true), so machines never use energy; fixing it is a machine-package change.
             for (int i = 0; i < getSlotCount(); i++) {
                 Slot slot = items.get(i);
                 if (!slot.stack.isEmpty() && slot.stack.is(ItemInit.UNINCUBATED_EGG.get())) {
@@ -436,11 +434,8 @@ public class IncubatorBlockEntity extends SyncingContainerBlockEntity
     }
 
     @Override
-    public WrappedBlockEnergyContainer getEnergyStorage() {
-        return energyContainer == null
-                ? this.energyContainer = new WrappedBlockEnergyContainer(
-                        this, new InsertOnlyEnergyContainer(ENERGY_CAPACITY, ENERGY_MAX_TRANSFER))
-                : this.energyContainer;
+    public EnergyStorage getEnergyStorage() {
+        return energyStorage;
     }
 
     @Override

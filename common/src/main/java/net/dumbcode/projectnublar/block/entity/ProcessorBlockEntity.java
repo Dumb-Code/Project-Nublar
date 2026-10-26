@@ -1,8 +1,10 @@
 package net.dumbcode.projectnublar.block.entity;
 
-import earth.terrarium.botarium.common.energy.base.BotariumEnergyBlock;
-import earth.terrarium.botarium.common.energy.impl.InsertOnlyEnergyContainer;
-import earth.terrarium.botarium.common.energy.impl.WrappedBlockEnergyContainer;
+import net.blay09.mods.balm.platform.energy.BalmEnergyStorageProvider;
+import net.blay09.mods.balm.platform.energy.DefaultEnergyStorage;
+import net.blay09.mods.balm.platform.energy.EnergyStorage;
+import net.blay09.mods.balm.platform.fluid.BalmFluidTankProvider;
+import net.blay09.mods.balm.platform.fluid.FluidTank;
 import net.dumbcode.projectnublar.api.dinosaur.DNAData;
 import net.dumbcode.projectnublar.api.util.NublarMath;
 import net.dumbcode.projectnublar.block.api.sync.SyncingContainerBlockEntity;
@@ -28,6 +30,8 @@ import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.state.BlockState;
+import net.minecraft.world.level.material.Fluid;
+import net.minecraft.world.level.material.Fluids;
 import net.minecraft.world.level.storage.ValueInput;
 import net.minecraft.world.level.storage.ValueOutput;
 import net.minecraft.world.phys.AABB;
@@ -43,9 +47,12 @@ import software.bernie.geckolib.util.GeckoLibUtil;
  * <p>Container slot indices are frozen menu contracts: 0 = water, 1 = input, 2 = test tube,
  * 3–11 = the nine output slots, and the non-contiguous 12/13/14 = filter/tank/chip upgrades.
  * All NBT tag names are frozen save contracts.
+ *
+ * <p>The water sits in a one-slot Balm {@link FluidTank} ({@link #getFluidTank()}), so pipes
+ * from other mods can fill it through Balm's loader bridges.
  */
 public class ProcessorBlockEntity extends SyncingContainerBlockEntity
-        implements GeoBlockEntity, BotariumEnergyBlock<WrappedBlockEnergyContainer> {
+        implements GeoBlockEntity, BalmEnergyStorageProvider, BalmFluidTankProvider {
 
     // Container slot indices (frozen contract with ProcessorMenu).
     public static final int SLOT_WATER = 0;
@@ -105,7 +112,8 @@ public class ProcessorBlockEntity extends SyncingContainerBlockEntity
     private final NonNullList<ItemStack> output = NonNullList.withSize(OUTPUT_SLOT_COUNT, ItemStack.EMPTY);
     private float fluidLevel = 0;
     private int cookingProgress = 0;
-    private WrappedBlockEnergyContainer energyContainer;
+    private final EnergyStorage energyStorage = new DefaultEnergyStorage(ENERGY_CAPACITY, ENERGY_MAX_TRANSFER, 0);
+    private final WaterTank waterTank = new WaterTank();
 
     protected final ContainerData dataAccess = new ContainerData() {
         @Override
@@ -147,7 +155,7 @@ public class ProcessorBlockEntity extends SyncingContainerBlockEntity
             if (blockEntity.cookingProgress < blockEntity.getMaxProcessingTime()) {
                 blockEntity.cookingProgress++;
                 blockEntity.fluidLevel -= FLUID_PER_FULL_PROCESS / blockEntity.getMaxProcessingTime();
-                blockEntity.getEnergyStorage().internalExtract(calculateEnergyConsumption(), true);
+                // TODO(BUG): 1.20.1 simulated the extract (simulate=true), so machines never use energy; fixing it is a machine-package change.
             } else {
                 blockEntity.finishProcessing();
             }
@@ -155,12 +163,12 @@ public class ProcessorBlockEntity extends SyncingContainerBlockEntity
         }
     }
 
-    /** Converts a water bucket in the water slot into 1000 mB of internal fluid. */
+    /** Converts a water bucket in the water slot into 1000 mB in the tank when a whole bucket fits. */
     private void intakeWater() {
-        if (Mth.floor(fluidLevel) <= getMaxFluidLevel() - WATER_PER_BUCKET
-                && getItem(SLOT_WATER).is(Items.WATER_BUCKET)) {
+        if (getItem(SLOT_WATER).is(Items.WATER_BUCKET)
+                && waterTank.fill(0, Fluids.WATER, WATER_PER_BUCKET, true) == WATER_PER_BUCKET) {
             setItem(SLOT_WATER, new ItemStack(Items.BUCKET));
-            fluidLevel = Mth.clamp(fluidLevel + WATER_PER_BUCKET, 0, getMaxFluidLevel());
+            waterTank.fill(0, Fluids.WATER, WATER_PER_BUCKET, false);
         }
     }
 
@@ -202,11 +210,13 @@ public class ProcessorBlockEntity extends SyncingContainerBlockEntity
     }
 
     @Override
-    public WrappedBlockEnergyContainer getEnergyStorage() {
-        return energyContainer == null
-                ? this.energyContainer = new WrappedBlockEnergyContainer(
-                        this, new InsertOnlyEnergyContainer(ENERGY_CAPACITY, ENERGY_MAX_TRANSFER))
-                : this.energyContainer;
+    public EnergyStorage getEnergyStorage() {
+        return energyStorage;
+    }
+
+    @Override
+    public FluidTank getFluidTank() {
+        return waterTank;
     }
 
     @Override
@@ -223,8 +233,7 @@ public class ProcessorBlockEntity extends SyncingContainerBlockEntity
         data.store(FILTER_TAG, ItemStack.OPTIONAL_CODEC, filter);
         data.store(TANK_UPGRADE_TAG, ItemStack.OPTIONAL_CODEC, tankUpgrade);
         data.store(CHIP_UPGRADE_TAG, ItemStack.OPTIONAL_CODEC, chipUpgrade);
-        // Botarium still serializes to a CompoundTag (Task 5 replaces it); stored through the tag codec.
-        data.store(ENERGY_TAG, CompoundTag.CODEC, energyContainer.serialize(new CompoundTag()));
+        data.putInt(ENERGY_TAG, energyStorage.getEnergy());
     }
 
     @Override
@@ -240,7 +249,7 @@ public class ProcessorBlockEntity extends SyncingContainerBlockEntity
         filter = data.read(FILTER_TAG, ItemStack.OPTIONAL_CODEC).orElse(ItemStack.EMPTY);
         tankUpgrade = data.read(TANK_UPGRADE_TAG, ItemStack.OPTIONAL_CODEC).orElse(ItemStack.EMPTY);
         chipUpgrade = data.read(CHIP_UPGRADE_TAG, ItemStack.OPTIONAL_CODEC).orElse(ItemStack.EMPTY);
-        energyContainer.deserialize(data.read(ENERGY_TAG, CompoundTag.CODEC).orElseGet(CompoundTag::new));
+        energyStorage.setEnergy(data.getIntOr(ENERGY_TAG, 0));
     }
 
     @Override
@@ -356,7 +365,7 @@ public class ProcessorBlockEntity extends SyncingContainerBlockEntity
                 if (itemStack.is(Items.WATER_BUCKET)) {
                     // Note the strict '<' here versus '<=' in intakeWater
                     if (Mth.floor(fluidLevel) < getMaxFluidLevel() - WATER_PER_BUCKET) {
-                        fluidLevel = Mth.clamp(fluidLevel + WATER_PER_BUCKET, 0, getMaxFluidLevel());
+                        waterTank.fill(0, Fluids.WATER, WATER_PER_BUCKET, false);
                         water = new ItemStack(Items.BUCKET);
                     }
                 }
@@ -420,5 +429,87 @@ public class ProcessorBlockEntity extends SyncingContainerBlockEntity
 
     public AABB getRenderBoundingBox() {
         return new AABB(getBlockPos()).inflate(4);
+    }
+
+    /**
+     * The Processor's water as a Balm tank with one slot (slot 0) that holds water only. The
+     * water-bucket slot, a hopper that puts a bucket into that slot, and pipes from other mods
+     * (through Balm's loader bridges, with no Nublar code) all fill it through {@link #fill}.
+     * Nothing drains it from outside: the Processor uses its own water while it works.
+     *
+     * <p>The capacity is read live from {@link #getMaxFluidLevel()}, because it follows the tank
+     * upgrade item in its slot. The amount stays in the float field {@code fluidLevel}, because a
+     * run uses {@code FLUID_PER_FULL_PROCESS / maxProcessingTime} each tick, which is less than
+     * 1 mB; the tank shows the whole units ({@code Mth.floor}) and a fill keeps the fraction.
+     */
+    private final class WaterTank implements FluidTank {
+
+        @Override
+        public int fill(int slot, Fluid fluid, int maxFill, boolean simulate) {
+            if (!canFill(slot, fluid)) {
+                return 0;
+            }
+            int filled = Math.max(0, Math.min(maxFill, getCapacity(slot) - getAmount(slot)));
+            if (!simulate && filled > 0) {
+                fluidLevel = Math.min(fluidLevel + filled, getCapacity(slot));
+                setChanged();
+            }
+            return filled;
+        }
+
+        @Override
+        public int drain(int slot, Fluid fluid, int maxDrain, boolean simulate) {
+            return 0;
+        }
+
+        @Override
+        public Fluid getFluid(int slot) {
+            return isEmpty(slot) ? Fluids.EMPTY : Fluids.WATER;
+        }
+
+        /** Sets the amount for water; any other fluid empties the tank, which holds water only. */
+        @Override
+        public void setFluid(int slot, Fluid fluid, int amount) {
+            if (slot == 0) {
+                fluidLevel = fluid == Fluids.WATER ? amount : 0;
+            }
+        }
+
+        @Override
+        public int getAmount(int slot) {
+            return slot == 0 ? Mth.floor(fluidLevel) : 0;
+        }
+
+        @Override
+        public void setAmount(int slot, int amount) {
+            if (slot == 0) {
+                fluidLevel = amount;
+            }
+        }
+
+        @Override
+        public int getCapacity(int slot) {
+            return slot == 0 ? getMaxFluidLevel() : 0;
+        }
+
+        @Override
+        public boolean canDrain(int slot, Fluid fluid) {
+            return false;
+        }
+
+        @Override
+        public boolean canFill(int slot, Fluid fluid) {
+            return slot == 0 && fluid == Fluids.WATER;
+        }
+
+        @Override
+        public boolean isEmpty(int slot) {
+            return getAmount(slot) <= 0;
+        }
+
+        @Override
+        public int getSlotCount() {
+            return 1;
+        }
     }
 }
