@@ -16,6 +16,7 @@ import net.dumbcode.projectnublar.entity.dinosaur.ai.behavior.action.GettingUpFr
 import net.dumbcode.projectnublar.entity.dinosaur.ai.behavior.need.SoloHuntRoamBehaviour;
 import net.dumbcode.projectnublar.entity.dinosaur.ai.behavior.need.SoloHuntingBehaviour;
 import net.dumbcode.projectnublar.entity.dinosaur.ai.sensor.NearestFeederSensor;
+import net.dumbcode.projectnublar.entity.dinosaur.animation.RestartableAnimationController;
 import net.dumbcode.projectnublar.entity.dinosaur.ai.task.*;
 import net.dumbcode.projectnublar.entity.api.FossilRevived;
 import net.dumbcode.projectnublar.entity.dinosaur.ai.sensor.NearestWaterSourceSensor;
@@ -90,14 +91,14 @@ import net.tslat.smartbrainlib.util.BrainUtil;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.joml.Vector3f;
-import software.bernie.geckolib.animatable.GeoEntity;
-import software.bernie.geckolib.core.animatable.GeoAnimatable;
-import software.bernie.geckolib.core.animatable.instance.AnimatableInstanceCache;
-import software.bernie.geckolib.core.animation.*;
-import software.bernie.geckolib.core.animation.AnimationState;
-import software.bernie.geckolib.core.object.Color;
-import software.bernie.geckolib.core.object.PlayState;
-import software.bernie.geckolib.util.GeckoLibUtil;
+import com.geckolib.animatable.GeoAnimatable;
+import com.geckolib.animatable.GeoEntity;
+import com.geckolib.animatable.instance.AnimatableInstanceCache;
+import com.geckolib.animatable.manager.AnimatableManager;
+import com.geckolib.animation.AnimationController;
+import com.geckolib.animation.object.PlayState;
+import com.geckolib.animation.state.AnimationTest;
+import com.geckolib.util.GeckoLibUtil;
 
 import java.util.*;
 
@@ -220,11 +221,12 @@ public abstract class Dinosaur extends TamableAnimal implements FossilRevived, G
     public void registerControllers(AnimatableManager.ControllerRegistrar controllers) {
         // Walk or run from the real ground speed (fix P10; GeckoLib's generic walk controller only walks).
         // Blends instead of snaps between animations (fix P12a).
-        controllers.add(new AnimationController<GeoAnimatable>(this, "movement", DinoAnimator.MOVEMENT_TRANSITION_TICKS, this.animator::movement));
-        controllers.add(new AnimationController<GeoAnimatable>(this, "dino_controller", DinoAnimator.MAIN_TRANSITION_TICKS, this.animator::main));
-        controllers.add(new AnimationController<GeoAnimatable>(this, "dino_secondary_Controller",0,this::animationPredicateAmbient));
+        // The main controller restarts an animation that plays again (DinoAnimator.set).
+        controllers.add(new AnimationController<>("movement", DinoAnimator.MOVEMENT_TRANSITION_TICKS, this.animator::movement));
+        controllers.add(new RestartableAnimationController<>("dino_controller", DinoAnimator.MAIN_TRANSITION_TICKS, this.animator::main));
+        controllers.add(new AnimationController<>("dino_secondary_Controller", 0, this::animationPredicateAmbient));
     }
-    private <T extends GeoAnimatable> PlayState animationPredicateAmbient(AnimationState<T> state) {
+    private PlayState animationPredicateAmbient(AnimationTest<Dinosaur> test) {
 
     return PlayState.STOP;
 
@@ -1288,14 +1290,18 @@ public abstract class Dinosaur extends TamableAnimal implements FossilRevived, G
     }
 
     //SKIN SETTER
-    public Color layerColor(int layer, DinoLayer dinoLayer) {
+    /**
+     * The colour of a skin layer as an ARGB int (GeckoLib 5 has no colour class). White for a layer with no basic
+     * colour; a layer past the stored colours uses its basic layer's colour.
+     */
+    public int layerColor(int layer, DinoLayer dinoLayer) {
         if (dinoLayer != null && dinoLayer.getBasicLayer() == -1) {
-            return Color.WHITE;
+            return 0xFFFFFFFF;
         }
         if (layer >= this.getDinoData().getLayerColors().stream().count()) {
-            return new Color(Mth.floor(this.getDinoData().getLayerColor(dinoLayer.getBasicLayer())));
+            return Mth.floor(this.getDinoData().getLayerColor(dinoLayer.getBasicLayer()));
         }
-        return new Color(Mth.floor(this.getDinoData().getLayerColor(layer)));
+        return Mth.floor(this.getDinoData().getLayerColor(layer));
     }
 
     public @Nullable SoundEvent getRoarSound(){

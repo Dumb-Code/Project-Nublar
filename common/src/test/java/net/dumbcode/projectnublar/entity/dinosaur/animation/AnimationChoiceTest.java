@@ -13,7 +13,7 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 
 class AnimationChoiceTest {
 
-    /** The Gallimimus file (assets/projectnublar/animations/entity/gallimimus.animation.json). */
+    /** The Gallimimus file (assets/projectnublar/geckolib/animations/entity/gallimimus.animation.json). */
     private static final Set<String> GALLIMIMUS = Set.of("move.walk", "run", "swim", "attack1", "attack2", "calling",
             "misc.idle", "rest", "restidle", "lookright", "lookleft", "sentry", "sniffair", "flinch", "startled");
 

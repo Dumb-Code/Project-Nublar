@@ -1,8 +1,12 @@
 package net.dumbcode.projectnublar.client;
 
-import com.mojang.blaze3d.vertex.PoseStack;
-import com.mojang.blaze3d.vertex.VertexConsumer;
+import com.geckolib.constant.dataticket.DataTicket;
+import com.geckolib.model.DefaultedBlockGeoModel;
+import com.geckolib.renderer.GeoBlockRenderer;
+import com.geckolib.renderer.base.BoneSnapshots;
+import com.geckolib.renderer.base.RenderPassInfo;
 import net.dumbcode.projectnublar.Constants;
+import net.dumbcode.projectnublar.block.entity.EggPrinterBlockEntity;
 import net.dumbcode.projectnublar.block.entity.IncubatorBlockEntity;
 import net.dumbcode.projectnublar.client.renderer.*;
 import net.dumbcode.projectnublar.client.renderer.dinosaurs.*;
@@ -20,18 +24,15 @@ import net.dumbcode.projectnublar.registry.ItemInit;
 import net.dumbcode.projectnublar.registry.MenuTypeInit;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.screens.MenuScreens;
-import net.minecraft.client.renderer.MultiBufferSource;
-import net.minecraft.client.renderer.RenderType;
 import net.minecraft.client.renderer.blockentity.BlockEntityRenderers;
+import net.minecraft.client.renderer.blockentity.state.BlockEntityRenderState;
 import net.minecraft.client.renderer.entity.EntityRenderer;
 import net.minecraft.client.renderer.entity.EntityRenderers;
 import net.minecraft.client.renderer.item.ItemProperties;
+import net.minecraft.client.renderer.rendertype.RenderType;
+import net.minecraft.client.renderer.rendertype.RenderTypes;
 import net.minecraft.client.renderer.texture.AbstractTexture;
 import net.minecraft.resources.Identifier;
-import org.jetbrains.annotations.Nullable;
-import software.bernie.geckolib.cache.object.GeoBone;
-import software.bernie.geckolib.model.DefaultedBlockGeoModel;
-import software.bernie.geckolib.renderer.GeoBlockRenderer;
 
 public class ClientRegistrationHolder {
 
@@ -64,35 +65,44 @@ public class ClientRegistrationHolder {
     }
 
     public static void registerBlockEntityRenderers() {
-        BlockEntityRenderers.register(BlockInit.FEEDER_BLOCK_ENTITY.get(), (context) -> new CarnivoreFeederRenderer());
-        BlockEntityRenderers.register(BlockInit.PROCESSOR_BLOCK_ENTITY.get(), (context) -> new ProcessorRenderer());
-         BlockEntityRenderers.register(BlockInit.SEQUENCER_BLOCK_ENTITY.get(), (context) -> new SequencerRenderer());
-         BlockEntityRenderers.register(BlockInit.EGG_PRINTER_BLOCK_ENTITY.get(), (context) -> new GeoBlockRenderer<>(new DefaultedBlockGeoModel<>(Identifier.fromNamespaceAndPath(Constants.MODID,"egg_printer"))));
-         BlockEntityRenderers.register(BlockInit.INCUBATOR_BLOCK_ENTITY.get(), (context) -> new GeoBlockRenderer<IncubatorBlockEntity>(new DefaultedBlockGeoModel<>(Identifier.fromNamespaceAndPath(Constants.MODID,"incubator"))) {
-            @Override
-            public void renderRecursively(PoseStack poseStack, IncubatorBlockEntity animatable, GeoBone bone, RenderType renderType, MultiBufferSource bufferSource, VertexConsumer buffer, boolean isReRender, float partialTick, int packedLight, int packedOverlay, float red, float green, float blue, float alpha) {
-                if (bone.getName().equals("nest")) {
-                    bone.setHidden(animatable.getNestStack().isEmpty());
-                }
-                if (bone.getName().equals("cover")) {
-                    bone.setHidden(animatable.getLidStack().isEmpty());
-                }
-                if (bone.getName().equals("arm_base")) {
-                    bone.setHidden(animatable.getBaseStack().isEmpty());
-                }
-                if (bone.getName().equals("RoboticHand1")) {
-                    bone.setHidden(animatable.getArmStack().isEmpty());
-                }
+        BlockEntityRenderers.register(BlockInit.FEEDER_BLOCK_ENTITY.get(), CarnivoreFeederRenderer::new);
+        BlockEntityRenderers.register(BlockInit.PROCESSOR_BLOCK_ENTITY.get(), ProcessorRenderer::new);
+         BlockEntityRenderers.register(BlockInit.SEQUENCER_BLOCK_ENTITY.get(), SequencerRenderer::new);
+         BlockEntityRenderers.register(BlockInit.EGG_PRINTER_BLOCK_ENTITY.get(), (context) -> new GeoBlockRenderer<EggPrinterBlockEntity, BlockEntityRenderState>(context, new DefaultedBlockGeoModel<>(Identifier.fromNamespaceAndPath(Constants.MODID,"egg_printer"))));
+         // Incubator: translucent, and each part shows only while its item is in the incubator.
+         BlockEntityRenderers.register(BlockInit.INCUBATOR_BLOCK_ENTITY.get(), (context) -> new GeoBlockRenderer<IncubatorBlockEntity, BlockEntityRenderState>(context, new DefaultedBlockGeoModel<>(Identifier.fromNamespaceAndPath(Constants.MODID,"incubator"))) {
+            private static final DataTicket<Boolean> HAS_NEST = DataTicket.create("projectnublar_incubator_has_nest", Boolean.class);
+            private static final DataTicket<Boolean> HAS_LID = DataTicket.create("projectnublar_incubator_has_lid", Boolean.class);
+            private static final DataTicket<Boolean> HAS_BASE = DataTicket.create("projectnublar_incubator_has_base", Boolean.class);
+            private static final DataTicket<Boolean> HAS_ARM = DataTicket.create("projectnublar_incubator_has_arm", Boolean.class);
 
-                super.renderRecursively(poseStack, animatable, bone, renderType, bufferSource, buffer, isReRender, partialTick, packedLight, packedOverlay, red, green, blue, alpha);
+            @Override
+            public void addRenderData(IncubatorBlockEntity animatable, Void relatedObject, BlockEntityRenderState renderState, float partialTick) {
+                renderState.addGeckolibData(HAS_NEST, !animatable.getNestStack().isEmpty());
+                renderState.addGeckolibData(HAS_LID, !animatable.getLidStack().isEmpty());
+                renderState.addGeckolibData(HAS_BASE, !animatable.getBaseStack().isEmpty());
+                renderState.addGeckolibData(HAS_ARM, !animatable.getArmStack().isEmpty());
             }
 
             @Override
-            public RenderType getRenderType(IncubatorBlockEntity animatable, Identifier texture, @Nullable MultiBufferSource bufferSource, float partialTick) {
-                return RenderType.entityTranslucent(texture);
+            public void adjustModelBonesForRender(RenderPassInfo<BlockEntityRenderState> renderPassInfo, BoneSnapshots snapshots) {
+                setHidden(snapshots, "nest", !renderPassInfo.getGeckolibData(HAS_NEST));
+                setHidden(snapshots, "cover", !renderPassInfo.getGeckolibData(HAS_LID));
+                setHidden(snapshots, "arm_base", !renderPassInfo.getGeckolibData(HAS_BASE));
+                setHidden(snapshots, "RoboticHand1", !renderPassInfo.getGeckolibData(HAS_ARM));
+            }
+
+            /** Hides or shows a bone and its children, as GeckoLib 4's {@code GeoBone.setHidden} did. */
+            private static void setHidden(BoneSnapshots snapshots, String bone, boolean hidden) {
+                snapshots.ifPresent(bone, snapshot -> snapshot.skipRender(hidden).skipChildrenRender(hidden));
+            }
+
+            @Override
+            public RenderType getRenderType(BlockEntityRenderState renderState, Identifier texture) {
+                return RenderTypes.entityTranslucent(texture);
             }
         });
-         BlockEntityRenderers.register(BlockInit.ELECTRIC_FENCE_POST_BLOCK_ENTITY.get(), (c)-> new ElectricFenceRenderer());
+         BlockEntityRenderers.register(BlockInit.ELECTRIC_FENCE_POST_BLOCK_ENTITY.get(), ElectricFenceRenderer::new);
          BlockEntityRenderers.register(BlockInit.ELECTRIC_FENCE_BLOCK_ENTITY.get(), (c)-> new ElectricWireRenderer());
     }
 

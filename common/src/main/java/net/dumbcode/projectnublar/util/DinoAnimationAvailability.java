@@ -6,9 +6,9 @@ import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.resources.Identifier;
 import net.minecraft.world.entity.EntityType;
 import org.jetbrains.annotations.Nullable;
-import software.bernie.geckolib.cache.GeckoLibCache;
-import software.bernie.geckolib.core.animation.RawAnimation;
-import software.bernie.geckolib.loading.object.BakedAnimations;
+import com.geckolib.animation.RawAnimation;
+import com.geckolib.cache.GeckoLibResources;
+import com.geckolib.cache.animation.BakedAnimations;
 
 import java.util.Arrays;
 import java.util.HashMap;
@@ -28,7 +28,7 @@ import java.util.Map;
  * (species, state) pair; that lookup, and a one-time WARN when the species has none of the candidates, are the
  * only slow steps.
  *
- * <p>Client safety: {@link GeckoLibCache#getBakedAnimations()} is empty on a dedicated server, and it is empty on the
+ * <p>Client safety: {@link GeckoLibResources#getBakedAnimations()} is empty on a dedicated server, and it is empty on the
  * client until the first resource load ends. In both cases the answer is "available" and is not cached, so the
  * behaviour matches the old code until real data exists. A resource reload (F3+T) replaces the {@link BakedAnimations}
  * instance, which invalidates the cached answers for that species.
@@ -37,8 +37,9 @@ import java.util.Map;
  * use this class: it reads the client's GeckoLib cache. The server reads animation lengths with
  * {@link DinoAnimationLengths}.
  *
- * <p>The animation file is found by the same rule {@code DefaultedEntityGeoModel} uses:
- * {@code <namespace>:animations/entity/<registry path>.animation.json}. All species are registered this way
+ * <p>The animation file is found by the same rule {@code DefaultedEntityGeoModel} uses: the file
+ * {@code assets/<namespace>/geckolib/animations/entity/<registry path>.animation.json}, which GeckoLib caches under
+ * the key {@code <namespace>:entity/<registry path>}. All species are registered this way
  * (see {@code ClientRegistrationHolder}). A species that does not follow it is treated as "available".
  */
 public final class DinoAnimationAvailability {
@@ -114,7 +115,7 @@ public final class DinoAnimationAvailability {
         Species species = cache.get(type);
         if (species == null) {
             Identifier key = BuiltInRegistries.ENTITY_TYPE.getKey(type);
-            species = new Species(Identifier.fromNamespaceAndPath(key.getNamespace(),"animations/entity/" + key.getPath() + ".animation.json"), key.getPath());
+            species = new Species(Identifier.fromNamespaceAndPath(key.getNamespace(), "entity/" + key.getPath()), key.getPath());
             cache.put(type, species);
         }
         return species;
@@ -122,7 +123,7 @@ public final class DinoAnimationAvailability {
 
     /** The species' loaded file, or {@code null}; a new file instance (a reload) clears the cached answers. */
     private static @Nullable BakedAnimations current(Species species) {
-        BakedAnimations baked = GeckoLibCache.getBakedAnimations().get(species.file);
+        BakedAnimations baked = GeckoLibResources.getBakedAnimations().cache().get(species.file);
         if (baked != null && baked != species.baked) {
             species.baked = baked;
             Arrays.fill(species.indices, null);

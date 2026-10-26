@@ -22,7 +22,7 @@ import java.util.Map;
  * <p>
  * Common code only, no GeckoLib and no client class: the server must not touch the client's resource cache
  * ({@code GeckoLibCache} belongs to the client's resource reload). It reads the species' animation file
- * ({@code assets/<namespace>/animations/entity/<registry path>.animation.json}, the rule
+ * ({@code assets/<namespace>/geckolib/animations/entity/<registry path>.animation.json}, the rule
  * {@code DinoAnimationAvailability} uses) from the mod's own classpath, once per species, and keeps each
  * animation's {@code animation_length} in seconds. A resource pack that replaces the file on a client is not seen.
  * When the file cannot be read, every answer is {@link AnimationChoice#LENGTH_UNKNOWN} and callers use their
@@ -65,7 +65,7 @@ public final class DinoAnimationLengths {
 
     private static Map<String, Double> read(EntityType<?> type) {
         Identifier key = BuiltInRegistries.ENTITY_TYPE.getKey(type);
-        String path = "/assets/" + key.getNamespace() + "/animations/entity/" + key.getPath() + ".animation.json";
+        String path = "/assets/" + key.getNamespace() + "/geckolib/animations/entity/" + key.getPath() + ".animation.json";
         Map<String, Double> seconds = new HashMap<>();
         try (InputStream stream = DinoAnimationLengths.class.getResourceAsStream(path)) {
             if (stream == null) {

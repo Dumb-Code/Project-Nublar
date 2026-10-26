@@ -5,10 +5,9 @@ import net.dumbcode.projectnublar.util.DinoAnimationAvailability;
 import net.dumbcode.projectnublar.util.DinoAnimationLengths;
 import net.minecraft.world.entity.ai.attributes.Attributes;
 import org.jetbrains.annotations.Nullable;
-import software.bernie.geckolib.core.animatable.GeoAnimatable;
-import software.bernie.geckolib.core.animation.AnimationState;
-import software.bernie.geckolib.core.animation.RawAnimation;
-import software.bernie.geckolib.core.object.PlayState;
+import com.geckolib.animation.RawAnimation;
+import com.geckolib.animation.object.PlayState;
+import com.geckolib.animation.state.AnimationTest;
 
 /**
  * Chooses a dinosaur's animations on the client (fix P10), for every species: each state plays the first
@@ -114,7 +113,7 @@ public final class DinoAnimator {
      * The movement controller: walk or run while the gait moves, never for a dead animal (replaces GeckoLib's generic
      * walk controller). The leg cycle plays at {@link MovementGait#animationSpeed}.
      */
-    public <T extends GeoAnimatable> PlayState movement(AnimationState<T> state) {
+    public PlayState movement(AnimationTest<Dinosaur> state) {
         if (this.dinosaur.isDeadOrDying() || !this.gait.moving()) {
             return PlayState.STOP;
         }
@@ -127,15 +126,18 @@ public final class DinoAnimator {
         if (animation == null) {
             return PlayState.STOP;
         }
-        state.getController().setAnimationSpeed(this.gait.animationSpeed());
+        state.controller().setAnimationSpeed(this.gait.animationSpeed());
         return state.setAndContinue(animation);
     }
 
-    /** The main controller: action states in priority order (class comment). */
-    public <T extends GeoAnimatable> PlayState main(AnimationState<T> state) {
+    /**
+     * The main controller: action states in priority order (class comment). The controller must be a
+     * {@link RestartableAnimationController}, so a state can start its animation again.
+     */
+    public PlayState main(AnimationTest<Dinosaur> state) {
         Dinosaur dino = this.dinosaur;
         boolean reaction = !dino.isDeadOrDying() && (dino.isFlinching() || dino.isAttacking());
-        state.getController().transitionLength(reaction ? REACTION_TRANSITION_TICKS : MAIN_TRANSITION_TICKS);
+        state.controller().setTransitionTicks(reaction ? REACTION_TRANSITION_TICKS : MAIN_TRANSITION_TICKS);
         if (dino.isDeadOrDying()) {
             return play(state, AnimationChoice.DEAD, first(AnimationChoice.DEAD));
         }
@@ -183,7 +185,7 @@ public final class DinoAnimator {
     }
 
     /** Plays {@code animation} for {@code choice}, or the choice's fallback when the species has none. */
-    private <T extends GeoAnimatable> PlayState play(AnimationState<T> state, AnimationChoice choice, @Nullable RawAnimation animation) {
+    private PlayState play(AnimationTest<Dinosaur> state, AnimationChoice choice, @Nullable RawAnimation animation) {
         if (animation != null) {
             return set(state, animation);
         }
@@ -203,12 +205,12 @@ public final class DinoAnimator {
      * timer held at its start. So the first variant comes one full timer (4-8 s) after the herd stops travelling or
      * the animal is up, not at once.
      */
-    private <T extends GeoAnimatable> PlayState idle(AnimationState<T> state, boolean mainOnly) {
+    private PlayState idle(AnimationTest<Dinosaur> state, boolean mainOnly) {
         long now = this.dinosaur.tickCount;
         if (mainOnly) {
             return mainIdle(state, now);
         }
-        boolean finished = this.playing != null && this.playing == this.idlePick && state.getController().hasAnimationFinished();
+        boolean finished = this.playing != null && this.playing == this.idlePick && state.controller().hasAnimationFinished();
         boolean picked = this.idlePick == null || AnimationChoice.shouldRepickIdle(finished, now, this.idlePickedAt, this.idleChangeAt);
         if (picked) {
             int index = pickIndex(AnimationChoice.IDLE);
@@ -234,7 +236,7 @@ public final class DinoAnimator {
      * The main idle for {@link #idle} with {@code mainOnly}: the first idle candidate the species has. Every
      * species' {@code misc.idle} loops (its file), so no finished-cycle restart is needed here.
      */
-    private <T extends GeoAnimatable> PlayState mainIdle(AnimationState<T> state, long now) {
+    private PlayState mainIdle(AnimationTest<Dinosaur> state, long now) {
         int[] available = DinoAnimationAvailability.available(this.dinosaur.getType(), AnimationChoice.IDLE);
         if (available.length == 0) {
             return stop();
@@ -254,9 +256,9 @@ public final class DinoAnimator {
      * Asks the controller to play {@code animation}. GeckoLib does not restart an animation it already plays,
      * so a new start of the same one (or the first play after a stop) forces a reset.
      */
-    private <T extends GeoAnimatable> PlayState set(AnimationState<T> state, RawAnimation animation) {
+    private PlayState set(AnimationTest<Dinosaur> state, RawAnimation animation) {
         if (animation != this.playing || animation == this.restartTarget) {
-            state.getController().forceAnimationReset();
+            ((RestartableAnimationController<?>) state.controller()).forceAnimationReset();
         }
         this.playing = animation;
         this.restartTarget = null;

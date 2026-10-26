@@ -19,6 +19,8 @@ dependencies {
 
     // GeckoLib has no common artifact; compile against the NeoForge jar and use only its loader-neutral classes.
     compileOnly "com.geckolib:geckolib-neoforge-${minecraft_version}:${geckolib_version}"
+    // GeckoLib makes vanilla render states implement GeoRenderState by interface injection; apply it to common's vanilla jar.
+    interfaceInjectionData "com.geckolib:geckolib-neoforge-${minecraft_version}:${geckolib_version}"
     implementation "net.tslat:smartbrainlib-common-${minecraft_version}:${sbl_version}"
     implementation "net.blay09.mods:balm-common:${balm_version}"
     // Holds net.neoforged.neoforge.common.ModConfigSpec for common code.

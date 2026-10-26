@@ -21,14 +21,14 @@ import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.storage.ValueInput;
 import net.minecraft.world.level.storage.ValueOutput;
 import org.jetbrains.annotations.Nullable;
-import software.bernie.geckolib.animatable.GeoBlockEntity;
-import software.bernie.geckolib.core.animatable.instance.AnimatableInstanceCache;
-import software.bernie.geckolib.core.animation.AnimatableManager;
-import software.bernie.geckolib.core.animation.AnimationController;
-import software.bernie.geckolib.core.animation.AnimationState;
-import software.bernie.geckolib.core.animation.RawAnimation;
-import software.bernie.geckolib.core.object.PlayState;
-import software.bernie.geckolib.util.GeckoLibUtil;
+import com.geckolib.animatable.GeoBlockEntity;
+import com.geckolib.animatable.instance.AnimatableInstanceCache;
+import com.geckolib.animatable.manager.AnimatableManager;
+import com.geckolib.animation.AnimationController;
+import com.geckolib.animation.RawAnimation;
+import com.geckolib.animation.object.PlayState;
+import com.geckolib.animation.state.AnimationTest;
+import com.geckolib.util.GeckoLibUtil;
 
 public class DinosaurFeederBlockEntity extends SyncingContainerBlockEntity implements GeoBlockEntity, BalmEnergyStorageProvider {
 
@@ -37,11 +37,11 @@ public class DinosaurFeederBlockEntity extends SyncingContainerBlockEntity imple
     protected static final RawAnimation CLOSED_IDLE = RawAnimation.begin().thenPlayAndHold("idle");
     protected static final RawAnimation DISPENSE_FOOD = RawAnimation.begin().thenPlayAndHold("open");
 
-    protected <E extends DinosaurFeederBlockEntity> PlayState deployAnimController(final AnimationState<E> state) {
+    protected PlayState deployAnimController(final AnimationTest<DinosaurFeederBlockEntity> test) {
             if(this.shouldDispenseFood) {
-                return state.setAndContinue(DISPENSE_FOOD);
+                return test.setAndContinue(DISPENSE_FOOD);
             } else {
-                return state.setAndContinue(CLOSED_IDLE);
+                return test.setAndContinue(CLOSED_IDLE);
             }
     }
     private ItemStack foodSlot1 = ItemStack.EMPTY;
@@ -264,7 +264,7 @@ public class DinosaurFeederBlockEntity extends SyncingContainerBlockEntity imple
 
     @Override
     public void registerControllers(AnimatableManager.ControllerRegistrar controllers) {
-        controllers.add(new AnimationController<>(this, this::deployAnimController));
+        controllers.add(new AnimationController<>(this::deployAnimController));
     }
 
     @Override

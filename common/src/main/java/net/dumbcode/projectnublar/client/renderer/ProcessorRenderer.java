@@ -1,71 +1,42 @@
 package net.dumbcode.projectnublar.client.renderer;
 
+import com.geckolib.constant.dataticket.DataTicket;
+import com.geckolib.model.DefaultedBlockGeoModel;
+import com.geckolib.renderer.GeoBlockRenderer;
+import com.geckolib.renderer.base.BoneSnapshots;
+import com.geckolib.renderer.base.RenderPassInfo;
 import net.dumbcode.projectnublar.Constants;
 import net.dumbcode.projectnublar.block.entity.ProcessorBlockEntity;
-import com.mojang.blaze3d.vertex.PoseStack;
-import com.mojang.blaze3d.vertex.VertexConsumer;
-import net.minecraft.client.renderer.MultiBufferSource;
-import net.minecraft.client.renderer.RenderType;
-import net.minecraft.resources.Identifier;
-import net.minecraft.world.phys.Vec3;
-import software.bernie.geckolib.cache.object.GeoBone;
-import software.bernie.geckolib.model.DefaultedBlockGeoModel;
-import software.bernie.geckolib.renderer.GeoBlockRenderer;
+import net.minecraft.client.renderer.blockentity.BlockEntityRendererProvider;
+import net.minecraft.client.renderer.blockentity.state.BlockEntityRenderState;
 
-import java.util.Objects;
+/**
+ * Draws the Processor and shows its tank upgrades by the tank capacity: 8000 shows the iron, gold and diamond
+ * tanks, 4000 the iron and gold tanks, 3000 the iron tanks, any other capacity none.
+ */
+public class ProcessorRenderer extends GeoBlockRenderer<ProcessorBlockEntity, BlockEntityRenderState> {
+    /** The Processor's tank capacity, read at extraction. */
+    private static final DataTicket<Integer> MAX_FLUID_LEVEL = DataTicket.create("projectnublar_processor_max_fluid_level", Integer.class);
 
-public class ProcessorRenderer extends GeoBlockRenderer<ProcessorBlockEntity> {
-    public ProcessorRenderer() {
-        super(new DefaultedBlockGeoModel<>(Constants.modLoc( "processor")) {
-        });
+    public ProcessorRenderer(BlockEntityRendererProvider.Context context) {
+        super(context, new DefaultedBlockGeoModel<>(Constants.modLoc( "processor")));
     }
 
     @Override
-    public void renderRecursively(PoseStack poseStack, ProcessorBlockEntity animatable, GeoBone bone, RenderType renderType, MultiBufferSource bufferSource, VertexConsumer buffer, boolean isReRender, float partialTick, int packedLight, int packedOverlay, float red, float green, float blue, float alpha) {
-        switch (animatable.getMaxFluidLevel()) {
-            case 8000:
-                if(Objects.equals(bone.getName(), "diamond_tanks") || Objects.equals(bone.getName(), "gold_tanks") || Objects.equals(bone.getName(), "iron_tanks")){
-                    bone.setHidden(false);
-                }
-                break;
-            case 4000:
-                if(Objects.equals(bone.getName(), "gold_tanks") || Objects.equals(bone.getName(), "iron_tanks")){
-                    bone.setHidden(false);
-                }
-                if(Objects.equals(bone.getName(), "diamond_tanks")){
-                    bone.setHidden(true);
-                }
-                break;
-            case 3000:
-                if(Objects.equals(bone.getName(), "iron_tanks")){
-                    bone.setHidden(false);
-                }
-                if(Objects.equals(bone.getName(), "diamond_tanks") || Objects.equals(bone.getName(), "gold_tanks")){
-                    bone.setHidden(true);
-                }
-                break;
-            default:
-                if(Objects.equals(bone.getName(), "diamond_tanks") || Objects.equals(bone.getName(), "gold_tanks") || Objects.equals(bone.getName(), "iron_tanks")){
-                    bone.setHidden(true);
-                }
-                break;
-        }
-        super.renderRecursively(poseStack, animatable, bone, renderType, bufferSource, buffer, isReRender, partialTick, packedLight, packedOverlay, red, green, blue, alpha);
+    public void addRenderData(ProcessorBlockEntity animatable, Void relatedObject, BlockEntityRenderState renderState, float partialTick) {
+        renderState.addGeckolibData(MAX_FLUID_LEVEL, animatable.getMaxFluidLevel());
     }
 
     @Override
-    public boolean shouldRenderOffScreen(ProcessorBlockEntity pBlockEntity) {
-        return true;
+    public void adjustModelBonesForRender(RenderPassInfo<BlockEntityRenderState> renderPassInfo, BoneSnapshots snapshots) {
+        int maxFluidLevel = renderPassInfo.getGeckolibData(MAX_FLUID_LEVEL);
+        setHidden(snapshots, "iron_tanks", maxFluidLevel != 8000 && maxFluidLevel != 4000 && maxFluidLevel != 3000);
+        setHidden(snapshots, "gold_tanks", maxFluidLevel != 8000 && maxFluidLevel != 4000);
+        setHidden(snapshots, "diamond_tanks", maxFluidLevel != 8000);
     }
 
-    @Override
-    public int getViewDistance() {
-        return super.getViewDistance();
+    /** Hides or shows a bone and its children, as GeckoLib 4's {@code GeoBone.setHidden} did. */
+    private static void setHidden(BoneSnapshots snapshots, String bone, boolean hidden) {
+        snapshots.ifPresent(bone, snapshot -> snapshot.skipRender(hidden).skipChildrenRender(hidden));
     }
-
-    @Override
-    public boolean shouldRender(ProcessorBlockEntity pBlockEntity, Vec3 pCameraPos) {
-        return Vec3.atCenterOf(pBlockEntity.getBlockPos()).multiply(1.0D, 0.0D, 1.0D).closerThan(pCameraPos.multiply(1.0D, 0.0D, 1.0D), this.getViewDistance());
-    }
-
 }
