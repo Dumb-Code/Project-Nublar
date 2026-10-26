@@ -1,210 +1,193 @@
 package net.dumbcode.projectnublar.client.renderer;
 
+import com.geckolib.animatable.manager.AnimatableManager;
+import com.geckolib.constant.DataTickets;
+import com.geckolib.constant.dataticket.DataTicket;
+import com.geckolib.model.GeoModel;
+import com.geckolib.renderer.GeoEntityRenderer;
+import com.geckolib.renderer.base.BoneSnapshots;
+import com.geckolib.renderer.base.RenderPassInfo;
 import com.mojang.blaze3d.vertex.PoseStack;
 import com.mojang.blaze3d.vertex.VertexConsumer;
-import java.util.ArrayList;
 import java.util.List;
-import javax.annotation.Nullable;
 import net.dumbcode.projectnublar.Constants;
 import net.dumbcode.projectnublar.client.renderer.layer.DinoLayer;
 import net.dumbcode.projectnublar.entity.dinosaur.Dinosaur;
-import net.dumbcode.projectnublar.registry.GeneInit;
-import net.dumbcode.projectnublar.util.DebugFlags;
-import net.minecraft.client.Minecraft;
-import net.minecraft.client.renderer.LightTexture;
-import net.minecraft.client.renderer.MultiBufferSource;
-import net.minecraft.client.renderer.RenderType;
+import net.dumbcode.projectnublar.entity.dinosaur.animation.AnimationChoice;
+import net.dumbcode.projectnublar.entity.dinosaur.animation.IdleSway;
+import net.minecraft.client.renderer.SubmitNodeCollector;
 import net.minecraft.client.renderer.entity.EntityRendererProvider;
+import net.minecraft.client.renderer.entity.state.LivingEntityRenderState;
+import net.minecraft.client.renderer.rendertype.RenderTypes;
+import net.minecraft.client.renderer.state.level.CameraRenderState;
 import net.minecraft.resources.Identifier;
+import net.minecraft.util.LightCoordsUtil;
 import net.minecraft.world.phys.Vec3;
-import org.joml.Matrix4f;
-import org.joml.Vector3f;
-import software.bernie.geckolib.cache.object.BakedGeoModel;
-import software.bernie.geckolib.core.animatable.model.CoreGeoBone;
-import software.bernie.geckolib.core.object.Color;
-import software.bernie.geckolib.model.DefaultedEntityGeoModel;
-import software.bernie.geckolib.model.GeoModel;
-import software.bernie.geckolib.renderer.GeoEntityRenderer;
 
 /**
- * Shared renderer for all dinosaur species. The per-species subclasses differ only by their
- * adult-scale offset, passed through the three-argument constructor (: T-Rex +1.0,
- * Velociraptor +0.6, Dilophosaurus +0.5, Gallimimus +1.0, Triceratops +2.0, Brachiosaurus +2.5).
+ * Shared renderer for all dinosaur species, on GeckoLib 5 render states ({@link LivingEntityRenderState}: GeckoLib
+ * creates it for every {@code LivingEntity}). Everything a frame needs is read from the animal in
+ * {@link #addRenderData} into data tickets; the passes read only the tickets.
+ *
+ * <p>Size. With {@link Dinosaur#SCALE_MODE} false the model is scaled by hand by {@link Dinosaur#scaleFactor()}, the
+ * 1.20.1 render scale; with it true GeckoLib's own entity scale does it. {@code GeoEntityRenderer.scaleModelForRender}
+ * multiplies by {@code LivingEntityRenderState.scale}, which {@code extractLivingEntityRenderState} reads from
+ * {@code entity.getScale()} (the {@code SCALE} attribute): 1.0 with the mode off, the scale factor with it on, so
+ * nothing is scaled twice. Age scale: GeckoLib 5 stores {@code getAgeScale()} in {@code LivingEntityRenderState.ageScale}
+ * but no GeckoLib 5 render step reads it, and this renderer does not extend vanilla's {@code LivingEntityRenderer},
+ * so a baby's model is not halved in either mode, as on 1.20.1 (GeckoLib 4.7.3 applied no entity scale at all). The
+ * growth stage is in the factor itself.
+ *
+ * <p>Colour layers are {@link DinoColourLayer}s, built once per gender with the first animal of that gender. The
+ * head look of GeckoLib 4 ({@code turnsHead}) was off for every species, so no bone pass turns the head.
  */
-public class DinosaurRenderer extends GeoEntityRenderer<Dinosaur> {
+public class DinosaurRenderer extends GeoEntityRenderer<Dinosaur, LivingEntityRenderState> {
+    /** The animal is male (gender gene 2.0, as {@link Dinosaur#isMale()}); the Gallimimus base texture reads it. */
+    public static final DataTicket<Boolean> MALE = DataTicket.create("projectnublar_dinosaur_male", Boolean.class);
+    /** Per colour layer, by its position in {@link Dinosaur#getLayers()}: its ARGB colour. */
+    static final DataTicket<int[]> LAYER_COLOURS = DataTicket.create("projectnublar_dinosaur_layer_colours", int[].class);
+    /** Per colour layer, by its position in {@link Dinosaur#getLayers()}: {@link DinoLayer#isVisibleFor}. */
+    static final DataTicket<boolean[]> LAYER_VISIBLE = DataTicket.create("projectnublar_dinosaur_layer_visible", boolean[].class);
+    private static final DataTicket<Boolean> SCALE_MODE = DataTicket.create("projectnublar_dinosaur_scale_mode", Boolean.class);
+    private static final DataTicket<Float> MANUAL_SCALE = DataTicket.create("projectnublar_dinosaur_manual_scale", Float.class);
+    private static final DataTicket<Boolean> GROUP_LEADER = DataTicket.create("projectnublar_dinosaur_group_leader", Boolean.class);
+
     private static final Identifier LEADER_CROWN = Identifier.fromNamespaceAndPath(Constants.MODID,"textures/misc/leader_crown.png");
     private static final float CROWN_SIZE = 0.6F;
     private static final float CROWN_GAP = 0.5F;
 
-    /**
-     * Colour layers, built once per gender on first use. A species may register a separate male layer set
-     * ({@link net.dumbcode.projectnublar.client.CommonClientClass#getDinoLayers(net.minecraft.world.entity.EntityType, boolean)}),
-     * and one renderer serves every animal of its species, so a single list built from the first animal seen would give
-     * every animal that animal's layers. Each frame picks one of the two prebuilt lists by gender: no per-frame allocation.
-     * Null until built.
-     */
-    private @Nullable List<SimpleGeoLayerRenderer<Dinosaur>> maleRenderLayers;
-    private @Nullable List<SimpleGeoLayerRenderer<Dinosaur>> femaleRenderLayers;
+    /** The colour layers of each gender are built (once, with the first animal of that gender). */
+    private boolean maleLayersBuilt;
+    private boolean femaleLayersBuilt;
 
-    // Growth-stage render scale multipliers .
-    private static final float BABY_SCALE_MULTIPLIER = 0.25F;
-    private static final float JUVENILE_SCALE_MULTIPLIER = 0.5F;
-    private static final float SUB_ADULT_SCALE_MULTIPLIER = 0.75F;
-
-    /** Null means "no custom scaling" (the plain GeoEntityRenderer path). */
-    @Nullable
-    private final Float adultScaleOffset;
-
-    public DinosaurRenderer(EntityRendererProvider.Context renderManager, DefaultedEntityGeoModel model) {
-        this(renderManager, model, null);
+    /** A renderer for one species, drawing {@code model}. */
+    public DinosaurRenderer(EntityRendererProvider.Context context, GeoModel<Dinosaur> model) {
+        super(context, model);
     }
 
-    public DinosaurRenderer(EntityRendererProvider.Context renderManager, DefaultedEntityGeoModel model,
-            @Nullable Float adultScaleOffset) {
-        super(renderManager, model);
-        this.adultScaleOffset = adultScaleOffset;
-    }
-
-    /**
-     * Applies the growth-stage scale and publishes the head bone position. Consolidated from the
-     * six byte-identical per-species overrides (only the adult-scale offset differed).
-     *
-     * <p>TODO(BUG): writes the {@code DINOSAUR_HEAD_POS} synched entity data from the client
-     * render thread.
-     */
     @Override
-    public void scaleModelForRender(float widthScale, float heightScale, PoseStack poseStack, Dinosaur animatable, BakedGeoModel model, boolean isReRender, float partialTick, int packedLight, int packedOverlay) {
-        if (adultScaleOffset == null) {
-            super.scaleModelForRender(widthScale, heightScale, poseStack, animatable, model, isReRender, partialTick, packedLight, packedOverlay);
+    public void addRenderData(Dinosaur animatable, Void relatedObject, LivingEntityRenderState renderState, float partialTick) {
+        boolean male = animatable.isMale();
+        buildLayers(animatable, male);
+        renderState.addGeckolibData(MALE, male);
+        renderState.addGeckolibData(SCALE_MODE, animatable.getEntityData().get(Dinosaur.SCALE_MODE));
+        renderState.addGeckolibData(MANUAL_SCALE, animatable.scaleFactor());
+        renderState.addGeckolibData(GROUP_LEADER, animatable.isGroupLeader());
+
+        List<DinoLayer> layers = animatable.getLayers();
+        int[] colours = new int[layers.size()];
+        boolean[] visible = new boolean[layers.size()];
+        for (int i = 0; i < colours.length; i++) {
+            DinoLayer layer = layers.get(i);
+            colours[i] = animatable.layerColor(i + 1, layer);
+            visible[i] = layer.isVisibleFor(animatable);
+        }
+        renderState.addGeckolibData(LAYER_COLOURS, colours);
+        renderState.addGeckolibData(LAYER_VISIBLE, visible);
+
+        // TODO(BUG): writes the {@code DINOSAUR_HEAD_POS} synched entity data from the client
+        // render thread.
+        getGeoModel().getBakedModel(getGeoModel().getModelResource(renderState)).getBone("head").ifPresent(head -> {
+            Vec3 worldpos = animatable.position().add(head.pivotX(), head.pivotY(), head.pivotZ());
+            animatable.getEntityData().set(Dinosaur.DINOSAUR_HEAD_POS, worldpos.toVector3f());
+        });
+    }
+
+    /**
+     * Adds a colour layer per {@link DinoLayer} of {@code animal}'s gender the first time that gender is seen.
+     * {@link DinoLayer#getRenderRequirement()} is read here, once, with this first animal of that gender.
+     */
+    private void buildLayers(Dinosaur animal, boolean male) {
+        if (male ? maleLayersBuilt : femaleLayersBuilt) {
             return;
         }
-        float adultScale = ((float) animatable.getDinoData().getGeneValue(GeneInit.SIZE.get()) / 100) + adultScaleOffset;
-        float babyScale = adultScale * BABY_SCALE_MULTIPLIER;
-        float juvenileScale = adultScale * JUVENILE_SCALE_MULTIPLIER;
-        float subAdultScale = adultScale * SUB_ADULT_SCALE_MULTIPLIER;
-
-        float renderScale = switch (animatable.getGrowthStage()) {
-            case 1 -> babyScale;
-            case 2 -> juvenileScale;
-            case 3 -> subAdultScale;
-            default -> adultScale;
-        };
-
-        if (model.getBone("head").isPresent()) {
-            CoreGeoBone head = model.getBone("head").get();
-            Vector3f local = new Vector3f(head.getPivotX(), head.getPivotY(), head.getPivotZ());
-            Vec3 worldpos = animatable.position().add(local.x, local.y, local.z);
-            animatable.getEntityData().set(Dinosaur.DINOSAUR_HEAD_POS, worldpos.toVector3f());
+        List<DinoLayer> layers = animal.getLayers();
+        for (int i = 0; i < layers.size(); i++) {
+            DinoLayer layer = layers.get(i);
+            if (layer.getRenderRequirement().apply(animal)) {
+                withRenderLayer(new DinoColourLayer(this, male, i, layer, layer.getTextureLocation(animal)));
+            }
         }
+        if (male) {
+            maleLayersBuilt = true;
+        } else {
+            femaleLayersBuilt = true;
+        }
+    }
 
-        super.scaleModelForRender(renderScale, renderScale, poseStack, animatable, model, isReRender, partialTick, packedLight, packedOverlay);
+    /** Scales by {@link Dinosaur#scaleFactor()} by hand only with the scale attribute off (see the class note). */
+    @Override
+    public void scaleModelForRender(RenderPassInfo<LivingEntityRenderState> renderPassInfo, float widthScale, float heightScale) {
+        if (renderPassInfo.getGeckolibData(SCALE_MODE)) {
+            super.scaleModelForRender(renderPassInfo, widthScale, heightScale);
+            return;
+        }
+        float factor = renderPassInfo.getGeckolibData(MANUAL_SCALE);
+        super.scaleModelForRender(renderPassInfo, widthScale * factor, heightScale * factor);
     }
 
     /**
-     * Builds the colour layers for the gender of {@code entity}. {@link DinoLayer#getRenderRequirement()} is read here,
-     * once, with this first animal of that gender.
+     * Adds the always-on breathing sway ({@link IdleSway}, fix P12a) to the bones the species' model has, after
+     * GeckoLib applied the keyframed animations, so the sway shows under every animation. A dead animal does not
+     * sway. The time is the one Molang's {@code query.life_time} uses for this animal (GeckoLib 5
+     * {@code AnimationProcessor.extractControllerStates}: {@code getAnimatableAge()} minus the manager's
+     * {@code getFirstRenderTick()}, in ticks), so the sway runs in step with the file's {@code misc.idle}. GeckoLib
+     * turns a Bedrock rotation into model space by negating x and y, so the angles are negated to match
+     * {@code misc.idle}. The snapshots are new for every render pass, so adding to them does not build up.
      */
-    private List<SimpleGeoLayerRenderer<Dinosaur>> createLayers(Dinosaur entity) {
-        List<SimpleGeoLayerRenderer<Dinosaur>> built = new ArrayList<>();
-        List<DinoLayer> layers = entity.getLayers();
-        for(DinoLayer layer : layers) {
-            if (layer.getRenderRequirement().apply(entity)) {
-                built.add(new SimpleGeoLayerRenderer<>(this, layer.getLayerName()) {
-
-                    // TODO(BUG): each layer is rendered twice - once tinted, then once
-                    // full-white over it; the current visuals depend on this.
-                    @Override
-                    public void render(PoseStack poseStack, Dinosaur animatable, BakedGeoModel bakedModel, RenderType renderType, MultiBufferSource bufferSource, VertexConsumer buffer, float partialTick, int packedLight, int packedOverlay) {
-                        if (!layer.isVisibleFor(animatable)) {
-                            return;
-                        }
-                        Color color = animatable.layerColor(layers.indexOf(layer) + 1, layer);
-                        buffer = bufferSource.getBuffer(RenderType.entityTranslucent(layer.getTextureLocation(animatable)));
-                        float red = color.getRedFloat();
-                        float green = color.getGreenFloat();
-                        float blue = color.getBlueFloat();
-                        reRender(bakedModel, poseStack, bufferSource, animatable, renderType, buffer, partialTick, packedLight, packedOverlay, red, green, blue, 1f);
-                        // Both passes blend into the same translucent buffer, so the second pass doubles the coverage
-                        // of partial-alpha texels. Skip it only for layers that are never tinted (basicLayer == -1):
-                        // their texture is drawn as is. Other layers keep both passes even when their colour is white,
-                        // because skipping would change how they look. Texture baking is the real fix
-                        // (docs/superpowers/specs/2026-10-08-dino-layer-baking-design.md).
-                        if (layer.getBasicLayer() != -1) {
-                            reRender(bakedModel, poseStack, bufferSource, animatable, renderType, buffer, partialTick, packedLight, packedOverlay, 1, 1, 1, 1);
-                        }
-                    }
-
-                    @Override
-                    public GeoModel<Dinosaur> getGeoModel() {
-                        return DinosaurRenderer.this.getGeoModel();
-                    }
-
-                    @Override
-                    public @Nullable Identifier getTextureResource(Dinosaur animatable) {
-                        return layer.getTextureLocation(animatable);
-                    }
-                });
-            }
+    @Override
+    public void adjustModelBonesForRender(RenderPassInfo<LivingEntityRenderState> renderPassInfo, BoneSnapshots snapshots) {
+        if (renderPassInfo.getGeckolibData(DataTickets.IS_DEAD_OR_DYING)) {
+            return;
         }
-        return built;
+        LivingEntityRenderState state = renderPassInfo.renderState();
+        AnimatableManager<?> manager = state.getGeckolibData(DataTickets.ANIMATABLE_MANAGER);
+        double seconds = (state.getAnimatableAge() - manager.getFirstRenderTick()) / AnimationChoice.TICKS_PER_SECOND;
+        for (int i = 0; i < IdleSway.BONE_COUNT; i++) {
+            int bone = i;
+            snapshots.ifPresent(IdleSway.bone(bone), snapshot -> {
+                snapshot.setRotX(snapshot.getRotX() - (float) Math.toRadians(IdleSway.pitchDegrees(bone, seconds)));
+                snapshot.setRotY(snapshot.getRotY() - (float) Math.toRadians(IdleSway.yawDegrees(bone, seconds)));
+            });
+        }
     }
 
     @Override
-    public void render(Dinosaur entity, float entityYaw, float partialTick, PoseStack poseStack, MultiBufferSource buffer, int packedLight) {
-        super.render(entity, entityYaw, partialTick, poseStack, buffer, packedLight);
-        if (entity.isGroupLeader()) {
-            renderLeaderCrown(entity, poseStack, buffer);
+    public void submit(LivingEntityRenderState renderState, PoseStack poseStack, SubmitNodeCollector submitNodeCollector, CameraRenderState camera) {
+        super.submit(renderState, poseStack, submitNodeCollector, camera);
+        if (renderState.getGeckolibData(GROUP_LEADER)) {
+            submitLeaderCrown(renderState, poseStack, submitNodeCollector, camera);
         }
     }
 
     /** A crown facing the camera just above the hitbox, at full brightness so it reads at night too. */
-    private void renderLeaderCrown(Dinosaur entity, PoseStack poseStack, MultiBufferSource buffer) {
+    private static void submitLeaderCrown(LivingEntityRenderState renderState, PoseStack poseStack, SubmitNodeCollector collector, CameraRenderState camera) {
         poseStack.pushPose();
-        poseStack.translate(0.0F, entity.getBbHeight() + CROWN_GAP + CROWN_SIZE / 2F, 0.0F);
-        poseStack.mulPose(this.entityRenderDispatcher.cameraOrientation());
+        poseStack.translate(0.0F, renderState.boundingBoxHeight + CROWN_GAP + CROWN_SIZE / 2F, 0.0F);
+        poseStack.mulPose(camera.orientation);
         // After the camera rotation, +x points left on screen; flip it so u runs left to right.
         poseStack.scale(-CROWN_SIZE, CROWN_SIZE, CROWN_SIZE);
-        Matrix4f matrix = poseStack.last().pose();
-        VertexConsumer consumer = buffer.getBuffer(RenderType.text(LEADER_CROWN));
-        crownVertex(consumer, matrix, -0.5F, -0.5F, 0F, 1F);
-        crownVertex(consumer, matrix, 0.5F, -0.5F, 1F, 1F);
-        crownVertex(consumer, matrix, 0.5F, 0.5F, 1F, 0F);
-        crownVertex(consumer, matrix, -0.5F, 0.5F, 0F, 0F);
+        collector.submitCustomGeometry(poseStack, RenderTypes.text(LEADER_CROWN), (pose, consumer) -> {
+            crownVertex(consumer, pose, -0.5F, -0.5F, 0F, 1F);
+            crownVertex(consumer, pose, 0.5F, -0.5F, 1F, 1F);
+            crownVertex(consumer, pose, 0.5F, 0.5F, 1F, 0F);
+            crownVertex(consumer, pose, -0.5F, 0.5F, 0F, 0F);
+        });
         poseStack.popPose();
     }
 
-    private static void crownVertex(VertexConsumer consumer, Matrix4f matrix, float x, float y, float u, float v) {
-        consumer.vertex(matrix, x, y, 0F).color(255, 255, 255, 255).uv(u, v).uv2(LightTexture.FULL_BRIGHT).endVertex();
+    private static void crownVertex(VertexConsumer consumer, PoseStack.Pose pose, float x, float y, float u, float v) {
+        consumer.addVertex(pose, x, y, 0F).setColor(255, 255, 255, 255).setUv(u, v).setLight(LightCoordsUtil.FULL_BRIGHT);
+    }
+
+    /** The base pass colour: the animal's layer 0 colour, as on 1.20.1. */
+    @Override
+    public int getRenderColor(Dinosaur animatable, Void relatedObject, float partialTick) {
+        return animatable.layerColor(0, null);
     }
 
     @Override
-    public Color getRenderColor(Dinosaur animatable, float partialTick, int packedLight) {
-        return animatable.layerColor(0, null);
-    }
-    @Override
     public float getMotionAnimThreshold(Dinosaur animatable) {
         return 0.005f;
-    }
-    @Override
-    public void applyRenderLayers(PoseStack poseStack, Dinosaur animatable, BakedGeoModel model, RenderType renderType, MultiBufferSource bufferSource, VertexConsumer buffer, float partialTick, int packedLight, int packedOverlay) {
-        if (DebugFlags.skipDinoColourLayers) {
-            return;
-        }
-        for (SimpleGeoLayerRenderer<Dinosaur> renderLayer : getSimpleRenderLayers(animatable)) {
-            renderLayer.render(poseStack, animatable, model, renderType, bufferSource, buffer, partialTick, packedLight, packedOverlay);
-        }
-    }
-    /** The colour layers for the gender of {@code animatable}, built on first use. */
-    public List<SimpleGeoLayerRenderer<Dinosaur>> getSimpleRenderLayers(Dinosaur animatable) {
-        if (animatable.isMale()) {
-            if (maleRenderLayers == null) {
-                maleRenderLayers = createLayers(animatable);
-            }
-            return maleRenderLayers;
-        }
-        if (femaleRenderLayers == null) {
-            femaleRenderLayers = createLayers(animatable);
-        }
-        return femaleRenderLayers;
     }
 }

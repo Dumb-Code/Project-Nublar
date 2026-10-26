@@ -1,14 +1,38 @@
 package net.dumbcode.projectnublar.entity.dinosaur.herbivore;
 
 import net.dumbcode.projectnublar.entity.dinosaur.HerbivoreDinosaur;
+import net.minecraft.world.entity.EntityDimensions;
 import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.level.Level;
 
 public class TriceratopsEntity extends HerbivoreDinosaur {
+    /** Adult scale at {@code SIZE} gene 0 (moved from the 1.20.1 {@code TriceratopsRenderer}). */
+    private static final float ADULT_SCALE_OFFSET = 2F;
+    /**
+     * Corrected adult box width, in blocks: the movement box of {@code docs/dinosaur-hitboxes-and-movement-design.md},
+     * "Part counts and boxes", line 191 (the frill is a head part, not the movement box). Used only with the scale
+     * attribute on.
+     */
+    private static final float BOX_WIDTH = 2.19F;
+    /**
+     * Corrected adult box height, in blocks: the posed model height 2.3 times render scale 2.0,
+     * {@code docs/codebase-analysis.md}, "Model heights", line 2786. Used only with the scale attribute on.
+     */
+    private static final float BOX_HEIGHT = 4.6F;
 
     public TriceratopsEntity(EntityType<? extends TriceratopsEntity> $$0, Level $$1) {
         super($$0, $$1, 39);
+    }
+
+    @Override
+    protected float adultScaleOffset() {
+        return ADULT_SCALE_OFFSET;
+    }
+
+    @Override
+    protected EntityDimensions correctedBaseBox() {
+        return EntityDimensions.scalable(BOX_WIDTH / ADULT_SCALE_OFFSET, BOX_HEIGHT / ADULT_SCALE_OFFSET);
     }
 
     // TODO(BUG): calls super.canTarget(...) but ignores the result, reducing this species to

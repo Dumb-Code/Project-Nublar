@@ -8,6 +8,7 @@ import net.dumbcode.projectnublar.block.DinosaurFeederBlock;
 import net.dumbcode.projectnublar.block.entity.DinosaurFeederBlockEntity;
 import net.dumbcode.projectnublar.client.CommonClientClass;
 import net.dumbcode.projectnublar.client.renderer.layer.DinoLayer;
+import net.dumbcode.projectnublar.config.FossilsConfig;
 import net.dumbcode.projectnublar.data.DietReloadListener;
 import net.dumbcode.projectnublar.entity.dinosaur.ai.util.FenceAwareNavigation;
 import net.dumbcode.projectnublar.entity.dinosaur.ai.behavior.action.BreakFenceBehaviour;
@@ -166,6 +167,15 @@ public abstract class Dinosaur extends TamableAnimal implements FossilRevived, G
      */
     public static final EntityDataAccessor<Boolean> HERD_TRAVELS = SynchedEntityData.defineId(Dinosaur.class, EntityDataSerializers.BOOLEAN);
     /**
+     * The animal's size mode, fixed once per animal (D-g, P28): true when the {@code SCALE} attribute sets its model
+     * and box size ({@link #updateScale}), false for today's boxes and the renderer's manual scale. The server
+     * reads {@link FossilsConfig#useScaleAttribute()} once for a new animal and saves the mode with it; client and
+     * server read this value, never the config, so both pick the same box and render path.
+     */
+    public static final EntityDataAccessor<Boolean> SCALE_MODE = SynchedEntityData.defineId(Dinosaur.class, EntityDataSerializers.BOOLEAN);
+    /** Save key of {@link #SCALE_MODE}; an animal saved without it is undecided until its first server tick (P66). */
+    private static final String SCALE_MODE_KEY = "scale_mode";
+    /**
      * Largest change of body yaw per tick, in degrees ({@link #setYRot}): the top rate of the eased turn
      * ({@code TurnEasing}, playtest 4 fix P12b). A turn from rest starts slower (2, 4, 6, 8 degrees in its first
      * ticks, then this rate; P13b) and slows again near its end. Herd steering uses the same value, so the direction
@@ -202,6 +212,8 @@ public abstract class Dinosaur extends TamableAnimal implements FossilRevived, G
     /** Server, eased turning: the rate and the yaw the current tick's turn started from. */
     private float turnRateIn;
     private float turnYawIn;
+    /** Server: {@link #SCALE_MODE} is fixed, from the save or from the config on the first tick in the level. */
+    private boolean scaleModeFixed;
     public DinosaurPart[] subEntities;
     private int cachedDayTime;
     public boolean isNewDay;
@@ -279,10 +291,101 @@ public abstract class Dinosaur extends TamableAnimal implements FossilRevived, G
         return this.oneShots;
     }
 
+    /**
+     * Rebuilds the multipart hit parts. Nothing calls it yet (activation is B26/B27); a part takes the sizes given
+     * here unscaled and follows the parent's {@link #getScale()} itself ({@link PartEntity}).
+     */
     public void resetParts(float scale) {}
     public void removeParts() {}
     public void updateParts(){}
     public void updatePart(@Nullable final DinosaurPart part, @NotNull final Dinosaur parent) {}
+
+    //SIZE
+    /**
+     * The size of an animal relative to its model: {@code SIZE} gene / 100 plus the species' adult offset, times
+     * 0.25, 0.5 or 0.75 for growth stage 1, 2 or 3 (1.0 for an adult, stage 4). This is the 1.20.1 render scale.
+     * The renderer applies it by hand when {@link #SCALE_MODE} is false; {@link #updateScale} puts it in the
+     * {@code SCALE} attribute when it is true.
+     */
+    public static float scaleFactor(double sizeGene, int growthStage, float adultOffset) {
+        float adult = (float) sizeGene / 100 + adultOffset;
+        return switch (growthStage) {
+            case 1 -> adult * 0.25F;
+            case 2 -> adult * 0.5F;
+            case 3 -> adult * 0.75F;
+            default -> adult;
+        };
+    }
+
+    /** The species' adult scale at {@code SIZE} gene 0 (moved here from the species renderers). */
+    protected abstract float adultScaleOffset();
+
+    /**
+     * The species' corrected adult box divided by {@link #adultScaleOffset()}, used when {@link #SCALE_MODE} is
+     * true: the {@code SCALE} attribute (the offset, at gene 0, for an adult) brings it back to the adult box.
+     */
+    protected abstract EntityDimensions correctedBaseBox();
+
+    /** This animal's {@link #scaleFactor}, from its {@code SIZE} gene, growth stage and species offset. */
+    public float scaleFactor() {
+        return scaleFactor(this.getDinoData().getGeneValue(GeneInit.SIZE.get()), this.getGrowthStage(), this.adultScaleOffset());
+    }
+
+    /**
+     * The box before vanilla's {@code LivingEntity.getDimensions(Pose)} (final on 26.2) scales it by
+     * {@link #getScale()} (the {@code SCALE} attribute). With {@link #SCALE_MODE} false this is vanilla's own box,
+     * the {@code sized()} value halved for a baby by {@code getAgeScale()}, exactly as on 1.20.1 (P9). With it true
+     * the box is {@link #correctedBaseBox()} with no age scale, because the attribute already holds the growth
+     * stage; vanilla applies {@code getAgeScale()} only inside this method, so the age is not counted twice.
+     */
+    @Override
+    protected EntityDimensions getDefaultDimensions(Pose pose) {
+        return this.entityData.get(SCALE_MODE) ? this.correctedBaseBox() : super.getDefaultDimensions(pose);
+    }
+
+    /**
+     * Server: sets the size for the current mode, gene and growth stage. With {@link #SCALE_MODE} true the
+     * {@code SCALE} attribute's base value becomes {@link #scaleFactor()}; with it false the attribute stays at
+     * vanilla's 1.0. Vanilla does the rest: {@code Attributes.SCALE} is client-syncable, {@code LivingEntity.getScale()}
+     * reads it, {@code getDimensions(Pose)} scales the box by it, {@code onAttributeUpdated} refreshes the
+     * dimensions, and the base value is saved and restored with the entity's attributes
+     * ({@code AttributeInstance.pack}/{@code apply}), so a loaded animal keeps its size until the next stage change.
+     * Runs on the first server tick, when the growth stage changes and when the genetics are set. It does not call
+     * {@link #resetParts}: parts follow the parent's scale themselves, and nothing creates parts before B26/B27.
+     */
+    private void updateScale() {
+        if (this.entityData.get(SCALE_MODE)) {
+            this.getAttribute(Attributes.SCALE).setBaseValue(this.scaleFactor());
+        }
+        this.refreshDimensions();
+    }
+
+    /**
+     * Server, the animal's first tick in the level. This is the add-to-level hook: on 26.2 common code has no
+     * add-to-level method an entity can override (vanilla has none; NeoForge's {@code onAddedToLevel} is not visible
+     * in common). An animal loaded with a saved mode keeps it ({@link #readAdditionalSaveData}); an undecided animal
+     * (a new spawn, or one saved before this port) takes {@link FossilsConfig#useScaleAttribute()} here once, and
+     * saves it. The config is never read again for this animal. Then the size is set for the mode.
+     */
+    private void onFirstServerTick() {
+        if (!this.scaleModeFixed) {
+            this.entityData.set(SCALE_MODE, FossilsConfig.useScaleAttribute());
+            this.scaleModeFixed = true;
+        }
+        this.updateScale();
+    }
+
+    /**
+     * A new {@link #SCALE_MODE} changes the box: the client refreshes it here, as vanilla {@code AgeableMob} does for
+     * its baby flag, because the {@code SCALE} attribute may keep its value (an adult at gene 0 with offset 1.0).
+     */
+    @Override
+    public void onSyncedDataUpdated(EntityDataAccessor<?> accessor) {
+        super.onSyncedDataUpdated(accessor);
+        if (SCALE_MODE.equals(accessor)) {
+            this.refreshDimensions();
+        }
+    }
 
     //MAIN DATA GETTERS
     public DinoData getDinoData() {
@@ -304,53 +407,54 @@ public abstract class Dinosaur extends TamableAnimal implements FossilRevived, G
     }
     //DATA SYNC
     @Override
-    protected void defineSynchedData() {
-        super.defineSynchedData();
-        this.entityData.define(DINO_DATA, new DinoData());
-        this.entityData.define(DINO_BEHAVIOUR, new CompoundTag());
-        this.entityData.define(DINO_FAMILY_UUID, Optional.empty());
-        this.entityData.define(DINO_MATE, Optional.empty());
+    protected void defineSynchedData(SynchedEntityData.Builder builder) {
+        super.defineSynchedData(builder);
+        builder.define(DINO_DATA, new DinoData());
+        builder.define(DINO_BEHAVIOUR, new CompoundTag());
+        builder.define(DINO_FAMILY_UUID, Optional.empty());
+        builder.define(DINO_MATE, Optional.empty());
 
-        this.entityData.define(DinoNeedsUtils.HUNGER, 100.0F);
-        this.entityData.define(DinoNeedsUtils.THIRST, 100.0F);
-        this.entityData.define(DinoNeedsUtils.STAMINA, 100.0F);
-        this.entityData.define(DinoNeedsUtils.SOCIAL, 100.0F);
-        this.entityData.define(DinoNeedsUtils.AGGRESSION, 100.0F);
-        this.entityData.define(DinoNeedsUtils.DOMESTICITY, 100.0F);
-        this.entityData.define(DinoNeedsUtils.FERTILITY, 100.0F);
-        this.entityData.define(DinoNeedsUtils.IMMUNITY, 100.0F);
-        this.entityData.define(DinoNeedsUtils.INTELLIGENCE, 100.0F);
-        this.entityData.define(DinoNeedsUtils.SIZE, 1F);
-        this.entityData.define(DinoNeedsUtils.TAMING_SCORE, 100.0F);
-        this.entityData.define(DinoNeedsUtils.VISION, 100.0F);
+        builder.define(DinoNeedsUtils.HUNGER, 100.0F);
+        builder.define(DinoNeedsUtils.THIRST, 100.0F);
+        builder.define(DinoNeedsUtils.STAMINA, 100.0F);
+        builder.define(DinoNeedsUtils.SOCIAL, 100.0F);
+        builder.define(DinoNeedsUtils.AGGRESSION, 100.0F);
+        builder.define(DinoNeedsUtils.DOMESTICITY, 100.0F);
+        builder.define(DinoNeedsUtils.FERTILITY, 100.0F);
+        builder.define(DinoNeedsUtils.IMMUNITY, 100.0F);
+        builder.define(DinoNeedsUtils.INTELLIGENCE, 100.0F);
+        builder.define(DinoNeedsUtils.SIZE, 1F);
+        builder.define(DinoNeedsUtils.TAMING_SCORE, 100.0F);
+        builder.define(DinoNeedsUtils.VISION, 100.0F);
 
-        this.entityData.define(DINOSAUR_HEAD_POS, new Vector3f());
+        builder.define(DINOSAUR_HEAD_POS, new Vector3f());
 
-        this.entityData.define(BABY_DATA_ID, false);
-        this.entityData.define(JUVENILE_DATA_ID, false);
-        this.entityData.define(SUB_ADULT_DATA_ID, false);
-        this.entityData.define(ADULT_DATA_ID, true);
-        this.entityData.define(SHOULD_TICK_STAMINA, true);
-        this.entityData.define(GROUP_LEADER, false);
-        this.entityData.define(ONE_SHOT, OneShotAction.NONE.id());
-        this.entityData.define(HERD_TRAVELS, false);
+        builder.define(BABY_DATA_ID, false);
+        builder.define(JUVENILE_DATA_ID, false);
+        builder.define(SUB_ADULT_DATA_ID, false);
+        builder.define(ADULT_DATA_ID, true);
+        builder.define(SHOULD_TICK_STAMINA, true);
+        builder.define(GROUP_LEADER, false);
+        builder.define(ONE_SHOT, OneShotAction.NONE.id());
+        builder.define(HERD_TRAVELS, false);
 
-        this.entityData.define(DinoAnimationUtils.IS_EATING_STATE, false);
-        this.entityData.define(DinoAnimationUtils.IS_DRINKING_STATE, false);
-        this.entityData.define(DinoAnimationUtils.IS_NESTING_STATE, false);
-        this.entityData.define(DinoAnimationUtils.IS_RESTING_STATE, false);
-        this.entityData.define(DinoAnimationUtils.IS_RISING_STATE, false);
-        this.entityData.define(DinoAnimationUtils.IS_SITTING_STATE, false);
-        this.entityData.define(DinoAnimationUtils.IS_ATTACKING_STATE, false);
-        this.entityData.define(DinoAnimationUtils.IS_FLINCHING_STATE, false);
-        this.entityData.define(DinoAnimationUtils.IS_DEAD_STATE, false);
-        this.entityData.define(DinoAnimationUtils.IS_SWIMMING_STATE, false);
-        this.entityData.define(DinoAnimationUtils.LOOKING_LEFT_STATE, false);
-        this.entityData.define(DinoAnimationUtils.LOOKING_RIGHT_STATE, false);
-        this.entityData.define(DinoAnimationUtils.TURNING_RIGHT_STATE, false);
-        this.entityData.define(DinoAnimationUtils.TURNING_LEFT_STATE, false);
-        this.entityData.define(IS_ROARING_STATE, false);
-        this.entityData.define(DinoAnimationUtils.IS_SPEAKING_STATE, false);
+        builder.define(DinoAnimationUtils.IS_EATING_STATE, false);
+        builder.define(DinoAnimationUtils.IS_DRINKING_STATE, false);
+        builder.define(DinoAnimationUtils.IS_NESTING_STATE, false);
+        builder.define(DinoAnimationUtils.IS_RESTING_STATE, false);
+        builder.define(DinoAnimationUtils.IS_RISING_STATE, false);
+        builder.define(DinoAnimationUtils.IS_SITTING_STATE, false);
+        builder.define(DinoAnimationUtils.IS_ATTACKING_STATE, false);
+        builder.define(DinoAnimationUtils.IS_FLINCHING_STATE, false);
+        builder.define(DinoAnimationUtils.IS_DEAD_STATE, false);
+        builder.define(DinoAnimationUtils.IS_SWIMMING_STATE, false);
+        builder.define(DinoAnimationUtils.LOOKING_LEFT_STATE, false);
+        builder.define(DinoAnimationUtils.LOOKING_RIGHT_STATE, false);
+        builder.define(DinoAnimationUtils.TURNING_RIGHT_STATE, false);
+        builder.define(DinoAnimationUtils.TURNING_LEFT_STATE, false);
+        builder.define(IS_ROARING_STATE, false);
+        builder.define(DinoAnimationUtils.IS_SPEAKING_STATE, false);
+        builder.define(SCALE_MODE, false);
     }
 
     @Override
@@ -376,6 +480,7 @@ public abstract class Dinosaur extends TamableAnimal implements FossilRevived, G
         output.putBoolean("juvenile_age_boolean", this.entityData.get(JUVENILE_DATA_ID));
         output.putBoolean("sub_adult_age_boolean", this.entityData.get(SUB_ADULT_DATA_ID));
         output.putBoolean("adult_age_boolean", this.entityData.get(ADULT_DATA_ID));
+        output.putBoolean(SCALE_MODE_KEY, this.entityData.get(SCALE_MODE));
 
 
         if(headBonePos != null){
@@ -404,6 +509,12 @@ public abstract class Dinosaur extends TamableAnimal implements FossilRevived, G
         this.entityData.set(JUVENILE_DATA_ID, input.getBooleanOr("baby_age_boolean", false));
         this.entityData.set(SUB_ADULT_DATA_ID, input.getBooleanOr("baby_age_boolean", false));
         this.entityData.set(ADULT_DATA_ID, input.getBooleanOr("baby_age_boolean", false));
+        // A saved mode wins (P28, P66); without the key (saved before this port) the animal is undecided and takes
+        // the config on its first server tick.
+        input.read(SCALE_MODE_KEY, Codec.BOOL).ifPresent(mode -> {
+            this.entityData.set(SCALE_MODE, mode);
+            this.scaleModeFixed = true;
+        });
         this.entityData.set(DinoNeedsUtils.TAMING_SCORE,input.getFloatOr("trust_threshold", 0F));
         this.entityData.set(DinoNeedsUtils.VISION,input.getFloatOr("dino_vision", 0F));
         this.entityData.set(DinoNeedsUtils.AGGRESSION,input.getFloatOr("dino_aggression", 0F));
@@ -443,8 +554,12 @@ public abstract class Dinosaur extends TamableAnimal implements FossilRevived, G
         return cache;
     }
     //MAIN DATA SETTERS
+    /** Sets the genetics; on the server the size follows the new {@code SIZE} gene ({@link #updateScale}). */
     public void setDinoData(DinoData dinoData) {
         this.entityData.set(DINO_DATA, dinoData);
+        if (!this.level().isClientSide()) {
+            this.updateScale();
+        }
     }
 
     public void setDinoBehaviour(CompoundTag behaviourData){
@@ -736,6 +851,9 @@ public abstract class Dinosaur extends TamableAnimal implements FossilRevived, G
      */
     @Override
     public void tick() {
+        if (this.firstTick && !this.level().isClientSide()) {
+            this.onFirstServerTick();
+        }
         super.tick();
 
         tickFlinchAnimation();
@@ -784,8 +902,9 @@ public abstract class Dinosaur extends TamableAnimal implements FossilRevived, G
         }
     }
 
-    /** Mirrors the age-derived growth stage into the synched boolean flags. */
+    /** Mirrors the age-derived growth stage into the synched boolean flags; a new stage updates the size. */
     private void syncGrowthStageFlags() {
+        int stage = this.getGrowthStage();
         if(this.isBaby() && !this.entityData.get(BABY_DATA_ID)){
             this.entityData.set(BABY_DATA_ID, true);
         } else if (!this.isBaby() && this.entityData.get(BABY_DATA_ID)){
@@ -805,6 +924,9 @@ public abstract class Dinosaur extends TamableAnimal implements FossilRevived, G
             this.entityData.set(ADULT_DATA_ID, true);
         } else if (this.age < 0 && this.entityData.get(ADULT_DATA_ID)){
             this.entityData.set(ADULT_DATA_ID, false);
+        }
+        if (this.getGrowthStage() != stage) {
+            this.updateScale();
         }
     }
 

@@ -13,6 +13,7 @@ import net.minecraft.world.damagesource.DamageTypes;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.EntityDimensions;
 import net.minecraft.world.entity.EntityType;
+import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.Pose;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.level.Level;
@@ -57,6 +58,11 @@ public abstract class PartEntity extends Entity {
     protected void doWaterSplashEffect() {
 
     }
+    /**
+     * A part of {@code parent}. {@code radius}, {@code offsetY}, {@code sizeX} and {@code sizeY} are kept unscaled;
+     * where a size is used it is multiplied by the parent's current scale ({@link #parentScale()}), so the part
+     * follows the parent's {@code SCALE} attribute without being rebuilt. Today only the size is used.
+     */
     public PartEntity(EntityType<?> type, Entity parent,String name, float radius, float angleYaw, float offsetY, float sizeX,
                                float sizeY, float damageMultiplier) {
         super(type, parent.level());
@@ -72,7 +78,15 @@ public abstract class PartEntity extends Entity {
 
     @Override
     public EntityDimensions getDimensions(Pose pose) {
-        return new EntityDimensions(getScaleX(), getScaleY(), false);
+        return EntityDimensions.scalable(getScaleX(), getScaleY()).scale(parentScale());
+    }
+
+    /**
+     * The parent's {@link LivingEntity#getScale()} (its {@code SCALE} attribute), or 1 when there is no living parent.
+     * {@link #getParent()} finds the parent on the server only, so on the client this is 1.
+     */
+    protected float parentScale() {
+        return getParent() instanceof LivingEntity living ? living.getScale() : 1F;
     }
 
     @Override

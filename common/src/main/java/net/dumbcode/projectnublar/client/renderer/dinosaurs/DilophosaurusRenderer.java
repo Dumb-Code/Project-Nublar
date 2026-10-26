@@ -1,15 +1,15 @@
 package net.dumbcode.projectnublar.client.renderer.dinosaurs;
 
+import com.geckolib.model.GeoModel;
 import net.dumbcode.projectnublar.client.renderer.DinosaurRenderer;
+import net.dumbcode.projectnublar.entity.dinosaur.Dinosaur;
 import net.minecraft.client.renderer.entity.EntityRendererProvider;
-import software.bernie.geckolib.model.DefaultedEntityGeoModel;
 
-/** Dilophosaurus renderer; only the adult-scale offset differs from the base. */
+/** Dilophosaurus renderer; the adult-scale offset now lives on the entity ({@code adultScaleOffset}). */
 public class DilophosaurusRenderer extends DinosaurRenderer {
 
-    private static final float ADULT_SCALE_OFFSET = 0.5F;
-
-    public DilophosaurusRenderer(EntityRendererProvider.Context renderManager, DefaultedEntityGeoModel model) {
-        super(renderManager, model, ADULT_SCALE_OFFSET);
+    /** The Dilophosaurus renderer, drawing {@code model}. */
+    public DilophosaurusRenderer(EntityRendererProvider.Context renderManager, GeoModel<Dinosaur> model) {
+        super(renderManager, model);
     }
 }
