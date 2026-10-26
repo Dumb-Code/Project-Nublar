@@ -60,9 +60,9 @@ public class FossilsConfig {
         builder.comment("Fossil Piece Sets");
         builder.push("biped");
         registerSet("biped",
-                builder.defineList("pieces", List.of("ribcage", "bipedal_arm", "bipedal_leg", "tail", "neck"),
+                builder.defineListAllowEmpty("pieces", List.of("ribcage", "bipedal_arm", "bipedal_leg", "tail", "neck"),
                         s -> s instanceof String st && FossilPieces.byName(st) != null),
-                builder.defineList("weights", List.of(1, 2, 2, 1, 1), o -> o instanceof Integer));
+                builder.defineListAllowEmpty("weights", List.of(1, 2, 2, 1, 1), o -> o instanceof Integer));
         builder.pop();
         builder.pop();
 
@@ -181,12 +181,12 @@ public class FossilsConfig {
         SpeciesFossils(ModConfigSpec.Builder builder, String setName, List<String> specialPieces,
                        List<Integer> specialWeights, int weight, List<String> periods, List<Identifier> biomes) {
             this.pieces = builder.comment("The pieces that make up this fossil").define("pieces", setName);
-            this.specialPieces = builder.comment("optional field to include if a species has a special identifiable fossil type").defineList("special_pieces", specialPieces,
+            this.specialPieces = builder.comment("optional field to include if a species has a special identifiable fossil type").defineListAllowEmpty("special_pieces", specialPieces,
                     o -> o instanceof String s && FossilPieces.byName(s) != null);
-            this.specialWeights = builder.comment("The weights of the special pieces").defineList("special_weights", specialWeights, o -> o instanceof Integer);
+            this.specialWeights = builder.comment("The weights of the special pieces").defineListAllowEmpty("special_weights", specialWeights, o -> o instanceof Integer);
             this.weight = builder.comment("the lower the number the more rare the fossil; (weight / total weights) = percentage chance this fossil type generating").defineInRange("weight", weight, 0, Integer.MAX_VALUE);
-            this.periods = builder.comment("The time period that this fossil type belongs to").defineList("periods", periods, o -> o instanceof String);
-            this.biomes = builder.comment("all acceptable biomes for this fossil to generate in").defineList("biomes", biomes.stream().map(Identifier::toString).toList(), o -> o instanceof String);
+            this.periods = builder.comment("The time period that this fossil type belongs to").defineListAllowEmpty("periods", periods, o -> o instanceof String);
+            this.biomes = builder.comment("all acceptable biomes for this fossil to generate in").defineListAllowEmpty("biomes", biomes.stream().map(Identifier::toString).toList(), o -> o instanceof String);
         }
 
         /** The name of the piece set of this species. */
