@@ -3,9 +3,10 @@ package net.dumbcode.projectnublar.client.widget;
 import net.dumbcode.projectnublar.Constants;
 import net.dumbcode.projectnublar.client.screen.SequencerScreen;
 import net.minecraft.client.Minecraft;
-import net.minecraft.client.gui.GuiGraphics;
+import net.minecraft.client.gui.GuiGraphicsExtractor;
 import net.minecraft.client.gui.components.AbstractButton;
 import net.minecraft.client.gui.narration.NarrationElementOutput;
+import net.minecraft.client.input.InputWithModifiers;
 import net.minecraft.network.chat.Component;
 
 public class IsolatedDataDisplayWidget extends AbstractButton {
@@ -25,13 +26,18 @@ public class IsolatedDataDisplayWidget extends AbstractButton {
     }
 
     @Override
-    public void onPress() {
+    public void onPress(InputWithModifiers input) {
         this.selected = !selected;
         onClick.onClick(this, selected);
     }
 
+    /** Keeps the arrow cursor on hover, as on 1.20.1; 26.2's AbstractButton would show a hand (P38). */
     @Override
-    protected void renderWidget(GuiGraphics guiGraphics, int i, int i1, float v) {
+    protected void handleCursor(GuiGraphicsExtractor graphics) {
+    }
+
+    @Override
+    protected void extractContents(GuiGraphicsExtractor guiGraphics, int i, int i1, float v) {
         SequencerScreen.drawBorder(guiGraphics, getX(), getY(), getWidth(), getHeight(), Constants.BORDER_COLOR, 1);
         int color = 0xFF193B59;
         if (selected) {
@@ -41,7 +47,7 @@ public class IsolatedDataDisplayWidget extends AbstractButton {
             color = 0xFF063B6B;
         }
         guiGraphics.fill(getX() + 1, getY() + 1, getX() + getWidth() - 1, getY() + getHeight() - 1, color);
-        guiGraphics.drawCenteredString(Minecraft.getInstance().font, value, getX() + getWidth() / 2, getY() + getHeight() / 2 - 4, -1);
+        guiGraphics.centeredText(Minecraft.getInstance().font, value, getX() + getWidth() / 2, getY() + getHeight() / 2 - 4, -1);
     }
 
     @Override

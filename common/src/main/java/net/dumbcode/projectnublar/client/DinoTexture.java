@@ -1,9 +1,8 @@
 package net.dumbcode.projectnublar.client;
 
 import com.mojang.blaze3d.platform.NativeImage;
-import com.mojang.blaze3d.platform.TextureUtil;
-import com.mojang.blaze3d.systems.RenderSystem;
 import net.minecraft.client.renderer.texture.SimpleTexture;
+import net.minecraft.client.renderer.texture.TextureContents;
 import net.minecraft.resources.Identifier;
 import net.minecraft.server.packs.resources.ResourceManager;
 import org.lwjgl.system.MemoryStack;
@@ -28,7 +27,7 @@ public class DinoTexture extends SimpleTexture {
     }
 
     public Identifier getLocation() {
-        return this.location;
+        return this.resourceId();
     }
 
     public NativeImage asNative(){
@@ -47,31 +46,13 @@ public class DinoTexture extends SimpleTexture {
             throw new RuntimeException(e);
         }
     }
+    /**
+     * The image comes from the in-memory PNG data, not from a resource pack; the 26.2 texture
+     * manager uploads it. Without data the texture is the missing texture.
+     */
     @Override
-    public void load(ResourceManager manager) {
-        ByteBuffer data = this.dataRef;
-
-        if (data == null)
-            return;
-
-        try (MemoryStack memoryStack = MemoryStack.stackPush()) {
-            ByteBuffer lwjglData = memoryStack.malloc(data.capacity());
-            lwjglData.put(data);
-            data.rewind();
-            lwjglData.rewind();
-            NativeImage image = NativeImage.read(lwjglData);
-
-            if (RenderSystem.isOnRenderThreadOrInit()) {
-                upload(image);
-            } else {
-                RenderSystem.recordRenderCall(() -> upload(image));
-            }
-        } catch (Exception ignored) {
-        }
-    }
-
-    private void upload(NativeImage image) {
-        TextureUtil.prepareImage(getId(), 0, image.getWidth(), image.getHeight());
-        image.upload(0, 0, 0, true);
+    public TextureContents loadContents(ResourceManager manager) {
+        NativeImage image = asNative();
+        return image == null ? TextureContents.createMissing() : new TextureContents(image, null);
     }
 }

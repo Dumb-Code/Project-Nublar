@@ -4,10 +4,11 @@ import net.dumbcode.projectnublar.api.gene.Genes;
 import net.dumbcode.projectnublar.client.CommonClientClass;
 import net.dumbcode.projectnublar.client.screen.SequencerScreen;
 import net.minecraft.client.Minecraft;
-import net.minecraft.client.gui.GuiGraphics;
+import net.minecraft.client.gui.GuiGraphicsExtractor;
 import net.minecraft.client.gui.components.AbstractWidget;
 import net.minecraft.client.gui.narration.NarrationElementOutput;
 import net.minecraft.client.gui.screens.inventory.AbstractContainerScreen;
+import net.minecraft.client.input.MouseButtonEvent;
 import net.minecraft.network.chat.Component;
 
 public class GeneButton extends AbstractWidget {
@@ -21,7 +22,7 @@ public class GeneButton extends AbstractWidget {
     private static final int CHROMOSOME_COLOUR_G_RANGE = 0x99 - 0x55;
     private static final int CHROMOSOME_COLOUR_MIN_B = 0x7A;
     private static final int CHROMOSOME_COLOUR_B_RANGE = 0xB1 - 0x7A;
-    float randomDist = Minecraft.getInstance().level.random.nextFloat();
+    float randomDist = Minecraft.getInstance().level.getRandom().nextFloat();
 
     public GeneButton(SequencerScreen parent, int pX, int pY, Genes.Gene type) {
         super(pX, pY, 16, 5, Component.empty());
@@ -38,7 +39,7 @@ public class GeneButton extends AbstractWidget {
     }
 
     @Override
-    public void onClick(double pMouseX, double pMouseY) {
+    public void onClick(MouseButtonEvent event, boolean doubleClick) {
         selected = !selected;
         parent.geneButtons.stream().filter(button->button!=this).forEach(button-> button.setSelected(false));
         parent.selectedGene = selected ? type : null;
@@ -54,7 +55,7 @@ public class GeneButton extends AbstractWidget {
     }
 
     @Override
-    protected void renderWidget(GuiGraphics pGuiGraphics, int pMouseX, int pMouseY, float pPartialTick) {
+    protected void extractWidgetRenderState(GuiGraphicsExtractor pGuiGraphics, int pMouseX, int pMouseY, float pPartialTick) {
         if (active) {
             if(selected) {
                 pGuiGraphics.fill(getX(), getY(), getX() + this.width, getY() + this.height, 0xFFFF0000);

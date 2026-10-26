@@ -2,17 +2,19 @@ package net.dumbcode.projectnublar.client.screen;
 
 import java.util.List;
 import net.dumbcode.projectnublar.Constants;
+import net.dumbcode.projectnublar.block.entity.IncubatorBlockEntity;
 import net.dumbcode.projectnublar.menutypes.IncubatorMenu;
 import net.dumbcode.projectnublar.network.c2s.UpdateIncubatorSlotPacket;
 import net.dumbcode.projectnublar.platform.Services;
 import net.dumbcode.projectnublar.registry.ItemInit;
-import net.minecraft.client.gui.GuiGraphics;
+import net.minecraft.client.gui.GuiGraphicsExtractor;
 import net.minecraft.client.gui.screens.inventory.AbstractContainerScreen;
+import net.minecraft.client.renderer.RenderPipelines;
 import net.minecraft.network.chat.Component;
 import net.minecraft.resources.Identifier;
 import net.minecraft.util.Mth;
 import net.minecraft.world.entity.player.Inventory;
-import net.minecraft.world.inventory.ClickType;
+import net.minecraft.world.inventory.ContainerInput;
 import net.minecraft.world.inventory.Slot;
 
 /**
@@ -26,32 +28,27 @@ import net.minecraft.world.inventory.Slot;
 public class IncubatorScreen extends AbstractContainerScreen<IncubatorMenu> {
     private static final Identifier TEXTURE = Identifier.fromNamespaceAndPath(Constants.MODID,"textures/gui/incubator.png");
 
-    /** The egg bed's left and top offset inside the screen; the server checks egg positions against the bed. */
-    public static final int BED_OFFSET = 9;
-    public static final int BED_WIDTH = 158;
-    public static final int BED_HEIGHT = 115;
-
     public IncubatorScreen(IncubatorMenu pMenu, Inventory pPlayerInventory, Component pTitle) {
-        super(pMenu, pPlayerInventory, pTitle);
-        this.imageWidth = 176;
-        this.imageHeight = 222;
+        super(pMenu, pPlayerInventory, pTitle, 176, 222);
         this.titleLabelY = -100;
         this.inventoryLabelY = -100;
     }
 
+    /** Gives the menu its egg and inventory slots from the client level's incubator ({@link IncubatorMenu}). */
     @Override
-    public void render(GuiGraphics pGuiGraphics, int pMouseX, int pMouseY, float pPartialTick) {
-        super.render(pGuiGraphics, pMouseX, pMouseY, pPartialTick);
-        renderTooltip(pGuiGraphics, pMouseX, pMouseY);
+    protected void init() {
+        super.init();
+        menu.addEggAndInventorySlots((IncubatorBlockEntity) this.minecraft.level.getBlockEntity(menu.pos()));
     }
 
+    /** The dimmed background (super), the incubator, the egg bed and the plant-matter bar. */
     @Override
-    protected void renderBg(GuiGraphics pGuiGraphics, float pPartialTick, int pMouseX, int pMouseY) {
-        pGuiGraphics.fillGradient(0, 0, this.width, this.height, -1072689136, -804253680);
+    public void extractBackground(GuiGraphicsExtractor pGuiGraphics, int pMouseX, int pMouseY, float pPartialTick) {
+        super.extractBackground(pGuiGraphics, pMouseX, pMouseY, pPartialTick);
         int x = this.leftPos;
         int y = (this.height - this.imageHeight) / 2;
-        pGuiGraphics.blit(TEXTURE, x, y, 0, 0, imageWidth, imageHeight, 334, 222);
-        pGuiGraphics.blit(TEXTURE, x + BED_OFFSET, y + BED_OFFSET, imageWidth, 0, BED_WIDTH, BED_HEIGHT, 334, 222);
+        pGuiGraphics.blit(RenderPipelines.GUI_TEXTURED, TEXTURE, x, y, 0, 0, imageWidth, imageHeight, 334, 222);
+        pGuiGraphics.blit(RenderPipelines.GUI_TEXTURED, TEXTURE, x + IncubatorMenu.BED_OFFSET, y + IncubatorMenu.BED_OFFSET, imageWidth, 0, IncubatorMenu.BED_WIDTH, IncubatorMenu.BED_HEIGHT, 334, 222);
         int plantmatterMax = this.menu.getData().get(1);
         int plantmatter = this.menu.getData().get(0);
         int progress = Mth.floor(((plantmatter / (float) plantmatterMax)) * 63);
@@ -59,10 +56,10 @@ public class IncubatorScreen extends AbstractContainerScreen<IncubatorMenu> {
     }
 
     @Override
-    protected void slotClicked(Slot pSlot, int pSlotId, int pMouseButton, ClickType pType) {
+    protected void slotClicked(Slot pSlot, int pSlotId, int pMouseButton, ContainerInput pType) {
         super.slotClicked(pSlot, pSlotId, pMouseButton, pType);
         if (pSlot instanceof IncubatorMenu.IncubatorSlot) {
-            if (pType == ClickType.PICKUP) {
+            if (pType == ContainerInput.PICKUP) {
                 int x = pSlot.x;
                 int y = pSlot.y;
                 if (pSlot.hasItem()) {

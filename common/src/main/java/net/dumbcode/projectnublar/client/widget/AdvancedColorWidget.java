@@ -12,7 +12,7 @@ import net.dumbcode.projectnublar.client.screen.SequencerScreen;
 import net.dumbcode.projectnublar.gui.widget.DinoColorPickerWidget;
 import net.dumbcode.projectnublar.gui.widget.FilteredSelectionWidget;
 import net.dumbcode.projectnublar.gui.widget.ParentWidget;
-import net.minecraft.client.gui.GuiGraphics;
+import net.minecraft.client.gui.GuiGraphicsExtractor;
 import net.minecraft.client.gui.components.Renderable;
 import net.minecraft.network.chat.Component;
 
@@ -53,18 +53,19 @@ public class AdvancedColorWidget extends ParentWidget<SequencerScreen> implement
         });
         this.addRenderableWidget(colorWidget);
         this.addRenderableWidget(colorWheelWidget);
+        // The dropdown draws last, so its open list lies over the colour wheel (P36).
         Collections.reverse(this.renderables);
 
     }
 
 
     @Override
-    protected void renderBackground(GuiGraphics pGuiGraphics, int pMouseX, int pMouseY, float pPartialTick) {
+    protected void renderBackground(GuiGraphicsExtractor pGuiGraphics, int pMouseX, int pMouseY, float pPartialTick) {
 
     }
 
     @Override
-    protected void renderForeground(GuiGraphics pGuiGraphics, int pMouseX, int pMouseY, float pPartialTick) {
+    protected void renderForeground(GuiGraphicsExtractor pGuiGraphics, int pMouseX, int pMouseY, float pPartialTick) {
 
     }
 

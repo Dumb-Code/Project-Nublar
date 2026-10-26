@@ -1,11 +1,11 @@
 package net.dumbcode.projectnublar.client.widget;
 
 import net.dumbcode.projectnublar.client.screen.SequencerScreen;
-import net.minecraft.client.Minecraft;
-import net.minecraft.client.gui.GuiGraphics;
+import net.minecraft.client.gui.GuiGraphicsExtractor;
 import net.minecraft.client.gui.components.AbstractButton;
 import net.minecraft.client.gui.components.Tooltip;
 import net.minecraft.client.gui.narration.NarrationElementOutput;
+import net.minecraft.client.input.InputWithModifiers;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.chat.MutableComponent;
 
@@ -50,7 +50,8 @@ public class BorderedButton extends AbstractButton {
         setTooltip(builder.tooltip); // Forge: Make use of the Builder tooltip
     }
 
-    public void onPress() {
+    @Override
+    public void onPress(InputWithModifiers input) {
         this.onPress.onPress(this);
     }
 
@@ -65,10 +66,16 @@ public class BorderedButton extends AbstractButton {
     }
 
     @Override
-    protected void renderWidget(GuiGraphics pGuiGraphics, int pMouseX, int pMouseY, float pPartialTick) {
+    protected void extractContents(GuiGraphicsExtractor pGuiGraphics, int pMouseX, int pMouseY, float pPartialTick) {
         SequencerScreen.drawBorder(pGuiGraphics, this.getX(), this.getY(), this.width, this.height, 1, 1);
         pGuiGraphics.fill(this.getX() + 1, this.getY() + 1, this.getX() + this.width - 1, this.getY() + this.height - 1, 0xFF000000);
-        this.renderString(pGuiGraphics, Minecraft.getInstance().font, 0xFFFFFFFF);
+        // White scrolling label with a 2 px margin; getMessage() above bypasses the grey inactive style.
+        this.extractDefaultLabel(pGuiGraphics.textRendererForWidget(this, GuiGraphicsExtractor.HoveredTextEffects.NONE));
+    }
+
+    /** Keeps the arrow cursor on hover, as on 1.20.1; 26.2's AbstractButton would show a hand (P38). */
+    @Override
+    protected void handleCursor(GuiGraphicsExtractor graphics) {
     }
     public void setMessageConsumer(Function<BorderedButton,Boolean> messageConsumer) {
         this.messageConsumer = messageConsumer;

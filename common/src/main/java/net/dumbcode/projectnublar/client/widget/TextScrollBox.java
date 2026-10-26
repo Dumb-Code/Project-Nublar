@@ -3,7 +3,7 @@ package net.dumbcode.projectnublar.client.widget;
 import net.dumbcode.projectnublar.Constants;
 import net.dumbcode.projectnublar.client.screen.SequencerScreen;
 import net.minecraft.client.Minecraft;
-import net.minecraft.client.gui.GuiGraphics;
+import net.minecraft.client.gui.GuiGraphicsExtractor;
 import net.minecraft.client.gui.components.AbstractWidget;
 import net.minecraft.client.gui.narration.NarrationElementOutput;
 import net.minecraft.network.chat.Component;
@@ -38,7 +38,7 @@ public class TextScrollBox extends AbstractWidget {
     }
 
     @Override
-    protected void renderWidget(GuiGraphics guiGraphics, int i, int i1, float v) {
+    protected void extractWidgetRenderState(GuiGraphicsExtractor guiGraphics, int i, int i1, float v) {
 
         if (isBordered) {
             SequencerScreen.drawBorder(guiGraphics, getX(), getY(), getWidth(), getHeight(), borderColor, borderThickness);
@@ -49,17 +49,17 @@ public class TextScrollBox extends AbstractWidget {
         }
         int y = getY() + 3;
         for (Component component : text) {
-            guiGraphics.drawString(Minecraft.getInstance().font, component, getX() + 3, y + scroll, 0xFFFFFFFF);
+            guiGraphics.text(Minecraft.getInstance().font, component, getX() + 3, y + scroll, 0xFFFFFFFF);
             y += 10;
         }
         guiGraphics.disableScissor();
     }
 
     @Override
-    public boolean mouseScrolled(double $$0, double $$1, double $$2) {
+    public boolean mouseScrolled(double $$0, double $$1, double scrollX, double $$2) {
         int maxScroll = text.size() * -10 + getHeight() - 2;
         scroll = Math.min(0, Math.max(maxScroll, scroll + (int) $$2));
-        return super.mouseScrolled($$0, $$1, $$2);
+        return super.mouseScrolled($$0, $$1, scrollX, $$2);
     }
 
     @Override

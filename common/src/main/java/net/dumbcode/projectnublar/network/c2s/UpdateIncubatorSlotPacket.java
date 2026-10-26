@@ -2,7 +2,6 @@ package net.dumbcode.projectnublar.network.c2s;
 
 import net.dumbcode.projectnublar.Constants;
 import net.dumbcode.projectnublar.block.entity.IncubatorBlockEntity;
-import net.dumbcode.projectnublar.client.screen.IncubatorScreen;
 import net.dumbcode.projectnublar.menutypes.IncubatorMenu;
 import net.minecraft.core.BlockPos;
 import net.minecraft.network.RegistryFriendlyByteBuf;
@@ -37,14 +36,14 @@ public record UpdateIncubatorSlotPacket(BlockPos pos, int index, int x, int y) i
     /** The incubator has at most {@link IncubatorBlockEntity#EGG_SLOT_COUNT} egg slots. */
     static final int LAST_EGG_MENU_INDEX = IncubatorBlockEntity.EGG_SLOT_COUNT;
     /**
-     * The egg bed that {@link IncubatorScreen} draws, in screen-relative pixels: x from
-     * {@code EGG_AREA_START} to {@code EGG_AREA_END_X - 1}, y from {@code EGG_AREA_START} to
-     * {@code EGG_AREA_END_Y - 1}. The screen places eggs only inside it. These are compile-time
-     * constants, so the server never loads the client-only screen class.
+     * The egg bed that the incubator screen draws ({@link IncubatorMenu#BED_OFFSET} and the bed
+     * size), in screen-relative pixels: x from {@code EGG_AREA_START} to {@code EGG_AREA_END_X - 1},
+     * y from {@code EGG_AREA_START} to {@code EGG_AREA_END_Y - 1}. The screen places eggs only
+     * inside it.
      */
-    static final int EGG_AREA_START = IncubatorScreen.BED_OFFSET;
-    static final int EGG_AREA_END_X = IncubatorScreen.BED_OFFSET + IncubatorScreen.BED_WIDTH;
-    static final int EGG_AREA_END_Y = IncubatorScreen.BED_OFFSET + IncubatorScreen.BED_HEIGHT;
+    static final int EGG_AREA_START = IncubatorMenu.BED_OFFSET;
+    static final int EGG_AREA_END_X = IncubatorMenu.BED_OFFSET + IncubatorMenu.BED_WIDTH;
+    static final int EGG_AREA_END_Y = IncubatorMenu.BED_OFFSET + IncubatorMenu.BED_HEIGHT;
 
     @Override
     public Type<UpdateIncubatorSlotPacket> type() {

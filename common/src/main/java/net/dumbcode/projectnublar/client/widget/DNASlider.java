@@ -5,8 +5,9 @@ import net.dumbcode.projectnublar.Constants;
 import net.dumbcode.projectnublar.api.dinosaur.DNAData;
 import net.dumbcode.projectnublar.client.screen.SequencerScreen;
 import net.dumbcode.projectnublar.gui.widget.NGLSlider;
-import net.minecraft.client.gui.Font;
-import net.minecraft.client.gui.GuiGraphics;
+import net.minecraft.client.gui.ActiveTextCollector;
+import net.minecraft.client.gui.GuiGraphicsExtractor;
+import net.minecraft.client.input.MouseButtonEvent;
 import net.minecraft.network.chat.Component;
 import net.minecraft.world.entity.EntityType;
 
@@ -62,20 +63,24 @@ public class DNASlider extends NGLSlider {
     }
 
     @Override
-    protected void onDrag(double mouseX, double mouseY, double dragX, double dragY) {
+    protected void onDrag(MouseButtonEvent event, double dragX, double dragY) {
+        double mouseX = event.x();
+        double mouseY = event.y();
         if (mouseX >= getX() && mouseX <= getX() + buttonWidth && mouseY >= getY() && mouseY <= getY() + buttonHeight) {
         } else
-            super.onDrag(mouseX, mouseY, dragX, dragY);
+            super.onDrag(event, dragX, dragY);
 
     }
 
     @Override
-    public void onClick(double mouseX, double mouseY) {
+    public void onClick(MouseButtonEvent event, boolean doubleClick) {
+        double mouseX = event.x();
+        double mouseY = event.y();
         if (mouseX >= getX() && mouseX <= getX() + buttonWidth && mouseY >= getY() && mouseY <= getY() + buttonHeight) {
             selected = !selected;
             consumer.onClick(this, selected);
         } else {
-            super.onClick(mouseX, mouseY);
+            super.onClick(event, doubleClick);
         }
     }
 
@@ -89,20 +94,22 @@ public class DNASlider extends NGLSlider {
 
 
     @Override
-    public void renderSliderBar(GuiGraphics guiGraphics) {
+    public void renderSliderBar(GuiGraphicsExtractor guiGraphics) {
         int posX = (this.getX() + buttonWidth - 1) + (int) (this.value * (double) (this.width - buttonWidth - 9));
         SequencerScreen.drawBorder(guiGraphics, posX, this.getY(), 10, height, Constants.BORDER_COLOR, 1);
         guiGraphics.fill(posX + 1, this.getY() + 1, posX + 9, getY() + height - 1, 0xFF193B59);
     }
 
-    protected void renderScrollingString(GuiGraphics pGuiGraphics, Font pFont, int pWidth, int pColor) {
-        int i = this.getX() + pWidth + buttonWidth / 2;
-        int j = this.getX() + this.getWidth() - pWidth + buttonWidth / 2;
-        renderScrollingString(pGuiGraphics, pFont, this.getMessage(), i, this.getY(), j, this.getY() + this.getHeight(), pColor);
+    /** The label sits half the select box's width to the right, so it is centred over the bar. */
+    @Override
+    protected void extractScrollingStringOverContents(ActiveTextCollector output, Component message, int margin) {
+        int i = this.getX() + margin + buttonWidth / 2;
+        int j = this.getX() + this.getWidth() - margin + buttonWidth / 2;
+        output.acceptScrollingWithDefaultCenter(message, i, j, this.getY(), this.getY() + this.getHeight());
     }
 
     @Override
-    public void renderSliderBackground(GuiGraphics guiGraphics) {
+    public void renderSliderBackground(GuiGraphicsExtractor guiGraphics) {
         SequencerScreen.drawBorder(guiGraphics, getX(), getY(), buttonWidth, buttonHeight, Constants.BORDER_COLOR, 1);
         guiGraphics.fill(getX() + 1, getY() + 1, getX() + buttonWidth - 1, getY() + buttonHeight - 1, selected ? Constants.BORDER_COLOR : 0xFF193B59);
         SequencerScreen.drawBorder(guiGraphics, getX() + buttonWidth, getY() + 3, width - buttonWidth, barHeight, Constants.BORDER_COLOR, 1);
