@@ -7,6 +7,7 @@ import net.dumbcode.projectnublar.config.FossilsConfig;
 import net.dumbcode.projectnublar.energy.TeamRebornEnergySwitch;
 import net.dumbcode.projectnublar.network.NublarPayloads;
 import net.dumbcode.projectnublar.registry.EntityInit;
+import net.dumbcode.projectnublar.registry.RecipeInit;
 import net.dumbcode.projectnublar.registry.SensorTypesInit;
 import net.fabricmc.api.ModInitializer;
 import net.fabricmc.fabric.api.biome.v1.BiomeModifications;
@@ -15,6 +16,7 @@ import net.fabricmc.fabric.api.event.player.UseBlockCallback;
 import net.fabricmc.fabric.api.networking.v1.PayloadTypeRegistry;
 import net.fabricmc.fabric.api.networking.v1.ServerPlayNetworking;
 import net.fabricmc.fabric.api.object.builder.v1.entity.FabricDefaultAttributeRegistry;
+import net.fabricmc.fabric.api.recipe.v1.sync.RecipeSynchronization;
 import net.minecraft.core.registries.Registries;
 import net.minecraft.network.protocol.common.custom.CustomPacketPayload;
 import net.minecraft.resources.ResourceKey;
@@ -26,8 +28,8 @@ import net.neoforged.fml.config.ModConfig;
 /**
  * The Fabric main entry point (the {@code main} entrypoint in {@code fabric.mod.json}). It runs on
  * both sides and registers what NeoForge registers through its events: the fossils config, entity
- * attributes, the fossil veins, the serverbound payloads and the wire-spool repair, plus the
- * Fabric-only Team Reborn Energy switch. The client entry point is
+ * attributes, the fossil veins, the serverbound payloads, the recipe sync and the wire-spool
+ * repair, plus the Fabric-only Team Reborn Energy switch. The client entry point is
  * {@code ProjectNublarClientFabric}.
  */
 public class ProjectNublarFabric implements ModInitializer {
@@ -53,6 +55,8 @@ public class ProjectNublarFabric implements ModInitializer {
         FOSSIL_VEINS.forEach(vein -> BiomeModifications.addFeature(BiomeSelectors.tag(BiomeTags.IS_OVERWORLD),
                 GenerationStep.Decoration.UNDERGROUND_ORES, ResourceKey.create(Registries.PLACED_FEATURE, Constants.modLoc(vein))));
         NublarPayloads.SERVERBOUND.forEach(ProjectNublarFabric::registerServerbound);
+        // Fabric API syncs recipes by serializer, so only Nublar's crafting recipes travel to clients.
+        RecipeSynchronization.synchronizeRecipeSerializer(RecipeInit.UNINCUBATED_EGG.get());
         UseBlockCallback.EVENT.register((player, level, hand, hit) ->
                 WireSpoolRepair.tryRepair(level, player, hand, hit.getBlockPos(), hit.getDirection(), player.getItemInHand(hand))
                         // FAIL stops the click and, like NeoForge's cancelled event (PASS), consumes nothing and swings nothing.
