@@ -5,6 +5,7 @@ import net.dumbcode.projectnublar.ProjectNublar;
 import net.dumbcode.projectnublar.Constants;
 import net.dumbcode.projectnublar.api.dinosaur.DNAData;
 import net.dumbcode.projectnublar.api.dinosaur.DinoData;
+import net.dumbcode.projectnublar.api.dinosaur.DiskStorage;
 import net.dumbcode.projectnublar.api.gene.Genes;
 import net.dumbcode.projectnublar.api.util.NublarMath;
 import net.dumbcode.projectnublar.block.entity.SequencerBlockEntity;
@@ -12,6 +13,7 @@ import net.dumbcode.projectnublar.client.widget.*;
 import net.dumbcode.projectnublar.container.ToggleSlot;
 import net.dumbcode.projectnublar.entity.dinosaur.Dinosaur;
 import net.dumbcode.projectnublar.gui.widget.*;
+import net.dumbcode.projectnublar.registry.DataComponentInit;
 import net.dumbcode.projectnublar.registry.GeneInit;
 import net.dumbcode.projectnublar.item.DiskStorageItem;
 import net.dumbcode.projectnublar.menutypes.SequencerMenu;
@@ -28,7 +30,6 @@ import net.minecraft.client.gui.screens.inventory.AbstractContainerScreen;
 import net.minecraft.client.input.MouseButtonEvent;
 import net.minecraft.client.renderer.RenderPipelines;
 import net.minecraft.client.renderer.entity.state.EntityRenderState;
-import net.minecraft.core.component.DataComponents;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.network.chat.Component;
 import net.minecraft.resources.Identifier;
@@ -46,7 +47,6 @@ import net.minecraft.world.entity.player.Inventory;
 import net.minecraft.world.inventory.ContainerInput;
 import net.minecraft.world.inventory.Slot;
 import net.minecraft.world.item.ItemStack;
-import net.minecraft.world.item.component.CustomData;
 import net.minecraft.world.level.Level;
 import org.jetbrains.annotations.Nullable;
 import org.joml.Quaternionf;
@@ -178,10 +178,12 @@ public class SequencerScreen extends AbstractContainerScreen<SequencerMenu> {
         dnaSliderMain.setConsumer((slider, selected) -> {
             if (selected) {
                 entityList.clearButtons();
-                if (menu.storageSlot.getItem().has(DataComponents.CUSTOM_DATA)) {
-                    menu.storageSlot.getItem().getOrDefault(DataComponents.CUSTOM_DATA, CustomData.EMPTY).copyTag().keySet().forEach(
+                if (menu.storageSlot.getItem().has(DataComponentInit.DISK_STORAGE.get())) {
+                    // read only: component values are shared between stack copies
+                    DiskStorage storage = DiskStorage.fromStack(menu.storageSlot.getItem());
+                    storage.keys().forEach(
                             key -> {
-                                DNAData dnaData = DNAData.loadFromNBT(menu.storageSlot.getItem().getOrDefault(DataComponents.CUSTOM_DATA, CustomData.EMPTY).copyTag().getCompoundOrEmpty(key));
+                                DNAData dnaData = storage.get(key);
                                 if (BuiltInRegistries.ENTITY_TYPE.getKey(dnaData.getEntityType()).getNamespace().equals(Constants.MODID)) {
                                     EntityWidget entityWidget = new EntityWidget(leftPos + 233, topPos + 25, 107, 20, dnaData, (button, selected2) -> {
                                         slider.setEntityType(dnaData.getEntityType());
@@ -222,10 +224,12 @@ public class SequencerScreen extends AbstractContainerScreen<SequencerMenu> {
         DNASlider.OnClick onClick = (slider, selected) -> {
             if (selected) {
                 entityList.clearButtons();
-                if (menu.storageSlot.getItem().has(DataComponents.CUSTOM_DATA)) {
-                    menu.storageSlot.getItem().getOrDefault(DataComponents.CUSTOM_DATA, CustomData.EMPTY).copyTag().keySet().forEach(
+                if (menu.storageSlot.getItem().has(DataComponentInit.DISK_STORAGE.get())) {
+                    // read only: component values are shared between stack copies
+                    DiskStorage storage = DiskStorage.fromStack(menu.storageSlot.getItem());
+                    storage.keys().forEach(
                             key -> {
-                                DNAData dnaData = DNAData.loadFromNBT(menu.storageSlot.getItem().getOrDefault(DataComponents.CUSTOM_DATA, CustomData.EMPTY).copyTag().getCompoundOrEmpty(key));
+                                DNAData dnaData = storage.get(key);
                                 if (!BuiltInRegistries.ENTITY_TYPE.getKey(dnaData.getEntityType()).getNamespace().equals(Constants.MODID)) {
                                     EntityWidget entityWidget = new EntityWidget(leftPos + 233, topPos + 25, 107, 20, dnaData, (button, selected2) -> {
                                         slider.setEntityType(dnaData.getEntityType());
@@ -766,13 +770,16 @@ public class SequencerScreen extends AbstractContainerScreen<SequencerMenu> {
 
     @Override
     protected void containerTick() {
-        if (getMenu().storageSlot.getItem().has(DataComponents.CUSTOM_DATA)) {
-            if (getMenu().storageSlot.getItem().getOrDefault(DataComponents.CUSTOM_DATA, CustomData.EMPTY).copyTag().keySet().size() != listWidget.size()) {
+        if (getMenu().storageSlot.getItem().has(DataComponentInit.DISK_STORAGE.get())) {
+            // read only: component values are shared between stack copies
+            DiskStorage storage = DiskStorage.fromStack(getMenu().storageSlot.getItem());
+            if (storage.keys().size() != listWidget.size()) {
                 listWidget.clearButtons();
-                getMenu().storageSlot.getItem().getOrDefault(DataComponents.CUSTOM_DATA, CustomData.EMPTY).copyTag().keySet().forEach(key -> {
+                storage.keys().forEach(key -> {
                     listWidget.addButton(new SequenceDataDisplayWidget(0, 0, 120, 14, () -> getMenu().storageSlot.getItem(), key, (button, selected) -> {
                         if (selected) {
-                            DNAData data = DNAData.loadFromNBT(getMenu().storageSlot.getItem().getOrDefault(DataComponents.CUSTOM_DATA, CustomData.EMPTY).copyTag().getCompoundOrEmpty(button.getValue()));
+                            // read only: component values are shared between stack copies
+                            DNAData data = DiskStorage.fromStack(getMenu().storageSlot.getItem()).getOrMissing(button.getValue());
                             textScrollBox.setText(List.of(
                                             data.getFormattedType().withStyle(ChatFormatting.GOLD),
                                             Component.literal("Time Period").withStyle(ChatFormatting.UNDERLINE),
@@ -781,7 +788,7 @@ public class SequencerScreen extends AbstractContainerScreen<SequencerMenu> {
                                             Component.literal("Apple")
                                     )
                             );
-                            selectedDino = (LivingEntity) createPreview(DNAData.loadFromNBT(getMenu().storageSlot.getItem().getOrDefault(DataComponents.CUSTOM_DATA, CustomData.EMPTY).copyTag().getCompoundOrEmpty(button.getValue())).getEntityType());
+                            selectedDino = (LivingEntity) createPreview(data.getEntityType());
                             listWidget.getButtons().forEach(b -> {
                                 if (b != button) {
                                     ((SequenceDataDisplayWidget) b).selected = false;
@@ -840,14 +847,16 @@ public class SequencerScreen extends AbstractContainerScreen<SequencerMenu> {
 
     public void buildGeneIsolationMap() {
         isolatedWidget.clearButtons();
-        if (!getMenu().storageSlot.getItem().has(DataComponents.CUSTOM_DATA)) {
+        if (!getMenu().storageSlot.getItem().has(DataComponentInit.DISK_STORAGE.get())) {
             return;
         }
+        // read only: component values are shared between stack copies
+        DiskStorage storage = DiskStorage.fromStack(getMenu().storageSlot.getItem());
         GeneInit.GENES.getRegistrar().forEach(gene -> {
             double totalPercent = 0;
             String geneInfo = ProjectNublar.checkReplace(gene.name()) + " ";
-            for (String key : getMenu().storageSlot.getItem().getOrDefault(DataComponents.CUSTOM_DATA, CustomData.EMPTY).copyTag().keySet()) {
-                DNAData data = DNAData.loadFromNBT(getMenu().storageSlot.getItem().getOrDefault(DataComponents.CUSTOM_DATA, CustomData.EMPTY).copyTag().getCompoundOrEmpty(key));
+            for (String key : storage.keys()) {
+                DNAData data = storage.get(key);
                 if (Genes.GENE_STORAGE.get(gene).stream().map(Pair::getFirst).toList().contains(data.getEntityType())) {
                     totalPercent += data.getDnaPercentage();
                 }
@@ -858,8 +867,10 @@ public class SequencerScreen extends AbstractContainerScreen<SequencerMenu> {
                     if (selected) {
                         List<Component> dinoDnas = new ArrayList<>();
                         List<EntityType<?>> entities = new ArrayList<>(Genes.GENE_STORAGE.get(gene).stream().map(Pair::getFirst).toList());
-                        for (String key : getMenu().storageSlot.getItem().getOrDefault(DataComponents.CUSTOM_DATA, CustomData.EMPTY).copyTag().keySet()) {
-                            DNAData data = DNAData.loadFromNBT(getMenu().storageSlot.getItem().getOrDefault(DataComponents.CUSTOM_DATA, CustomData.EMPTY).copyTag().getCompoundOrEmpty(key));
+                        // read only: component values are shared between stack copies
+                        DiskStorage current = DiskStorage.fromStack(getMenu().storageSlot.getItem());
+                        for (String key : current.keys()) {
+                            DNAData data = current.get(key);
                             if (Genes.GENE_STORAGE.get(gene).stream().map(Pair::getFirst).toList().contains(data.getEntityType())) {
                                 entities.remove(data.getEntityType());
                                 dinoDnas.add(data.getFormattedType().append(" ").append(data.getFormattedDNANoDescriptor()));
@@ -900,8 +911,9 @@ public class SequencerScreen extends AbstractContainerScreen<SequencerMenu> {
         if (dinoData.getBaseDino() != EntityTypes.PIG) {
             DNASlider slider = dNASliders.get(0);
             ItemStack stack = menu.storageSlot.getItem();
-            if (stack.has(DataComponents.CUSTOM_DATA)) {
-                DNAData data = DNAData.loadFromNBT(stack.getOrDefault(DataComponents.CUSTOM_DATA, CustomData.EMPTY).copyTag().getCompoundOrEmpty(DNAData.createStorageKey(dinoData.getBaseDino(), null)));
+            if (stack.has(DataComponentInit.DISK_STORAGE.get())) {
+                // read only: component values are shared between stack copies
+                DNAData data = DiskStorage.fromStack(stack).getOrMissing(DNAData.createStorageKey(dinoData.getBaseDino(), null));
                 slider.setDNAData(data);
                 double value = dinoData.getEntityPercentage(new DinoData.EntityInfo(dinoData.getBaseDino(), null));
                 slider.setValue(value, true);
@@ -932,7 +944,8 @@ public class SequencerScreen extends AbstractContainerScreen<SequencerMenu> {
                     if (slider.getEntityType() == null && shouldAdd) {
                         slider.setEntityType(entry.getKey().type());
                         slider.setValue(entry.getValue(), true);
-                        DNAData data = DNAData.loadFromNBT(menu.storageSlot.getItem().getOrDefault(DataComponents.CUSTOM_DATA, CustomData.EMPTY).copyTag().getCompoundOrEmpty(DNAData.createStorageKey(entry.getKey().type(), entry.getKey().variant())));
+                        // read only: component values are shared between stack copies
+                        DNAData data = DiskStorage.fromStack(menu.storageSlot.getItem()).getOrMissing(DNAData.createStorageKey(entry.getKey().type(), entry.getKey().variant()));
                         slider.setDNAData(data);
                         slider.active = true;
                         shouldAdd = false;

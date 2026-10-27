@@ -470,8 +470,8 @@ public abstract class Dinosaur extends TamableAnimal implements FossilRevived, G
     public void addAdditionalSaveData(ValueOutput output) {
         SaveVersion.write(output);
         super.addAdditionalSaveData(output);
-        // DinoData and the behaviour profile stay on CompoundTag until Task 16; stored through the tag codec.
-        output.store("dino_data", CompoundTag.CODEC, this.getDinoData().toNBT());
+        output.store("dino_data", DinoData.CODEC, this.getDinoData());
+        // The behaviour profile stays a CompoundTag (Task 2); stored through the tag codec.
         output.store("behaviour_profile", CompoundTag.CODEC, this.entityData.get(DINO_BEHAVIOUR));
         output.putFloat("hunger_bar", this.entityData.get(DinoNeedsUtils.HUNGER));
         output.putFloat("thirst_bar", this.entityData.get(DinoNeedsUtils.THIRST));
@@ -508,7 +508,7 @@ public abstract class Dinosaur extends TamableAnimal implements FossilRevived, G
     @Override
     public void readAdditionalSaveData(ValueInput input) {
         super.readAdditionalSaveData(input);
-        entityData.set(DINO_DATA, DinoData.fromNBT(input.read("dino_data", CompoundTag.CODEC).orElseGet(CompoundTag::new)));
+        entityData.set(DINO_DATA, input.read("dino_data", DinoData.CODEC).orElseGet(DinoData::new));
         this.entityData.set(DINO_BEHAVIOUR, input.read("behaviour_profile", CompoundTag.CODEC).orElseGet(CompoundTag::new));
         this.entityData.set(DinoNeedsUtils.HUNGER, input.getFloatOr("hunger_bar", 0F));
         this.entityData.set(DinoNeedsUtils.THIRST, input.getFloatOr("thirst_bar", 0F));
@@ -1224,12 +1224,14 @@ public abstract class Dinosaur extends TamableAnimal implements FossilRevived, G
 
         if(mate instanceof Dinosaur) {
             if (dinosaur != null) {
-                dinosaur.setDinoData(mother.getDinoData());
-                DinoNeedsUtils.setDinoBaseNeeds(dinosaur, mother.getDinoBehaviour());
-                dinosaur.setDinoBehaviour(mother.getDinoBehaviour().toNBT(mother.getDinoBehaviour()));
+                // The baby gets its own copy: synced data must not be changed in place (P121).
+                DinoData babyData = mother.getDinoData().copy();
                 // TODO(BUG): nextInt(1, 2) can only ever return 1, so every offspring gets the
                 // same gender value.
-                dinosaur.getDinoData().setGeneValue(GeneInit.GENDER.get(), random.nextInt(1,2));
+                babyData.setGeneValue(GeneInit.GENDER.get(), random.nextInt(1,2));
+                dinosaur.setDinoData(babyData);
+                DinoNeedsUtils.setDinoBaseNeeds(dinosaur, mother.getDinoBehaviour());
+                dinosaur.setDinoBehaviour(mother.getDinoBehaviour().toNBT(mother.getDinoBehaviour()));
                 dinosaur.setBaby(true);
                 dinosaur.setDinoFamilyUuid(this.getFamilyId());
                 dinosaur.snapTo(this.getX(), this.getY(), this.getZ(), 0.0F, 0.0F);

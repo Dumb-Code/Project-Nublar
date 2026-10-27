@@ -7,6 +7,7 @@ import net.dumbcode.projectnublar.api.dinosaur.DNAData;
 import net.dumbcode.projectnublar.api.fossil.FossilPiece;
 import net.dumbcode.projectnublar.api.fossil.FossilPieces;
 import net.dumbcode.projectnublar.api.fossil.Quality;
+import net.dumbcode.projectnublar.registry.DataComponentInit;
 import net.minecraft.client.multiplayer.ClientLevel;
 import net.minecraft.client.renderer.item.properties.select.SelectItemModelProperty;
 import net.minecraft.resources.Identifier;
@@ -39,9 +40,10 @@ public record FossilTextureProperty() implements SelectItemModelProperty<String>
     @Override
     public String get(ItemStack stack, @Nullable ClientLevel level, @Nullable LivingEntity owner, int seed,
                       ItemDisplayContext displayContext) {
-        DNAData data = DNAData.fromStack(stack);
-        FossilPiece piece = data.getFossilPiece() == null ? FossilPieces.TYRANNOSAURUS_SKULL : data.getFossilPiece();
-        Quality quality = data.getQuality() == null ? Quality.COMMON : data.getQuality();
+        // read only: component values are shared between stack copies
+        DNAData data = stack.get(DataComponentInit.DNA_DATA.get());
+        FossilPiece piece = data == null || data.getFossilPiece() == null ? FossilPieces.TYRANNOSAURUS_SKULL : data.getFossilPiece();
+        Quality quality = data == null || data.getQuality() == null ? Quality.COMMON : data.getQuality();
         return piece.name() + "_" + quality.getName();
     }
 

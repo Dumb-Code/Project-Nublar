@@ -6,6 +6,7 @@ import static org.junit.jupiter.api.Assertions.assertNotEquals;
 import static org.junit.jupiter.api.Assertions.assertNull;
 
 import io.netty.buffer.Unpooled;
+import java.util.Set;
 import net.dumbcode.projectnublar.TestBootstrap;
 import net.dumbcode.projectnublar.api.gene.Genes;
 import net.dumbcode.projectnublar.util.SaveVersion;
@@ -162,5 +163,55 @@ class DinoDataCodecTest {
         assertEquals(new DinoData(), decoded);
         assertNull(decoded.getBaseDino());
         assertEquals(-1, decoded.getIncubationProgress());
+    }
+
+    /** copy() keeps every saved field and the version, in maps of its own (P120, P130). */
+    @Test
+    void copyKeepsEverySavedFieldAndTheVersion() {
+        CompoundTag tag = encode(full());
+        tag.remove(SaveVersion.KEY);
+        DinoData original = parse(tag);
+        original.setGeneValue(AGGRESSION, 7);
+        DinoData copy = original.copy();
+        assertEquals(original, copy, "equals compares every saved field");
+        assertEquals(0, copy.getVersion());
+        assertEquals(EntityTypes.COW, copy.getBaseDino());
+        assertEquals(30, copy.getEntityPercentage(new DinoData.EntityInfo(EntityTypes.CAT, "minecraft:tabby")));
+        copy.setGeneValue(SPEED, 1);
+        copy.addEntity(new DinoData.EntityInfo(EntityTypes.COW, null), 5);
+        assertFalse(original.getAdvancedGenes().containsKey(SPEED));
+        assertEquals(0, original.getEntityPercentage(new DinoData.EntityInfo(EntityTypes.COW, null)));
+    }
+
+    /** The saved key names are the 1.20.1 toNBT names; nothing else ties them once the NBT methods are gone. */
+    @Test
+    void encodedKeyNamesAreThe1201Names() {
+        DinoData data = full();
+        data.setGeneValue(AGGRESSION, 7);
+        CompoundTag tag = encode(data);
+        assertEquals(Set.of("version", "basePercentage", "entityPercentages", "genes", "baseDino",
+                "incubationProgress", "incubationTimeLeft"), tag.keySet());
+        CompoundTag cat = tag.getListOrEmpty("entityPercentages").stream()
+                .map(entry -> (CompoundTag) entry)
+                .filter(entry -> entry.contains("variant"))
+                .findFirst().orElseThrow();
+        assertEquals(Set.of("type", "variant", "percentage"), cat.keySet());
+        assertEquals("minecraft:cat", cat.getStringOr("type", ""));
+    }
+
+    /**
+     * saveTo stores null entity types as pig, so the stored data equals what the 1.20.1 NBT save and
+     * load gave (P133).
+     */
+    @Test
+    void storedCopyStoresNullEntityTypesAsPig() {
+        DinoData data = new DinoData();
+        data.setBasePercentage(50);
+        data.addEntity(new DinoData.EntityInfo(null, "minecraft:tabby"), 20);
+        DinoData stored = data.storedCopy();
+        assertEquals(EntityTypes.PIG, stored.getBaseDino());
+        assertEquals(20, stored.getEntityPercentage(new DinoData.EntityInfo(EntityTypes.PIG, "minecraft:tabby")));
+        assertEquals(parse(encode(data)), stored);
+        assertNull(data.getBaseDino(), "the data saveTo is called on does not change");
     }
 }

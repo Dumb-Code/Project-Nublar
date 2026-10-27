@@ -4,7 +4,7 @@ import net.dumbcode.projectnublar.api.dinosaur.DNAData;
 import net.dumbcode.projectnublar.api.util.NublarMath;
 import net.dumbcode.projectnublar.registry.TagInit;
 import net.dumbcode.projectnublar.item.api.DNADataItem;
-import net.minecraft.core.component.DataComponents;
+import net.dumbcode.projectnublar.registry.DataComponentInit;
 import net.minecraft.network.chat.Component;
 import net.minecraft.util.RandomSource;
 import net.minecraft.world.InteractionHand;
@@ -16,7 +16,6 @@ import net.minecraft.world.entity.animal.feline.Cat;
 import net.minecraft.world.entity.animal.parrot.Parrot;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
-import net.minecraft.world.item.component.CustomData;
 
 public class SyringeItem extends DNADataItem {
     public SyringeItem(Properties $$0) {
@@ -25,11 +24,11 @@ public class SyringeItem extends DNADataItem {
 
     @Override
     public InteractionResult interactLivingEntity(ItemStack stack, Player player, LivingEntity target, InteractionHand hand) {
-        if (player.getItemInHand(hand).is(this) && !player.getItemInHand(hand).has(DataComponents.CUSTOM_DATA)) {
+        if (player.getItemInHand(hand).is(this) && !hasSampleData(player.getItemInHand(hand))) {
             if (target.isAlive()) {
                 if(target.is(TagInit.EMBRYO_ENTITY) && target instanceof Animal mob && mob.isInLove()){
                     ItemStack embryoStack = player.getItemInHand(hand).copyWithCount(1);
-                    CustomData.update(DataComponents.CUSTOM_DATA, embryoStack, tag -> tag.putBoolean("Embryo", true));
+                    embryoStack.set(DataComponentInit.EMBRYO.get(), true);
                     player.getInventory().add(embryoStack);
                 } else {
                     DNAData dnaData = new DNAData();
@@ -55,7 +54,7 @@ public class SyringeItem extends DNADataItem {
 
     @Override
     public Component getName(ItemStack pStack) {
-        if(pStack.getOrDefault(DataComponents.CUSTOM_DATA, CustomData.EMPTY).copyTag().contains("Embryo")){
+        if (pStack.has(DataComponentInit.EMBRYO.get())) {
             return Component.literal("Embryo Filled Syringe");
         }
         return super.getName(pStack);

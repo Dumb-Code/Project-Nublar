@@ -46,7 +46,6 @@ import org.jetbrains.annotations.Nullable;
 public class DinoData {
     private static final String BASE_PERCENTAGE_KEY = "basePercentage";
     private static final String ENTITY_PERCENTAGES_KEY = "entityPercentages";
-    private static final String ENTITY_ENTRY_PREFIX = "entity_";
     private static final String TYPE_KEY = "type";
     private static final String VARIANT_KEY = "variant";
     private static final String PERCENTAGE_KEY = "percentage";
@@ -123,7 +122,7 @@ public class DinoData {
             Codec.DOUBLE.optionalFieldOf(BASE_PERCENTAGE_KEY, 0D).forGetter(data -> data.basePercentage),
             ENTITY_PERCENTAGES_FIELD.forGetter(data -> data.entityPercentages),
             GENES_FIELD.forGetter(data -> data.advancedGenes),
-            ENTITY_TYPE_ID.optionalFieldOf(BASE_DINO_KEY).forGetter(data -> Optional.of(savedBaseDino(data.baseDino))),
+            ENTITY_TYPE_ID.optionalFieldOf(BASE_DINO_KEY).forGetter(data -> Optional.of(savedEntityType(data.baseDino))),
             Codec.DOUBLE.optionalFieldOf(INCUBATION_PROGRESS_KEY, (double) NOT_SET).forGetter(data -> data.incubationProgress),
             Codec.INT.optionalFieldOf(INCUBATION_TIME_LEFT_KEY, NOT_SET).forGetter(data -> data.incubationTimeLeft)
     ).apply(instance, (version, basePercentage, entityPercentages, genes, baseDino, incubationProgress, incubationTimeLeft) ->
@@ -161,13 +160,13 @@ public class DinoData {
     }
 
     /**
-     * The {@code baseDino} that 1.20.1's toNBT wrote (ruling P131): {@code getKey(baseDino)}, which
-     * is the entity registry's default key (pig) for a null base. fromNBT and {@link #CODEC} read a
-     * missing key as null.
+     * The entity type that 1.20.1's toNBT wrote (ruling P131): {@code getKey(type)}, which is the
+     * entity registry's default key (pig) for a null type. fromNBT and {@link #CODEC} read a missing
+     * {@code baseDino} key as null.
      */
-    private static EntityType<?> savedBaseDino(@Nullable EntityType<?> baseDino) {
-        return baseDino != null
-                ? baseDino
+    private static EntityType<?> savedEntityType(@Nullable EntityType<?> type) {
+        return type != null
+                ? type
                 : BuiltInRegistries.ENTITY_TYPE.getValue(BuiltInRegistries.ENTITY_TYPE.getDefaultKey());
     }
 
@@ -309,40 +308,6 @@ public class DinoData {
         return value;
     }
 
-    public CompoundTag toNBT() {
-        CompoundTag tag = new CompoundTag();
-        tag.putDouble(BASE_PERCENTAGE_KEY, basePercentage);
-        tag.put(ENTITY_PERCENTAGES_KEY, saveEntityPercentages());
-        tag.put(GENES_KEY, saveAdvancedGenes());
-        // A null baseDino writes the entity registry's default key (pig): the defaulted registry's
-        // getKey returns it for a value it does not hold. fromNBT reads a missing key as null.
-        tag.putString(BASE_DINO_KEY, BuiltInRegistries.ENTITY_TYPE.getKey(baseDino).toString());
-        tag.putDouble(INCUBATION_PROGRESS_KEY, incubationProgress);
-        tag.putInt(INCUBATION_TIME_LEFT_KEY, incubationTimeLeft);
-        return tag;
-    }
-
-    public static DinoData fromNBT(CompoundTag tag) {
-        double basePercentage = tag.getDoubleOr(BASE_PERCENTAGE_KEY, 0);
-        Map<EntityInfo, Double> entityPercentages =
-                readEntityPercentages(tag.getCompoundOrEmpty(ENTITY_PERCENTAGES_KEY));
-        DinoData data = new DinoData();
-        data.advancedGenes.putAll(readAdvancedGenes(tag.getCompoundOrEmpty(GENES_KEY)));
-        data.basePercentage = basePercentage;
-        data.entityPercentages = entityPercentages;
-        if (tag.contains(BASE_DINO_KEY)) {
-            data.baseDino = BuiltInRegistries.ENTITY_TYPE
-                    .getOptional(Identifier.tryParse(tag.getStringOr(BASE_DINO_KEY, ""))).get();
-        }
-        if (tag.contains(INCUBATION_PROGRESS_KEY)) {
-            data.incubationProgress = tag.getDoubleOr(INCUBATION_PROGRESS_KEY, 0);
-        }
-        if (tag.contains(INCUBATION_TIME_LEFT_KEY)) {
-            data.incubationTimeLeft = tag.getIntOr(INCUBATION_TIME_LEFT_KEY, 0);
-        }
-        return data;
-    }
-
     /**
      * A copy of every saved field and the version (ruling P130). The layer colours and the
      * final-gene cache are not saved, so the copy has their defaults, as a 1.20.1 save and load did.
@@ -375,11 +340,26 @@ public class DinoData {
     }
 
     /**
-     * Stores a {@link #copy} of this data as the stack's {@link DataComponentInit#DINO_DATA}, so a
-     * later change to this object does not reach the stack (ruling P120).
+     * Stores {@link #storedCopy()} as the stack's {@link DataComponentInit#DINO_DATA}, so a later
+     * change to this object does not reach the stack (ruling P120).
      */
     public void saveTo(ItemStack stack) {
-        stack.set(DataComponentInit.DINO_DATA.get(), copy());
+        stack.set(DataComponentInit.DINO_DATA.get(), storedCopy());
+    }
+
+    /**
+     * The value {@link #saveTo} stores: a {@link #copy} whose null entity types (the base and each
+     * entity percentage's type) are the entity registry's default (pig). 1.20.1 saved through NBT,
+     * which wrote a null type as the default key, so the stored data equals what a 1.20.1 save and
+     * load gave (ruling P133).
+     */
+    DinoData storedCopy() {
+        DinoData data = copy();
+        data.baseDino = savedEntityType(baseDino);
+        data.entityPercentages = new HashMap<>();
+        entityPercentages.forEach((info, percentage) ->
+                data.entityPercentages.put(new EntityInfo(savedEntityType(info.type()), info.variant()), percentage));
+        return data;
     }
 
     public double getIncubationProgress() {
@@ -388,53 +368,6 @@ public class DinoData {
 
     public void setIncubationTimeLeft(int ticks) {
         incubationTimeLeft = ticks;
-    }
-
-    private CompoundTag saveEntityPercentages() {
-        CompoundTag entityTag = new CompoundTag();
-        int i = 0;
-        for (Map.Entry<EntityInfo, Double> entry : entityPercentages.entrySet()) {
-            CompoundTag entityInfo = new CompoundTag();
-            entityInfo.putString(
-                    TYPE_KEY, BuiltInRegistries.ENTITY_TYPE.getKey(entry.getKey().type).toString());
-            if (entry.getKey().variant != null) {
-                entityInfo.putString(VARIANT_KEY, entry.getKey().variant);
-            }
-            entityInfo.putDouble(PERCENTAGE_KEY, entry.getValue());
-            entityTag.put(ENTITY_ENTRY_PREFIX + i, entityInfo);
-            i++;
-        }
-        return entityTag;
-    }
-
-    private CompoundTag saveAdvancedGenes() {
-        CompoundTag geneTag = new CompoundTag();
-        for (Map.Entry<Genes.Gene, Double> entry : advancedGenes.entrySet()) {
-            geneTag.putDouble(entry.getKey().name(), entry.getValue());
-        }
-        return geneTag;
-    }
-
-    private static Map<EntityInfo, Double> readEntityPercentages(CompoundTag entityTag) {
-        Map<EntityInfo, Double> entityPercentages = new HashMap<>();
-        for (String key : entityTag.keySet()) {
-            CompoundTag entityInfo = entityTag.getCompoundOrEmpty(key);
-            EntityType<?> type = BuiltInRegistries.ENTITY_TYPE
-                    .getOptional(Identifier.tryParse(entityInfo.getStringOr(TYPE_KEY, ""))).get();
-            String variant =
-                    entityInfo.contains(VARIANT_KEY) ? entityInfo.getStringOr(VARIANT_KEY, "") : null;
-            double percentage = entityInfo.getDoubleOr(PERCENTAGE_KEY, 0);
-            entityPercentages.put(new EntityInfo(type, variant), percentage);
-        }
-        return entityPercentages;
-    }
-
-    private static Map<Genes.Gene, Double> readAdvancedGenes(CompoundTag geneTag) {
-        Map<Genes.Gene, Double> advancedGenes = new HashMap<>();
-        for (String key : geneTag.keySet()) {
-            advancedGenes.put(Genes.byName(key), geneTag.getDoubleOr(key, 0));
-        }
-        return advancedGenes;
     }
 
     /** Equal when every saved field is equal; the version, the layer colours and the gene cache are ignored. */

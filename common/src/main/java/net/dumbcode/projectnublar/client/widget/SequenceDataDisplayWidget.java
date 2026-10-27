@@ -2,16 +2,16 @@ package net.dumbcode.projectnublar.client.widget;
 
 import net.dumbcode.projectnublar.Constants;
 import net.dumbcode.projectnublar.api.dinosaur.DNAData;
+import net.dumbcode.projectnublar.api.dinosaur.DiskStorage;
 import net.dumbcode.projectnublar.client.screen.SequencerScreen;
+import net.dumbcode.projectnublar.registry.DataComponentInit;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiGraphicsExtractor;
 import net.minecraft.client.gui.components.AbstractButton;
 import net.minecraft.client.gui.narration.NarrationElementOutput;
 import net.minecraft.client.input.InputWithModifiers;
-import net.minecraft.core.component.DataComponents;
 import net.minecraft.network.chat.Component;
 import net.minecraft.world.item.ItemStack;
-import net.minecraft.world.item.component.CustomData;
 
 import java.util.function.Supplier;
 
@@ -55,8 +55,9 @@ public class SequenceDataDisplayWidget extends AbstractButton {
             color = 0xFF063B6B;
         }
         guiGraphics.fill(getX() + 1, getY() + 1, getX() + getWidth() - 1, getY() + getHeight() - 1, color);
-        if(stack.get() != null && !stack.get().isEmpty() && stack.get().has(DataComponents.CUSTOM_DATA)) {
-            DNAData dnaData = DNAData.loadFromNBT(stack.get().getOrDefault(DataComponents.CUSTOM_DATA, CustomData.EMPTY).copyTag().getCompoundOrEmpty(value));
+        if(stack.get() != null && !stack.get().isEmpty() && stack.get().has(DataComponentInit.DISK_STORAGE.get())) {
+            // read only: component values are shared between stack copies
+            DNAData dnaData = DiskStorage.fromStack(stack.get()).getOrMissing(value);
             guiGraphics.centeredText(Minecraft.getInstance().font, dnaData.getFormattedType().getString() + ": " + dnaData.getFormattedDNANoDescriptor().getString(), getX() + width / 2, getY() + 3, 0xFFFFFFFF);
         }
     }

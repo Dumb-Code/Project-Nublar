@@ -9,11 +9,11 @@ import net.dumbcode.projectnublar.container.ToggleSlot;
 import net.dumbcode.projectnublar.item.DiskStorageItem;
 import net.dumbcode.projectnublar.item.SyringeItem;
 import net.dumbcode.projectnublar.item.TestTubeItem;
+import net.dumbcode.projectnublar.item.api.DNADataItem;
 import net.dumbcode.projectnublar.network.c2s.UpdateEditInfoPacket;
 import net.dumbcode.projectnublar.platform.Services;
 import net.dumbcode.projectnublar.registry.MenuTypeInit;
 import net.minecraft.core.BlockPos;
-import net.minecraft.core.component.DataComponents;
 import net.minecraft.tags.ItemTags;
 import net.minecraft.world.Container;
 import net.minecraft.world.SimpleContainer;
@@ -116,7 +116,7 @@ public class SequencerMenu extends AbstractContainerMenu {
                 167, 61, (stack) -> stack.getItem() instanceof DiskStorageItem));
         this.addSlot(this.dnaInputSlot = new ToggleSlot(container, SequencerBlockEntity.SLOT_DNA_INPUT,
                 167, 61, (stack) -> (stack.getItem() instanceof TestTubeItem
-                        || stack.getItem() instanceof SyringeItem) && stack.has(DataComponents.CUSTOM_DATA)));
+                        || stack.getItem() instanceof SyringeItem) && DNADataItem.hasSampleData(stack)));
         this.addSlot(this.emptyVialOutputSlot =
                 new ToggleSlot(container, SequencerBlockEntity.SLOT_EMPTY_VIAL_OUTPUT, 167, 61) {
                     @Override

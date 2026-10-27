@@ -204,7 +204,14 @@ public class CreativeTabInit {
         dnaData.setGeneValue(GeneInit.GENDER.get(), gender);
         dnaData.setBasePercentage(basePercentage);
         dnaData.saveTo(incubatedEgg);
-        dnaData.copy().saveTo(unincubatedEgg);
+
+        // TODO(BUG): 1.20.1 saved the unincubated egg from a DinoData copy that kept only the genes,
+        // the entity percentages and the base percentage, so a creative unincubated egg carries no
+        // species (it reads as a pig). Kept as on 1.20.1 (ruling P132).
+        DinoData unincubatedData = new DinoData();
+        unincubatedData.setGeneValue(GeneInit.GENDER.get(), gender);
+        unincubatedData.setBasePercentage(basePercentage);
+        unincubatedData.saveTo(unincubatedEgg);
 
         dinoEggs.add(incubatedEgg);
         dinoEggs.add(unincubatedEgg);

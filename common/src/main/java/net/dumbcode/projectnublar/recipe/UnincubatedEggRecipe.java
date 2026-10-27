@@ -4,9 +4,9 @@ import com.mojang.serialization.MapCodec;
 import com.mojang.serialization.codecs.RecordCodecBuilder;
 import java.util.List;
 import net.dumbcode.projectnublar.api.dinosaur.DinoData;
+import net.dumbcode.projectnublar.item.api.DNADataItem;
 import net.dumbcode.projectnublar.registry.ItemInit;
 import net.dumbcode.projectnublar.registry.RecipeInit;
-import net.minecraft.core.component.DataComponents;
 import net.minecraft.network.RegistryFriendlyByteBuf;
 import net.minecraft.network.codec.ByteBufCodecs;
 import net.minecraft.network.codec.StreamCodec;
@@ -123,7 +123,7 @@ public class UnincubatedEggRecipe implements CraftingRecipe {
         if (testTubeItem.isEmpty()) {
             return ItemStack.EMPTY;
         }
-        if (!testTubeItem.has(DataComponents.CUSTOM_DATA))
+        if (!DNADataItem.hasSampleData(testTubeItem))
             return ItemStack.EMPTY;
 
         DinoData dinoData = DinoData.fromStack(testTubeItem);

@@ -2,14 +2,12 @@ package net.dumbcode.projectnublar.item;
 
 import com.mojang.datafixers.util.Pair;
 import net.dumbcode.projectnublar.api.dinosaur.DNAData;
+import net.dumbcode.projectnublar.api.dinosaur.DiskStorage;
 import net.dumbcode.projectnublar.api.gene.Genes;
 import net.dumbcode.projectnublar.registry.GeneInit;
-import net.minecraft.core.component.DataComponents;
-import net.minecraft.nbt.CompoundTag;
 import net.minecraft.world.item.DyeColor;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
-import net.minecraft.world.item.component.CustomData;
 
 import java.util.ArrayList;
 import java.util.HashSet;
@@ -30,19 +28,18 @@ public class DiskStorageItem extends Item {
 
     public static double getGeneCompletion(Genes.Gene gene, ItemStack stack) {
         double totalPercent = 0;
-        // The drive keeps one DNAData compound per storage key at the root of its custom data
-        // (temporary, until Task 16).
-        CompoundTag storage = stack.getOrDefault(DataComponents.CUSTOM_DATA, CustomData.EMPTY).copyTag();
-        for (String key : storage.keySet()) {
-            DNAData data = DNAData.loadFromNBT(storage.getCompoundOrEmpty(key));
+        // read only: component values are shared between stack copies
+        DiskStorage storage = DiskStorage.fromStack(stack);
+        for (String key : storage.keys()) {
+            DNAData data = storage.get(key);
             if (Genes.GENE_STORAGE.get(gene).stream().map(Pair::getFirst).toList().contains(data.getEntityType())) {
                 totalPercent += data.getDnaPercentage();
             }
         }
         if(gene == GeneInit.COLOR.get()){
             Set<DyeColor> blah = new HashSet<>();
-            storage.keySet().forEach(key -> {
-                DNAData data = DNAData.loadFromNBT(storage.getCompoundOrEmpty(key));
+            storage.keys().forEach(key -> {
+                DNAData data = storage.get(key);
                 blah.add(data.gettFish1());
                 blah.add(data.gettFish2());
             });

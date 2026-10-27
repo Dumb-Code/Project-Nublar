@@ -6,6 +6,7 @@ import static org.junit.jupiter.api.Assertions.assertNotEquals;
 import static org.junit.jupiter.api.Assertions.assertNull;
 
 import io.netty.buffer.Unpooled;
+import java.util.Set;
 import net.dumbcode.projectnublar.TestBootstrap;
 import net.dumbcode.projectnublar.api.fossil.FossilPieces;
 import net.dumbcode.projectnublar.api.fossil.Quality;
@@ -118,5 +119,41 @@ class DNADataCodecTest {
     @Test
     void nullEntityTypeEncodesAsPig() {
         assertEquals("minecraft:pig", encode(new DNAData()).getStringOr("entityType", ""));
+    }
+
+    /** copy() keeps every saved field and the version (P120). */
+    @Test
+    void copyKeepsEverySavedFieldAndTheVersion() {
+        CompoundTag tag = encode(full());
+        tag.remove(SaveVersion.KEY);
+        DNAData original = parse(tag);
+        DNAData copy = original.copy();
+        assertEquals(original, copy, "equals compares every saved field");
+        assertEquals(0, copy.getVersion());
+        assertEquals(Quality.PRISTINE, copy.getQuality());
+        assertEquals(FossilPieces.TYRANNOSAURUS_SKULL, copy.getFossilPiece());
+        copy.setDnaPercentage(0.1);
+        assertEquals(full(), original, "the copy is a separate object");
+    }
+
+    /** The saved key names are the 1.20.1 saveToNBT names; nothing else ties them once the NBT methods are gone. */
+    @Test
+    void encodedKeyNamesAreThe1201Names() {
+        assertEquals(Set.of("version", "entityType", "dnaPercentage", "variant", "fossilPiece", "quality", "isEmbryo"),
+                encode(full()).keySet());
+    }
+
+    /**
+     * saveTo stores a null entity type as pig, so the stored sample equals what the 1.20.1 NBT save
+     * and load gave (P133).
+     */
+    @Test
+    void storedCopyStoresANullEntityTypeAsPig() {
+        DNAData data = new DNAData();
+        data.setDnaPercentage(0.5);
+        DNAData stored = data.storedCopy();
+        assertEquals(EntityTypes.PIG, stored.getEntityType());
+        assertEquals(parse(encode(data)), stored);
+        assertNull(data.getEntityType(), "the sample saveTo is called on does not change");
     }
 }

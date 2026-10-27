@@ -5,7 +5,7 @@ import net.dumbcode.projectnublar.registry.MenuTypeInit;
 import net.dumbcode.projectnublar.item.ComputerChipItem;
 import net.dumbcode.projectnublar.item.FilterItem;
 import net.dumbcode.projectnublar.item.TankItem;
-import net.minecraft.core.component.DataComponents;
+import net.dumbcode.projectnublar.item.api.DNADataItem;
 import net.minecraft.world.Container;
 import net.minecraft.world.SimpleContainer;
 import net.minecraft.world.entity.player.Inventory;
@@ -17,7 +17,6 @@ import net.minecraft.world.inventory.SimpleContainerData;
 import net.minecraft.world.inventory.Slot;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
-import net.minecraft.world.item.component.CustomData;
 
 /**
  * Menu for the processor. Machine slots are added in the (frozen) order 0, 1, 12, 13, 14, 2,
@@ -46,7 +45,10 @@ public class ProcessorMenu extends AbstractContainerMenu {
         this.addSlot(new Slot(container, 1, 80, 18){
             @Override
             public boolean mayPlace(ItemStack stack) {
-                return stack.is(ItemInit.FOSSIL_ITEM.get()) || (stack.is(ItemInit.AMBER_ITEM.get()) && stack.getOrDefault(DataComponents.CUSTOM_DATA, CustomData.EMPTY).copyTag().contains("dna_percentage"));
+                // TODO(BUG): 1.20.1 also took amber whose tag held a root "dna_percentage" key, but
+                // nothing writes that key, so amber never went in. Items keep no custom data since
+                // Task 16, so amber is refused, as in play on 1.20.1.
+                return stack.is(ItemInit.FOSSIL_ITEM.get());
             }
         });
 
@@ -72,7 +74,7 @@ public class ProcessorMenu extends AbstractContainerMenu {
         this.addSlot(new Slot(container, 2, 136, 40){
             @Override
             public boolean mayPlace(ItemStack stack) {
-                return stack.is(ItemInit.TEST_TUBE_ITEM.get()) && !stack.has(DataComponents.CUSTOM_DATA);
+                return stack.is(ItemInit.TEST_TUBE_ITEM.get()) && !DNADataItem.hasSampleData(stack);
             }
         });
         for(int i = 0; i < 3; ++i) {
@@ -116,7 +118,8 @@ public class ProcessorMenu extends AbstractContainerMenu {
                 }
             } else {
 
-                if (itemstack1.is(ItemInit.FOSSIL_ITEM.get()) || (itemstack1.is(ItemInit.AMBER_ITEM.get()) && itemstack1.getOrDefault(DataComponents.CUSTOM_DATA, CustomData.EMPTY).copyTag().contains("dna_percentage"))) {
+                // Amber is refused, as in the input slot above.
+                if (itemstack1.is(ItemInit.FOSSIL_ITEM.get())) {
                     if (!this.moveItemStackTo(itemstack1, 1, 2, false)) {
                         return ItemStack.EMPTY;
                     }
@@ -138,7 +141,7 @@ public class ProcessorMenu extends AbstractContainerMenu {
                     if (!this.moveItemStackTo(itemstack1, 4, 5, false)) {
                         return ItemStack.EMPTY;
                     }
-                } else if (itemstack1.is(ItemInit.TEST_TUBE_ITEM.get()) && !itemstack1.has(DataComponents.CUSTOM_DATA)) {
+                } else if (itemstack1.is(ItemInit.TEST_TUBE_ITEM.get()) && !DNADataItem.hasSampleData(itemstack1)) {
                     if (!this.moveItemStackTo(itemstack1, 5, 6, false)) {
                         return ItemStack.EMPTY;
                     }

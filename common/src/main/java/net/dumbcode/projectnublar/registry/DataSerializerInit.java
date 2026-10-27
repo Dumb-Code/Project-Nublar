@@ -16,22 +16,16 @@ import java.util.UUID;
 /**
  * The mod's {@link EntityDataSerializer}s. {@link #DINO_DATA} syncs {@link DinoData}; {@link #COMPOUND_TAG} and
  * {@link #OPTIONAL_UUID} replace the vanilla serializers of the same names, which 26.2 removed (ruling P40). Each
- * sends its value as 1.20.1 did: an NBT compound, or a present flag and the UUID's two longs.
+ * sends its value as an NBT compound, or a present flag and the UUID's two longs.
  */
 public class DataSerializerInit {
 
-    /** {@link DinoData} as its NBT compound; a copy is a deep copy. */
-    public static final EntityDataSerializer<DinoData> DINO_DATA = new EntityDataSerializer<>() {
-        @Override
-        public StreamCodec<ByteBuf, DinoData> codec() {
-            return ByteBufCodecs.COMPOUND_TAG.map(DinoData::fromNBT, DinoData::toNBT);
-        }
-
-        @Override
-        public DinoData copy(DinoData dinoData) {
-            return dinoData.copy();
-        }
-    };
+    /**
+     * {@link DinoData} through {@link DinoData#STREAM_CODEC}. A value-type serializer does not copy the value it
+     * sends, so the stored instance must never change in place: a caller copies, changes the copy and sets it
+     * (ruling P121).
+     */
+    public static final EntityDataSerializer<DinoData> DINO_DATA = EntityDataSerializer.forValueType(DinoData.STREAM_CODEC);
 
     /** A {@link CompoundTag}; a copy is a deep copy, as with 1.20.1's {@code EntityDataSerializers.COMPOUND_TAG}. */
     public static final EntityDataSerializer<CompoundTag> COMPOUND_TAG = new EntityDataSerializer<>() {

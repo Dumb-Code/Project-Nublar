@@ -14,7 +14,6 @@ import net.dumbcode.projectnublar.api.fossil.Quality;
 import net.dumbcode.projectnublar.config.FossilsConfig;
 import net.dumbcode.projectnublar.registry.DataComponentInit;
 import net.dumbcode.projectnublar.util.SaveVersion;
-import net.minecraft.core.component.DataComponents;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.nbt.NbtOps;
@@ -186,8 +185,9 @@ public class DNAData {
 
     /** Adds the sample's type, DNA, quality, variant and tropical-fish lines to the item tooltip. */
     public static void createTooltip(ItemStack stack, Consumer<Component> tooltip) {
-        if (stack.has(DataComponents.CUSTOM_DATA)) {
-            DNAData dnaData = fromStack(stack);
+        // read only: component values are shared between stack copies
+        DNAData dnaData = stack.get(DataComponentInit.DNA_DATA.get());
+        if (dnaData != null) {
             tooltip.accept(dnaData.getFormattedType());
             if (dnaData.getDnaPercentage() != 0) {
                 tooltip.accept(dnaData.getFormattedDNA());
@@ -252,66 +252,48 @@ public class DNAData {
         return Component.literal(Mth.floor(getDnaPercentage() * 100) + "%");
     }
 
-    public CompoundTag saveToNBT(CompoundTag tag) {
-        tag.putString(ENTITY_TYPE_KEY, BuiltInRegistries.ENTITY_TYPE.getKey(entityType).toString());
-        if (dnaPercentage != 0) {
-            tag.putDouble(DNA_PERCENTAGE_KEY, dnaPercentage);
-        }
-        if (variant != null) {
-            tag.putString(VARIANT_KEY, variant);
-        }
-        if (fossilPiece != null) {
-            tag.putString(FOSSIL_PIECE_KEY, fossilPiece.name());
-        }
-        if (quality != null) {
-            tag.putString(QUALITY_KEY, quality.getName());
-        }
-        tag.putBoolean(IS_EMBRYO_KEY, isEmbryo);
-        return tag;
-    }
-
     public void addTFish(TropicalFish tropicalFish) {
         tFish1 = tropicalFish.getPatternColor();
         tFish2 = tropicalFish.getBaseColor();
     }
 
-    public static DNAData loadFromNBT(CompoundTag tag) {
-        DNAData dnaData = new DNAData();
-        dnaData.setEntityType(BuiltInRegistries.ENTITY_TYPE.getValue(
-                Identifier.parse(tag.getStringOr(ENTITY_TYPE_KEY, ""))));
-        if (tag.contains(DNA_PERCENTAGE_KEY)) {
-            dnaData.setDnaPercentage(tag.getDoubleOr(DNA_PERCENTAGE_KEY, 0));
-        }
-        if (tag.contains(VARIANT_KEY)) {
-            dnaData.setVariant(tag.getStringOr(VARIANT_KEY, ""));
-        }
-        if (tag.contains(FOSSIL_PIECE_KEY)) {
-            dnaData.setFossilPiece(FossilPieces.byName(tag.getStringOr(FOSSIL_PIECE_KEY, "")));
-        }
-        if (tag.contains(QUALITY_KEY)) {
-            dnaData.setQuality(Quality.byName(tag.getStringOr(QUALITY_KEY, "")));
-        }
-        dnaData.setEmbryo(tag.getBooleanOr(IS_EMBRYO_KEY, false));
-        return dnaData;
-    }
-
     /**
      * The stack's {@link DataComponentInit#DNA_DATA} as a new object the caller may change (a
-     * {@link #copy}; ruling P120). A stack without the component gives what the 1.20.1 read of a
-     * missing compound gave: the decode of an empty compound, a pig sample with no DNA. A caller
+     * {@link #copy}; ruling P120). A stack without the component gives {@link #missing()}. A caller
      * that only reads uses {@code stack.get(DNA_DATA)} and never changes the result.
      */
     public static DNAData fromStack(ItemStack stack) {
         DNAData data = stack.get(DataComponentInit.DNA_DATA.get());
-        return data != null ? data.copy() : CODEC.parse(NbtOps.INSTANCE, new CompoundTag()).getOrThrow();
+        return data != null ? data.copy() : missing();
     }
 
     /**
-     * Stores a {@link #copy} of this sample as the stack's {@link DataComponentInit#DNA_DATA}, so a
-     * later change to this object does not reach the stack (ruling P120).
+     * What 1.20.1 read from a missing compound (ruling P131): the decode of an empty compound, a new
+     * pig sample with no DNA.
+     */
+    static DNAData missing() {
+        return CODEC.parse(NbtOps.INSTANCE, new CompoundTag()).getOrThrow();
+    }
+
+    /**
+     * Stores {@link #storedCopy()} as the stack's {@link DataComponentInit#DNA_DATA}, so a later
+     * change to this object does not reach the stack (ruling P120).
      */
     public void saveTo(ItemStack stack) {
-        stack.set(DataComponentInit.DNA_DATA.get(), copy());
+        stack.set(DataComponentInit.DNA_DATA.get(), storedCopy());
+    }
+
+    /**
+     * The value {@link #saveTo} stores: a {@link #copy} whose null entity type is the entity
+     * registry's default (pig). 1.20.1 saved through NBT, which wrote a null type as the default key,
+     * so the stored sample equals what a 1.20.1 save and load gave (ruling P133).
+     */
+    DNAData storedCopy() {
+        DNAData data = copy();
+        if (data.entityType == null) {
+            data.entityType = BuiltInRegistries.ENTITY_TYPE.getValue(BuiltInRegistries.ENTITY_TYPE.getDefaultKey());
+        }
+        return data;
     }
 
     /**

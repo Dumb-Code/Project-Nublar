@@ -107,4 +107,30 @@ class DiskStorageCodecTest {
         assertTrue(two.contains(CAT_KEY));
         assertTrue(DiskStorage.EMPTY.keys().isEmpty());
     }
+
+    /** {@code with} stores a copy: changing the sample afterwards leaves the storage unchanged (P120). */
+    @Test
+    void withStoresACopyOfTheSample() {
+        DNAData cow = sample(EntityTypes.COW, null, 0.25);
+        DiskStorage storage = DiskStorage.EMPTY.with(COW_KEY, cow);
+        cow.setDnaPercentage(0.9);
+        assertEquals(0.25, storage.get(COW_KEY).getDnaPercentage());
+    }
+
+    /** The saved key names: {@code version} and {@code entries}, keyed by the storage key (P118). */
+    @Test
+    void encodedKeyNames() {
+        CompoundTag tag = encode(twoEntries());
+        assertEquals(Set.of("version", "entries"), tag.keySet());
+        assertEquals(Set.of(COW_KEY, CAT_KEY), tag.getCompoundOrEmpty("entries").keySet());
+    }
+
+    /** A key the drive does not hold reads as 1.20.1's missing compound: a pig sample with no DNA. */
+    @Test
+    void getOrMissingReadsAMissingKeyAsAPigSample() {
+        DNAData missing = twoEntries().getOrMissing("minecraft:pig");
+        assertEquals(EntityTypes.PIG, missing.getEntityType());
+        assertEquals(0, missing.getDnaPercentage());
+        assertEquals(sample(EntityTypes.COW, null, 0.25), twoEntries().getOrMissing(COW_KEY));
+    }
 }

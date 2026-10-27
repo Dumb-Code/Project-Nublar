@@ -11,7 +11,6 @@ import net.dumbcode.projectnublar.registry.EntityInit;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.network.RegistryFriendlyByteBuf;
-import net.minecraft.network.codec.ByteBufCodecs;
 import net.minecraft.network.codec.StreamCodec;
 import net.minecraft.network.protocol.common.custom.CustomPacketPayload;
 import net.minecraft.resources.Identifier;
@@ -20,7 +19,8 @@ import net.minecraft.world.entity.EntityType;
 
 /**
  * Client-to-server: pushes the edit-tab {@link DinoData} into the sequencer. Field order on the
- * wire: the DinoData compound, then the BlockPos (as on 1.20.1).
+ * wire: the DinoData ({@link DinoData#STREAM_CODEC}), then the BlockPos (as on 1.20.1). The layer
+ * colours are not part of the codec, so they do not reach the server, as on 1.20.1 (ruling P128).
  *
  * <p>The server checks that the sender has this sequencer's menu open, that the block is a
  * sequencer, and that every value is one the sequencer screen can produce ({@link #isValid}).
@@ -29,9 +29,9 @@ public record UpdateEditInfoPacket(DinoData info, BlockPos pos) implements Custo
     /** The payload id; the same id as on 1.20.1. */
     public static final Type<UpdateEditInfoPacket> TYPE = new Type<>(Constants.modLoc("update_edit_info"));
 
-    /** DinoData travels as its NBT compound until Task 16 gives it a stream codec. */
+    /** The DinoData, then the position. */
     public static final StreamCodec<RegistryFriendlyByteBuf, UpdateEditInfoPacket> STREAM_CODEC = StreamCodec.composite(
-            ByteBufCodecs.COMPOUND_TAG.map(DinoData::fromNBT, DinoData::toNBT), UpdateEditInfoPacket::info,
+            DinoData.STREAM_CODEC, UpdateEditInfoPacket::info,
             BlockPos.STREAM_CODEC, UpdateEditInfoPacket::pos,
             UpdateEditInfoPacket::new);
 

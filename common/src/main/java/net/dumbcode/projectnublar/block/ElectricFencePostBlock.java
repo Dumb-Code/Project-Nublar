@@ -1,6 +1,5 @@
 package net.dumbcode.projectnublar.block;
 
-import net.dumbcode.projectnublar.Constants;
 import net.dumbcode.projectnublar.block.api.fence.BlockConnectableBase;
 import net.dumbcode.projectnublar.block.api.fence.ConnectableBlockEntity;
 import net.dumbcode.projectnublar.block.api.fence.Connection;
@@ -8,18 +7,16 @@ import net.dumbcode.projectnublar.block.api.fence.ConnectionType;
 import net.dumbcode.projectnublar.block.entity.BlockEntityElectricFenceBase;
 import net.dumbcode.projectnublar.block.entity.BlockEntityElectricFencePole;
 import net.dumbcode.projectnublar.registry.BlockInit;
+import net.dumbcode.projectnublar.registry.DataComponentInit;
 import net.dumbcode.projectnublar.registry.ItemInit;
 import net.dumbcode.projectnublar.util.LineUtils;
 import net.minecraft.core.BlockPos;
-import net.minecraft.core.component.DataComponents;
-import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.chat.Component;
 import net.minecraft.util.Mth;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.InteractionResult;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
-import net.minecraft.world.item.component.CustomData;
 import net.minecraft.world.item.context.BlockPlaceContext;
 import net.minecraft.world.level.BlockGetter;
 import net.minecraft.world.level.Level;
@@ -45,7 +42,6 @@ import net.minecraft.world.phys.shapes.VoxelShape;
 import org.jetbrains.annotations.Nullable;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Optional;
 
 /**
  * A fence post column. Each post is {@code type.getHeight()} blocks tall; the
@@ -63,9 +59,6 @@ public class ElectricFencePostBlock extends BlockConnectableBase implements Enti
 
     /** Maximum wire run length in blocks. */
     public static final int LIMIT = 15;
-
-    /** NBT key on the wire spool item storing the first clicked post. */
-    private static final String FENCE_POSITION_TAG = "fence_position";
 
     public ElectricFencePostBlock(Properties properties, ConnectionType type, IntegerProperty indexProperty) {
         super(properties);
@@ -176,27 +169,21 @@ public class ElectricFencePostBlock extends BlockConnectableBase implements Enti
      * strings wires from the stored post to this one (within {@link #LIMIT}), consuming spools.
      */
     private void handleWireSpoolUse(Level world, BlockPos pos, Player player, ItemStack stack) {
-        CompoundTag customData = stack.getOrDefault(DataComponents.CUSTOM_DATA, CustomData.EMPTY).copyTag();
-        CompoundTag nbt = customData.getCompoundOrEmpty(Constants.MODID);
-        Optional<BlockPos> storedPost = nbt.read(FENCE_POSITION_TAG, BlockPos.CODEC);
-        if (storedPost.isPresent()) {
-            BlockPos other = storedPost.get();
+        BlockPos other = stack.get(DataComponentInit.FENCE_POSITION.get());
+        if (other != null) {
             double dist = Math.sqrt(other.distSqr(pos));
             if (dist > LIMIT) {
                 player.sendOverlayMessage(Component.literal("Fence run is too long (" + Math.round(dist) + "/" + LIMIT + " blocks)"));
-                nbt.store(FENCE_POSITION_TAG, BlockPos.CODEC, pos);
+                stack.set(DataComponentInit.FENCE_POSITION.get(), pos);
             } else if (world.getBlockState(other).getBlock() == this && !other.equals(pos)) {
                 placeWireRun(world, pos, other, player, stack, dist);
-                nbt.store(FENCE_POSITION_TAG, BlockPos.CODEC, pos);
+                stack.set(DataComponentInit.FENCE_POSITION.get(), pos);
             } else {
-                nbt.remove(FENCE_POSITION_TAG);
+                stack.remove(DataComponentInit.FENCE_POSITION.get());
             }
         } else {
-            nbt.store(FENCE_POSITION_TAG, BlockPos.CODEC, pos);
+            stack.set(DataComponentInit.FENCE_POSITION.get(), pos);
         }
-        // Custom data is a copy on 26.2, so the stored post is written back (temporary, until Task 16).
-        customData.put(Constants.MODID, nbt);
-        CustomData.set(DataComponents.CUSTOM_DATA, stack, customData);
     }
 
     /** Collects enough spool items across the inventory, then strings every wire of the run. */

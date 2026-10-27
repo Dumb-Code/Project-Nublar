@@ -20,9 +20,10 @@ import org.jetbrains.annotations.Nullable;
  * sequencer adds DNA to a drive; the sequencer screen and the drive tooltip read it.
  *
  * <p>The drive's {@link DataComponentInit#DISK_STORAGE} component (ruling P118). A storage is
- * immutable: {@link #with} returns a new one. The keys keep a {@code HashMap}'s order, the order
- * of the 1.20.1 compound the samples were stored in. Equality compares the samples only, not the
- * {@code version} read from a save (ruling P122).
+ * immutable: {@link #with} returns a new one. The samples it holds are read only: like the storage,
+ * they are shared between every copy of the stack (ruling P120). The keys keep a {@code HashMap}'s
+ * order, the order of the 1.20.1 compound the samples were stored in. Equality compares the samples
+ * only, not the {@code version} read from a save (ruling P122).
  */
 public final class DiskStorage {
     private static final String ENTRIES_KEY = "entries";
@@ -65,6 +66,15 @@ public final class DiskStorage {
      */
     public @Nullable DNAData get(String key) {
         return entries.get(key);
+    }
+
+    /**
+     * The sample under {@code key}, read only as with {@link #get}. When the drive has none, what
+     * 1.20.1 read for a missing key: a new pig sample with no DNA ({@link DNAData#missing()}).
+     */
+    public DNAData getOrMissing(String key) {
+        DNAData sample = entries.get(key);
+        return sample != null ? sample : DNAData.missing();
     }
 
     /** True when the drive holds a sample under {@code key}. */

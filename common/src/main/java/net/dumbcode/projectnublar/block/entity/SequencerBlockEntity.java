@@ -6,11 +6,13 @@ import net.blay09.mods.balm.platform.energy.EnergyStorage;
 import java.util.function.Consumer;
 import net.dumbcode.projectnublar.api.dinosaur.DNAData;
 import net.dumbcode.projectnublar.api.dinosaur.DinoData;
+import net.dumbcode.projectnublar.api.dinosaur.DiskStorage;
 import net.dumbcode.projectnublar.block.api.multiblock.IMachineParts;
 import net.dumbcode.projectnublar.block.api.sync.SyncingContainerBlockEntity;
 import net.dumbcode.projectnublar.item.ComputerChipItem;
 import net.dumbcode.projectnublar.item.DiskStorageItem;
 import net.dumbcode.projectnublar.item.TankItem;
+import net.dumbcode.projectnublar.item.api.DNADataItem;
 import net.dumbcode.projectnublar.menutypes.SequencerMenu;
 import net.dumbcode.projectnublar.registry.BlockInit;
 import net.dumbcode.projectnublar.registry.ItemInit;
@@ -19,8 +21,6 @@ import net.dumbcode.projectnublar.util.SaveVersion;
 import net.minecraft.ChatFormatting;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.NonNullList;
-import net.minecraft.core.component.DataComponents;
-import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.chat.Component;
 import net.minecraft.util.Mth;
 import net.minecraft.world.Containers;
@@ -30,7 +30,6 @@ import net.minecraft.world.inventory.AbstractContainerMenu;
 import net.minecraft.world.inventory.ContainerData;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
-import net.minecraft.world.item.component.CustomData;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.storage.ValueInput;
@@ -274,15 +273,16 @@ public class SequencerBlockEntity extends SyncingContainerBlockEntity
      * time, and ejects an empty vial when a sample completes.
      */
     private boolean tickSequencing() {
-        if (!storage.isEmpty() && !dnaInput.isEmpty() && dnaInput.has(DataComponents.CUSTOM_DATA)
+        if (!storage.isEmpty() && !dnaInput.isEmpty() && DNADataItem.hasSampleData(dnaInput)
                 && ((emptyVialOutput.isEmpty() || emptyVialOutput.is(dnaInput.getItem()))
                         || emptyVialOutput.getCount() < VIAL_OUTPUT_STACK_LIMIT)) {
             double currentPercent = 0;
             DNAData dnaData = DNAData.fromStack(dnaInput);
             String storageName = dnaData.getStorageName();
-            DNAData storedDna = null;
-            if (storage.getOrDefault(DataComponents.CUSTOM_DATA, CustomData.EMPTY).copyTag().contains(dnaData.getStorageName())) {
-                storedDna = DNAData.loadFromNBT(storage.getOrDefault(DataComponents.CUSTOM_DATA, CustomData.EMPTY).copyTag().getCompoundOrEmpty(storageName));
+            // read only: component values are shared between stack copies
+            DiskStorage drive = DiskStorage.fromStack(storage);
+            DNAData storedDna = drive.get(storageName);
+            if (storedDna != null) {
                 currentPercent = storedDna.getDnaPercentage();
             }
             if (currentPercent < 1) {
@@ -295,9 +295,9 @@ public class SequencerBlockEntity extends SyncingContainerBlockEntity
                     }
                     if (storedDna != null) {
                         DNAData combinedDna = DNAData.combineDNA(storedDna, dnaData);
-                        CustomData.update(DataComponents.CUSTOM_DATA, storage, tag -> tag.put(storageName, combinedDna.saveToNBT(new CompoundTag())));
+                        drive.with(storageName, combinedDna).saveTo(storage);
                     } else {
-                        CustomData.update(DataComponents.CUSTOM_DATA, storage, tag -> tag.put(storageName, dnaData.saveToNBT(new CompoundTag())));
+                        drive.with(storageName, dnaData).saveTo(storage);
                     }
 
                     dnaInput.shrink(1);
@@ -418,8 +418,7 @@ public class SequencerBlockEntity extends SyncingContainerBlockEntity
         output.putInt(BONE_MATTER_LEVEL_TAG, boneMatterLevel);
         output.putInt(SUGAR_LEVEL_TAG, sugarLevel);
         output.putInt(PLANT_MATTER_LEVEL_TAG, plantMatterLevel);
-        // DinoData stays on CompoundTag until Task 16; stored through the tag codec.
-        output.store(DINO_DATA_TAG, CompoundTag.CODEC, dinoData.toNBT());
+        output.store(DINO_DATA_TAG, DinoData.CODEC, dinoData);
         output.putBoolean(IS_SYNTHESIZING_TAG, isSynthesizing);
         output.putInt(SYNTH_TIME_TAG, synthTime);
         output.store(COMPUTER_CHIP_TAG, ItemStack.OPTIONAL_CODEC, computerChip);
@@ -445,7 +444,7 @@ public class SequencerBlockEntity extends SyncingContainerBlockEntity
         boneMatterLevel = input.getIntOr(BONE_MATTER_LEVEL_TAG, 0);
         sugarLevel = input.getIntOr(SUGAR_LEVEL_TAG, 0);
         plantMatterLevel = input.getIntOr(PLANT_MATTER_LEVEL_TAG, 0);
-        dinoData = DinoData.fromNBT(input.read(DINO_DATA_TAG, CompoundTag.CODEC).orElseGet(CompoundTag::new));
+        dinoData = input.read(DINO_DATA_TAG, DinoData.CODEC).orElseGet(DinoData::new);
         isSynthesizing = input.getBooleanOr(IS_SYNTHESIZING_TAG, false);
         synthTime = input.getIntOr(SYNTH_TIME_TAG, 0);
         computerChip = input.read(COMPUTER_CHIP_TAG, ItemStack.OPTIONAL_CODEC).orElse(ItemStack.EMPTY);

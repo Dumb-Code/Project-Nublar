@@ -5,15 +5,13 @@ import com.mojang.serialization.MapCodec;
 import net.dumbcode.projectnublar.Constants;
 import net.dumbcode.projectnublar.api.dinosaur.DNAData;
 import net.dumbcode.projectnublar.api.dinosaur.DinoData;
+import net.dumbcode.projectnublar.registry.DataComponentInit;
 import net.minecraft.client.multiplayer.ClientLevel;
 import net.minecraft.client.renderer.item.properties.select.SelectItemModelProperty;
-import net.minecraft.core.component.DataComponents;
-import net.minecraft.nbt.CompoundTag;
 import net.minecraft.resources.Identifier;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.item.ItemDisplayContext;
 import net.minecraft.world.item.ItemStack;
-import net.minecraft.world.item.component.CustomData;
 import org.jetbrains.annotations.Nullable;
 
 /**
@@ -44,12 +42,14 @@ public record TestTubeOverlayProperty() implements SelectItemModelProperty<Strin
     @Override
     public @Nullable String get(ItemStack stack, @Nullable ClientLevel level, @Nullable LivingEntity owner,
                                 int seed, ItemDisplayContext displayContext) {
-        CompoundTag customData = stack.getOrDefault(DataComponents.CUSTOM_DATA, CustomData.EMPTY).copyTag();
-        if (customData.contains("DNAData")) {
-            return DNAData.fromStack(stack).getPath();
+        // read only: component values are shared between stack copies
+        DNAData dnaData = stack.get(DataComponentInit.DNA_DATA.get());
+        if (dnaData != null) {
+            return dnaData.getPath();
         }
-        if (customData.contains("DinoData")) {
-            return DinoData.fromStack(stack).getPath();
+        DinoData dinoData = stack.get(DataComponentInit.DINO_DATA.get());
+        if (dinoData != null) {
+            return dinoData.getPath();
         }
         return NONE;
     }
