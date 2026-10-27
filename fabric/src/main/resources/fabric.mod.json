@@ -24,14 +24,14 @@
         ]
     },
     "depends": {
-        "java": ">=25",
-        "minecraft": "~26.2",
-        "fabricloader": ">=0.20.1",
+        "java": ">=${java_version}",
+        "minecraft": "~${minecraft_version}",
+        "fabricloader": ">=${fabric_loader_version}",
         "fabric-api": "*",
-        "geckolib": ">=5.5.5",
-        "smartbrainlib": ">=2.0.3",
-        "balm": ">=26.2.0.9",
-        "architectury": ">=21.1.12"
+        "geckolib": ">=${geckolib_fabric_version}",
+        "smartbrainlib": ">=${sbl_version}",
+        "balm": ">=${balm_version}",
+        "architectury": ">=${architectury_api_version}"
     },
     "suggests": {
         "team_reborn_energy": "*"

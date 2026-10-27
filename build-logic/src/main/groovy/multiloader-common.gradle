@@ -107,6 +107,7 @@ processResources {
             'geckolib_version'             : geckolib_version,
             'sbl_version'                  : sbl_version,
             'architectury_api_version'     : architectury_api_version,
+            'geckolib_fabric_version'      : geckolib_fabric_version,
             'credits'                      : credits,
             'java_version'                 : java_version
     ]

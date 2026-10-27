@@ -16,7 +16,7 @@ import net.tslat.smartbrainlib.api.core.sensor.base.PredicateSensor;
 import net.tslat.smartbrainlib.library.object.SquareRadius;
 import net.tslat.smartbrainlib.util.BrainUtil;
 
-import javax.annotation.Nullable;
+import org.jetbrains.annotations.Nullable;
 import java.util.List;
 
 public class NearestFeederSensor<E extends Dinosaur> extends PredicateSensor<E, BlockState> {

@@ -2,7 +2,7 @@ package net.dumbcode.projectnublar.recipe;
 
 import com.google.common.collect.Lists;
 import java.util.List;
-import javax.annotation.Nullable;
+import org.jetbrains.annotations.Nullable;
 
 import net.minecraft.advancements.triggers.Criterion;
 import net.minecraft.core.HolderGetter;

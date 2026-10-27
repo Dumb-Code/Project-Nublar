@@ -76,7 +76,7 @@ public class GeneratorBlock extends BaseEntityBlock {
     public BlockEntity newBlockEntity(BlockPos pPos, BlockState pState) {
         return new GeneratorBlockEntity(pPos, pState);
     }
-    @javax.annotation.Nullable
+    @Nullable
     @Override
     public <T extends BlockEntity> BlockEntityTicker<T> getTicker(Level pLevel, BlockState pState, BlockEntityType<T> pBlockEntityType) {
         return createTickerHelper(pBlockEntityType, pBlockEntityType, (level, pos, state, be) -> ((GeneratorBlockEntity)be).tick(level, pos, state, (GeneratorBlockEntity)be));

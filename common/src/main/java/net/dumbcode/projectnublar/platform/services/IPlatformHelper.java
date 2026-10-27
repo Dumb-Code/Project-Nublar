@@ -80,8 +80,9 @@ public interface IPlatformHelper {
 
     /**
      * Adds a server data reload listener. It runs on every data pack load and reload, after the
-     * vanilla listeners, in the order of the calls. Call it once per listener while the mod
-     * initialises.
+     * vanilla listeners. The order among the mod's own listeners is not fixed: NeoForge keeps the
+     * order of the calls, Fabric API sorts them by id. So a listener must not depend on another
+     * one. Call it once per listener while the mod initialises.
      *
      * @param id       the listener's id, unique among all reload listeners
      * @param listener the listener; one instance serves every reload, so it keeps no state of its own

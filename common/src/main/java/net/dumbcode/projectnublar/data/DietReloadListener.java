@@ -9,7 +9,7 @@ import java.lang.reflect.Type;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
-import javax.annotation.Nullable;
+import org.jetbrains.annotations.Nullable;
 import net.dumbcode.projectnublar.Constants;
 import net.dumbcode.projectnublar.api.dinosaur.DinoDietData;
 import net.minecraft.resources.FileToIdConverter;

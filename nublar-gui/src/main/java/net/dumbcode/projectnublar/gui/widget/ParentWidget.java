@@ -22,7 +22,7 @@ public abstract class ParentWidget<T extends GuiEventListener> extends AbstractW
     private final List<NarratableEntry> narratables = Lists.newArrayList();
     public final List<Renderable> renderables = Lists.newArrayList();
     public final List<Renderable> renderableNoScissor = Lists.newArrayList();
-    @javax.annotation.Nullable
+    @Nullable
     private GuiEventListener focused;
     private boolean isDragging;
     public T parent;
@@ -157,7 +157,7 @@ public abstract class ParentWidget<T extends GuiEventListener> extends AbstractW
     }
 
     @Override
-    public void setFocused(@javax.annotation.Nullable GuiEventListener pListener) {
+    public void setFocused(@Nullable GuiEventListener pListener) {
         if (this.focused != null) {
             this.focused.setFocused(false);
         }
