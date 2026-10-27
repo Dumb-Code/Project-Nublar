@@ -1,13 +1,14 @@
 package net.dumbcode.projectnublar.registry;
 
 import io.netty.buffer.ByteBuf;
+import net.dumbcode.projectnublar.Constants;
 import net.dumbcode.projectnublar.api.dinosaur.DinoData;
+import net.dumbcode.projectnublar.platform.Services;
 import net.minecraft.core.UUIDUtil;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.codec.ByteBufCodecs;
 import net.minecraft.network.codec.StreamCodec;
 import net.minecraft.network.syncher.EntityDataSerializer;
-import net.minecraft.network.syncher.EntityDataSerializers;
 
 import java.util.Optional;
 import java.util.UUID;
@@ -49,11 +50,15 @@ public class DataSerializerInit {
     public static final EntityDataSerializer<Optional<UUID>> OPTIONAL_UUID =
             EntityDataSerializer.forValueType(ByteBufCodecs.optional(UUIDUtil.STREAM_CODEC));
 
-    /** Registers the serializers with vanilla; {@code ProjectNublar.init} calls it once on both loaders. */
+    /**
+     * Registers the serializers through the loader ({@code IPlatformHelper.registerEntityDataSerializer}):
+     * NeoForge and Fabric API refuse mod serializers in vanilla's list and keep their own id-keyed
+     * registries. {@code ProjectNublar.init} calls it once on both loaders.
+     */
     public static void loadClass(){
-        EntityDataSerializers.registerSerializer(DINO_DATA);
-        EntityDataSerializers.registerSerializer(COMPOUND_TAG);
-        EntityDataSerializers.registerSerializer(OPTIONAL_UUID);
+        Services.PLATFORM.registerEntityDataSerializer(Constants.modLoc("dino_data"), DINO_DATA);
+        Services.PLATFORM.registerEntityDataSerializer(Constants.modLoc("compound_tag"), COMPOUND_TAG);
+        Services.PLATFORM.registerEntityDataSerializer(Constants.modLoc("optional_uuid"), OPTIONAL_UUID);
     }
 
 }

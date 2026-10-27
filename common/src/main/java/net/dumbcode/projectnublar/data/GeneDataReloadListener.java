@@ -19,7 +19,7 @@ import net.minecraft.world.entity.EntityType;
  * an entity type id; note the Forge datagen provider writes these files into the {@code minecraft}
  * namespace (frozen contract).
  *
- * <p>Registered only on Forge; Fabric never receives this data?
+ * <p>Registered on both loaders through {@code NublarReloadListeners}.
  */
 public class GeneDataReloadListener extends SimpleJsonResourceReloadListener<JsonElement> {
     private static final String FOLDER_PATH = "gene_data";

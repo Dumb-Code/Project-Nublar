@@ -10,6 +10,7 @@ import net.dumbcode.projectnublar.client.CommonClientClass;
 import net.dumbcode.projectnublar.client.renderer.layer.DinoLayer;
 import net.dumbcode.projectnublar.config.FossilsConfig;
 import net.dumbcode.projectnublar.data.DietReloadListener;
+import net.dumbcode.projectnublar.entity.DeathMessageHandler;
 import net.dumbcode.projectnublar.entity.dinosaur.ai.util.FenceAwareNavigation;
 import net.dumbcode.projectnublar.entity.dinosaur.ai.behavior.action.BreakFenceBehaviour;
 import net.dumbcode.projectnublar.entity.dinosaur.ai.behavior.action.DinosaurLookAtTarget;
@@ -1340,8 +1341,10 @@ public abstract class Dinosaur extends TamableAnimal implements FossilRevived, G
     }
 
     // A dead dinosaur is never removed (tickDeath is empty, the carcass stays), so leave the group on death.
+    // The death message is sent here on both loaders (1.20.1 sent it from a Forge LivingDeathEvent listener).
     @Override
     public void die(DamageSource source) {
+        DeathMessageHandler.onLivingDeath(this, source);
         GroupManager.leave(this);
         super.die(source);
     }

@@ -6,6 +6,7 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.stream.Collectors;
 import net.dumbcode.projectnublar.api.gene.Genes;
+import net.dumbcode.projectnublar.data.NublarReloadListeners;
 import net.dumbcode.projectnublar.registry.AttributesInit;
 import net.dumbcode.projectnublar.registry.BlockInit;
 import net.dumbcode.projectnublar.registry.CreativeTabInit;
@@ -24,7 +25,8 @@ import net.minecraft.util.random.WeightedList;
 import org.apache.commons.lang3.StringUtils;
 
 /**
- * Common entry point: builds the custom gene registry and triggers every deferred register.
+ * Common entry point: builds the custom gene registry, triggers every deferred register and
+ * registers the data reload listeners.
  *
  * <p>The {@code loadClass()} call order below determines registration (and therefore class
  * initialization) order and must not be changed.
@@ -51,6 +53,7 @@ public class ProjectNublar {
         GeneInit.loadClass();
         MemoryModuleTypeInit.loadClass();
         SoundInit.loadClass();
+        NublarReloadListeners.register();
     }
 
     /** Turns a registry path like {@code tyrannosaurus_rex} into display text ("Tyrannosaurus Rex"). This should be moved to a common library. */

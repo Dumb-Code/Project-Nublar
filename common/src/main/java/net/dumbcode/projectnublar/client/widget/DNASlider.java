@@ -100,9 +100,12 @@ public class DNASlider extends NGLSlider {
         guiGraphics.fill(posX + 1, this.getY() + 1, posX + 9, getY() + height - 1, 0xFF193B59);
     }
 
-    /** The label sits half the select box's width to the right, so it is centred over the bar. */
+    /**
+     * The label sits half the select box's width to the right, so it is centred over the bar.
+     * Public because NeoForge's own access transformer makes the overridden method public.
+     */
     @Override
-    protected void extractScrollingStringOverContents(ActiveTextCollector output, Component message, int margin) {
+    public void extractScrollingStringOverContents(ActiveTextCollector output, Component message, int margin) {
         int i = this.getX() + margin + buttonWidth / 2;
         int j = this.getX() + this.getWidth() - margin + buttonWidth / 2;
         output.acceptScrollingWithDefaultCenter(message, i, j, this.getY(), this.getY() + this.getHeight());

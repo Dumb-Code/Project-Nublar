@@ -47,6 +47,8 @@ neoForge {
 dependencies {
     compileOnly 'org.jetbrains:annotations:24.1.0'
     implementation "com.geckolib:geckolib-neoforge-${minecraft_version}:${geckolib_version}"
+    // The common renderers need GeckoLib's injected GeoRenderState on vanilla render states here too (common has the same line).
+    interfaceInjectionData "com.geckolib:geckolib-neoforge-${minecraft_version}:${geckolib_version}"
     implementation "net.tslat:smartbrainlib-neoforge-${minecraft_version}:${sbl_version}"
     implementation "net.blay09.mods:balm-neoforge:${balm_version}"
     implementation "dev.architectury:architectury-neoforge:${architectury_api_version}"

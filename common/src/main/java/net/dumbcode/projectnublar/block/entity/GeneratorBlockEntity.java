@@ -216,9 +216,10 @@ public class GeneratorBlockEntity extends SyncingContainerBlockEntity implements
      * energy library's {@code EnergyApi.distributeEnergyNearby}: neighbours in
      * {@link Direction#values()} order, sorted (stable) by how much of {@code amount} each would
      * take, least first; each one gets an even share of what is left, so what one cannot take goes
-     * to the next ones. The
-     * generator gives up only what a neighbour accepted. A neighbour that takes nothing is left
-     * out: under the 1.20.1 rule it sorted first and took nothing, so the totals are the same.
+     * to the next ones. The generator inserts for real first and then drains only what the
+     * neighbour accepted, so it never loses energy when a real insert takes less than a simulated
+     * one did. A neighbour that takes nothing is left out: under the 1.20.1 rule it sorted first
+     * and took nothing, so the totals are the same.
      */
     private void pushToNeighbours(Level level, BlockPos pos, int amount) {
         EnergyStorage storage = getEnergyStorage();
@@ -239,10 +240,9 @@ public class GeneratorBlockEntity extends SyncingContainerBlockEntity implements
             BlockPos target = pos.relative(receiver.direction());
             Direction side = receiver.direction().getOpposite();
             int offered = storage.drain(remaining / receiversLeft, true);
-            int accepted = insertInto(level, target, side, offered, true);
+            int accepted = insertInto(level, target, side, offered, false);
             if (accepted > 0) {
                 storage.drain(accepted, false);
-                insertInto(level, target, side, accepted, false);
             }
             remaining -= accepted;
             receiversLeft--;

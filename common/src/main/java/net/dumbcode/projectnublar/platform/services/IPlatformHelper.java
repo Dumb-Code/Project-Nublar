@@ -4,7 +4,10 @@ import net.dumbcode.projectnublar.menutypes.IncubatorMenu;
 import net.dumbcode.projectnublar.menutypes.SequencerMenu;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
+import net.minecraft.network.syncher.EntityDataSerializer;
+import net.minecraft.resources.Identifier;
 import net.minecraft.server.level.ServerPlayer;
+import net.minecraft.server.packs.resources.PreparableReloadListener;
 import net.minecraft.world.MenuProvider;
 import net.minecraft.world.inventory.MenuType;
 import net.minecraft.world.level.Level;
@@ -74,5 +77,27 @@ public interface IPlatformHelper {
      * @return the energy that the block accepted, 0 when it has no energy storage on that side
      */
     int insertEnergy(Level level, BlockPos pos, Direction side, int amount, boolean simulate);
+
+    /**
+     * Adds a server data reload listener. It runs on every data pack load and reload, after the
+     * vanilla listeners, in the order of the calls. Call it once per listener while the mod
+     * initialises.
+     *
+     * @param id       the listener's id, unique among all reload listeners
+     * @param listener the listener; one instance serves every reload, so it keeps no state of its own
+     */
+    void registerServerReloadListener(Identifier id, PreparableReloadListener listener);
+
+    /**
+     * Registers an entity data serializer so that client and server agree on its network id.
+     * Both loaders refuse mod serializers in vanilla's {@code EntityDataSerializers} list and key
+     * them by id instead: NeoForge in its synced {@code entity_data_serializers} registry, Fabric
+     * API in {@code FabricEntityDataRegistry}. Call it once per serializer while the mod
+     * initialises.
+     *
+     * @param id         the serializer's id
+     * @param serializer the serializer
+     */
+    void registerEntityDataSerializer(Identifier id, EntityDataSerializer<?> serializer);
 
 }

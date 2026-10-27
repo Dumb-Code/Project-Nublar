@@ -33,8 +33,8 @@ import org.jetbrains.annotations.Nullable;
  * Loads fossil generation config from the {@code config/fossils} datapack folder (periods,
  * qualities, sets, and per-species fossils).
  *
- * <p>Note: like all of this mod's reload listeners, this is registered <b>only on Forge</b>
- * ({@code CommonForgeEvents}); Fabric never receives this data.
+ * <p>Like all of this mod's reload listeners, it is registered on both loaders through
+ * {@code NublarReloadListeners}.
  */
 public class FossilConfigReloadListener extends SimpleJsonResourceReloadListener<JsonElement> {
     private static final Gson GSON = new GsonBuilder().setPrettyPrinting().disableHtmlEscaping().create();
