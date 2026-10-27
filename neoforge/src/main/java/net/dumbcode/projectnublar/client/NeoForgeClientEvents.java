@@ -4,6 +4,8 @@ import java.util.List;
 import net.dumbcode.projectnublar.Constants;
 import net.dumbcode.projectnublar.api.fossil.FossilCollection;
 import net.dumbcode.projectnublar.block.FossilBlock;
+import net.dumbcode.projectnublar.client.model.FossilTextureProperty;
+import net.dumbcode.projectnublar.client.model.TestTubeOverlayProperty;
 import net.dumbcode.projectnublar.client.screen.GuiEntityGroupRenderState;
 import net.dumbcode.projectnublar.client.screen.GuiEntityGroupRenderer;
 import net.minecraft.client.Minecraft;
@@ -15,10 +17,12 @@ import net.neoforged.fml.event.lifecycle.FMLClientSetupEvent;
 import net.neoforged.neoforge.client.event.EntityRenderersEvent;
 import net.neoforged.neoforge.client.event.RegisterColorHandlersEvent;
 import net.neoforged.neoforge.client.event.RegisterPictureInPictureRenderersEvent;
+import net.neoforged.neoforge.client.event.RegisterSelectItemModelPropertyEvent;
 
 /**
- * NeoForge client events of the <b>mod bus</b>: renderers, menu screens, the fossil block tint and
- * the Sequencer's picture-in-picture renderer. FML loads this class on the physical client only
+ * NeoForge client events of the <b>mod bus</b>: renderers, menu screens, the fossil block tint,
+ * the Sequencer's picture-in-picture renderer and the item model properties of the fossil and the
+ * test tube. FML loads this class on the physical client only
  * ({@code value = Dist.CLIENT}), so it is the one place on NeoForge that names client classes.
  *
  * <p>Only mod-bus events go here; client game-bus events need a class of their own.
@@ -58,6 +62,16 @@ public final class NeoForgeClientEvents {
     public static void registerPictureInPictureRenderers(RegisterPictureInPictureRenderersEvent event) {
         event.register(GuiEntityGroupRenderState.class,
                 () -> new GuiEntityGroupRenderer(Minecraft.getInstance().getEntityRenderDispatcher()));
+    }
+
+    /**
+     * Registers the {@code select} properties that {@code items/fossil.json} and
+     * {@code items/test_tube.json} name: they pick the texture of each fossil and test tube stack.
+     */
+    @SubscribeEvent
+    public static void registerSelectItemModelProperties(RegisterSelectItemModelPropertyEvent event) {
+        event.register(FossilTextureProperty.ID, FossilTextureProperty.TYPE);
+        event.register(TestTubeOverlayProperty.ID, TestTubeOverlayProperty.TYPE);
     }
 
     /**

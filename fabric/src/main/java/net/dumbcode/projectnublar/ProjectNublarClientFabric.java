@@ -5,20 +5,23 @@ import net.dumbcode.projectnublar.api.fossil.FossilCollection;
 import net.dumbcode.projectnublar.block.FossilBlock;
 import net.dumbcode.projectnublar.client.ClientRegistrationHolder;
 import net.dumbcode.projectnublar.client.CommonClientClass;
+import net.dumbcode.projectnublar.client.model.FossilTextureProperty;
+import net.dumbcode.projectnublar.client.model.TestTubeOverlayProperty;
 import net.dumbcode.projectnublar.client.screen.GuiEntityGroupRenderer;
 import net.fabricmc.api.ClientModInitializer;
 import net.fabricmc.fabric.api.client.event.lifecycle.v1.ClientLifecycleEvents;
 import net.fabricmc.fabric.api.client.rendering.v1.BlockColorRegistry;
 import net.fabricmc.fabric.api.client.rendering.v1.PictureInPictureRendererRegistry;
 import net.minecraft.client.color.block.BlockTintSource;
+import net.minecraft.client.renderer.item.properties.select.SelectItemModelProperties;
 
 /**
  * The Fabric client entry point: the {@code client} entrypoint in {@code fabric.mod.json}, run on
  * the physical client only, after {@code ProjectNublarFabric}. It registers what NeoForge's
  * {@code NeoForgeClientEvents} registers: the entity and block entity renderers, the menu screens
- * and dinosaur textures, the colour layers and gene widgets, the fossil block tint and the
- * Sequencer's picture-in-picture renderer. It is the one class of the Fabric module that names
- * client classes.
+ * and dinosaur textures, the colour layers and gene widgets, the fossil block tint, the
+ * Sequencer's picture-in-picture renderer and the item model properties of the fossil and the test
+ * tube. It is the one class of the Fabric module that names client classes.
  */
 public class ProjectNublarClientFabric implements ClientModInitializer {
 
@@ -36,6 +39,19 @@ public class ProjectNublarClientFabric implements ClientModInitializer {
         registerFossilTint();
         PictureInPictureRendererRegistry.register(
                 context -> new GuiEntityGroupRenderer(context.minecraft().getEntityRenderDispatcher()));
+        registerSelectItemModelProperties();
+    }
+
+    /**
+     * Registers the {@code select} properties that {@code items/fossil.json} and
+     * {@code items/test_tube.json} name: they pick the texture of each fossil and test tube stack.
+     * Fabric API has no registry for them; its transitive access widener makes the vanilla
+     * {@code ID_MAPPER} public, the same map that NeoForge's registration event fills. This runs
+     * before the first resource load, so the item definitions find both properties.
+     */
+    private static void registerSelectItemModelProperties() {
+        SelectItemModelProperties.ID_MAPPER.put(FossilTextureProperty.ID, FossilTextureProperty.TYPE);
+        SelectItemModelProperties.ID_MAPPER.put(TestTubeOverlayProperty.ID, TestTubeOverlayProperty.TYPE);
     }
 
     /**
