@@ -117,11 +117,9 @@ import java.util.*;
  * <p>SmartBrainLib 2 builds and ticks the brain; nothing here ticks it. Its mixin runs the brain once per
  * tick, right after {@link #customServerAiStep}.
  *
- * <p><b>Frozen invariants:</b> the {@link EntityDataAccessor} declarations below must stay in
- * this class and in this order (their ids depend on class-load order together with
- * {@code DinoAnimationUtils} and {@code DinoNeedsUtils}); the {@code defineSynchedData} call
- * order is a network contract; every NBT tag name is a save contract; all numeric constants are
- * behavioral contracts.
+ * <p><b>Frozen invariants:</b> every {@link EntityDataAccessor} of a dinosaur is declared in this
+ * class, in the order given by the comment above {@link #DINO_DATA}; every NBT tag name is a save
+ * contract; all numeric constants are behavioral contracts.
  *
  * <p>Note: {@link #getLayers()} calls into the client-only {@code CommonClientClass}
  * (pre-existing client/server mixing).

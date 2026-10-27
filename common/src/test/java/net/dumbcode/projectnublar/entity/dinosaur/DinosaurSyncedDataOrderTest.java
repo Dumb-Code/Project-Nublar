@@ -1,5 +1,7 @@
 package net.dumbcode.projectnublar.entity.dinosaur;
 
+import java.lang.reflect.Modifier;
+import java.util.Arrays;
 import java.util.List;
 import net.dumbcode.projectnublar.TestBootstrap;
 import net.minecraft.network.syncher.EntityDataAccessor;
@@ -23,7 +25,25 @@ class DinosaurSyncedDataOrderTest {
 
     @Test
     void syncedValuesKeepTheirDefinitionOrder() {
-        List<EntityDataAccessor<?>> order = List.of(
+        List<EntityDataAccessor<?>> order = order();
+        int first = order.get(0).id();
+        for (int i = 0; i < order.size(); i++) {
+            assertEquals(first + i, order.get(i).id(), "synced value at position " + i);
+        }
+    }
+
+    /** A synced value added to {@link Dinosaur} but not to {@link #order()} fails here, not silently. */
+    @Test
+    void everyDeclaredSyncedValueIsListed() {
+        long declared = Arrays.stream(Dinosaur.class.getDeclaredFields())
+                .filter(field -> Modifier.isStatic(field.getModifiers()) && field.getType() == EntityDataAccessor.class)
+                .count();
+        assertEquals(order().size(), declared);
+    }
+
+    /** The synced values in the order {@link Dinosaur} defines them. A method, so the class loads after the bootstrap. */
+    private static List<EntityDataAccessor<?>> order() {
+        return List.of(
                 Dinosaur.DINO_DATA, Dinosaur.DINO_BEHAVIOUR, Dinosaur.DINO_FAMILY_UUID, Dinosaur.DINO_MATE,
                 Dinosaur.BABY_DATA_ID, Dinosaur.JUVENILE_DATA_ID, Dinosaur.SUB_ADULT_DATA_ID, Dinosaur.ADULT_DATA_ID,
                 Dinosaur.SHOULD_TICK_STAMINA, Dinosaur.GROUP_LEADER, Dinosaur.DINOSAUR_HEAD_POS, Dinosaur.ONE_SHOT,
@@ -37,9 +57,5 @@ class DinosaurSyncedDataOrderTest {
                 Dinosaur.IS_FLINCHING_STATE, Dinosaur.IS_DEAD_STATE, Dinosaur.IS_SWIMMING_STATE,
                 Dinosaur.LOOKING_LEFT_STATE, Dinosaur.LOOKING_RIGHT_STATE, Dinosaur.TURNING_LEFT_STATE,
                 Dinosaur.TURNING_RIGHT_STATE);
-        int first = order.get(0).id();
-        for (int i = 0; i < order.size(); i++) {
-            assertEquals(first + i, order.get(i).id(), "synced value at position " + i);
-        }
     }
 }

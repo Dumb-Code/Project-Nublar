@@ -28,13 +28,6 @@ import static net.dumbcode.projectnublar.entity.dinosaur.Dinosaur.THIRST;
 import static net.dumbcode.projectnublar.entity.dinosaur.Dinosaur.STAMINA;
 import static net.dumbcode.projectnublar.entity.dinosaur.Dinosaur.SOCIAL;
 import static net.dumbcode.projectnublar.entity.dinosaur.Dinosaur.AGGRESSION;
-import static net.dumbcode.projectnublar.entity.dinosaur.Dinosaur.FERTILITY;
-import static net.dumbcode.projectnublar.entity.dinosaur.Dinosaur.DOMESTICITY;
-import static net.dumbcode.projectnublar.entity.dinosaur.Dinosaur.SIZE;
-import static net.dumbcode.projectnublar.entity.dinosaur.Dinosaur.INTELLIGENCE;
-import static net.dumbcode.projectnublar.entity.dinosaur.Dinosaur.VISION;
-import static net.dumbcode.projectnublar.entity.dinosaur.Dinosaur.IMMUNITY;
-import static net.dumbcode.projectnublar.entity.dinosaur.Dinosaur.TAMING_SCORE;
 
 /**
  * Static helpers for the dinosaur need bars (hunger/thirst/stamina/social) and threat scoring.
