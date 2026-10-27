@@ -46,6 +46,7 @@ import org.jetbrains.annotations.Nullable;
 public class DinoData {
     private static final String BASE_PERCENTAGE_KEY = "basePercentage";
     private static final String ENTITY_PERCENTAGES_KEY = "entityPercentages";
+    private static final String ENTITY_ENTRY_PREFIX = "entity_";
     private static final String TYPE_KEY = "type";
     private static final String VARIANT_KEY = "variant";
     private static final String PERCENTAGE_KEY = "percentage";
@@ -80,15 +81,26 @@ public class DinoData {
                     Codec.DOUBLE.optionalFieldOf(PERCENTAGE_KEY, 0D).forGetter(Map.Entry::getValue)
             ).apply(instance, (type, variant, percentage) -> Map.entry(new EntityInfo(type, variant.orElse(null)), percentage)));
 
-    /** {@code entityPercentages} as a list of entries (ruling P131); a missing key reads as no entity. */
+    /**
+     * {@code entityPercentages} in 1.20.1's shape (ruling P146): a compound of entries keyed
+     * {@code entity_0} to {@code entity_<n-1>}. The read takes every entry whatever its key, as
+     * 1.20.1's fromNBT did; a missing key reads as no entity.
+     */
     private static final MapCodec<Map<EntityInfo, Double>> ENTITY_PERCENTAGES_FIELD =
-            ENTITY_PERCENTAGE.listOf().optionalFieldOf(ENTITY_PERCENTAGES_KEY, List.of()).xmap(
+            Codec.unboundedMap(Codec.STRING, ENTITY_PERCENTAGE).optionalFieldOf(ENTITY_PERCENTAGES_KEY, Map.of()).xmap(
                     entries -> {
                         Map<EntityInfo, Double> percentages = new HashMap<>();
-                        entries.forEach(entry -> percentages.put(entry.getKey(), entry.getValue()));
+                        entries.values().forEach(entry -> percentages.put(entry.getKey(), entry.getValue()));
                         return percentages;
                     },
-                    percentages -> List.copyOf(percentages.entrySet()));
+                    percentages -> {
+                        Map<String, Map.Entry<EntityInfo, Double>> entries = new HashMap<>();
+                        int index = 0;
+                        for (Map.Entry<EntityInfo, Double> entry : percentages.entrySet()) {
+                            entries.put(ENTITY_ENTRY_PREFIX + index++, entry);
+                        }
+                        return entries;
+                    });
 
     /**
      * {@code genes}: gene name to value. A name resolves through {@link Genes#byName} as in 1.20.1's fromNBT;
@@ -113,9 +125,10 @@ public class DinoData {
                     });
 
     /**
-     * The saved form, with the keys and missing-key defaults of 1.20.1's toNBT and fromNBT (ruling
-     * P127): {@code entityPercentages} is now a list, and the root {@code version} key always writes
-     * {@link SaveVersion#CURRENT} and reads 0 when missing. The layer colours are not saved.
+     * The saved form, with the keys, the shape and the missing-key defaults of 1.20.1's toNBT and
+     * fromNBT (rulings P127, P146), so items, dinosaurs and Sequencers saved on 1.20.1 load. The root
+     * {@code version} key is new: it always writes {@link SaveVersion#CURRENT} and reads 0 when
+     * missing. The layer colours are not saved.
      */
     public static final Codec<DinoData> CODEC = RecordCodecBuilder.create(instance -> instance.group(
             Codec.INT.optionalFieldOf(SaveVersion.KEY, 0).forGetter(data -> SaveVersion.CURRENT),
@@ -356,9 +369,12 @@ public class DinoData {
     DinoData storedCopy() {
         DinoData data = copy();
         data.baseDino = savedEntityType(baseDino);
-        data.entityPercentages = new HashMap<>();
-        entityPercentages.forEach((info, percentage) ->
-                data.entityPercentages.put(new EntityInfo(savedEntityType(info.type()), info.variant()), percentage));
+        for (EntityInfo info : entityPercentages.keySet()) {
+            if (info.type() == null) {
+                Double percentage = data.entityPercentages.remove(info);
+                data.entityPercentages.put(new EntityInfo(savedEntityType(null), info.variant()), percentage);
+            }
+        }
         return data;
     }
 

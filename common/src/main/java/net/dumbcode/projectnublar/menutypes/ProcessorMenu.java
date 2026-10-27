@@ -46,8 +46,8 @@ public class ProcessorMenu extends AbstractContainerMenu {
             @Override
             public boolean mayPlace(ItemStack stack) {
                 // TODO(BUG): 1.20.1 also took amber whose tag held a root "dna_percentage" key, but
-                // nothing writes that key, so amber never went in. Items keep no custom data since
-                // Task 16, so amber is refused, as in play on 1.20.1.
+                // nothing writes that key, so amber never went in. Items keep no custom data, so a
+                // root "dna_percentage" key cannot exist: amber is refused, as in play on 1.20.1.
                 return stack.is(ItemInit.FOSSIL_ITEM.get());
             }
         });

@@ -183,7 +183,10 @@ class DinoDataCodecTest {
         assertEquals(0, original.getEntityPercentage(new DinoData.EntityInfo(EntityTypes.COW, null)));
     }
 
-    /** The saved key names are the 1.20.1 toNBT names; nothing else ties them once the NBT methods are gone. */
+    /**
+     * The saved key names are the 1.20.1 toNBT names, with {@code entityPercentages} as a compound of
+     * {@code entity_0 .. entity_{n-1}} entries (P146); nothing else ties them once the NBT methods are gone.
+     */
     @Test
     void encodedKeyNamesAreThe1201Names() {
         DinoData data = full();
@@ -191,12 +194,43 @@ class DinoDataCodecTest {
         CompoundTag tag = encode(data);
         assertEquals(Set.of("version", "basePercentage", "entityPercentages", "genes", "baseDino",
                 "incubationProgress", "incubationTimeLeft"), tag.keySet());
-        CompoundTag cat = tag.getListOrEmpty("entityPercentages").stream()
-                .map(entry -> (CompoundTag) entry)
+        CompoundTag entities = tag.getCompoundOrEmpty("entityPercentages");
+        assertEquals(Set.of("entity_0", "entity_1"), entities.keySet());
+        CompoundTag cat = entities.keySet().stream()
+                .map(key -> entities.getCompoundOrEmpty(key))
                 .filter(entry -> entry.contains("variant"))
                 .findFirst().orElseThrow();
         assertEquals(Set.of("type", "variant", "percentage"), cat.keySet());
         assertEquals("minecraft:cat", cat.getStringOr("type", ""));
+        assertEquals("minecraft:tabby", cat.getStringOr("variant", ""));
+        assertEquals(30, cat.getDoubleOr("percentage", 0));
+    }
+
+    /**
+     * A 1.20.1 dinosaur or Sequencer saved {@code entityPercentages} as a compound of {@code entity_N}
+     * entries; it loads with every entry, whatever the entry's key (P146).
+     */
+    @Test
+    void decodesThe1201EntityPercentagesShape() {
+        CompoundTag pig = new CompoundTag();
+        pig.putString("type", "minecraft:pig");
+        pig.putDouble("percentage", 25);
+        CompoundTag cat = new CompoundTag();
+        cat.putString("type", "minecraft:cat");
+        cat.putString("variant", "minecraft:tabby");
+        cat.putDouble("percentage", 30);
+        CompoundTag entities = new CompoundTag();
+        entities.put("entity_0", pig);
+        entities.put("entity_7", cat);
+        CompoundTag tag = new CompoundTag();
+        tag.putDouble("basePercentage", 42.5);
+        tag.put("entityPercentages", entities);
+        tag.putString("baseDino", "minecraft:cow");
+
+        DinoData decoded = parse(tag);
+        assertEquals(25, decoded.getEntityPercentage(new DinoData.EntityInfo(EntityTypes.PIG, null)));
+        assertEquals(30, decoded.getEntityPercentage(new DinoData.EntityInfo(EntityTypes.CAT, "minecraft:tabby")));
+        assertEquals(2, decoded.getEntityPercentages().size());
     }
 
     /**
