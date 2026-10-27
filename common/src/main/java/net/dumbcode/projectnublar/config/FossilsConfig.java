@@ -81,7 +81,7 @@ public class FossilsConfig {
         builder.pop();
 
         builder.push("compat");
-        teamRebornEnergyBridge = builder.comment("Fabric only. When false, Nublar blocks do not offer energy to Team Reborn Energy consumers. NeoForge ignores this key.")
+        teamRebornEnergyBridge = builder.comment("Fabric only. When false, Nublar blocks exchange no energy with Team Reborn Energy in either direction: they offer an empty storage to Team Reborn Energy consumers, and the generator does not push energy into Team Reborn Energy blocks. NeoForge ignores this key.")
                 .define("team_reborn_energy_bridge", true);
         builder.pop();
 
@@ -117,7 +117,12 @@ public class FossilsConfig {
         builder.pop();
     }
 
-    /** Whether Nublar blocks offer energy to Team Reborn Energy consumers; read by Fabric only. */
+    /**
+     * Whether Nublar blocks exchange energy with Team Reborn Energy; read by Fabric only. When
+     * {@code false}, the bridge is off in both directions: Nublar blocks offer an empty storage to
+     * Team Reborn Energy consumers, and the generator does not push energy into Team Reborn Energy
+     * blocks.
+     */
     public static boolean teamRebornEnergyBridge() {
         return teamRebornEnergyBridge.get();
     }

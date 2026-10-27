@@ -169,7 +169,6 @@ public class RenderUtils {
     public static final int TICKS_WAIT_AT_END = 2;
 
 //    public static void renderScrollingText(GuiGraphics stack, Component text, float scrollTicks, int x, int y, int width, int color) {
-//        Minecraft mc = Minecraft.getInstance();
 //        int textWidth = mc.font.width(text);
 //
 //        if (textWidth < width) {

@@ -18,6 +18,7 @@ import net.fabricmc.fabric.api.object.builder.v1.entity.FabricDefaultAttributeRe
 import net.minecraft.core.registries.Registries;
 import net.minecraft.network.protocol.common.custom.CustomPacketPayload;
 import net.minecraft.resources.ResourceKey;
+import net.minecraft.tags.BiomeTags;
 import net.minecraft.world.InteractionResult;
 import net.minecraft.world.level.levelgen.GenerationStep;
 import net.neoforged.fml.config.ModConfig;
@@ -49,7 +50,7 @@ public class ProjectNublarFabric implements ModInitializer {
         ConfigRegistry.INSTANCE.register(Constants.MODID, ModConfig.Type.COMMON, FossilsConfig.CONFIG_SPEC, "projectnublar-fossils.toml");
         EntityInit.attributeSuppliers.forEach(
                 p -> FabricDefaultAttributeRegistry.register(p.entityTypeSupplier().get(), p.factory().get().build()));
-        FOSSIL_VEINS.forEach(vein -> BiomeModifications.addFeature(BiomeSelectors.foundInOverworld(),
+        FOSSIL_VEINS.forEach(vein -> BiomeModifications.addFeature(BiomeSelectors.tag(BiomeTags.IS_OVERWORLD),
                 GenerationStep.Decoration.UNDERGROUND_ORES, ResourceKey.create(Registries.PLACED_FEATURE, Constants.modLoc(vein))));
         NublarPayloads.SERVERBOUND.forEach(ProjectNublarFabric::registerServerbound);
         UseBlockCallback.EVENT.register((player, level, hand, hit) ->
