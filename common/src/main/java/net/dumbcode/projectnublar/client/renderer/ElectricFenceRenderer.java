@@ -21,9 +21,10 @@ import net.minecraft.world.phys.AABB;
  *
  * <p>Render box: NeoForge reads {@code getRenderBoundingBox} (exact); there the method overrides
  * {@code IBlockEntityRendererExtension.getRenderBoundingBox} and javac emits the {@code (BlockEntity)AABB} bridge.
- * Fabric always draws ({@code shouldRenderOffScreen}); EntityCulling's reflective
+ * Fabric always draws ({@code shouldRenderOffScreen}), because the base block draws a 3- or 8-block post that crosses
+ * sections and section culling would drop it with the base's section (P138); EntityCulling's reflective
  * {@code getRenderBoundingBox(BlockEntity)} lookup finds nothing there, which does not matter, because EntityCulling
- * never reads the box while {@code shouldRenderOffScreen()} is true. EntityCulling exact box not reachable on Fabric
+ * never applies the box while {@code shouldRenderOffScreen()} is true. EntityCulling exact box not reachable on Fabric
  * without a mixin; no mixin added (D-j). Client only. D-j, 2026-10-25.
  */
 public class ElectricFenceRenderer extends GeoBlockRenderer<BlockEntityElectricFencePole, BlockEntityRenderState> {
@@ -62,17 +63,17 @@ public class ElectricFenceRenderer extends GeoBlockRenderer<BlockEntityElectricF
     }
 
     /**
-     * The post's wire box ({@link ElectricWireRenderer#wireBox}) and, on the base block, the post model: the post
-     * column ({@code getHeight()} blocks, 3 low security, 8 high security) plus one block on each side and on top,
-     * because the model reaches up to 1.12 blocks from the post's centre line at any rotation and up to 0.44 blocks
-     * above the column.
+     * This post block inflated by {@link ElectricWireRenderer#WIRE_MARGIN} (its wires) and, on the base block, the
+     * post model: the post column ({@code getHeight()} blocks, 3 low security, 8 high security) plus one block on
+     * each side and on top, because the model reaches up to 1.12 blocks from the post's centre line at any rotation
+     * and up to 0.44 blocks above the column.
      */
     public AABB getRenderBoundingBox(BlockEntityElectricFencePole blockEntity) {
-        AABB box = ElectricWireRenderer.wireBox(blockEntity);
+        BlockPos pos = blockEntity.getBlockPos();
+        AABB box = new AABB(pos).inflate(ElectricWireRenderer.WIRE_MARGIN);
         if (isBasePole(blockEntity)) {
             int height = ((ElectricFencePostBlock) blockEntity.getBlockState().getBlock()).getType().getHeight();
-            BlockPos base = blockEntity.getBlockPos();
-            box = box.minmax(AABB.encapsulatingFullBlocks(base.offset(-1, 0, -1), base.offset(1, height, 1)));
+            box = box.minmax(AABB.encapsulatingFullBlocks(pos.offset(-1, 0, -1), pos.offset(1, height, 1)));
         }
         return box;
     }

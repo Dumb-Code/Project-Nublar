@@ -22,7 +22,7 @@ import net.minecraft.world.phys.Vec3;
  * {@code IBlockEntityRendererExtension.getRenderBoundingBox} and javac emits the {@code (BlockEntity)AABB} bridge.
  * Fabric always draws ({@code shouldRenderOffScreen}); EntityCulling's reflective
  * {@code getRenderBoundingBox(BlockEntity)} lookup finds nothing there, which does not matter, because EntityCulling
- * never reads the box while {@code shouldRenderOffScreen()} is true. EntityCulling exact box not reachable on Fabric
+ * never applies the box while {@code shouldRenderOffScreen()} is true. EntityCulling exact box not reachable on Fabric
  * without a mixin; no mixin added (D-j). Client only. D-j, 2026-10-25.
  */
 public class SequencerRenderer extends GeoBlockRenderer<SequencerBlockEntity, BlockEntityRenderState> {

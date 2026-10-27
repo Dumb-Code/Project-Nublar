@@ -27,15 +27,24 @@ import java.util.List;
  *
  * <p>Render box: NeoForge reads {@code getRenderBoundingBox} (exact); there the method overrides
  * {@code IBlockEntityRendererExtension.getRenderBoundingBox} and javac emits the {@code (BlockEntity)AABB} bridge.
- * Fabric always draws ({@code shouldRenderOffScreen}); EntityCulling's reflective
- * {@code getRenderBoundingBox(BlockEntity)} lookup finds nothing there, which does not matter, because EntityCulling
- * never reads the box while {@code shouldRenderOffScreen()} is true. EntityCulling exact box not reachable on Fabric
- * without a mixin; no mixin added (D-j). Client only. D-j, 2026-10-25.
+ * The box is this block inflated by {@link #WIRE_MARGIN}: a fence block draws only the wire through its own block,
+ * and {@link #WIRE_MARGIN} says how far that wire can reach past it.
+ * {@code shouldRenderOffScreen()} is false on both loaders, so the wire is section-culled as on 1.20.1 and a long
+ * fence does not put every wire block in the always-drawn list (P138). EntityCulling, if installed on Fabric, finds
+ * no {@code getRenderBoundingBox(BlockEntity)} by reflection here, so it culls this block entity with its own default
+ * box, the block itself. Client only. D-j, 2026-10-25.
  */
 public class ElectricWireRenderer implements BlockEntityRenderer<BlockEntityElectricFence, BlockEntityRenderState> {
     /** One {@code float[]} per wire segment, as {@link Connection.CompiledRenderData#connectionData()} gives it. */
     static final DataTicket<float[][]> WIRES = DataTicket.create("projectnublar_fence_wires", float[][].class);
     private static final float[][] NO_WIRES = new float[0][];
+    /**
+     * How far past its own block the wires of a fence block can reach: half a block. A straight wire stays inside
+     * the block plus the cable thickness (at most 0.044), but a broken wire's bent end is not clipped to the block:
+     * {@code Connection.clipBrokenPointToBlock} clips from inside the block, so it never clips. The bent end reaches
+     * at most 0.43 block past the block (P145).
+     */
+    static final double WIRE_MARGIN = 0.5;
 
     @Override
     public BlockEntityRenderState createRenderState() {
@@ -53,27 +62,15 @@ public class ElectricWireRenderer implements BlockEntityRenderer<BlockEntityElec
         submitWires(state, poseStack, submitNodeCollector);
     }
 
-    /** The wire box of this fence block ({@link #wireBox}). */
+    /** This fence block inflated by {@link #WIRE_MARGIN}, which holds every wire it draws. */
     public AABB getRenderBoundingBox(BlockEntityElectricFence blockEntity) {
-        return wireBox(blockEntity);
+        return new AABB(blockEntity.getBlockPos()).inflate(WIRE_MARGIN);
     }
 
-    /** {@code true}: Fabric always draws; NeoForge still tests the render box against the view (D-j). */
+    /** {@code false}: section-culled as on 1.20.1 (P138); NeoForge also tests the render box against the view. */
     @Override
     public boolean shouldRenderOffScreen() {
-        return true;
-    }
-
-    /**
-     * The block of {@code fence} and the end blocks ({@code from}, {@code to}) of each of its connections. Each wire
-     * runs between its end blocks at a height inside them and is clipped to this block, so it lies inside this box.
-     */
-    static AABB wireBox(BlockEntityElectricFence fence) {
-        AABB box = new AABB(fence.getBlockPos());
-        for (Connection connection : fence.getConnections()) {
-            box = box.minmax(AABB.encapsulatingFullBlocks(connection.getFrom(), connection.getTo()));
-        }
-        return box;
+        return false;
     }
 
     /** The wire segments of every connection of {@code fence}; none while it has no level. */
