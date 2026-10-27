@@ -1,39 +1,49 @@
 package net.dumbcode.projectnublar.api.dinosaur;
 
 import com.mojang.serialization.Codec;
+import com.mojang.serialization.DataResult;
+import com.mojang.serialization.MapCodec;
 import com.mojang.serialization.codecs.RecordCodecBuilder;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
+import java.util.Optional;
 import java.util.function.Consumer;
 import net.dumbcode.projectnublar.api.gene.GeneData;
 import net.dumbcode.projectnublar.api.gene.Genes;
 import net.dumbcode.projectnublar.api.util.NublarMath;
+import net.dumbcode.projectnublar.registry.DataComponentInit;
 import net.dumbcode.projectnublar.registry.GeneInit;
+import net.dumbcode.projectnublar.util.SaveVersion;
 import net.minecraft.SharedConstants;
-import net.minecraft.core.component.DataComponents;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.nbt.CompoundTag;
+import net.minecraft.nbt.NbtOps;
+import net.minecraft.network.RegistryFriendlyByteBuf;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.chat.MutableComponent;
+import net.minecraft.network.codec.ByteBufCodecs;
+import net.minecraft.network.codec.StreamCodec;
 import net.minecraft.resources.Identifier;
 import net.minecraft.util.StringUtil;
 import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.item.ItemStack;
-import net.minecraft.world.item.component.CustomData;
 import org.jetbrains.annotations.Nullable;
 
 /**
  * The full genetic make-up of a (future) dinosaur: base species, per-entity DNA percentages,
  * explicitly-set gene values, layer colors, and incubation progress.
  *
- * <p>Serialized into the {@code DinoData} compound on item stacks and entities; every tag-name
- * string below is a frozen save contract.
+ * <p>Items carry it as the {@link DataComponentInit#DINO_DATA} component, saved through
+ * {@link #CODEC}; every key name below is a frozen save contract. The layer colours and the
+ * final-gene cache are not saved (as in 1.20.1), so they take no part in {@link #equals}; the
+ * {@code version} read from a save takes no part either, so a stack saved before a version change
+ * still stacks with the same data saved now (ruling P122).
  */
 public class DinoData {
-    private static final String DINO_DATA_TAG = "DinoData";
     private static final String BASE_PERCENTAGE_KEY = "basePercentage";
     private static final String ENTITY_PERCENTAGES_KEY = "entityPercentages";
     private static final String ENTITY_ENTRY_PREFIX = "entity_";
@@ -53,6 +63,77 @@ public class DinoData {
     /** Sentinel meaning "not incubating"/"unknown" for the incubation fields below. */
     private static final int NOT_SET = -1;
 
+    /**
+     * An entity type id as 1.20.1's toNBT wrote it and fromNBT read it: the write is {@code getKey},
+     * so a null type writes the registry's default key (pig); an unknown id fails the read.
+     */
+    private static final Codec<EntityType<?>> ENTITY_TYPE_ID = Identifier.CODEC.comapFlatMap(
+            id -> BuiltInRegistries.ENTITY_TYPE.getOptional(id)
+                    .<DataResult<EntityType<?>>>map(DataResult::success)
+                    .orElseGet(() -> DataResult.error(() -> "Unknown entity type: " + id)),
+            type -> BuiltInRegistries.ENTITY_TYPE.getKey(type));
+
+    /** One {@code entityPercentages} entry: {@code type}, {@code variant} when not null, {@code percentage}. */
+    private static final Codec<Map.Entry<EntityInfo, Double>> ENTITY_PERCENTAGE = RecordCodecBuilder.create(
+            instance -> instance.group(
+                    ENTITY_TYPE_ID.fieldOf(TYPE_KEY).forGetter(entry -> entry.getKey().type()),
+                    Codec.STRING.optionalFieldOf(VARIANT_KEY).forGetter(entry -> Optional.ofNullable(entry.getKey().variant())),
+                    Codec.DOUBLE.optionalFieldOf(PERCENTAGE_KEY, 0D).forGetter(Map.Entry::getValue)
+            ).apply(instance, (type, variant, percentage) -> Map.entry(new EntityInfo(type, variant.orElse(null)), percentage)));
+
+    /** {@code entityPercentages} as a list of entries (ruling P131); a missing key reads as no entity. */
+    private static final MapCodec<Map<EntityInfo, Double>> ENTITY_PERCENTAGES_FIELD =
+            ENTITY_PERCENTAGE.listOf().optionalFieldOf(ENTITY_PERCENTAGES_KEY, List.of()).xmap(
+                    entries -> {
+                        Map<EntityInfo, Double> percentages = new HashMap<>();
+                        entries.forEach(entry -> percentages.put(entry.getKey(), entry.getValue()));
+                        return percentages;
+                    },
+                    percentages -> List.copyOf(percentages.entrySet()));
+
+    /**
+     * {@code genes}: gene name to value. A name resolves through {@link Genes#byName} as in 1.20.1's fromNBT;
+     * an unknown name is dropped (ruling P129).
+     */
+    private static final MapCodec<Map<Genes.Gene, Double>> GENES_FIELD =
+            Codec.unboundedMap(Codec.STRING, Codec.DOUBLE).optionalFieldOf(GENES_KEY, Map.of()).xmap(
+                    names -> {
+                        Map<Genes.Gene, Double> genes = new HashMap<>();
+                        names.forEach((name, value) -> {
+                            Genes.Gene gene = Genes.byName(name);
+                            if (gene != null) {
+                                genes.put(gene, value);
+                            }
+                        });
+                        return genes;
+                    },
+                    genes -> {
+                        Map<String, Double> names = new HashMap<>();
+                        genes.forEach((gene, value) -> names.put(gene.name(), value));
+                        return names;
+                    });
+
+    /**
+     * The saved form, with the keys and missing-key defaults of 1.20.1's toNBT and fromNBT (ruling
+     * P127): {@code entityPercentages} is now a list, and the root {@code version} key always writes
+     * {@link SaveVersion#CURRENT} and reads 0 when missing. The layer colours are not saved.
+     */
+    public static final Codec<DinoData> CODEC = RecordCodecBuilder.create(instance -> instance.group(
+            Codec.INT.optionalFieldOf(SaveVersion.KEY, 0).forGetter(data -> SaveVersion.CURRENT),
+            Codec.DOUBLE.optionalFieldOf(BASE_PERCENTAGE_KEY, 0D).forGetter(data -> data.basePercentage),
+            ENTITY_PERCENTAGES_FIELD.forGetter(data -> data.entityPercentages),
+            GENES_FIELD.forGetter(data -> data.advancedGenes),
+            ENTITY_TYPE_ID.optionalFieldOf(BASE_DINO_KEY).forGetter(data -> Optional.of(savedBaseDino(data.baseDino))),
+            Codec.DOUBLE.optionalFieldOf(INCUBATION_PROGRESS_KEY, (double) NOT_SET).forGetter(data -> data.incubationProgress),
+            Codec.INT.optionalFieldOf(INCUBATION_TIME_LEFT_KEY, NOT_SET).forGetter(data -> data.incubationTimeLeft)
+    ).apply(instance, (version, basePercentage, entityPercentages, genes, baseDino, incubationProgress, incubationTimeLeft) ->
+            new DinoData(version, basePercentage, entityPercentages, genes, baseDino.orElse(null), incubationProgress, incubationTimeLeft)));
+
+    /** {@link #CODEC} on the network, as an NBT tag. */
+    public static final StreamCodec<RegistryFriendlyByteBuf, DinoData> STREAM_CODEC =
+            ByteBufCodecs.fromCodecWithRegistries(CODEC);
+
+    private int version = SaveVersion.CURRENT;
     private double basePercentage;
     private double incubationProgress = NOT_SET;
     private int incubationTimeLeft = NOT_SET;
@@ -66,6 +147,35 @@ public class DinoData {
     public DinoData() {
     }
 
+    /** The decoded form; {@link #CODEC} and {@link #copy} build through it. The maps are copied. */
+    private DinoData(int version, double basePercentage, Map<EntityInfo, Double> entityPercentages,
+                     Map<Genes.Gene, Double> advancedGenes, @Nullable EntityType<?> baseDino,
+                     double incubationProgress, int incubationTimeLeft) {
+        this.version = version;
+        this.basePercentage = basePercentage;
+        this.entityPercentages = new HashMap<>(entityPercentages);
+        this.advancedGenes = new HashMap<>(advancedGenes);
+        this.baseDino = baseDino;
+        this.incubationProgress = incubationProgress;
+        this.incubationTimeLeft = incubationTimeLeft;
+    }
+
+    /**
+     * The {@code baseDino} that 1.20.1's toNBT wrote (ruling P131): {@code getKey(baseDino)}, which
+     * is the entity registry's default key (pig) for a null base. fromNBT and {@link #CODEC} read a
+     * missing key as null.
+     */
+    private static EntityType<?> savedBaseDino(@Nullable EntityType<?> baseDino) {
+        return baseDino != null
+                ? baseDino
+                : BuiltInRegistries.ENTITY_TYPE.getValue(BuiltInRegistries.ENTITY_TYPE.getDefaultKey());
+    }
+
+    /** The version the data was saved with: {@code 0} for a save without the key, {@link SaveVersion#CURRENT} when new. */
+    public int getVersion() {
+        return version;
+    }
+
     public Integer getLayerColor(int layer) {
         return layerColors.get(layer);
     }
@@ -75,13 +185,14 @@ public class DinoData {
     }
 
     /**
-     * Reads the data from the stack's custom data under the {@code DinoData} key; a stack without
-     * it gives an empty DinoData, as the 1.20.1 read of a missing compound did. Temporary bridge:
-     * Task 16 replaces it with a data component.
+     * The stack's {@link DataComponentInit#DINO_DATA} as a new object the caller may change (a
+     * {@link #copy}; ruling P120). A stack without the component gives what the 1.20.1 read of a
+     * missing compound gave: the decode of an empty compound (no base, no entity, not incubating).
+     * A caller that only reads uses {@code stack.get(DINO_DATA)} and never changes the result.
      */
     public static DinoData fromStack(ItemStack stack) {
-        CompoundTag customData = stack.getOrDefault(DataComponents.CUSTOM_DATA, CustomData.EMPTY).copyTag();
-        return fromNBT(customData.getCompoundOrEmpty(DINO_DATA_TAG));
+        DinoData data = stack.get(DataComponentInit.DINO_DATA.get());
+        return data != null ? data.copy() : CODEC.parse(NbtOps.INSTANCE, new CompoundTag()).getOrThrow();
     }
 
     public Map<EntityInfo, Double> getEntityPercentages() {
@@ -203,8 +314,8 @@ public class DinoData {
         tag.putDouble(BASE_PERCENTAGE_KEY, basePercentage);
         tag.put(ENTITY_PERCENTAGES_KEY, saveEntityPercentages());
         tag.put(GENES_KEY, saveAdvancedGenes());
-        // TODO(BUG): throws a NullPointerException when baseDino is null (getKey(null) NPEs);
-        // fromNBT tolerates a missing key but toNBT cannot produce one.
+        // A null baseDino writes the entity registry's default key (pig): the defaulted registry's
+        // getKey returns it for a value it does not hold. fromNBT reads a missing key as null.
         tag.putString(BASE_DINO_KEY, BuiltInRegistries.ENTITY_TYPE.getKey(baseDino).toString());
         tag.putDouble(INCUBATION_PROGRESS_KEY, incubationProgress);
         tag.putInt(INCUBATION_TIME_LEFT_KEY, incubationTimeLeft);
@@ -232,12 +343,13 @@ public class DinoData {
         return data;
     }
 
+    /**
+     * A copy of every saved field and the version (ruling P130). The layer colours and the
+     * final-gene cache are not saved, so the copy has their defaults, as a 1.20.1 save and load did.
+     */
     public DinoData copy() {
-        DinoData data = new DinoData();
-        data.advancedGenes = new HashMap<>(advancedGenes);
-        data.entityPercentages = new HashMap<>(entityPercentages);
-        data.basePercentage = basePercentage;
-        return data;
+        return new DinoData(version, basePercentage, entityPercentages, advancedGenes, baseDino,
+                incubationProgress, incubationTimeLeft);
     }
 
     public String getNameSpace() {
@@ -263,13 +375,11 @@ public class DinoData {
     }
 
     /**
-     * Writes the data into the stack's custom data under the {@code DinoData} key and keeps the
-     * other keys. Temporary bridge: Task 16 replaces it with a data component.
+     * Stores a {@link #copy} of this data as the stack's {@link DataComponentInit#DINO_DATA}, so a
+     * later change to this object does not reach the stack (ruling P120).
      */
     public void saveTo(ItemStack stack) {
-        CompoundTag customData = stack.getOrDefault(DataComponents.CUSTOM_DATA, CustomData.EMPTY).copyTag();
-        customData.put(DINO_DATA_TAG, toNBT());
-        CustomData.set(DataComponents.CUSTOM_DATA, stack, customData);
+        stack.set(DataComponentInit.DINO_DATA.get(), copy());
     }
 
     public double getIncubationProgress() {
@@ -325,6 +435,28 @@ public class DinoData {
             advancedGenes.put(Genes.byName(key), geneTag.getDoubleOr(key, 0));
         }
         return advancedGenes;
+    }
+
+    /** Equal when every saved field is equal; the version, the layer colours and the gene cache are ignored. */
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) {
+            return true;
+        }
+        if (!(o instanceof DinoData other)) {
+            return false;
+        }
+        return Double.compare(basePercentage, other.basePercentage) == 0
+                && Double.compare(incubationProgress, other.incubationProgress) == 0
+                && incubationTimeLeft == other.incubationTimeLeft
+                && baseDino == other.baseDino
+                && entityPercentages.equals(other.entityPercentages)
+                && advancedGenes.equals(other.advancedGenes);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(basePercentage, incubationProgress, incubationTimeLeft, baseDino, entityPercentages, advancedGenes);
     }
 
     public record EntityInfo(EntityType<?> type, @Nullable String variant) {

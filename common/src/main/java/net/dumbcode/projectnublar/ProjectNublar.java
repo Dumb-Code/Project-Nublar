@@ -10,6 +10,7 @@ import net.dumbcode.projectnublar.data.NublarReloadListeners;
 import net.dumbcode.projectnublar.registry.AttributesInit;
 import net.dumbcode.projectnublar.registry.BlockInit;
 import net.dumbcode.projectnublar.registry.CreativeTabInit;
+import net.dumbcode.projectnublar.registry.DataComponentInit;
 import net.dumbcode.projectnublar.registry.DataSerializerInit;
 import net.dumbcode.projectnublar.registry.EntityInit;
 import net.dumbcode.projectnublar.registry.FeatureInit;
@@ -41,6 +42,7 @@ public class ProjectNublar {
         registrarManager.builder(GeneInit.GENE_KEY.identifier(), new Genes.Gene[0]).build();
         EntityInit.loadClass();
         BlockInit.loadClass();
+        DataComponentInit.loadClass();
         ItemInit.loadClass();
         LootFunctionInit.loadClass();
         FeatureInit.loadClass();
