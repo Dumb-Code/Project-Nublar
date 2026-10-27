@@ -1,0 +1,7 @@
+{
+  "parent": "minecraft:item/generated",
+  "textures": {
+    "layer0": "projectnublar:item/test_tube_full",
+    "layer1": "projectnublar:item/dino_overlay/tyrannosaurus_rex"
+  }
+}

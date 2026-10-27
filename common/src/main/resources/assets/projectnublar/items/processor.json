@@ -1,9 +1,0 @@
-{
-  "model": {
-    "type": "minecraft:special",
-    "base": "projectnublar:item/processor",
-    "model": {
-      "type": "geckolib:geckolib"
-    }
-  }
-}

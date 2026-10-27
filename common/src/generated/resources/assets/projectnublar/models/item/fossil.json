@@ -1,6 +1,5 @@
 {
   "parent": "minecraft:item/generated",
-  "loader": "projectnublar:fossil",
   "textures": {
     "layer0": "projectnublar:block/fossil_overlay/common/spine"
   }

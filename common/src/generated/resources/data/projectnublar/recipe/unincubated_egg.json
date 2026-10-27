@@ -1,0 +1,10 @@
+{
+  "type": "projectnublar:unincubated_egg",
+  "ingredients": [
+    "projectnublar:artificial_egg",
+    "projectnublar:test_tube"
+  ],
+  "result": {
+    "id": "projectnublar:unincubated_egg"
+  }
+}
