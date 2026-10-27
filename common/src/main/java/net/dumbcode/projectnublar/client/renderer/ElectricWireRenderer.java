@@ -13,6 +13,7 @@ import net.minecraft.client.renderer.feature.ModelFeatureRenderer;
 import net.minecraft.client.renderer.rendertype.RenderTypes;
 import net.minecraft.client.renderer.state.level.CameraRenderState;
 import net.minecraft.client.renderer.texture.OverlayTexture;
+import net.minecraft.world.phys.AABB;
 import net.minecraft.world.phys.Vec3;
 import org.jetbrains.annotations.Nullable;
 
@@ -23,6 +24,13 @@ import java.util.List;
  * Draws the wires of an electric fence block with the leash render type, at full brightness. The wire geometry is
  * read from the fence's connections at extraction ({@link #WIRES}) and drawn at submit.
  * {@link ElectricFenceRenderer} draws the wires of a post the same way.
+ *
+ * <p>Render box: NeoForge reads {@code getRenderBoundingBox} (exact); there the method overrides
+ * {@code IBlockEntityRendererExtension.getRenderBoundingBox} and javac emits the {@code (BlockEntity)AABB} bridge.
+ * Fabric always draws ({@code shouldRenderOffScreen}); EntityCulling's reflective
+ * {@code getRenderBoundingBox(BlockEntity)} lookup finds nothing there, which does not matter, because EntityCulling
+ * never reads the box while {@code shouldRenderOffScreen()} is true. EntityCulling exact box not reachable on Fabric
+ * without a mixin; no mixin added (D-j). Client only. D-j, 2026-10-25.
  */
 public class ElectricWireRenderer implements BlockEntityRenderer<BlockEntityElectricFence, BlockEntityRenderState> {
     /** One {@code float[]} per wire segment, as {@link Connection.CompiledRenderData#connectionData()} gives it. */
@@ -43,6 +51,29 @@ public class ElectricWireRenderer implements BlockEntityRenderer<BlockEntityElec
     @Override
     public void submit(BlockEntityRenderState state, PoseStack poseStack, SubmitNodeCollector submitNodeCollector, CameraRenderState camera) {
         submitWires(state, poseStack, submitNodeCollector);
+    }
+
+    /** The wire box of this fence block ({@link #wireBox}). */
+    public AABB getRenderBoundingBox(BlockEntityElectricFence blockEntity) {
+        return wireBox(blockEntity);
+    }
+
+    /** {@code true}: Fabric always draws; NeoForge still tests the render box against the view (D-j). */
+    @Override
+    public boolean shouldRenderOffScreen() {
+        return true;
+    }
+
+    /**
+     * The block of {@code fence} and the end blocks ({@code from}, {@code to}) of each of its connections. Each wire
+     * runs between its end blocks at a height inside them and is clipped to this block, so it lies inside this box.
+     */
+    static AABB wireBox(BlockEntityElectricFence fence) {
+        AABB box = new AABB(fence.getBlockPos());
+        for (Connection connection : fence.getConnections()) {
+            box = box.minmax(AABB.encapsulatingFullBlocks(connection.getFrom(), connection.getTo()));
+        }
+        return box;
     }
 
     /** The wire segments of every connection of {@code fence}; none while it has no level. */

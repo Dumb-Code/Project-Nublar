@@ -24,6 +24,7 @@ import net.minecraft.world.level.block.entity.BaseContainerBlockEntity;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.block.state.StateDefinition;
+import net.minecraft.world.phys.AABB;
 import net.minecraft.world.phys.BlockHitResult;
 import net.minecraft.world.phys.shapes.CollisionContext;
 import net.minecraft.world.phys.shapes.Shapes;
@@ -95,6 +96,19 @@ public abstract class MultiEntityBlock extends BaseEntityBlock implements MultiB
     @Override
     protected void createBlockStateDefinition(StateDefinition.Builder<Block, BlockState> $$0) {
         $$0.add(ROWS, COLUMNS, DEPTH, FACING);
+    }
+
+    /**
+     * The full blocks the whole multiblock fills when its core stands at {@code corePos} in {@code coreState}:
+     * {@code rows} blocks up, {@code columns} blocks counter-clockwise of the facing and {@code depth} blocks away
+     * from it, the same blocks {@link #affectNeighborsAfterRemoval} breaks.
+     */
+    public AABB getFootprint(BlockPos corePos, BlockState coreState) {
+        Direction facing = coreState.getValue(FACING);
+        BlockPos farCorner = corePos.relative(facing.getOpposite(), depth - 1)
+                .relative(facing.getCounterClockWise(), columns - 1)
+                .above(rows - 1);
+        return AABB.encapsulatingFullBlocks(corePos, farCorner);
     }
 
     public abstract VoxelShape getShapeForDirection(Direction direction);
