@@ -1,5 +1,6 @@
 package net.dumbcode.projectnublar.datagen;
 
+import net.minecraft.core.HolderLookup;
 import net.minecraft.data.loot.EntityLootSubProvider;
 import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.flag.FeatureFlags;
@@ -16,9 +17,10 @@ import net.minecraft.world.level.storage.loot.providers.number.UniformGenerator;
 import java.util.List;
 import java.util.stream.Stream;
 
+/** The entity loot tables. It writes none: it lists no entity type. */
 public class ModEntityLootTables extends EntityLootSubProvider {
-    protected ModEntityLootTables() {
-        super(FeatureFlags.REGISTRY.allFlags());
+    protected ModEntityLootTables(HolderLookup.Provider registries) {
+        super(FeatureFlags.REGISTRY.allFlags(), registries);
     }
 
     @Override

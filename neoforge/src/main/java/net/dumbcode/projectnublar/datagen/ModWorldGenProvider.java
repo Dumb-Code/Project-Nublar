@@ -13,7 +13,7 @@ import net.minecraft.core.HolderSet;
 import net.minecraft.core.RegistrySetBuilder;
 import net.minecraft.core.registries.Registries;
 import net.minecraft.data.PackOutput;
-import net.minecraft.data.worldgen.BootstapContext;
+import net.minecraft.data.worldgen.BootstrapContext;
 import net.minecraft.resources.ResourceKey;
 import net.minecraft.tags.BiomeTags;
 import net.minecraft.tags.BlockTags;
@@ -24,10 +24,10 @@ import net.minecraft.world.level.levelgen.placement.InSquarePlacement;
 import net.minecraft.world.level.levelgen.placement.PlacedFeature;
 import net.minecraft.world.level.levelgen.structure.templatesystem.RuleTest;
 import net.minecraft.world.level.levelgen.structure.templatesystem.TagMatchTest;
-import net.minecraftforge.common.data.DatapackBuiltinEntriesProvider;
-import net.minecraftforge.common.world.BiomeModifier;
-import net.minecraftforge.common.world.ForgeBiomeModifiers;
-import net.minecraftforge.registries.ForgeRegistries;
+import net.neoforged.neoforge.common.data.DatapackBuiltinEntriesProvider;
+import net.neoforged.neoforge.common.world.BiomeModifier;
+import net.neoforged.neoforge.common.world.BiomeModifiers;
+import net.neoforged.neoforge.registries.NeoForgeRegistries;
 
 import java.util.List;
 import java.util.Set;
@@ -43,7 +43,7 @@ import java.util.concurrent.CompletableFuture;
 public class ModWorldGenProvider extends DatapackBuiltinEntriesProvider {
 
     private static final RegistrySetBuilder BUILDER = new RegistrySetBuilder()
-            .add(ForgeRegistries.Keys.BIOME_MODIFIERS, ModWorldGenProvider::biomeModifiers)
+            .add(NeoForgeRegistries.Keys.BIOME_MODIFIERS, ModWorldGenProvider::biomeModifiers)
             .add(Registries.CONFIGURED_FEATURE, ModWorldGenProvider::configuredFeature)
             .add(Registries.PLACED_FEATURE, ModWorldGenProvider::placedFeatures);
 
@@ -53,26 +53,26 @@ public class ModWorldGenProvider extends DatapackBuiltinEntriesProvider {
         super(output, registries, BUILDER, Set.of(Constants.MODID));
     }
 
-    public static void biomeModifiers(BootstapContext<BiomeModifier> context) {
+    public static void biomeModifiers(BootstrapContext<BiomeModifier> context) {
         for (FossilBase base : FossilBase.values()) {
             createFossilDepositBiomeModifier(base, CRETACEOUS, context);
         }
     }
 
-    public static void configuredFeature(BootstapContext<ConfiguredFeature<?, ?>> context) {
+    public static void configuredFeature(BootstrapContext<ConfiguredFeature<?, ?>> context) {
         createFossilDepositConfiguredFeature(FossilBase.STONE, CRETACEOUS, new TagMatchTest(BlockTags.STONE_ORE_REPLACEABLES), context);
         createFossilDepositConfiguredFeature(FossilBase.SANDSTONE, CRETACEOUS, new TagMatchTest(TagInit.SANDSTONE_ORE_REPLACEABLES), context);
         createFossilDepositConfiguredFeature(FossilBase.DEEPSLATE, CRETACEOUS, new TagMatchTest(BlockTags.DEEPSLATE_ORE_REPLACEABLES), context);
     }
 
-    public static void placedFeatures(BootstapContext<PlacedFeature> context) {
+    public static void placedFeatures(BootstrapContext<PlacedFeature> context) {
         for (FossilBase base : FossilBase.values()) {
             createFossilDepositPlacedFeature(base, CRETACEOUS, context);
         }
     }
 
     /** A vein of size 15 whose targets are every fossil block of this stone from every collection of this period. */
-    public static void createFossilDepositConfiguredFeature(FossilBase base, String period, RuleTest ruleTest, BootstapContext<ConfiguredFeature<?, ?>> context) {
+    public static void createFossilDepositConfiguredFeature(FossilBase base, String period, RuleTest ruleTest, BootstrapContext<ConfiguredFeature<?, ?>> context) {
         List<FossilConfiguration.TargetBlockState> targets = FossilCollection.COLLECTIONS.values().stream()
                 .filter(collection -> collection.period().equals(period))
                 .flatMap(collection -> collection.fossilBlocks().get(base).values().stream())
@@ -82,14 +82,14 @@ public class ModWorldGenProvider extends DatapackBuiltinEntriesProvider {
                 new ConfiguredFeature<>(FeatureInit.FOSSIL_FEATURE.get(), new FossilConfiguration(targets, 15)));
     }
 
-    public static void createFossilDepositPlacedFeature(FossilBase base, String period, BootstapContext<PlacedFeature> context) {
+    public static void createFossilDepositPlacedFeature(FossilBase base, String period, BootstrapContext<PlacedFeature> context) {
         context.register(placedKey(base, period), new PlacedFeature(
                 context.lookup(Registries.CONFIGURED_FEATURE).getOrThrow(configuredKey(base, period)),
                 List.of(FossilRarityFilter.of(period), InSquarePlacement.spread(), FossilHeightPlacement.of(period), BiomeFilter.biome())));
     }
 
-    public static void createFossilDepositBiomeModifier(FossilBase base, String period, BootstapContext<BiomeModifier> context) {
-        context.register(biomeModifierKey(base, period), new ForgeBiomeModifiers.AddFeaturesBiomeModifier(
+    public static void createFossilDepositBiomeModifier(FossilBase base, String period, BootstrapContext<BiomeModifier> context) {
+        context.register(biomeModifierKey(base, period), new BiomeModifiers.AddFeaturesBiomeModifier(
                 context.lookup(Registries.BIOME).getOrThrow(BiomeTags.IS_OVERWORLD),
                 HolderSet.direct(context.lookup(Registries.PLACED_FEATURE).getOrThrow(placedKey(base, period))),
                 GenerationStep.Decoration.UNDERGROUND_ORES));
@@ -109,6 +109,6 @@ public class ModWorldGenProvider extends DatapackBuiltinEntriesProvider {
     }
 
     private static ResourceKey<BiomeModifier> biomeModifierKey(FossilBase base, String period) {
-        return ResourceKey.create(ForgeRegistries.Keys.BIOME_MODIFIERS, Constants.modLoc(name(base, period)));
+        return ResourceKey.create(NeoForgeRegistries.Keys.BIOME_MODIFIERS, Constants.modLoc(name(base, period)));
     }
 }

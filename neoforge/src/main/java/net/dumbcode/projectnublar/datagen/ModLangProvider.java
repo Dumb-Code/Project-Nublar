@@ -12,9 +12,8 @@ import net.minecraft.data.PackOutput;
 import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.item.BlockItem;
 import net.minecraft.world.item.Item;
-import net.minecraft.world.item.ItemNameBlockItem;
 import net.minecraft.world.level.block.Block;
-import net.minecraftforge.common.data.LanguageProvider;
+import net.neoforged.neoforge.common.data.LanguageProvider;
 import org.apache.commons.lang3.StringUtils;
 
 import java.util.Arrays;
@@ -22,6 +21,7 @@ import java.util.Map;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
+/** The English names ({@code en_us.json}) of the mod's entities, blocks, items and screen texts. */
 public class ModLangProvider extends LanguageProvider {
     protected static final Map<String, String> REPLACE_LIST = ImmutableMap.of(
             "tnt", "TNT",
@@ -100,8 +100,12 @@ public class ModLangProvider extends LanguageProvider {
         ).forEach(this::itemLang);
     }
 
+    /**
+     * Names the item, except a block item that uses its block's name (the block entry covers it).
+     * A block item with its own {@code item.} key is named, as a 1.20.1 {@code ItemNameBlockItem} was.
+     */
     protected void itemLang(DeferredSupplier<Item> entry) {
-        if (!(entry.get() instanceof BlockItem) || entry.get() instanceof ItemNameBlockItem) {
+        if (!(entry.get() instanceof BlockItem) || entry.get().getDescriptionId().startsWith("item.")) {
             addItem(entry, checkReplace(entry));
         }
     }

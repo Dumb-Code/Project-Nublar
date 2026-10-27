@@ -1,21 +1,20 @@
 package net.dumbcode.projectnublar.datagen;
 
-import com.mojang.serialization.JsonOps;
 import net.dumbcode.projectnublar.api.gene.GeneData;
-import net.dumbcode.projectnublar.api.gene.Genes;
 import net.dumbcode.projectnublar.registry.GeneInit;
+import net.minecraft.core.HolderLookup;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.data.PackOutput;
-import net.minecraft.resources.ResourceLocation;
-import net.minecraft.server.packs.PackType;
+import net.minecraft.resources.Identifier;
 import net.minecraft.world.entity.EntityType;
+import net.minecraft.world.entity.EntityTypes;
 import net.minecraft.world.item.DyeColor;
-import net.minecraftforge.common.data.ExistingFileHelper;
-import net.minecraftforge.common.data.JsonCodecProvider;
+import net.neoforged.neoforge.common.data.JsonCodecProvider;
 
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.CompletableFuture;
 
 
 /**
@@ -31,61 +30,68 @@ import java.util.Map;
  */
 public class GeneDataProvider extends JsonCodecProvider<GeneData> {
 
-    public GeneDataProvider(PackOutput output, ExistingFileHelper existingFileHelper) {
-        super(output, existingFileHelper, "minecraft", JsonOps.INSTANCE, PackType.SERVER_DATA, "gene_data", GeneData.CODEC, getGeneData());
+    public GeneDataProvider(PackOutput output, CompletableFuture<HolderLookup.Provider> registries) {
+        super(output, PackOutput.Target.DATA_PACK, "gene_data", GeneData.CODEC, registries, "minecraft");
     }
 
-    public static Map<ResourceLocation, GeneData> getGeneData() {
-        Map<ResourceLocation, GeneData> geneData = new HashMap<>();
-        geneData.put(loc(EntityType.ALLAY), new GeneData(Map.of(
+    /** Writes every entry of {@link #getGeneData()} to {@code data/<namespace>/gene_data/<path>.json}. */
+    @Override
+    protected void gather() {
+        getGeneData().forEach(this::unconditional);
+    }
+
+    /** The gene data of every vanilla entity that has any, keyed by entity type id. */
+    public static Map<Identifier, GeneData> getGeneData() {
+        Map<Identifier, GeneData> geneData = new HashMap<>();
+        geneData.put(loc(EntityTypes.ALLAY), new GeneData(Map.of(
 
         ), Map.of("base", List.of())));
-        geneData.put(loc(EntityType.AXOLOTL), new GeneData(Map.of(), Map.of("base", List.of())));
-        geneData.put(loc(EntityType.BAT), new GeneData(Map.of(
+        geneData.put(loc(EntityTypes.AXOLOTL), new GeneData(Map.of(), Map.of("base", List.of())));
+        geneData.put(loc(EntityTypes.BAT), new GeneData(Map.of(
                 GeneInit.SIZE.get(), 0.75d,
                 GeneInit.NOCTURNAL.get(), 1.25d
         ), Map.of("base", List.of(0x1C1912))));
-        geneData.put(loc(EntityType.BEE), new GeneData(Map.of(
+        geneData.put(loc(EntityTypes.BEE), new GeneData(Map.of(
                 GeneInit.SPEED.get(), 1.3d,
                 GeneInit.SIZE.get(), 0.5d,
                 GeneInit.HEALTH.get(), 0.5d
         ), Map.of("base", List.of(0xE6C15E, 0x5A3023))));
-        geneData.put(loc(EntityType.CAT), new GeneData(Map.of(
+        geneData.put(loc(EntityTypes.CAT), new GeneData(Map.of(
                 GeneInit.INTELLIGENCE.get(), 1.5d,
                 GeneInit.TAMABILITY.get(), 1.45d,
                 GeneInit.SIZE.get(), 0.6d
         ), Map.of("base", List.of())));
 
-        geneData.put(loc(EntityType.CAVE_SPIDER), new GeneData(Map.of(
+        geneData.put(loc(EntityTypes.CAVE_SPIDER), new GeneData(Map.of(
                 GeneInit.SIZE.get(), 0.5d
         ), Map.of("base", List.of(0x153833))));
-        geneData.put(loc(EntityType.CHICKEN), new GeneData(Map.of(
+        geneData.put(loc(EntityTypes.CHICKEN), new GeneData(Map.of(
                 GeneInit.SIZE.get(), 0.5d
         ), Map.of("base", List.of(0xB2B2B2, 0xD40409))));
-        geneData.put(loc(EntityType.COD), new GeneData(Map.of(
+        geneData.put(loc(EntityTypes.COD), new GeneData(Map.of(
                 GeneInit.SIZE.get(), 0.5d,
                 GeneInit.UNDERWATER_CAPACITY.get(), 1.3d,
                 GeneInit.HEALTH.get(), 0.5d
         ), Map.of("base", List.of(0xAF9878, 0x775B49))));
-        geneData.put(loc(EntityType.COW), new GeneData(Map.of(
+        geneData.put(loc(EntityTypes.COW), new GeneData(Map.of(
                 GeneInit.HERD_SIZE.get(), 1.5d
         ), Map.of("base", List.of())));
-        geneData.put(loc(EntityType.DOLPHIN), new GeneData(Map.of(
+        geneData.put(loc(EntityTypes.DOLPHIN), new GeneData(Map.of(
                 GeneInit.UNDERWATER_CAPACITY.get(), 1.75d,
                 GeneInit.SPEED.get(), 1.35d
         ), Map.of("base", List.of(0x73737D))));
-        geneData.put(loc(EntityType.DONKEY), new GeneData(Map.of(
+        geneData.put(loc(EntityTypes.DONKEY), new GeneData(Map.of(
                 GeneInit.SPEED.get(), 0.8d,
                 GeneInit.STRENGTH.get(), 1.25d,
                 GeneInit.INTELLIGENCE.get(), 1.25d
         ), Map.of("base", List.of(0x8A7666))));
-        geneData.put(loc(EntityType.FOX), new GeneData(Map.of(
+        geneData.put(loc(EntityTypes.FOX), new GeneData(Map.of(
                 GeneInit.SPEED.get(), 1.7d,
                 GeneInit.INTELLIGENCE.get(), 1.3d
         ), Map.of("base", List.of(0xB2B2B2, 0xE37C21))));
-        geneData.put(loc(EntityType.GLOW_SQUID), new GeneData(Map.of(), Map.of("base", List.of())));
-        geneData.put(loc(EntityType.GOAT), new GeneData(Map.of(), Map.of("base", List.of())));
-        geneData.put(loc(EntityType.HOGLIN), new GeneData(Map.of(
+        geneData.put(loc(EntityTypes.GLOW_SQUID), new GeneData(Map.of(), Map.of("base", List.of())));
+        geneData.put(loc(EntityTypes.GOAT), new GeneData(Map.of(), Map.of("base", List.of())));
+        geneData.put(loc(EntityTypes.HOGLIN), new GeneData(Map.of(
                 GeneInit.HEAT_RESISTANCE.get(), 1.5d,
                 GeneInit.STRENGTH.get(), 1.5d,
                 GeneInit.SIZE.get(), 1.75d,
@@ -93,7 +99,7 @@ public class GeneDataProvider extends JsonCodecProvider<GeneData> {
                 GeneInit.TAMABILITY.get(), 0.5d,
                 GeneInit.DEFENSE.get(), 1.3d
         ), Map.of("base", List.of(0x8B6046))));
-        geneData.put(loc(EntityType.HORSE), new GeneData(Map.of(
+        geneData.put(loc(EntityTypes.HORSE), new GeneData(Map.of(
                 GeneInit.JUMP.get(), 1.3d,
                 GeneInit.TAMABILITY.get(), 1.4d
         ), Map.of(
@@ -105,27 +111,27 @@ public class GeneDataProvider extends JsonCodecProvider<GeneData> {
                 "gray", List.of(0x5F5F5F),
                 "dark_brown", List.of(0x2F1A0F)
         )));
-        geneData.put(loc(EntityType.LLAMA), new GeneData(Map.of(
+        geneData.put(loc(EntityTypes.LLAMA), new GeneData(Map.of(
                 GeneInit.STOMACH_CAPACITY.get(), 1.3d,
                 GeneInit.DEFENSE.get(), 1.25d,
                 GeneInit.TAMABILITY.get(), 1.25d
         ), Map.of("base", List.of(0xB2B2B2))));
-        geneData.put(loc(EntityType.MOOSHROOM), new GeneData(Map.of(), Map.of(
+        geneData.put(loc(EntityTypes.MOOSHROOM), new GeneData(Map.of(), Map.of(
                 "brown", List.of(0xB68767, 0xB0B0B0),
                 "red", List.of(0xA41012, 0xB0B0B0)
         )));
-        geneData.put(loc(EntityType.MULE), new GeneData(Map.of(
+        geneData.put(loc(EntityTypes.MULE), new GeneData(Map.of(
                 GeneInit.SPEED.get(), 0.8d,
                 GeneInit.FERTILITY.get(), 0.5d,
                 GeneInit.INTELLIGENCE.get(), 1.2d,
                 GeneInit.TAMABILITY.get(), 1.3d
         ), Map.of("base", List.of(0x502C1A))));
-        geneData.put(loc(EntityType.OCELOT), new GeneData(Map.of(
+        geneData.put(loc(EntityTypes.OCELOT), new GeneData(Map.of(
                 GeneInit.SPEED.get(), 1.5d,
                 GeneInit.TAMABILITY.get(), 0.7d,
                 GeneInit.SIZE.get(), 0.4d
         ), Map.of("base", List.of(0xFDD976, 0x8C5329))));
-        geneData.put(loc(EntityType.PANDA), new GeneData(Map.of(
+        geneData.put(loc(EntityTypes.PANDA), new GeneData(Map.of(
                 GeneInit.SPEED.get(), 0.8d,
                 GeneInit.STOMACH_CAPACITY.get(), 1.75d,
                 GeneInit.STRENGTH.get(), 1.25d,
@@ -133,7 +139,7 @@ public class GeneDataProvider extends JsonCodecProvider<GeneData> {
                 GeneInit.EAT_RATE.get(), 0.9d,
                 GeneInit.FERTILITY.get(), 0.7d
         ), Map.of("base", List.of(0xB2B2B2, 0x222222))));
-        geneData.put(loc(EntityType.PARROT), new GeneData(Map.of(
+        geneData.put(loc(EntityTypes.PARROT), new GeneData(Map.of(
                 GeneInit.INTELLIGENCE.get(), 1.25d
         ), Map.of(
                 "red_blue", List.of(0xEB0100, 0xE8C100),
@@ -142,23 +148,23 @@ public class GeneDataProvider extends JsonCodecProvider<GeneData> {
                 "yellow_blue", List.of(0x12CCFD, 0xE8C100),
                 "gray", List.of(0xAFAFAF, 0xE8C100)
         )));
-        geneData.put(loc(EntityType.PIG), new GeneData(Map.of(
+        geneData.put(loc(EntityTypes.PIG), new GeneData(Map.of(
                 GeneInit.IMMUNITY.get(), 1.25d,
                 GeneInit.DEFENSE.get(), 1.2d
         ), Map.of("base", List.of(0xB2B2B2))));
-        geneData.put(loc(EntityType.POLAR_BEAR), new GeneData(Map.of(
+        geneData.put(loc(EntityTypes.POLAR_BEAR), new GeneData(Map.of(
                 GeneInit.SIZE.get(), 1.5d,
                 GeneInit.SPEED.get(), 1.5d,
                 GeneInit.HEALTH.get(), 1.35d,
                 GeneInit.STRENGTH.get(), 1.5d,
                 GeneInit.DEFENSE.get(), 1.75d
         ), Map.of("base", List.of(0xB2B2B2))));
-        geneData.put(loc(EntityType.PUFFERFISH), new GeneData(Map.of(
+        geneData.put(loc(EntityTypes.PUFFERFISH), new GeneData(Map.of(
                 GeneInit.UNDERWATER_CAPACITY.get(), 1.3d,
                 GeneInit.HEALTH.get(), 0.5d,
                 GeneInit.SIZE.get(), 0.5d
         ), Map.of("base", List.of(0xC2B091, 0xE3970B))));
-        geneData.put(loc(EntityType.RABBIT), new GeneData(Map.of(
+        geneData.put(loc(EntityTypes.RABBIT), new GeneData(Map.of(
                 GeneInit.SPEED.get(), 1.5d,
                 GeneInit.SIZE.get(), 0.75d
         ), Map.of(
@@ -170,24 +176,24 @@ public class GeneDataProvider extends JsonCodecProvider<GeneData> {
                 "salt", List.of(0x7F6D58),
                 "evil", List.of(0xB2B2B2)
         )));
-        geneData.put(loc(EntityType.SALMON), new GeneData(Map.of(
+        geneData.put(loc(EntityTypes.SALMON), new GeneData(Map.of(
                 GeneInit.SIZE.get(), 0.5d,
                 GeneInit.UNDERWATER_CAPACITY.get(), 1.3d,
                 GeneInit.HEALTH.get(), 0.5d
         ), Map.of("base", List.of(0xA83A38, 0x4C6E52))));
-        geneData.put(loc(EntityType.SHEEP), new GeneData(Map.of(
+        geneData.put(loc(EntityTypes.SHEEP), new GeneData(Map.of(
                 GeneInit.INTELLIGENCE.get(), 0.75d,
                 GeneInit.HERD_SIZE.get(), 1.5d
         ), Map.of("base", List.of(0xB4947D, 0xB2B2B2))));
-        geneData.put(loc(EntityType.SPIDER), new GeneData(Map.of(
+        geneData.put(loc(EntityTypes.SPIDER), new GeneData(Map.of(
                 GeneInit.NOCTURNAL.get(), 0.75d
         ), Map.of("base", List.of(0x4E443C))));
-        geneData.put(loc(EntityType.SQUID), new GeneData(Map.of(
+        geneData.put(loc(EntityTypes.SQUID), new GeneData(Map.of(
                 GeneInit.UNDERWATER_CAPACITY.get(), 1.5d,
                 GeneInit.HEALTH.get(), 0.7d,
                 GeneInit.HEALTH_REGEN.get(), 1.25d
         ), Map.of("base", List.of(0x132737, 0x536B7F))));
-        geneData.put(loc(EntityType.TROPICAL_FISH), new GeneData(Map.of(
+        geneData.put(loc(EntityTypes.TROPICAL_FISH), new GeneData(Map.of(
                 GeneInit.SIZE.get(), 0.5d,
                 GeneInit.UNDERWATER_CAPACITY.get(), 1.3d,
                 GeneInit.HEALTH.get(), 0.5d
@@ -209,14 +215,14 @@ public class GeneDataProvider extends JsonCodecProvider<GeneData> {
                 Map.entry(DyeColor.WHITE.getName(), List.of(DyeColor.WHITE.getFireworkColor())),
                 Map.entry(DyeColor.YELLOW.getName(), List.of(DyeColor.YELLOW.getFireworkColor()))
         )));
-        geneData.put(loc(EntityType.TURTLE), new GeneData(Map.of(
+        geneData.put(loc(EntityTypes.TURTLE), new GeneData(Map.of(
                 GeneInit.UNDERWATER_CAPACITY.get(), 2.25d,
                 GeneInit.HEALTH.get(), 0.75d,
                 GeneInit.IMMUNITY.get(), 2.25d,
                 GeneInit.SPEED.get(), 0.5d,
                 GeneInit.DEFENSE.get(), 1.5d
         ), Map.of("base", List.of(0xBFB37F, 0x28340A))));
-        geneData.put(loc(EntityType.WOLF), new GeneData(Map.of(
+        geneData.put(loc(EntityTypes.WOLF), new GeneData(Map.of(
                 GeneInit.INTELLIGENCE.get(), 1.75d,
                 GeneInit.TAMABILITY.get(), 2.75d,
                 GeneInit.SPEED.get(), 1.25d,
@@ -225,7 +231,8 @@ public class GeneDataProvider extends JsonCodecProvider<GeneData> {
         return geneData;
     }
 
-    public static ResourceLocation loc(EntityType<?> type) {
+    /** The entity type's registry id, for example {@code minecraft:bat}. */
+    public static Identifier loc(EntityType<?> type) {
         return BuiltInRegistries.ENTITY_TYPE.getKey(type);
     }
 }

@@ -1,24 +1,28 @@
 package net.dumbcode.projectnublar.datagen;
 
+import dev.architectury.registry.registries.DeferredSupplier;
 import net.dumbcode.projectnublar.Constants;
 import net.minecraft.data.PackOutput;
 import net.minecraft.sounds.SoundEvent;
-import net.minecraftforge.common.data.ExistingFileHelper;
-import net.minecraftforge.common.data.SoundDefinition;
-import net.minecraftforge.common.data.SoundDefinitionsProvider;
-import net.minecraftforge.registries.RegistryObject;
+import net.neoforged.neoforge.common.data.SoundDefinition;
+import net.neoforged.neoforge.common.data.SoundDefinitionsProvider;
 
+/**
+ * The {@code sounds.json} generator. Its body is disabled, so it writes nothing: the mod ships the
+ * hand-written {@code sounds.json}.
+ */
 public class ModSoundProvider extends SoundDefinitionsProvider {
-    public ModSoundProvider(PackOutput generator, ExistingFileHelper helper) {
-        super(generator, Constants.MODID, helper);
+    public ModSoundProvider(PackOutput generator) {
+        super(generator, Constants.MODID);
     }
 
     @Override
     public void registerSounds() {
-        // SoundInit.SOUNDS.getEntries().forEach(this::addSound);
+        // SoundInit.SOUND_EVENTS.forEach(this::addSound);
     }
 
-    public void addSound(RegistryObject<SoundEvent> entry) {
-        add(entry, SoundDefinition.definition().with(sound(entry.getId())));
+    /** One definition for the event, playing the sound file of the same name. */
+    public void addSound(DeferredSupplier<SoundEvent> entry) {
+        add(entry.get(), SoundDefinition.definition().with(sound(entry.getId())));
     }
 }

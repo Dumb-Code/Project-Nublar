@@ -7,6 +7,7 @@ import net.dumbcode.projectnublar.api.loot.functions.FossilItemFunction;
 import net.dumbcode.projectnublar.block.AmberBlock;
 import net.dumbcode.projectnublar.block.FossilBlock;
 import net.dumbcode.projectnublar.registry.BlockInit;
+import net.minecraft.core.HolderLookup;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.data.loot.BlockLootSubProvider;
 import net.minecraft.world.flag.FeatureFlags;
@@ -21,9 +22,13 @@ import net.minecraft.world.level.storage.loot.providers.number.ConstantValue;
 import java.util.Set;
 import java.util.stream.Stream;
 
+/**
+ * The block loot tables: fossil and amber blocks drop their item with its data; the machines,
+ * fence posts, feeder and generators drop themselves.
+ */
 public class ModBlockLootTables extends BlockLootSubProvider {
-    protected ModBlockLootTables() {
-        super(Set.of(), FeatureFlags.REGISTRY.allFlags());
+    protected ModBlockLootTables(HolderLookup.Provider registries) {
+        super(Set.of(), FeatureFlags.REGISTRY.allFlags(), registries);
     }
 
     @Override
