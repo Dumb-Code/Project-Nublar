@@ -4,37 +4,33 @@ import java.util.HashMap;
 import java.util.Map;
 import net.dumbcode.projectnublar.entity.dinosaur.Dinosaur;
 import net.minecraft.network.syncher.EntityDataAccessor;
-import net.minecraft.network.syncher.EntityDataSerializers;
-import net.minecraft.network.syncher.SynchedEntityData;
+
+import static net.dumbcode.projectnublar.entity.dinosaur.Dinosaur.IS_EATING_STATE;
+import static net.dumbcode.projectnublar.entity.dinosaur.Dinosaur.IS_DRINKING_STATE;
+import static net.dumbcode.projectnublar.entity.dinosaur.Dinosaur.IS_NESTING_STATE;
+import static net.dumbcode.projectnublar.entity.dinosaur.Dinosaur.IS_ROARING_STATE;
+import static net.dumbcode.projectnublar.entity.dinosaur.Dinosaur.IS_SPEAKING_STATE;
+import static net.dumbcode.projectnublar.entity.dinosaur.Dinosaur.IS_SITTING_STATE;
+import static net.dumbcode.projectnublar.entity.dinosaur.Dinosaur.IS_RESTING_STATE;
+import static net.dumbcode.projectnublar.entity.dinosaur.Dinosaur.IS_RISING_STATE;
+import static net.dumbcode.projectnublar.entity.dinosaur.Dinosaur.IS_ATTACKING_STATE;
+import static net.dumbcode.projectnublar.entity.dinosaur.Dinosaur.IS_FLINCHING_STATE;
+import static net.dumbcode.projectnublar.entity.dinosaur.Dinosaur.IS_DEAD_STATE;
+import static net.dumbcode.projectnublar.entity.dinosaur.Dinosaur.IS_SWIMMING_STATE;
+import static net.dumbcode.projectnublar.entity.dinosaur.Dinosaur.LOOKING_LEFT_STATE;
+import static net.dumbcode.projectnublar.entity.dinosaur.Dinosaur.LOOKING_RIGHT_STATE;
+import static net.dumbcode.projectnublar.entity.dinosaur.Dinosaur.TURNING_LEFT_STATE;
+import static net.dumbcode.projectnublar.entity.dinosaur.Dinosaur.TURNING_RIGHT_STATE;
 
 /**
  * Synched animation flags for dinosaurs. Animation name
  * strings are frozen resource contracts (including the {@code dino_secondary_Controller} typo
  * registered in {@code Dinosaur}).
  *
- * <p>Frozen invariant: the {@link EntityDataAccessor} definitions below must stay in this
- * class and in this order - their ids depend on class-load order together with {@code Dinosaur}
- * and {@code DinoNeedsUtils}. Do not move or reorder them.
+ * <p>The animation state flags themselves ({@code IS_EATING_STATE} and the others) are defined in
+ * {@link Dinosaur}, which keeps every dinosaur synced value in one fixed order.
  */
 public class DinoAnimationUtils {
-
-    // Animation states
-    public static EntityDataAccessor<Boolean> IS_EATING_STATE = SynchedEntityData.defineId(Dinosaur.class, EntityDataSerializers.BOOLEAN);
-    public static EntityDataAccessor<Boolean> IS_DRINKING_STATE = SynchedEntityData.defineId(Dinosaur.class, EntityDataSerializers.BOOLEAN);
-    public static EntityDataAccessor<Boolean> IS_NESTING_STATE = SynchedEntityData.defineId(Dinosaur.class, EntityDataSerializers.BOOLEAN);
-    public static EntityDataAccessor<Boolean> IS_ROARING_STATE = SynchedEntityData.defineId(Dinosaur.class, EntityDataSerializers.BOOLEAN);
-    public static EntityDataAccessor<Boolean> IS_SPEAKING_STATE = SynchedEntityData.defineId(Dinosaur.class, EntityDataSerializers.BOOLEAN);
-    public static EntityDataAccessor<Boolean> IS_SITTING_STATE = SynchedEntityData.defineId(Dinosaur.class, EntityDataSerializers.BOOLEAN);
-    public static EntityDataAccessor<Boolean> IS_RESTING_STATE = SynchedEntityData.defineId(Dinosaur.class, EntityDataSerializers.BOOLEAN);
-    public static EntityDataAccessor<Boolean> IS_RISING_STATE = SynchedEntityData.defineId(Dinosaur.class, EntityDataSerializers.BOOLEAN);
-    public static EntityDataAccessor<Boolean> IS_ATTACKING_STATE = SynchedEntityData.defineId(Dinosaur.class, EntityDataSerializers.BOOLEAN);
-    public static EntityDataAccessor<Boolean> IS_FLINCHING_STATE = SynchedEntityData.defineId(Dinosaur.class, EntityDataSerializers.BOOLEAN);
-    public static EntityDataAccessor<Boolean> IS_DEAD_STATE = SynchedEntityData.defineId(Dinosaur.class, EntityDataSerializers.BOOLEAN);
-    public static EntityDataAccessor<Boolean> IS_SWIMMING_STATE = SynchedEntityData.defineId(Dinosaur.class, EntityDataSerializers.BOOLEAN);
-    public static EntityDataAccessor<Boolean> LOOKING_LEFT_STATE = SynchedEntityData.defineId(Dinosaur.class, EntityDataSerializers.BOOLEAN);
-    public static EntityDataAccessor<Boolean> LOOKING_RIGHT_STATE = SynchedEntityData.defineId(Dinosaur.class, EntityDataSerializers.BOOLEAN);
-    public static EntityDataAccessor<Boolean> TURNING_LEFT_STATE = SynchedEntityData.defineId(Dinosaur.class, EntityDataSerializers.BOOLEAN);
-    public static EntityDataAccessor<Boolean> TURNING_RIGHT_STATE = SynchedEntityData.defineId(Dinosaur.class, EntityDataSerializers.BOOLEAN);
 
     private static final Map<String, EntityDataAccessor<Boolean>> ANIMATION_STATES_BY_NAME =
             createAnimationStateMap();

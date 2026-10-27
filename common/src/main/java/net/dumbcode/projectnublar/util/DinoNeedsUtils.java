@@ -8,9 +8,6 @@ import net.dumbcode.projectnublar.registry.*;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Holder;
 import net.minecraft.core.registries.BuiltInRegistries;
-import net.minecraft.network.syncher.EntityDataAccessor;
-import net.minecraft.network.syncher.EntityDataSerializers;
-import net.minecraft.network.syncher.SynchedEntityData;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.ai.attributes.Attribute;
@@ -26,26 +23,26 @@ import org.jetbrains.annotations.Nullable;
 
 import java.util.function.Supplier;
 
+import static net.dumbcode.projectnublar.entity.dinosaur.Dinosaur.HUNGER;
+import static net.dumbcode.projectnublar.entity.dinosaur.Dinosaur.THIRST;
+import static net.dumbcode.projectnublar.entity.dinosaur.Dinosaur.STAMINA;
+import static net.dumbcode.projectnublar.entity.dinosaur.Dinosaur.SOCIAL;
+import static net.dumbcode.projectnublar.entity.dinosaur.Dinosaur.AGGRESSION;
+import static net.dumbcode.projectnublar.entity.dinosaur.Dinosaur.FERTILITY;
+import static net.dumbcode.projectnublar.entity.dinosaur.Dinosaur.DOMESTICITY;
+import static net.dumbcode.projectnublar.entity.dinosaur.Dinosaur.SIZE;
+import static net.dumbcode.projectnublar.entity.dinosaur.Dinosaur.INTELLIGENCE;
+import static net.dumbcode.projectnublar.entity.dinosaur.Dinosaur.VISION;
+import static net.dumbcode.projectnublar.entity.dinosaur.Dinosaur.IMMUNITY;
+import static net.dumbcode.projectnublar.entity.dinosaur.Dinosaur.TAMING_SCORE;
+
 /**
  * Static helpers for the dinosaur need bars (hunger/thirst/stamina/social) and threat scoring.
  *
- * <p>Frozen invariant: the {@link EntityDataAccessor} definitions below must stay in this
- * class and in this order - their ids depend on class-load order together with {@code Dinosaur}
- * and {@code DinoAnimationUtils}. Do not move or reorder them.
+ * <p>The synced need values these helpers read and write ({@code HUNGER} and the others) are
+ * defined in {@link Dinosaur}, which keeps every dinosaur synced value in one fixed order.
  */
 public class DinoNeedsUtils {
-    public static final EntityDataAccessor<Float> HUNGER = SynchedEntityData.defineId(Dinosaur.class, EntityDataSerializers.FLOAT);
-    public static final EntityDataAccessor<Float> THIRST = SynchedEntityData.defineId(Dinosaur.class, EntityDataSerializers.FLOAT);
-    public static final EntityDataAccessor<Float> STAMINA = SynchedEntityData.defineId(Dinosaur.class, EntityDataSerializers.FLOAT);
-    public static final EntityDataAccessor<Float> SOCIAL = SynchedEntityData.defineId(Dinosaur.class, EntityDataSerializers.FLOAT);
-    public static final EntityDataAccessor<Float> AGGRESSION = SynchedEntityData.defineId(Dinosaur.class, EntityDataSerializers.FLOAT);
-    public static final EntityDataAccessor<Float> FERTILITY = SynchedEntityData.defineId(Dinosaur.class, EntityDataSerializers.FLOAT);
-    public static final EntityDataAccessor<Float> DOMESTICITY = SynchedEntityData.defineId(Dinosaur.class, EntityDataSerializers.FLOAT);
-    public static final EntityDataAccessor<Float> SIZE = SynchedEntityData.defineId(Dinosaur.class, EntityDataSerializers.FLOAT);
-    public static final EntityDataAccessor<Float> INTELLIGENCE = SynchedEntityData.defineId(Dinosaur.class, EntityDataSerializers.FLOAT);
-    public static final EntityDataAccessor<Float> VISION = SynchedEntityData.defineId(Dinosaur.class, EntityDataSerializers.FLOAT);
-    public static final EntityDataAccessor<Float> IMMUNITY = SynchedEntityData.defineId(Dinosaur.class, EntityDataSerializers.FLOAT);
-    public static final EntityDataAccessor<Float> TAMING_SCORE = SynchedEntityData.defineId(Dinosaur.class, EntityDataSerializers.FLOAT);
 
     /** The registered holder of a mod attribute: 26.2 reads and sets attributes by {@code Holder<Attribute>}. */
     private static Holder<Attribute> holder(Supplier<Attribute> attribute) {

@@ -109,8 +109,6 @@ import com.geckolib.util.GeckoLibUtil;
 
 import java.util.*;
 
-import static net.dumbcode.projectnublar.util.DinoAnimationUtils.IS_ROARING_STATE;
-
 /**
  * Base class of every dinosaur entity: genetics ({@link DinoData}), datapack behaviour profile,
  * needs (hunger/thirst/stamina/social), breeding, growth stages, multipart support, and the
@@ -151,6 +149,11 @@ public abstract class Dinosaur extends TamableAnimal implements FossilRevived, G
     private static final long DIURNAL_ACTIVE_START = 0;
     private static final long DIURNAL_ACTIVE_END = 12000;
 
+    // Synced values. Every EntityDataAccessor of a dinosaur is defined in this class: NeoForge 26.2 refuses a
+    // definition made in another class (it stops the game in development). The game numbers these values in the
+    // order they are defined here, from DINO_DATA down to TURNING_RIGHT_STATE, and the server and every client
+    // must give each value the same number. Do not move or reorder them; add a new value only after the last one.
+    // DinosaurSyncedDataOrderTest pins this order.
     public static EntityDataAccessor<DinoData> DINO_DATA = SynchedEntityData.defineId(Dinosaur.class, DataSerializerInit.DINO_DATA);
     public static EntityDataAccessor<CompoundTag> DINO_BEHAVIOUR = SynchedEntityData.defineId(Dinosaur.class, DataSerializerInit.COMPOUND_TAG);
 
@@ -184,6 +187,38 @@ public abstract class Dinosaur extends TamableAnimal implements FossilRevived, G
      * and an animal loaded without it is undecided until its first server tick (P66).
      */
     private static final String SCALE_MODE_KEY = "scale_mode";
+
+    // Need bars and scores (in DinoNeedsUtils until 26.2, in the same order).
+    public static final EntityDataAccessor<Float> HUNGER = SynchedEntityData.defineId(Dinosaur.class, EntityDataSerializers.FLOAT);
+    public static final EntityDataAccessor<Float> THIRST = SynchedEntityData.defineId(Dinosaur.class, EntityDataSerializers.FLOAT);
+    public static final EntityDataAccessor<Float> STAMINA = SynchedEntityData.defineId(Dinosaur.class, EntityDataSerializers.FLOAT);
+    public static final EntityDataAccessor<Float> SOCIAL = SynchedEntityData.defineId(Dinosaur.class, EntityDataSerializers.FLOAT);
+    public static final EntityDataAccessor<Float> AGGRESSION = SynchedEntityData.defineId(Dinosaur.class, EntityDataSerializers.FLOAT);
+    public static final EntityDataAccessor<Float> FERTILITY = SynchedEntityData.defineId(Dinosaur.class, EntityDataSerializers.FLOAT);
+    public static final EntityDataAccessor<Float> DOMESTICITY = SynchedEntityData.defineId(Dinosaur.class, EntityDataSerializers.FLOAT);
+    public static final EntityDataAccessor<Float> SIZE = SynchedEntityData.defineId(Dinosaur.class, EntityDataSerializers.FLOAT);
+    public static final EntityDataAccessor<Float> INTELLIGENCE = SynchedEntityData.defineId(Dinosaur.class, EntityDataSerializers.FLOAT);
+    public static final EntityDataAccessor<Float> VISION = SynchedEntityData.defineId(Dinosaur.class, EntityDataSerializers.FLOAT);
+    public static final EntityDataAccessor<Float> IMMUNITY = SynchedEntityData.defineId(Dinosaur.class, EntityDataSerializers.FLOAT);
+    public static final EntityDataAccessor<Float> TAMING_SCORE = SynchedEntityData.defineId(Dinosaur.class, EntityDataSerializers.FLOAT);
+
+    // Animation states (in DinoAnimationUtils until 26.2, in the same order).
+    public static final EntityDataAccessor<Boolean> IS_EATING_STATE = SynchedEntityData.defineId(Dinosaur.class, EntityDataSerializers.BOOLEAN);
+    public static final EntityDataAccessor<Boolean> IS_DRINKING_STATE = SynchedEntityData.defineId(Dinosaur.class, EntityDataSerializers.BOOLEAN);
+    public static final EntityDataAccessor<Boolean> IS_NESTING_STATE = SynchedEntityData.defineId(Dinosaur.class, EntityDataSerializers.BOOLEAN);
+    public static final EntityDataAccessor<Boolean> IS_ROARING_STATE = SynchedEntityData.defineId(Dinosaur.class, EntityDataSerializers.BOOLEAN);
+    public static final EntityDataAccessor<Boolean> IS_SPEAKING_STATE = SynchedEntityData.defineId(Dinosaur.class, EntityDataSerializers.BOOLEAN);
+    public static final EntityDataAccessor<Boolean> IS_SITTING_STATE = SynchedEntityData.defineId(Dinosaur.class, EntityDataSerializers.BOOLEAN);
+    public static final EntityDataAccessor<Boolean> IS_RESTING_STATE = SynchedEntityData.defineId(Dinosaur.class, EntityDataSerializers.BOOLEAN);
+    public static final EntityDataAccessor<Boolean> IS_RISING_STATE = SynchedEntityData.defineId(Dinosaur.class, EntityDataSerializers.BOOLEAN);
+    public static final EntityDataAccessor<Boolean> IS_ATTACKING_STATE = SynchedEntityData.defineId(Dinosaur.class, EntityDataSerializers.BOOLEAN);
+    public static final EntityDataAccessor<Boolean> IS_FLINCHING_STATE = SynchedEntityData.defineId(Dinosaur.class, EntityDataSerializers.BOOLEAN);
+    public static final EntityDataAccessor<Boolean> IS_DEAD_STATE = SynchedEntityData.defineId(Dinosaur.class, EntityDataSerializers.BOOLEAN);
+    public static final EntityDataAccessor<Boolean> IS_SWIMMING_STATE = SynchedEntityData.defineId(Dinosaur.class, EntityDataSerializers.BOOLEAN);
+    public static final EntityDataAccessor<Boolean> LOOKING_LEFT_STATE = SynchedEntityData.defineId(Dinosaur.class, EntityDataSerializers.BOOLEAN);
+    public static final EntityDataAccessor<Boolean> LOOKING_RIGHT_STATE = SynchedEntityData.defineId(Dinosaur.class, EntityDataSerializers.BOOLEAN);
+    public static final EntityDataAccessor<Boolean> TURNING_LEFT_STATE = SynchedEntityData.defineId(Dinosaur.class, EntityDataSerializers.BOOLEAN);
+    public static final EntityDataAccessor<Boolean> TURNING_RIGHT_STATE = SynchedEntityData.defineId(Dinosaur.class, EntityDataSerializers.BOOLEAN);
     /**
      * Largest change of body yaw per tick, in degrees ({@link #setYRot}): the top rate of the eased turn
      * ({@code TurnEasing}, playtest 4 fix P12b). A turn from rest starts slower (2, 4, 6, 8 degrees in its first
@@ -274,7 +309,7 @@ public abstract class Dinosaur extends TamableAnimal implements FossilRevived, G
         return RunGait.running(false, Math.sqrt(dx * dx + dz * dz), this.getAttributeBaseValue(Attributes.MOVEMENT_SPEED));
     }
     public boolean isFlinching(){
-        return this.entityData.get(DinoAnimationUtils.IS_FLINCHING_STATE);
+        return this.entityData.get(IS_FLINCHING_STATE);
     }
 
     /**
@@ -423,18 +458,18 @@ public abstract class Dinosaur extends TamableAnimal implements FossilRevived, G
         builder.define(DINO_FAMILY_UUID, Optional.empty());
         builder.define(DINO_MATE, Optional.empty());
 
-        builder.define(DinoNeedsUtils.HUNGER, 100.0F);
-        builder.define(DinoNeedsUtils.THIRST, 100.0F);
-        builder.define(DinoNeedsUtils.STAMINA, 100.0F);
-        builder.define(DinoNeedsUtils.SOCIAL, 100.0F);
-        builder.define(DinoNeedsUtils.AGGRESSION, 100.0F);
-        builder.define(DinoNeedsUtils.DOMESTICITY, 100.0F);
-        builder.define(DinoNeedsUtils.FERTILITY, 100.0F);
-        builder.define(DinoNeedsUtils.IMMUNITY, 100.0F);
-        builder.define(DinoNeedsUtils.INTELLIGENCE, 100.0F);
-        builder.define(DinoNeedsUtils.SIZE, 1F);
-        builder.define(DinoNeedsUtils.TAMING_SCORE, 100.0F);
-        builder.define(DinoNeedsUtils.VISION, 100.0F);
+        builder.define(HUNGER, 100.0F);
+        builder.define(THIRST, 100.0F);
+        builder.define(STAMINA, 100.0F);
+        builder.define(SOCIAL, 100.0F);
+        builder.define(AGGRESSION, 100.0F);
+        builder.define(DOMESTICITY, 100.0F);
+        builder.define(FERTILITY, 100.0F);
+        builder.define(IMMUNITY, 100.0F);
+        builder.define(INTELLIGENCE, 100.0F);
+        builder.define(SIZE, 1F);
+        builder.define(TAMING_SCORE, 100.0F);
+        builder.define(VISION, 100.0F);
 
         builder.define(DINOSAUR_HEAD_POS, new Vector3f());
 
@@ -447,22 +482,22 @@ public abstract class Dinosaur extends TamableAnimal implements FossilRevived, G
         builder.define(ONE_SHOT, OneShotAction.NONE.id());
         builder.define(HERD_TRAVELS, false);
 
-        builder.define(DinoAnimationUtils.IS_EATING_STATE, false);
-        builder.define(DinoAnimationUtils.IS_DRINKING_STATE, false);
-        builder.define(DinoAnimationUtils.IS_NESTING_STATE, false);
-        builder.define(DinoAnimationUtils.IS_RESTING_STATE, false);
-        builder.define(DinoAnimationUtils.IS_RISING_STATE, false);
-        builder.define(DinoAnimationUtils.IS_SITTING_STATE, false);
-        builder.define(DinoAnimationUtils.IS_ATTACKING_STATE, false);
-        builder.define(DinoAnimationUtils.IS_FLINCHING_STATE, false);
-        builder.define(DinoAnimationUtils.IS_DEAD_STATE, false);
-        builder.define(DinoAnimationUtils.IS_SWIMMING_STATE, false);
-        builder.define(DinoAnimationUtils.LOOKING_LEFT_STATE, false);
-        builder.define(DinoAnimationUtils.LOOKING_RIGHT_STATE, false);
-        builder.define(DinoAnimationUtils.TURNING_RIGHT_STATE, false);
-        builder.define(DinoAnimationUtils.TURNING_LEFT_STATE, false);
+        builder.define(IS_EATING_STATE, false);
+        builder.define(IS_DRINKING_STATE, false);
+        builder.define(IS_NESTING_STATE, false);
+        builder.define(IS_RESTING_STATE, false);
+        builder.define(IS_RISING_STATE, false);
+        builder.define(IS_SITTING_STATE, false);
+        builder.define(IS_ATTACKING_STATE, false);
+        builder.define(IS_FLINCHING_STATE, false);
+        builder.define(IS_DEAD_STATE, false);
+        builder.define(IS_SWIMMING_STATE, false);
+        builder.define(LOOKING_LEFT_STATE, false);
+        builder.define(LOOKING_RIGHT_STATE, false);
+        builder.define(TURNING_RIGHT_STATE, false);
+        builder.define(TURNING_LEFT_STATE, false);
         builder.define(IS_ROARING_STATE, false);
-        builder.define(DinoAnimationUtils.IS_SPEAKING_STATE, false);
+        builder.define(IS_SPEAKING_STATE, false);
         builder.define(SCALE_MODE, false);
     }
 
@@ -473,18 +508,18 @@ public abstract class Dinosaur extends TamableAnimal implements FossilRevived, G
         output.store("dino_data", DinoData.CODEC, this.getDinoData());
         // The behaviour profile stays a CompoundTag (Task 2); stored through the tag codec.
         output.store("behaviour_profile", CompoundTag.CODEC, this.entityData.get(DINO_BEHAVIOUR));
-        output.putFloat("hunger_bar", this.entityData.get(DinoNeedsUtils.HUNGER));
-        output.putFloat("thirst_bar", this.entityData.get(DinoNeedsUtils.THIRST));
-        output.putFloat("stamina_bar", this.entityData.get(DinoNeedsUtils.STAMINA));
-        output.putFloat("social_bar", this.entityData.get(DinoNeedsUtils.SOCIAL));
-        output.putFloat("trust_threshold", this.entityData.get(DinoNeedsUtils.TAMING_SCORE));
-        output.putFloat("dino_vision", this.entityData.get(DinoNeedsUtils.VISION));
-        output.putFloat("dino_aggression", this.entityData.get(DinoNeedsUtils.AGGRESSION));
-        output.putFloat("dino_fertility", this.entityData.get(DinoNeedsUtils.FERTILITY));
-        output.putFloat("dino_domesticity", this.entityData.get(DinoNeedsUtils.DOMESTICITY));
-        output.putFloat("dino_size", this.entityData.get(DinoNeedsUtils.SIZE));
-        output.putFloat("dino_intelligence", this.entityData.get(DinoNeedsUtils.INTELLIGENCE));
-        output.putFloat("dino_immunity", this.entityData.get(DinoNeedsUtils.IMMUNITY));
+        output.putFloat("hunger_bar", this.entityData.get(HUNGER));
+        output.putFloat("thirst_bar", this.entityData.get(THIRST));
+        output.putFloat("stamina_bar", this.entityData.get(STAMINA));
+        output.putFloat("social_bar", this.entityData.get(SOCIAL));
+        output.putFloat("trust_threshold", this.entityData.get(TAMING_SCORE));
+        output.putFloat("dino_vision", this.entityData.get(VISION));
+        output.putFloat("dino_aggression", this.entityData.get(AGGRESSION));
+        output.putFloat("dino_fertility", this.entityData.get(FERTILITY));
+        output.putFloat("dino_domesticity", this.entityData.get(DOMESTICITY));
+        output.putFloat("dino_size", this.entityData.get(SIZE));
+        output.putFloat("dino_intelligence", this.entityData.get(INTELLIGENCE));
+        output.putFloat("dino_immunity", this.entityData.get(IMMUNITY));
         output.putBoolean("baby_age_boolean", this.entityData.get(BABY_DATA_ID));
         output.putBoolean("juvenile_age_boolean", this.entityData.get(JUVENILE_DATA_ID));
         output.putBoolean("sub_adult_age_boolean", this.entityData.get(SUB_ADULT_DATA_ID));
@@ -510,10 +545,10 @@ public abstract class Dinosaur extends TamableAnimal implements FossilRevived, G
         super.readAdditionalSaveData(input);
         entityData.set(DINO_DATA, input.read("dino_data", DinoData.CODEC).orElseGet(DinoData::new));
         this.entityData.set(DINO_BEHAVIOUR, input.read("behaviour_profile", CompoundTag.CODEC).orElseGet(CompoundTag::new));
-        this.entityData.set(DinoNeedsUtils.HUNGER, input.getFloatOr("hunger_bar", 0F));
-        this.entityData.set(DinoNeedsUtils.THIRST, input.getFloatOr("thirst_bar", 0F));
-        this.entityData.set(DinoNeedsUtils.STAMINA, input.getFloatOr("stamina_bar", 0F));
-        this.entityData.set(DinoNeedsUtils.SOCIAL, input.getFloatOr("social_bar", 0F));
+        this.entityData.set(HUNGER, input.getFloatOr("hunger_bar", 0F));
+        this.entityData.set(THIRST, input.getFloatOr("thirst_bar", 0F));
+        this.entityData.set(STAMINA, input.getFloatOr("stamina_bar", 0F));
+        this.entityData.set(SOCIAL, input.getFloatOr("social_bar", 0F));
         // TODO(BUG): all four age flags are read from "baby_age_boolean"; the dedicated
         // juvenile/sub_adult/adult keys are written in addAdditionalSaveData but never read.
         this.entityData.set(BABY_DATA_ID, input.getBooleanOr("baby_age_boolean", false));
@@ -526,14 +561,14 @@ public abstract class Dinosaur extends TamableAnimal implements FossilRevived, G
             this.entityData.set(SCALE_MODE, mode);
             this.scaleModeFixed = true;
         });
-        this.entityData.set(DinoNeedsUtils.TAMING_SCORE,input.getFloatOr("trust_threshold", 0F));
-        this.entityData.set(DinoNeedsUtils.VISION,input.getFloatOr("dino_vision", 0F));
-        this.entityData.set(DinoNeedsUtils.AGGRESSION,input.getFloatOr("dino_aggression", 0F));
-        this.entityData.set(DinoNeedsUtils.FERTILITY,input.getFloatOr("dino_fertility", 0F));
-        this.entityData.set(DinoNeedsUtils.DOMESTICITY,input.getFloatOr("dino_domesticity", 0F));
-        this.entityData.set(DinoNeedsUtils.SIZE,input.getFloatOr("dino_size", 0F));
-        this.entityData.set(DinoNeedsUtils.INTELLIGENCE,input.getFloatOr("dino_intelligence", 0F));
-        this.entityData.set(DinoNeedsUtils.IMMUNITY,input.getFloatOr("dino_immunity", 0F));
+        this.entityData.set(TAMING_SCORE,input.getFloatOr("trust_threshold", 0F));
+        this.entityData.set(VISION,input.getFloatOr("dino_vision", 0F));
+        this.entityData.set(AGGRESSION,input.getFloatOr("dino_aggression", 0F));
+        this.entityData.set(FERTILITY,input.getFloatOr("dino_fertility", 0F));
+        this.entityData.set(DOMESTICITY,input.getFloatOr("dino_domesticity", 0F));
+        this.entityData.set(SIZE,input.getFloatOr("dino_size", 0F));
+        this.entityData.set(INTELLIGENCE,input.getFloatOr("dino_intelligence", 0F));
+        this.entityData.set(IMMUNITY,input.getFloatOr("dino_immunity", 0F));
 
         Optional<Double> headX = input.read("headx", Codec.DOUBLE);
         Optional<Double> headY = input.read("heady", Codec.DOUBLE);
@@ -897,10 +932,10 @@ public abstract class Dinosaur extends TamableAnimal implements FossilRevived, G
 
     /** Counts down the flinch animation and clears the flag when it has played out. */
     private void tickFlinchAnimation() {
-        if(this.entityData.get(DinoAnimationUtils.IS_FLINCHING_STATE)){
+        if(this.entityData.get(IS_FLINCHING_STATE)){
             flinchAnimTicks++;
             if(flinchAnimTicks > this.flinchTicks()){
-                this.entityData.set(DinoAnimationUtils.IS_FLINCHING_STATE, false);
+                this.entityData.set(IS_FLINCHING_STATE, false);
                 flinchAnimTicks = 0;
             }
         }
@@ -1138,20 +1173,20 @@ public abstract class Dinosaur extends TamableAnimal implements FossilRevived, G
     }
 
     public boolean isDrinking() {
-        return this.entityData.get(DinoAnimationUtils.IS_DRINKING_STATE);
+        return this.entityData.get(IS_DRINKING_STATE);
     }
-    public boolean isEating() {return this.entityData.get(DinoAnimationUtils.IS_EATING_STATE);}
-    public boolean isSitting() {return this.entityData.get(DinoAnimationUtils.IS_SITTING_STATE);}
+    public boolean isEating() {return this.entityData.get(IS_EATING_STATE);}
+    public boolean isSitting() {return this.entityData.get(IS_SITTING_STATE);}
     public boolean isRising() {
-        return this.entityData.get(DinoAnimationUtils.IS_RISING_STATE);
+        return this.entityData.get(IS_RISING_STATE);
     }
     public boolean isResting() {
-        return this.entityData.get(DinoAnimationUtils.IS_RESTING_STATE);
+        return this.entityData.get(IS_RESTING_STATE);
     }
     public boolean isRoaring() {
         return this.entityData.get(IS_ROARING_STATE);
     }
-    public boolean isAttacking() {return this.entityData.get(DinoAnimationUtils.IS_ATTACKING_STATE);}
+    public boolean isAttacking() {return this.entityData.get(IS_ATTACKING_STATE);}
     public boolean isIdle(){return !this.isDrinking() && !this.isEating() && !this.isResting() && !this.isRoaring() && !this.isAttacking();}
 
     /**
