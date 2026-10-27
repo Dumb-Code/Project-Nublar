@@ -6,6 +6,7 @@ import net.blay09.mods.balm.platform.energy.EnergyStorage;
 import net.dumbcode.projectnublar.block.ElectricFencePostBlock;
 import net.dumbcode.projectnublar.block.api.fence.ConnectableBlockEntity;
 import net.dumbcode.projectnublar.block.api.fence.Connection;
+import net.dumbcode.projectnublar.block.api.fence.ConnectionType;
 import net.dumbcode.projectnublar.block.api.fence.FencePowerService;
 import net.dumbcode.projectnublar.registry.BlockInit;
 import net.dumbcode.projectnublar.util.LineUtils;
@@ -109,6 +110,38 @@ public class BlockEntityElectricFencePole extends BlockEntityElectricFence imple
         if (this.level != null) {
             this.level.sendBlockUpdated(this.getBlockPos(), Blocks.AIR.defaultBlockState(), this.getBlockState(), 3);
         }
+    }
+
+    /**
+     * Recomputes the cached rotation and the post's hit box, then sends the block update. The hit
+     * box is a post-sized box that sits {@link ConnectionType#getRadius()} from the block centre,
+     * turned with the rotation.
+     */
+    @Override
+    public void triggerModelUpdate() {
+        this.cachedRotation = this.computeRotation();
+
+        BlockState state = this.getBlockState();
+        if (state.getBlock() instanceof ElectricFencePostBlock post) {
+            ConnectionType type = post.getType();
+
+            float t = type.getHalfSize();
+            double x = Math.sin(Math.toRadians(this.cachedRotation + 90F - type.getRotationOffset())) * type.getRadius();
+            double z = Math.cos(Math.toRadians(this.cachedRotation + 90F - type.getRotationOffset())) * type.getRadius();
+            this.cachedShape = Shapes.box(x - t, 0, z - t, x + t, 1, z + t).move(0.5, 0, 0.5);
+        }
+
+        super.triggerModelUpdate();
+    }
+
+    /**
+     * Re-arms the shape refresh when the pole joins a level, so the next tick recomputes it (the
+     * 1.20.1 Forge {@code onLoad}).
+     */
+    @Override
+    public void setLevel(Level level) {
+        super.setLevel(level);
+        this.shouldRefreshNextTick = true;
     }
 
     protected static final VoxelShape DEFAULT_SHAPE = Shapes.create(.875 -.03125 * 3,0,.5 - .0625, 1-.03125 * 3,1,.5 + .0625);

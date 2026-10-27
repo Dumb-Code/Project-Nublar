@@ -143,7 +143,11 @@ public abstract class BlockEntityElectricFenceBase extends SyncingBlockEntity im
 
     }
 
-    public void triggerModelUpdate(){
+    /**
+     * Called when connections or the post index change; subclasses refresh caches and push a block
+     * update. No model data: nothing reads it (checked 2026-10-25).
+     */
+    public void triggerModelUpdate() {
 
     }
 

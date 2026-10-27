@@ -44,6 +44,16 @@ public class BlockEntityElectricFence extends BlockEntityElectricFenceBase imple
         super.resetCollidableCache();
     }
 
+    /** Sends a block update to the clients watching this block, then drops the collision caches. */
+    @Override
+    public void triggerModelUpdate() {
+        if (this.level != null) {
+            BlockState state = this.getBlockState();
+            this.level.sendBlockUpdated(this.getBlockPos(), state, state, 3);
+        }
+        this.resetCollidableCache();
+    }
+
     @Override
     public void saveData(ValueOutput output) {
         SaveVersion.write(output);
