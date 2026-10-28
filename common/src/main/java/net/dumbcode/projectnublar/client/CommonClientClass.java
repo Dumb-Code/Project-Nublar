@@ -91,11 +91,42 @@ public class CommonClientClass {
 
         //Herbivores
 
-        // TODO(DEAD): all other triceratops layers were commented out (original note: "WHY NO
-        // WORK FOR TRICERATOPS?"); only "base" is registered.
+        // The Triceratops sets are the art team's Nublar skins, the female set here and the male set below: base.png
+        // (the base pass) is the plain base layer, then the set's other layers in the art set's order, then the four
+        // horn layers (art Brown v1, Horn1 to Horn4; each paints one of the model's four horn sets, and all four paint
+        // the nose horn, beak and frill spikes). Colour or fixed (-1) as the art list marks each layer; a colour index
+        // follows the layer with the same role in another species (see the comment on each line).
         LAYER_REGISTRY.put(EntityInit.TRICERATOPS.get(),List.of(
-                new DinoLayer("base",0)
-                ));
+                new DinoLayer("belly",2),        // as every belly
+                new DinoLayer("osteoderms",1),   // as back (proposed)
+                new DinoLayer("toes",-1),
+                new DinoLayer("mouth",-1),
+                new DinoLayer("nostrils",-1),
+                new DinoLayer("eyes",-1),
+                new DinoLayer("eyelids",-1).visibleWhen(Dinosaur::isResting),
+                new DinoLayer("horn1",3),        // horn colour (proposed)
+                new DinoLayer("horn2",3),
+                new DinoLayer("horn3",3),
+                new DinoLayer("horn4",3)
+        ));
+        MALE_LAYER_REGISTRY.put(EntityInit.TRICERATOPS.get(),List.of(
+                new DinoLayer("midtone",1),      // as back (proposed)
+                new DinoLayer("darkercolor",1),  // as Gallimimus body-darkness (proposed)
+                new DinoLayer("pattern",3),      // as Tyrannosaurus and Dilophosaurus pattern
+                new DinoLayer("head",3),         // markings, as pattern (proposed)
+                new DinoLayer("brown",2),        // as Gallimimus brown
+                new DinoLayer("spots",3),        // markings, as pattern (proposed)
+                new DinoLayer("toes",-1),
+                new DinoLayer("mouth",-1),
+                new DinoLayer("eyesockets",1),   // dark shade, as back (proposed)
+                new DinoLayer("nostrils",-1),
+                new DinoLayer("eyes",-1),
+                new DinoLayer("eyelids",-1).visibleWhen(Dinosaur::isResting),
+                new DinoLayer("horn1",3),        // horn colour (proposed)
+                new DinoLayer("horn2",3),
+                new DinoLayer("horn3",3),
+                new DinoLayer("horn4",3)
+        ));
 
         LAYER_REGISTRY.put(EntityInit.BRACHIOSAURUS.get(),List.of(
                 new DinoLayer("back",1),

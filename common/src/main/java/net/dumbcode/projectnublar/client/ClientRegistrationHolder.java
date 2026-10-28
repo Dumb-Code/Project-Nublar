@@ -41,9 +41,7 @@ public class ClientRegistrationHolder {
         EntityRenderers.register(EntityInit.DILOPHOSAURUS.get(), (context) -> new DilophosaurusRenderer(context, new DinosaurGeoModel(Constants.modLoc("dilophosaurus"))));
         EntityRenderers.register(EntityInit.TRICERATOPS.get(), (context) -> new TriceratopsRenderer(context, new DinosaurGeoModel(Constants.modLoc("triceratops"))));
         EntityRenderers.register(EntityInit.BRACHIOSAURUS.get(), (context) -> new BrachiosaurusRenderer(context, new DinosaurGeoModel(Constants.modLoc("brachiosaurus"))));
-        // The Gallimimus base pass draws the plain base.png: its composite gallimimus.png already has every marking,
-        // which the colour layers then drew a second time.
-        EntityRenderers.register(EntityInit.GALLIMIMUS.get(), (context) -> new GallimimusRenderer(context, new DinosaurGeoModel(Constants.modLoc("gallimimus"), "base")));
+        EntityRenderers.register(EntityInit.GALLIMIMUS.get(), (context) -> new GallimimusRenderer(context, new DinosaurGeoModel(Constants.modLoc("gallimimus"))));
     }
 
     public static void menuScreens() {
