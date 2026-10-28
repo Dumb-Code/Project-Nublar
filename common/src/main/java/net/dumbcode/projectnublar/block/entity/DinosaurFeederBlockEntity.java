@@ -304,16 +304,6 @@ public class DinosaurFeederBlockEntity extends SyncingContainerBlockEntity imple
         }
     }
 
-    /**
-     * Drops nothing when the feeder is broken, as on 1.20.1. 26.2 drops a container's items by
-     * default.
-     */
-    // TODO(BUG): 1.20.1 loses the food when the feeder is broken. Deleting this override makes the
-    // food drop (the 26.2 default), which is a gameplay change for the lead to decide.
-    @Override
-    public void preRemoveSideEffects(BlockPos pos, BlockState state) {
-    }
-
     @Override
     public CompoundTag getUpdateTag(HolderLookup.Provider registries) {
         CompoundTag tag =new CompoundTag();
