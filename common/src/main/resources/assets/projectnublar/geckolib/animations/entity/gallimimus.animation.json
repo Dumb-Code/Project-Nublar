@@ -7791,7 +7791,7 @@
 						},
 						"1.0": {
 							"post": {
-								"vector": [-23800000, 0, 0]
+								"vector": [0, 0, 0]
 							},
 							"lerp_mode": "catmullrom"
 						},
