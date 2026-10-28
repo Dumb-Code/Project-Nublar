@@ -1,5 +1,10 @@
 package net.dumbcode.projectnublar.entity.dinosaur.ai.behavior.social;
 
+import java.util.List;
+import net.dumbcode.projectnublar.api.dinosaur.DinoBehaviourData;
+import net.dumbcode.projectnublar.api.dinosaur.DinoBehaviourData.ActivityWindow;
+import net.dumbcode.projectnublar.api.dinosaur.DinoBehaviourData.SleepWindow;
+import net.minecraft.nbt.CompoundTag;
 import org.junit.jupiter.api.Test;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -438,8 +443,7 @@ class JourneyPolicyTest {
     // --- P13a: journeys pause, night, start rule, need detours, logs ---
 
     @Test
-    void nightIsTheSameTestAsRestFromSunsetUntilMorning() {
-        // Rest: dayTime % 24000 > 12000 is night.
+    void nightIsFromSunsetUntilMorning() {
         assertFalse(JourneyPolicy.isNight(0L));
         assertFalse(JourneyPolicy.isNight(JourneyPolicy.SUNSET_DAY_TIME));
         assertTrue(JourneyPolicy.isNight(JourneyPolicy.SUNSET_DAY_TIME + 1));
@@ -448,12 +452,29 @@ class JourneyPolicyTest {
         assertTrue(JourneyPolicy.isNight(24000L + 13000L));
     }
 
+    /** A behaviour profile with only its sleep data, as an animal saves it. */
+    private static DinoBehaviourData sleepsIn(ActivityWindow activityWindow, SleepWindow... sleepWindows) {
+        CompoundTag tag = new CompoundTag();
+        tag.store(DinoBehaviourData.ACTIVITY_WINDOW_KEY, ActivityWindow.CODEC, activityWindow);
+        tag.store(DinoBehaviourData.SLEEP_WINDOWS_KEY, SleepWindow.CODEC.listOf(), List.of(sleepWindows));
+        return DinoBehaviourData.fromNBT(tag);
+    }
+
     @Test
-    void restHoursAreTheNightForADayAnimalAndTheDayForANightAnimal() {
-        assertTrue(JourneyPolicy.restHours(13000L, false));
-        assertFalse(JourneyPolicy.restHours(1000L, false));
-        assertTrue(JourneyPolicy.restHours(1000L, true));
-        assertFalse(JourneyPolicy.restHours(13000L, true));
+    void restHoursAreTheSpeciesSleepWindow() {
+        // Task 32: the herd lies down in the leader's sleep window (was: the night for a day animal, the day for a
+        // nocturnal one, so the three carnivores lay down all day).
+        DinoBehaviourData herbivore = sleepsIn(ActivityWindow.DIURNAL);
+        assertFalse(JourneyPolicy.restHours(13000L, herbivore), "after sunset, before its window");
+        assertTrue(JourneyPolicy.restHours(16000L, herbivore));
+        assertFalse(JourneyPolicy.restHours(24000L + 1000L, herbivore), "the next morning");
+
+        DinoBehaviourData rex = sleepsIn(ActivityWindow.CATHEMERAL,
+                new SleepWindow(16000, 21000), new SleepWindow(7000, 9000));
+        assertFalse(JourneyPolicy.restHours(1000L, rex), "awake in the morning: the herd roams");
+        assertTrue(JourneyPolicy.restHours(8000L, rex), "its midday sleep");
+        assertFalse(JourneyPolicy.restHours(13000L, rex), "awake after sunset");
+        assertTrue(JourneyPolicy.restHours(17000L, rex));
     }
 
     @Test

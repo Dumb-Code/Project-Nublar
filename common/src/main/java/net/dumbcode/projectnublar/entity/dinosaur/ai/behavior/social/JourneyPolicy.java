@@ -1,5 +1,6 @@
 package net.dumbcode.projectnublar.entity.dinosaur.ai.behavior.social;
 
+import net.dumbcode.projectnublar.api.dinosaur.DinoBehaviourData;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.Locale;
@@ -13,8 +14,8 @@ import java.util.UUID;
  *       {@link #GRAZE_MOVE_SPEED}.</li>
  *   <li>Roaming journey every 2400-6000 ticks: {@link #JOURNEY_MIN}-{@link #JOURNEY_MAX} (156-314) blocks at
  *       {@link #JOURNEY_SPEED}; a try that finds no target is tried again after {@link #JOURNEY_RETRY_TICKS}. Needs (water, food) also start journeys:
- *       those are urgent. A roaming journey starts only outside the rest hours (night for a day animal, from
- *       {@link #SUNSET_DAY_TIME}) and with at least {@link #JOURNEY_MIN_STAMINA_FRACTION} of the maximum stamina
+ *       those are urgent. A roaming journey starts only outside the rest hours (the species' sleep window,
+ *       {@link #restHours}) and with at least {@link #JOURNEY_MIN_STAMINA_FRACTION} of the maximum stamina
  *       ({@link #roamMayStart}, P13a rulings Q2 and Q3); otherwise the try fails and is retried as usual.</li>
  *   <li>Legs (playtest fix P11): the roaming target is a heading and a distance; the leader walks toward it in
  *       legs of at most {@link #LEG_LENGTH}, each resolved only when it is needed ({@link #chooseLeg}). The pick
@@ -27,10 +28,10 @@ import java.util.UUID;
  *       twice in one place is the arrival. Then {@link #SETTLE_TICKS} more in TRAVEL before GRAZE.</li>
  *   <li>Pause (roaming only, P13a): a leader that is down (sits down, rests, gets up) pauses the journey
  *       ({@link #pause}): no path end, no leg, no wait. When it is up it walks the next leg toward the same
- *       target. The herd keeps its slots in a daytime rest up to {@link #SHORT_REST_PAUSE_TICKS}; at night or
- *       after that it spreads out to rest ({@link #herdSpreads}), but never while the leader gets up. In the
- *       rest hours the leader lies down (on dry ground), so a journey caught by night pauses until morning
- *       (ruling Q2).</li>
+ *       target. The herd keeps its slots in a rest outside the rest hours up to {@link #SHORT_REST_PAUSE_TICKS};
+ *       in the rest hours or after that it spreads out to rest ({@link #herdSpreads}), but never while the leader
+ *       gets up. In the rest hours the leader lies down (on dry ground), so a journey caught by them pauses until
+ *       they end (ruling Q2).</li>
  *   <li>Waiting (roaming only): fewer than 75% of the counted followers close to their own slot in the
  *       wedge ({@link Tally}). Only followers whose slot is on the trail count; members farther than 48
  *       blocks do not. The leader walks on at {@link #WAIT_SLOW_SPEED} (P13a ruling 3a: no full stop) for at
@@ -178,11 +179,11 @@ final class JourneyPolicy {
     static final float WAIT_SLOW_SPEED = 0.6F;
     static final int MAX_WAIT_TICKS = 200;
     /**
-     * Ruling Q1: a daytime rest pause up to this long (20 s) keeps every member in its formation slot; a longer
-     * one, or any at night, lets the herd spread out to rest ({@link #herdSpreads}).
+     * Ruling Q1: a rest pause outside the rest hours up to this long (20 s) keeps every member in its formation
+     * slot; a longer one, or any in the rest hours, lets the herd spread out to rest ({@link #herdSpreads}).
      */
     static final int SHORT_REST_PAUSE_TICKS = 400;
-    /** Sunset: from this day time on it is night, the same test as {@code Rest} ({@link #isNight}). */
+    /** Sunset: from this day time on it is night ({@link #isNight}). */
     static final long SUNSET_DAY_TIME = 12000L;
     static final long DAY_TICKS = 24000L;
     /** Ruling Q3: a roaming journey starts only with at least this fraction of the maximum stamina (150 of 200 for Gallimimus). */
@@ -426,17 +427,17 @@ final class JourneyPolicy {
         return Gathering.SLOW;
     }
 
-    /** {@code true} at night: day time (mod {@link #DAY_TICKS}) after {@link #SUNSET_DAY_TIME}, the same test as {@code Rest}. */
+    /** {@code true} at night: day time (mod {@link #DAY_TICKS}) after {@link #SUNSET_DAY_TIME}. */
     static boolean isNight(long dayTime) {
         return Math.floorMod(dayTime, DAY_TICKS) > SUNSET_DAY_TIME;
     }
 
     /**
-     * {@code true} in the species' rest hours: the night for a day animal, the day for a nocturnal one (the
-     * hours in which {@code Rest} does not end at full stamina).
+     * {@code true} in the species' rest hours: its sleep window ({@link DinoBehaviourData#inSleepWindow}, backlog
+     * F2.0 "Sleep windows"), the hours in which {@code Rest} does not end at full stamina.
      */
-    static boolean restHours(long dayTime, boolean nocturnal) {
-        return isNight(dayTime) != nocturnal;
+    static boolean restHours(long dayTime, DinoBehaviourData behaviour) {
+        return behaviour.inSleepWindow(dayTime);
     }
 
     /** P13a rulings Q2 and Q3: a roaming journey may start only outside the rest hours and with enough stamina. */
@@ -454,7 +455,7 @@ final class JourneyPolicy {
     }
 
     /**
-     * Ruling Q1: the herd leaves its slots to rest at night, or once the rest pause is longer than
+     * Ruling Q1: the herd leaves its slots to rest in the rest hours, or once the rest pause is longer than
      * {@link #SHORT_REST_PAUSE_TICKS}; never while the leader gets up (fix round 1: a rest of about 400 ticks
      * passes the short pause during its 69-tick get-up, and the herd would lie down as the leader walks on).
      *
@@ -466,8 +467,8 @@ final class JourneyPolicy {
 
     /**
      * A member that spread out for the rest lies down at its spot, tired or not (ruling Q1: the herd sleeps):
-     * always in the rest hours, where {@code Rest} lasts until morning; in the daytime only below its maximum
-     * stamina, because a daytime rest ends at full stamina at once. Never once the leader gets up (fix round 1).
+     * always in the rest hours, where {@code Rest} lasts until they end; outside them only below its maximum
+     * stamina, because a rest there ends at full stamina at once. Never once the leader gets up (fix round 1).
      */
     static boolean sleepsAtSpot(boolean restHours, boolean leaderRising, float stamina, float maxStamina) {
         return !leaderRising && (restHours || stamina < maxStamina);

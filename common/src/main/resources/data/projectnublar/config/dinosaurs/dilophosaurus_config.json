@@ -42,6 +42,10 @@
 
  "behaviour_config": "defines behaviour states for dinosaur",
  "can_form_group": true,
- "nocturnal": true
+ "activity_window": "cathemeral",
+ "sleep_windows": [
+  {"start": 2000, "end": 5000},
+  {"start": 8000, "end": 10000}
+ ]
 
 }

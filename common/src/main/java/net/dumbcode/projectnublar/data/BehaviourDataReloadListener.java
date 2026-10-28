@@ -1,13 +1,18 @@
 package net.dumbcode.projectnublar.data;
 
+import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonSyntaxException;
+import com.mojang.serialization.JsonOps;
 import java.util.Collections;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import net.dumbcode.projectnublar.Constants;
 import net.dumbcode.projectnublar.api.dinosaur.DinoBehaviourData;
+import net.dumbcode.projectnublar.api.dinosaur.DinoBehaviourData.ActivityWindow;
+import net.dumbcode.projectnublar.api.dinosaur.DinoBehaviourData.SleepWindow;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.resources.FileToIdConverter;
 import net.minecraft.resources.Identifier;
@@ -53,7 +58,6 @@ public class BehaviourDataReloadListener extends SimpleJsonResourceReloadListene
     private static final String UNCOMFORTABLE_THRESHOLD_KEY = "uncomfortable_threshold";
     private static final String RAGE_THRESHOLD_KEY = "rage_threshold";
     private static final String CAN_FORM_GROUP_KEY = "can_form_group";
-    private static final String NOCTURNAL_KEY = "nocturnal";
 
     private static Map<EntityType<?>, DinoBehaviourData> behaviourDataMap = Collections.emptyMap();
 
@@ -120,7 +124,8 @@ public class BehaviourDataReloadListener extends SimpleJsonResourceReloadListene
                                         + fileId));
     }
 
-    private static DinoBehaviourData parseBehaviourData(JsonObject jsonObject) {
+    /** Package-private for {@code SleepWindowsTest}, which reads the shipped species configs through it. */
+    static DinoBehaviourData parseBehaviourData(JsonObject jsonObject) {
         String entityIdString = GsonHelper.getAsString(jsonObject, SPECIES_ID_KEY);
         String dietId = GsonHelper.getAsString(jsonObject, DIET_ID_KEY);
 
@@ -158,7 +163,16 @@ public class BehaviourDataReloadListener extends SimpleJsonResourceReloadListene
         double highRisk = GsonHelper.getAsDouble(jsonObject, RAGE_THRESHOLD_KEY);
 
         boolean pack = GsonHelper.getAsBoolean(jsonObject, CAN_FORM_GROUP_KEY);
-        boolean nocturnal = GsonHelper.getAsBoolean(jsonObject, NOCTURNAL_KEY);
+        // Engineering backlog F2.0 "Sleep windows": a diurnal or nocturnal species has a fixed window, no list.
+        JsonElement activityJson = GsonHelper.getNonNull(jsonObject, DinoBehaviourData.ACTIVITY_WINDOW_KEY);
+        JsonArray sleepJson = GsonHelper.getAsJsonArray(jsonObject, DinoBehaviourData.SLEEP_WINDOWS_KEY, new JsonArray());
+        ActivityWindow activityWindow = ActivityWindow.CODEC.parse(JsonOps.INSTANCE, activityJson)
+                .getOrThrow(JsonSyntaxException::new);
+        List<SleepWindow> sleepWindows = SleepWindow.CODEC.listOf().parse(JsonOps.INSTANCE, sleepJson)
+                .getOrThrow(JsonSyntaxException::new);
+        if (activityWindow == ActivityWindow.CATHEMERAL && sleepWindows.isEmpty()) {
+            throw new JsonSyntaxException("A cathemeral species never sleeps without its " + DinoBehaviourData.SLEEP_WINDOWS_KEY);
+        }
 
         return new DinoBehaviourData(
                 entityIdString,
@@ -193,6 +207,7 @@ public class BehaviourDataReloadListener extends SimpleJsonResourceReloadListene
                 mediumRisk,
                 highRisk,
                 pack,
-                nocturnal);
+                activityWindow,
+                sleepWindows);
     }
 }

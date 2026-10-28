@@ -28,7 +28,7 @@ import java.util.Set;
  *       the target's chunk need not be loaded), walked in legs ({@link #nextLeg}) at
  *       {@link JourneyPolicy#JOURNEY_SPEED}. TRAVEL starts at once ({@link DinoGroup#startJourney}). A try whose
  *       first leg is not usable is tried again after {@link JourneyPolicy#JOURNEY_RETRY_TICKS}, as is a try in the
- *       rest hours (from sunset for a day animal) or with less than 75% stamina ({@link JourneyPolicy#roamMayStart},
+ *       rest hours (the species' sleep window) or with less than 75% stamina ({@link JourneyPolicy#roamMayStart},
  *       P13a rulings Q2 and Q3) or on a lead.</li>
  * </ul>
  * A leashed leader picks no graze moves (P13a ruling 9): the lead decides where it goes.
@@ -81,7 +81,7 @@ public class LeaderJourney<E extends Dinosaur> extends ExtendedBehaviour<E> {
             // A leashed leader's ROAM journey would only become a drag (P8c), and P13a rulings Q2 and Q3 start
             // none in the rest hours or below 75% stamina: each a failed try, retried as usual (no probes).
             boolean mayStart = !entity.isLeashed() && JourneyPolicy.roamMayStart(
-                    JourneyPolicy.restHours(level.getOverworldClockTime(), entity.getDinoBehaviour().isNocturnal()),
+                    JourneyPolicy.restHours(level.getOverworldClockTime(), entity.getDinoBehaviour()),
                     DinoNeedsUtils.getCurrentStamina(entity), DinoNeedsUtils.getMaxStamina(entity));
             Vec3 target = mayStart ? journeyTarget(level, entity, group) : null;
             boolean started = target != null && begin(entity, target, JourneyPolicy.Kind.ROAM);

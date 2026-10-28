@@ -863,9 +863,11 @@ public abstract class Dinosaur extends TamableAnimal implements FossilRevived, G
                        new SoloHuntingBehaviour<>()
                                 .attackablePredicate(this::canTarget)
                                 .startCondition(dinosaur -> dinosaur instanceof CarnivoreDinosaur),
+                        // 40 blocks out, but only 7 up or down (vanilla's random stroll): a target 40 blocks up
+                        // or down is in the air or underground, has no path, and the walk ends after a few steps.
                         new SoloHuntRoamBehaviour<>()
                                 .dontAvoidWater()
-                                .setRadius(40.0D)
+                                .setRadius(40.0D, 7.0D)
                                 .stopIf(dino -> BrainUtil.hasMemory(dino, MemoryModuleType.ATTACK_TARGET)),
                 new ChallengeGroupLeader<>(),
                 // The leader grazes in short moves and sets off on journeys every few minutes (LeaderJourney);
@@ -934,8 +936,11 @@ public abstract class Dinosaur extends TamableAnimal implements FossilRevived, G
             }
             processThirstSchedule();
             processHungerSchedule();
-            if(!DinoNeedsUtils.isHungry(this) && BrainUtil.hasMemory(this, MemoryModuleTypeInit.HUNTING.get())){
+            // A fed animal stops hunting and forgets its hunger: every hunger tick sets IS_HUNGRY, and only this
+            // clears it, so without it one tick would leave the animal hungry for good.
+            if(!DinoNeedsUtils.isHungry(this)){
                 BrainUtil.clearMemory(this, MemoryModuleTypeInit.HUNTING.get());
+                BrainUtil.clearMemory(this, MemoryModuleTypeInit.IS_HUNGRY.get());
             }
         }
     }
@@ -1074,7 +1079,8 @@ public abstract class Dinosaur extends TamableAnimal implements FossilRevived, G
         long activeStart;
         long activeEnd;
 
-        if(this.getDinoBehaviour().isNocturnal()){
+        // A cathemeral species keeps the day schedule; only a nocturnal one eats and drinks by night.
+        if(this.getDinoBehaviour().activityWindow() == DinoBehaviourData.ActivityWindow.NOCTURNAL){
             activeStart = NOCTURNAL_ACTIVE_START;
             activeEnd = NOCTURNAL_ACTIVE_END;
         } else {

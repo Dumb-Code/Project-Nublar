@@ -43,7 +43,7 @@
 
  "behaviour_config": "defines behaviour states for dinosaur",
  "can_form_group": true,
- "nocturnal": false
+ "activity_window": "diurnal"
 
 
 

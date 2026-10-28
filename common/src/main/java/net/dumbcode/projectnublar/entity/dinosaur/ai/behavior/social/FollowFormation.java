@@ -365,7 +365,7 @@ public class FollowFormation<E extends Dinosaur> extends ExtendedBehaviour<E> {
         this.progress.reset(-distance, now);
         control.markProgress(now);
         this.askingUntil = UNSET;
-        boolean restHours = JourneyPolicy.restHours(level.getOverworldClockTime(), entity.getDinoBehaviour().isNocturnal());
+        boolean restHours = JourneyPolicy.restHours(level.getOverworldClockTime(), entity.getDinoBehaviour());
         // Fix round 1, item 2: not once the leader gets up.
         if (JourneyPolicy.sleepsAtSpot(restHours, group.leaderRising(), DinoNeedsUtils.getCurrentStamina(entity),
                 DinoNeedsUtils.getMaxStamina(entity))) {

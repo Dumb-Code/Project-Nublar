@@ -1,6 +1,11 @@
 package net.dumbcode.projectnublar.api.dinosaur;
 
+import com.mojang.serialization.Codec;
+import com.mojang.serialization.DataResult;
+import com.mojang.serialization.codecs.RecordCodecBuilder;
+import java.util.List;
 import net.minecraft.nbt.CompoundTag;
+import net.minecraft.util.StringRepresentable;
 
 public record DinoBehaviourData(
         String speciesID,
@@ -40,9 +45,86 @@ public record DinoBehaviourData(
         double rageThreshold,
 
         boolean canFormGroup,
-        boolean isNocturnal
+        ActivityWindow activityWindow,
+        List<SleepWindow> sleepWindows
 )
 {
+    /** Save key of {@link #activityWindow}; also the species config key. */
+    public static final String ACTIVITY_WINDOW_KEY = "activity_window";
+    /** Save key of {@link #sleepWindows}; also the species config key. */
+    public static final String SLEEP_WINDOWS_KEY = "sleep_windows";
+    /** The flag that {@link #activityWindow} replaced. Read only, from animals saved before it. */
+    private static final String OLD_NOCTURNAL_KEY = "nocturnal";
+
+    /**
+     * When in the day a species sleeps (engineering backlog F2.4 {@code activity_window}, F2.0 "Sleep windows"). It
+     * replaces the old {@code nocturnal} flag.
+     */
+    public enum ActivityWindow implements StringRepresentable {
+        /** Sleeps 16,000 to 24,000 (22:00 to 06:00). */
+        DIURNAL("diurnal"),
+        /** Sleeps 4,000 to 12,000 (10:00 to 18:00). */
+        NOCTURNAL("nocturnal"),
+        /** Sleeps in the species' own {@code sleep_windows}, several short sleeps a day. */
+        CATHEMERAL("cathemeral");
+
+        /** The config and save form: the lower-case name. */
+        public static final Codec<ActivityWindow> CODEC = StringRepresentable.fromEnum(ActivityWindow::values);
+
+        private final String name;
+
+        ActivityWindow(String name) {
+            this.name = name;
+        }
+
+        @Override
+        public String getSerializedName() {
+            return this.name;
+        }
+    }
+
+    /**
+     * One daily sleep window in day ticks. A window never crosses 24,000; none of the backlog's windows needs it.
+     *
+     * @param start the first day tick asleep
+     * @param end   the first day tick awake again
+     */
+    public record SleepWindow(int start, int end) {
+        /** Ticks in one Minecraft day. */
+        public static final int DAY_TICKS = 24000;
+        /** Backlog F2.0: a diurnal species sleeps 16,000 to 24,000. */
+        public static final SleepWindow DIURNAL = new SleepWindow(16000, DAY_TICKS);
+        /** Backlog F2.0: a nocturnal species sleeps 4,000 to 12,000 (10:00 to 18:00, 8 hours). */
+        public static final SleepWindow NOCTURNAL = new SleepWindow(4000, 12000);
+
+        /** The config and save form, {@code {"start": 16000, "end": 21000}}; a window must not be empty. */
+        public static final Codec<SleepWindow> CODEC = RecordCodecBuilder.<SleepWindow>create(instance -> instance.group(
+                Codec.intRange(0, DAY_TICKS).fieldOf("start").forGetter(SleepWindow::start),
+                Codec.intRange(0, DAY_TICKS).fieldOf("end").forGetter(SleepWindow::end)
+        ).apply(instance, SleepWindow::new)).validate(window -> window.start < window.end
+                ? DataResult.success(window)
+                : DataResult.error(() -> "A sleep window must start before it ends: " + window));
+
+        boolean contains(int dayTick) {
+            return this.start <= dayTick && dayTick < this.end;
+        }
+    }
+
+    /**
+     * {@code true} while the species sleeps at this day time (engineering backlog F2.0 "Sleep windows"): diurnal
+     * 16,000 to 24,000, nocturnal 4,000 to 12,000, cathemeral its own {@link #sleepWindows}. {@code Rest} lets an
+     * animal sleep on at full stamina only inside it, and a herd lies down for it.
+     *
+     * @param dayTime the overworld clock; any day, only the time of day counts
+     */
+    public boolean inSleepWindow(long dayTime) {
+        int dayTick = Math.floorMod(dayTime, SleepWindow.DAY_TICKS);
+        return switch (this.activityWindow) {
+            case DIURNAL -> SleepWindow.DIURNAL.contains(dayTick);
+            case NOCTURNAL -> SleepWindow.NOCTURNAL.contains(dayTick);
+            case CATHEMERAL -> this.sleepWindows.stream().anyMatch(window -> window.contains(dayTick));
+        };
+    }
 
     public static DinoBehaviourData fromNBT(CompoundTag tag) {
         String pSpeciesID = tag.getStringOr("species_id", "");
@@ -84,12 +166,15 @@ public record DinoBehaviourData(
         double pHighRisk = tag.getDoubleOr("high_risk_threshold", 0);
 
         boolean pPack = tag.getBooleanOr("can_form_group", false);
-        boolean pNocturnal = tag.getBooleanOr("nocturnal", false);
+        // An animal saved before the activity window has only the old flag: nocturnal true is the nocturnal window.
+        ActivityWindow pActivityWindow = tag.read(ACTIVITY_WINDOW_KEY, ActivityWindow.CODEC)
+                .orElseGet(() -> tag.getBooleanOr(OLD_NOCTURNAL_KEY, false) ? ActivityWindow.NOCTURNAL : ActivityWindow.DIURNAL);
+        List<SleepWindow> pSleepWindows = tag.read(SLEEP_WINDOWS_KEY, SleepWindow.CODEC.listOf()).orElse(List.of());
 
         return new DinoBehaviourData(pSpeciesID,pDietID,pMaxHealth,pEnergyCapacity,pAttack,pSpeed,pSize,
                 pIntelligence,pImmunity,pResistance,pHealthRegen,pGrowthRate,pFertility,pGestationTime,pClutchSize,pVisionQuality,pDomesticity,
                 pAggressionScore,pTamingScore,pTrustIncrease,pSocial,pSocialDrain,pGroupSize,pEatRate,pDehydrationRate,pStarvationLimit,pDehydrationLimit,
-                pBaseExhaustionRate,pLowRisk,pMediumRisk,pHighRisk,pPack,pNocturnal);
+                pBaseExhaustionRate,pLowRisk,pMediumRisk,pHighRisk,pPack,pActivityWindow,pSleepWindows);
     }
 
     public CompoundTag toNBT(DinoBehaviourData behaviourData) {
@@ -133,7 +218,8 @@ public record DinoBehaviourData(
         tag.putDouble("high_risk_threshold",behaviourData.rageThreshold);
 
         tag.putBoolean("can_form_group", behaviourData.canFormGroup);
-        tag.putBoolean("nocturnal", behaviourData.isNocturnal);
+        tag.store(ACTIVITY_WINDOW_KEY, ActivityWindow.CODEC, behaviourData.activityWindow);
+        tag.store(SLEEP_WINDOWS_KEY, SleepWindow.CODEC.listOf(), behaviourData.sleepWindows);
 
         return tag;
     }

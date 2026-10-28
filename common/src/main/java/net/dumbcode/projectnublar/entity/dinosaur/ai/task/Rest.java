@@ -19,9 +19,6 @@ public class Rest<E extends Dinosaur> extends DelayedBehaviour<E> {
         super(delayTicks);
     }
 
-    boolean isNightTime;
-    boolean isNocturnal;
-
     @Override
     protected boolean checkExtraStartConditions(ServerLevel level, E dinosaur) {
         if (BrainUtil.hasMemory(dinosaur, MemoryModuleTypeInit.IS_DEHYDRATED.get()) || BrainUtil.hasMemory(dinosaur, MemoryModuleTypeInit.IS_STARVING.get())){
@@ -34,10 +31,8 @@ public class Rest<E extends Dinosaur> extends DelayedBehaviour<E> {
     protected void tick(E dinosaur) {
         super.tick(dinosaur);
 
-        isNightTime = dinosaur.level().getOverworldClockTime() % 24000 > 12000;
-        isNocturnal = dinosaur.getDinoBehaviour().isNocturnal();
-
-        if((isNightTime && isNocturnal) || (!isNightTime && !isNocturnal)){
+        // In its sleep window (backlog F2.0) the animal sleeps on; outside it, the rest ends once it is rested.
+        if (!dinosaur.getDinoBehaviour().inSleepWindow(dinosaur.level().getOverworldClockTime())) {
             if (DinoNeedsUtils.getCurrentStamina(dinosaur) >= DinoNeedsUtils.getMaxStamina(dinosaur)) {
                 BrainUtil.clearMemory(dinosaur, MemoryModuleTypeInit.IS_RESTING.get());
             }

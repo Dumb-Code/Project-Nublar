@@ -30,8 +30,8 @@ import java.util.UUID;
  *       most 200 ticks; each follower measured against its own slot, and only followers whose slot is on the
  *       trail count); urgent trips never wait. A roaming journey pauses while the leader is down
  *       ({@link #paused}, P13a): no path end, no leg, no wait; then it walks on to the same target. In the
- *       species' rest hours the leader lies down, so a journey caught by night pauses until morning. Each
- *       journey end gives one server log line ({@link #logEnd}). A drag journey (below) ends when the leader has stood still
+ *       species' rest hours (its sleep window) the leader lies down, so a journey caught by them pauses until
+ *       they end. Each journey end gives one server log line ({@link #logEnd}). A drag journey (below) ends when the leader has stood still
  *       for {@link JourneyPolicy#DRAG_SETTLE_TICKS}, or becomes an ordinary urgent trip when the leader (not
  *       leashed) takes a walk target. A leashed leader turns any journey into a drag (trail and slots kept).</li>
  *   <li><b>GRAZE</b>: a leader that moves out of the herd area with no walk of its own (dragged on a lead,
@@ -250,20 +250,20 @@ public final class HerdLeading {
     /**
      * P13a items 1 and 3: the pause of a roaming journey ({@link JourneyPolicy#pause}) while the leader is down
      * (sits down, rests, gets up: {@link HerdNeeds#isDown}). While paused: no path end, no leg, no wait ticks.
-     * In the species' rest hours (night for a day animal) the leader lies down ({@link HerdNeeds#lieDown}) once
-     * it is on dry ground (fix round 1: it walks on out of water first), so a journey caught by night pauses
-     * until morning: {@code Rest} ends then, at full stamina. A rest pause at night or longer than
-     * {@link JourneyPolicy#SHORT_REST_PAUSE_TICKS} lets the herd spread out to rest ({@link DinoGroup#spreadHerd}),
-     * but no spread starts while the leader gets up. The first tick the leader is up ends the pause
+     * In the species' rest hours (its sleep window, {@link JourneyPolicy#restHours}) the leader lies down
+     * ({@link HerdNeeds#lieDown}) once it is on dry ground (fix round 1: it walks on out of water first), so a
+     * journey caught by them pauses until they end: {@code Rest} ends then, at full stamina. A rest pause in the
+     * rest hours or longer than {@link JourneyPolicy#SHORT_REST_PAUSE_TICKS} lets the herd spread out to rest
+     * ({@link DinoGroup#spreadHerd}), but no spread starts while the leader gets up. The first tick the leader is up ends the pause
      * ({@link #resume}); the usual walk-end handling below then walks the next leg toward the same target.
      *
      * @return {@code true} while the journey is paused this tick
      */
     private static boolean paused(ServerLevel level, Dinosaur leader, DinoGroup group, long now) {
-        boolean restHours = JourneyPolicy.restHours(level.getOverworldClockTime(), leader.getDinoBehaviour().isNocturnal());
+        boolean restHours = JourneyPolicy.restHours(level.getOverworldClockTime(), leader.getDinoBehaviour());
         boolean down = HerdNeeds.isDown(leader);
         if (restHours && !down && leader.onGround() && !leader.isInWater()) {
-            // Ruling Q2: the leader lies down for the night; Rest starts on a later brain tick.
+            // Ruling Q2: the leader lies down for its sleep window; Rest starts on a later brain tick.
             HerdNeeds.lieDown(leader, group);
         }
         JourneyPolicy.Pause pause = JourneyPolicy.pause(down);
