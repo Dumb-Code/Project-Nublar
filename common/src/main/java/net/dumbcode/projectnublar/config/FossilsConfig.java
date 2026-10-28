@@ -86,8 +86,8 @@ public class FossilsConfig {
         builder.pop();
 
         builder.push("size");
-        USE_SCALE_ATTRIBUTE = builder.comment("When true, the scale attribute sets each dinosaur's model and hitbox size from its size gene and growth stage, with the corrected base hitboxes. Off until M2 (lead, 2026-10-25). Read once when the animal is added to the level.")
-                .define("use_scale_attribute", false);
+        USE_SCALE_ATTRIBUTE = builder.comment("When true, the scale attribute sets each dinosaur's model and hitbox size from its size gene and growth stage, with the corrected base hitboxes. On by default (lead, 2026-10-27). Read once when the animal is added to the level.")
+                .define("use_scale_attribute", true);
         builder.pop();
     }
 
