@@ -3,7 +3,6 @@ package net.dumbcode.projectnublar.entity.dinosaur;
 import net.dumbcode.projectnublar.util.DinoNeedsUtils;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.entity.*;
-import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.level.Level;
 
 public abstract class CarnivoreDinosaur extends Dinosaur {
@@ -16,13 +15,9 @@ public abstract class CarnivoreDinosaur extends Dinosaur {
     public boolean canHuntWithPack() {
         return this.hasGroup() && !this.isDinoBaby() && !this.isJuvanile();
     }
+    // The hunt refuses a dead or dying target and a creative or spectator player before this rule (Dinosaur.isHuntTarget).
     @Override
     public boolean canTarget(LivingEntity target) {
-
-        if(target instanceof Player player && (player.isSpectator() || player.isCreative())){
-            return false;
-        }
-
         //Check if target outside fence
        if(!DinoNeedsUtils.isTargetInsideEnclosure(target, this) && !DinoNeedsUtils.starving(this)){
            return false;

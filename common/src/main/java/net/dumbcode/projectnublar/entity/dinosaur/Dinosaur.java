@@ -653,19 +653,29 @@ public abstract class Dinosaur extends TamableAnimal implements FossilRevived, G
     }
 
     /**
-     * Whether a hunter may pick this prey (SoloHuntingBehaviour). Not a dead or dying animal: the hunt picks from a
-     * nearby-entity list that is rescanned only every 20 ticks, and a corpse there scores best (health 0), so before
-     * Task 40 the hunter re-picked its kill on every tick of the death animation. Not a player in creative or spectator
-     * mode, whom the fight would drop at once ({@code InvalidateAttackTarget}). Not its own rider.
+     * The species rule for a hunt target. This base rule refuses only the animal's own rider; each species class
+     * overrides it. The hunt never calls it alone: {@link #isHuntTarget} refuses a dead or dying target and a player in
+     * creative or spectator mode first, so an override does not have to repeat those tests and cannot drop them.
      */
     public boolean canTarget(LivingEntity target) {
+        return target.getVehicle() != this;
+    }
+
+    /**
+     * The hunt's target test (SoloHuntingBehaviour): the one alive and game-mode check that every hunter passes, then
+     * its species rule ({@link #canTarget}). Not a dead or dying animal: the hunt picks from a nearby-entity list that
+     * is rescanned only every 20 ticks, and its score rises as the target's health falls, so without this test a hunter
+     * re-picks its kill on every tick of the death animation. Not a player in creative or spectator mode, whom the
+     * fight would drop at once ({@code InvalidateAttackTarget}).
+     */
+    private boolean isHuntTarget(LivingEntity target) {
         if (!target.isAlive() || target.isDeadOrDying()) {
             return false;
         }
         if (target instanceof Player player && (player.isCreative() || player.isSpectator())) {
             return false;
         }
-        return target.getVehicle() != this;
+        return canTarget(target);
     }
 
     public boolean isChild(){
@@ -880,7 +890,7 @@ public abstract class Dinosaur extends TamableAnimal implements FossilRevived, G
                                 .whenStarting(dinosaur -> DinoAnimationUtils.setAnimationState(dinosaur,"getup",true))
                                 .whenStopping(dinosaur ->DinoAnimationUtils.setAnimationState(dinosaur,"getup",false)),
                        new SoloHuntingBehaviour<>()
-                                .attackablePredicate(this::canTarget)
+                                .attackablePredicate(this::isHuntTarget)
                                 .startCondition(dinosaur -> dinosaur instanceof CarnivoreDinosaur),
                         // 40 blocks out, but only 7 up or down (vanilla's random stroll): a target 40 blocks up
                         // or down is in the air or underground, has no path, and the walk ends after a few steps.
