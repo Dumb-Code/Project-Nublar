@@ -28,6 +28,8 @@ public class TriceratopsEntity extends HerbivoreDinosaur {
     private static final float MODEL_REACH = 2.945F;
     /** Drawn model top, in blocks at render scale 1: the same measurement's highest vertex (the frill). */
     private static final float MODEL_TOP = 2.267F;
+    /** {@link #modelBounds()}: built once, as the renderer reads it every frame. */
+    private static final EntityDimensions MODEL_BOUNDS = EntityDimensions.scalable(2 * MODEL_REACH, MODEL_TOP);
 
     public TriceratopsEntity(EntityType<? extends TriceratopsEntity> $$0, Level $$1) {
         super($$0, $$1, 39);
@@ -45,7 +47,7 @@ public class TriceratopsEntity extends HerbivoreDinosaur {
 
     @Override
     public EntityDimensions modelBounds() {
-        return EntityDimensions.scalable(2 * MODEL_REACH, MODEL_TOP);
+        return MODEL_BOUNDS;
     }
 
     // TODO(BUG): calls super.canTarget(...) but ignores the result, reducing this species to

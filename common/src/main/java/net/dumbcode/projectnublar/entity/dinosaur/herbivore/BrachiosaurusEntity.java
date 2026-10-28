@@ -30,6 +30,8 @@ public class BrachiosaurusEntity extends HerbivoreDinosaur {
     private static final float MODEL_REACH = 4.666F;
     /** Drawn model top, in blocks at render scale 1: the same measurement's highest vertex (the male crest). */
     private static final float MODEL_TOP = 7.723F;
+    /** {@link #modelBounds()}: built once, as the renderer reads it every frame. */
+    private static final EntityDimensions MODEL_BOUNDS = EntityDimensions.scalable(2 * MODEL_REACH, MODEL_TOP);
 
     public BrachiosaurusEntity(EntityType<? extends BrachiosaurusEntity> $$0, Level $$1) {
         super($$0, $$1, 0);
@@ -47,7 +49,7 @@ public class BrachiosaurusEntity extends HerbivoreDinosaur {
 
     @Override
     public EntityDimensions modelBounds() {
-        return EntityDimensions.scalable(2 * MODEL_REACH, MODEL_TOP);
+        return MODEL_BOUNDS;
     }
 
     @Override

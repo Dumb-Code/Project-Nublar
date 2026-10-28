@@ -49,7 +49,8 @@ class DinosaurAnimationFilesTest {
                 baked = new GeckoLibGsonLoader().bakeGeckoLibAnimationsFile(
                         Identifier.fromNamespaceAndPath("projectnublar", "entity/" + name), json,
                         MathParser.createWithDeduplication());
-            } catch (Throwable e) {
+            } catch (RuntimeException e) {
+                // GeckoLib wraps a file it cannot read in a RuntimeException (its CompoundException).
                 problems.add(name + ": the whole file is dropped: " + e);
                 continue;
             }

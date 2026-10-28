@@ -22,6 +22,7 @@ import net.minecraft.client.renderer.rendertype.RenderTypes;
 import net.minecraft.client.renderer.state.level.CameraRenderState;
 import net.minecraft.resources.Identifier;
 import net.minecraft.util.LightCoordsUtil;
+import net.minecraft.world.entity.EntityDimensions;
 import net.minecraft.world.phys.AABB;
 import net.minecraft.world.phys.Vec3;
 
@@ -123,12 +124,17 @@ public class DinosaurRenderer extends GeoEntityRenderer<Dinosaur, LivingEntityRe
      * The hitbox alone sits at the feet, so a Brachiosaurus vanished while the camera saw only its head or tail. The
      * model's bind-pose bounds ({@link Dinosaur#modelBounds()}) are scaled by the render scale
      * ({@link Dinosaur#scaleFactor()}, in both size modes) and by {@link #CULLING_MARGIN}. Turning culling off instead
-     * would draw every dinosaur behind the camera too, which costs too much on player hardware.
+     * would draw every dinosaur behind the camera too, which costs too much on player hardware. This runs for every
+     * dinosaur every frame, so the model box is built straight from the two numbers.
      */
     @Override
     protected AABB getBoundingBoxForCulling(Dinosaur entity) {
+        EntityDimensions bounds = entity.modelBounds();
         float scale = entity.scaleFactor() * CULLING_MARGIN;
-        AABB model = entity.modelBounds().scale(scale).makeBoundingBox(entity.position());
+        double half = bounds.width() * scale / 2;
+        double top = bounds.height() * scale;
+        AABB model = new AABB(entity.getX() - half, entity.getY(), entity.getZ() - half,
+                entity.getX() + half, entity.getY() + top, entity.getZ() + half);
         return super.getBoundingBoxForCulling(entity).minmax(model);
     }
 

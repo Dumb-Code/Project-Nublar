@@ -45,6 +45,8 @@ public class TyrannosaurusRexEntity extends CarnivoreDinosaur {
      * {@code bone}).
      */
     private static final float MODEL_TOP = 4.023F;
+    /** {@link #modelBounds()}: built once, as the renderer reads it every frame. */
+    private static final EntityDimensions MODEL_BOUNDS = EntityDimensions.scalable(2 * MODEL_REACH, MODEL_TOP);
 
     public TyrannosaurusRexEntity(EntityType<? extends TyrannosaurusRexEntity> $$0, Level $$1) {
         super($$0, $$1, 34);
@@ -62,7 +64,7 @@ public class TyrannosaurusRexEntity extends CarnivoreDinosaur {
 
     @Override
     public EntityDimensions modelBounds() {
-        return EntityDimensions.scalable(2 * MODEL_REACH, MODEL_TOP);
+        return MODEL_BOUNDS;
     }
 
     /** The head part, in unscaled sizes: the part follows this animal's scale itself ({@code PartEntity}). */
