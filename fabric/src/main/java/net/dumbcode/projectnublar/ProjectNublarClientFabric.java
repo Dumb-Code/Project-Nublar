@@ -37,9 +37,8 @@ import net.minecraft.world.item.crafting.RecipeType;
 public class ProjectNublarClientFabric implements ClientModInitializer {
 
     /**
-     * Registers the client side. The menu screens wait for {@code CLIENT_STARTED}: they also
-     * register the dinosaur textures, and Fabric runs this method inside the {@code Minecraft}
-     * constructor, before the texture manager exists.
+     * Registers the client side. The menu screens wait for {@code CLIENT_STARTED}, the moment
+     * NeoForge registers them too (its first client tick).
      */
     @Override
     public void onInitializeClient() {

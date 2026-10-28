@@ -75,10 +75,9 @@ public final class NeoForgeClientEvents {
     }
 
     /**
-     * Queues the menu screens and the dinosaur textures for the render thread, then registers the
-     * colour layers and gene widgets. 26.2 loads textures only on the render thread, and NeoForge
-     * runs {@code enqueueWork} on a mod-loading thread. The queued task runs in the first client
-     * tick, before any menu can open; Fabric runs the same method on {@code CLIENT_STARTED}.
+     * Queues the menu screens for the first client tick, before any menu can open (Fabric registers
+     * them on {@code CLIENT_STARTED}, the same moment), then registers the colour layers and gene
+     * widgets. Each dinosaur's model picks its own gender's base texture, so no texture loads here.
      */
     @SubscribeEvent
     public static void clientSetup(FMLClientSetupEvent event) {
