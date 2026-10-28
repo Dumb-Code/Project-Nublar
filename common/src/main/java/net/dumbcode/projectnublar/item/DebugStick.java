@@ -7,6 +7,7 @@ import net.dumbcode.projectnublar.entity.dinosaur.ai.behavior.social.Dominance;
 import net.dumbcode.projectnublar.entity.dinosaur.ai.behavior.social.GroupManager;
 import net.dumbcode.projectnublar.entity.dinosaur.ai.behavior.social.HerdTimings;
 import net.dumbcode.projectnublar.entity.dinosaur.Dinosaur;
+import net.dumbcode.projectnublar.registry.MemoryModuleTypeInit;
 import net.dumbcode.projectnublar.util.DebugFlags;
 import net.dumbcode.projectnublar.util.DinoNeedsUtils;
 import net.minecraft.network.chat.Component;
@@ -23,6 +24,7 @@ import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.pathfinder.Path;
+import net.tslat.smartbrainlib.util.BrainUtil;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -99,6 +101,10 @@ public class DebugStick extends Item {
                 lines.add("Health: " + dinosaur.getHealth() + ", hunger: " + DinoNeedsUtils.getCurrentHunger(dinosaur)
                         + ", thirst: " + DinoNeedsUtils.getCurrentThirst(dinosaur)
                         + ", stamina: " + DinoNeedsUtils.getCurrentStamina(dinosaur));
+                // Why an animal eats, hunts or does not: the flags the eating and hunting behaviours start on.
+                lines.add("Hungry flag: " + DinoNeedsUtils.isHungry(dinosaur)
+                        + ", hunting: " + BrainUtil.hasMemory(dinosaur, MemoryModuleTypeInit.HUNTING.get())
+                        + ", next hunger tick in " + dinosaur.ticksToNextHungerTick() + " ticks");
 
                 MinecraftServer server = level.getServer();
                 for (String line : lines) {

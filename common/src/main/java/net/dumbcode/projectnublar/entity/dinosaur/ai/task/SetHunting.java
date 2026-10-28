@@ -38,8 +38,13 @@ public class SetHunting<E extends Dinosaur> extends ExtendedBehaviour<E> {
 
     @Override
     protected boolean checkExtraStartConditions(ServerLevel level, E entity) {
-        // Only a hungry carnivore hunts: IS_HUNGRY alone is set by every hunger tick, also on a full stomach.
+        // Only a carnivore that wants food (IS_HUNGRY, set below 75 % hunger) hunts.
         if (!this.canStartHuntingPredicate.test(entity)) {
+            return false;
+        }
+        // Before the feeder test: a known feeder does not let a baby, or an animal that rests, eats, drinks or sees
+        // meat on the ground, start a hunt (before Task 40 it skipped these guards).
+        if (entity.isChild() || entity.isHuntingBlocked()) {
             return false;
         }
 
@@ -51,11 +56,7 @@ public class SetHunting<E extends Dinosaur> extends ExtendedBehaviour<E> {
             }
         }
 
-        if(BrainUtil.hasMemory(entity, MemoryModuleTypeInit.HUNTING.get())){
-            return false;
-        }
-
-        return !entity.isChild() && !entity.isHuntingBlocked();
+        return !BrainUtil.hasMemory(entity, MemoryModuleTypeInit.HUNTING.get());
     }
 
     @Override

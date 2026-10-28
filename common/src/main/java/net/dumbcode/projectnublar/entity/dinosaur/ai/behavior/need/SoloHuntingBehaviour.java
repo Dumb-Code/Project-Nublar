@@ -9,7 +9,9 @@ import net.minecraft.world.entity.ai.Brain;
 import net.minecraft.world.entity.ai.behavior.declarative.MemoryCondition;
 import net.minecraft.world.entity.ai.memory.MemoryModuleType;
 import net.minecraft.world.entity.ai.memory.NearestVisibleLivingEntities;
+import net.minecraft.world.entity.item.ItemEntity;
 import net.minecraft.world.entity.player.Player;
+import net.minecraft.world.phys.AABB;
 import net.tslat.smartbrainlib.api.core.behaviour.base.ExtendedBehaviour;
 import net.tslat.smartbrainlib.library.object.MemoryTest;
 import net.tslat.smartbrainlib.util.BrainUtil;
@@ -44,6 +46,10 @@ public class SoloHuntingBehaviour<E extends Dinosaur> extends ExtendedBehaviour<
 
     @Override
     protected boolean checkExtraStartConditions(ServerLevel level, E carnivore) {
+        // A baby does not hunt, nor an animal that rests, eats, drinks or sees meat on the ground (isHuntingBlocked).
+        if (carnivore.isChild() || carnivore.isHuntingBlocked()) {
+            return false;
+        }
         Brain<?> brain = carnivore.getBrain();
         this.toTarget = null;
         this.toTarget = BrainUtil.getMemory(brain, this.priorityTargetMemory);
@@ -77,13 +83,24 @@ public class SoloHuntingBehaviour<E extends Dinosaur> extends ExtendedBehaviour<
 
 
 
-        return this.canAttackPredicate.test(this.toTarget);
+        // Last, so the level is searched only when a hunt would start.
+        return this.canAttackPredicate.test(this.toTarget) && !foodOnTheGround(level, carnivore);
+    }
+
+    /**
+     * Whether food of the hunter's diet lies on the ground within its food-item range, so it eats that first (backlog:
+     * "a raptor with dropped meat in range eats the meat first"). Read from the level, not from the food-item memory:
+     * {@code Eat} clears that memory after each item, and the sensor sets it again only at its next scan, up to 20
+     * ticks later, long enough for a hunt to start between two items of the same kill.
+     */
+    private static boolean foodOnTheGround(ServerLevel level, Dinosaur hunter) {
+        AABB range = hunter.getBoundingBox().inflate(Dinosaur.FOOD_ITEM_RANGE);
+        return !level.getEntitiesOfClass(ItemEntity.class, range, hunter::canTargetFoodItem).isEmpty();
     }
 
     @Override
     protected void start(E entity) {
         BrainUtil.setTargetOfEntity(entity, this.toTarget);
         BrainUtil.clearMemory(entity, MemoryModuleType.CANT_REACH_WALK_TARGET_SINCE);
-        System.out.println("Entity: " + entity + ", has found target: "+ this.toTarget + ", with hunt score of: " + DinoNeedsUtils.getHuntTargetValue(this.toTarget));
     }
 }

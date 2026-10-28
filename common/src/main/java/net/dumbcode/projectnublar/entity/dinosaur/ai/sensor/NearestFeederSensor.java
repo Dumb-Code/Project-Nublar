@@ -67,7 +67,6 @@ protected SquareRadius radius = new SquareRadius(10, 3);
             }
 
             if (nearestFeeder != null) {
-                System.out.println("Feeder found by dinosaur at :" + nearestFeeder);
                 BrainUtil.setMemory(entity, MemoryModuleTypeInit.HAS_FOUND_FEEDER.get(), nearestFeeder);
             }
         }

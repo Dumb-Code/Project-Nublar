@@ -59,7 +59,6 @@ public class WalkToNearestFeeder<E extends Dinosaur> extends ExtendedBehaviour<E
 
     @Override
     protected void start(E entity) {
-        System.out.println("Walk target set to feeder.");
         BrainUtil.setMemory(entity, MemoryModuleType.WALK_TARGET, new WalkTarget(this.target, this.speedMod.apply(entity, this.target), this.closeEnoughDist.apply(entity, this.target)));
         BrainUtil.setMemory(entity, MemoryModuleType.LOOK_TARGET, new BlockPosTracker(this.target));
     }

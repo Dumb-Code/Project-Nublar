@@ -146,6 +146,11 @@ public abstract class Dinosaur extends TamableAnimal implements FossilRevived, G
     private static final long NOCTURNAL_ACTIVE_END = 23999;
     private static final long DIURNAL_ACTIVE_START = 0;
     private static final long DIURNAL_ACTIVE_END = 12000;
+    /**
+     * Blocks round the animal, each way, in which it sees food lying on the ground: the food-item sensor's radius, and
+     * the range in which a hunter eats meat first instead of starting a hunt (SoloHuntingBehaviour).
+     */
+    public static final double FOOD_ITEM_RANGE = 20;
 
     // Synced values. Every EntityDataAccessor of a dinosaur is defined in this class: NeoForge 26.2 refuses a
     // definition made in another class (it stops the game in development). The game numbers these values in the
@@ -647,8 +652,20 @@ public abstract class Dinosaur extends TamableAnimal implements FossilRevived, G
         return this.hurtServer(level, this.damageSources().generic(), amount);
     }
 
+    /**
+     * Whether a hunter may pick this prey (SoloHuntingBehaviour). Not a dead or dying animal: the hunt picks from a
+     * nearby-entity list that is rescanned only every 20 ticks, and a corpse there scores best (health 0), so before
+     * Task 40 the hunter re-picked its kill on every tick of the death animation. Not a player in creative or spectator
+     * mode, whom the fight would drop at once ({@code InvalidateAttackTarget}). Not its own rider.
+     */
     public boolean canTarget(LivingEntity target) {
-       return target.getVehicle() != this;
+        if (!target.isAlive() || target.isDeadOrDying()) {
+            return false;
+        }
+        if (target instanceof Player player && (player.isCreative() || player.isSpectator())) {
+            return false;
+        }
+        return target.getVehicle() != this;
     }
 
     public boolean isChild(){
@@ -801,7 +818,7 @@ public abstract class Dinosaur extends TamableAnimal implements FossilRevived, G
         fenceProximinitySensor.setPredicate((dinosaur, block) -> block.getSecond().is(BlockInit.ELECTRIC_FENCE.get()) && DinoNeedsUtils.starving(dinosaur));
         NearestItemSensor<Dinosaur> foodItemSensor = new NearestItemSensor<>();
         foodItemSensor.setPredicate((dinosaur, item) -> dinosaur.canTargetFoodItem(item)) ;
-        foodItemSensor.setRadius(20);
+        foodItemSensor.setRadius(FOOD_ITEM_RANGE);
         NearbyLivingEntitySensor<Dinosaur> nearbyLivingEntitySensor = new NearbyLivingEntitySensor<>();
         return List.of(
                 waterSourceSensor,
@@ -937,11 +954,11 @@ public abstract class Dinosaur extends TamableAnimal implements FossilRevived, G
             }
             processThirstSchedule();
             processHungerSchedule();
-            // A fed hunter stops hunting and forgets its hunger (every hunger tick sets IS_HUNGRY). Only a hunter:
-            // eating at a feeder or from the ground keeps its own IS_HUNGRY rule, as on 1.20.1.
+            // The hungry flag follows the bar (set below 75 %, cleared above 90 %, lead 2026-10-27), also for a bar
+            // set by a command; a hunter that no longer wants food stops hunting.
+            DinoNeedsUtils.updateHungryFlag(this);
             if(!DinoNeedsUtils.isHungry(this) && BrainUtil.hasMemory(this, MemoryModuleTypeInit.HUNTING.get())){
                 BrainUtil.clearMemory(this, MemoryModuleTypeInit.HUNTING.get());
-                BrainUtil.clearMemory(this, MemoryModuleTypeInit.IS_HUNGRY.get());
             }
         }
     }
@@ -1061,12 +1078,9 @@ public abstract class Dinosaur extends TamableAnimal implements FossilRevived, G
             BrainUtil.setMemory(this, MemoryModuleTypeInit.DAYS_SINCE_LAST_FED.get(), daysSincelastAte);
         }
         if(!drankToday){
-            if(BrainUtil.hasMemory(this,MemoryModuleTypeInit.DAYS_SINCE_LAST_DRANK.get())) {
-                daysSincelastDrink = BrainUtil.getMemory(this,MemoryModuleTypeInit.DAYS_SINCE_LAST_DRANK.get());
-            } else { daysSincelastDrink = 0;}
-
-            daysSincelastDrink++;
-
+            // A drink since the last rollover stored 0 (DinoNeedsUtils.drink), so this makes it 1.
+            daysSincelastDrink = DinoNeedsUtils.daysWithoutWater(
+                    BrainUtil.getMemory(this, MemoryModuleTypeInit.DAYS_SINCE_LAST_DRANK.get()), false);
             BrainUtil.setMemory(this, MemoryModuleTypeInit.DAYS_SINCE_LAST_DRANK.get(), daysSincelastDrink);
         }
 
@@ -1138,6 +1152,19 @@ public abstract class Dinosaur extends TamableAnimal implements FossilRevived, G
                 hungerSchedule.remove(toRemove);
             }
         }
+    }
+
+    /**
+     * Clock ticks to this animal's next hunger tick, for the Debug Stick: the earliest entry left in today's schedule,
+     * or the next day rollover, which always ticks hunger. 0 means an entry is due now.
+     */
+    public long ticksToNextHungerTick() {
+        long timeOfDay = this.level().getOverworldClockTime() % DAY_LENGTH;
+        long next = DAY_LENGTH - timeOfDay;
+        for (long hungerTime : hungerSchedule) {
+            next = Math.min(next, Math.max(0, hungerTime - timeOfDay));
+        }
+        return next;
     }
 
     Random random = new Random();

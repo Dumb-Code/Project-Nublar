@@ -37,6 +37,18 @@ import static net.dumbcode.projectnublar.entity.dinosaur.Dinosaur.AGGRESSION;
  */
 public class DinoNeedsUtils {
 
+    /**
+     * Below this share of its hunger maximum an animal wants food: the {@code IS_HUNGRY} memory is set, so it eats
+     * food in reach, walks to food and feeders, and a carnivore hunts (lead, 2026-10-27: "Start below 75 %").
+     */
+    public static final double WANTS_FOOD_BELOW = 0.75D;
+    /**
+     * Above this share of its hunger maximum an animal stops eating: {@code IS_HUNGRY} is cleared and a hunter stops
+     * hunting (lead, 2026-10-27: "stop at 90 %"). Between the two lines the memory keeps its state, so an eater goes on
+     * eating the food in reach and a fed animal does not want food again at once.
+     */
+    public static final double FULL_ABOVE = 0.90D;
+
     /** The registered holder of a mod attribute: 26.2 reads and sets attributes by {@code Holder<Attribute>}. */
     private static Holder<Attribute> holder(Supplier<Attribute> attribute) {
         return BuiltInRegistries.ATTRIBUTE.wrapAsHolder(attribute.get());
@@ -124,13 +136,41 @@ public class DinoNeedsUtils {
     public static boolean isSocialFull(Dinosaur dinosaur){return dinosaur.getEntityData().get(SOCIAL) == DinoNeedsUtils.getMaxSocial(dinosaur);}
 
 
+    /**
+     * Whether the animal wants food: the {@code IS_HUNGRY} memory, which follows the hunger bar ({@link #wantsFood}).
+     * Eating, walks to food and feeders, and hunting all read this one flag.
+     */
     public static boolean isHungry(Dinosaur dinosaur){
-        float currentHunger = dinosaur.getEntityData().get(HUNGER);
-        float maxhunger = DinoNeedsUtils.getMaxHunger(dinosaur);
-        float lowRiskThreshold = (float) dinosaur.getDinoBehaviour().happyThreshold();
-        float stomachThreshold = maxhunger * lowRiskThreshold;
+        return BrainUtil.hasMemory(dinosaur, MemoryModuleTypeInit.IS_HUNGRY.get());
+    }
 
-        return currentHunger < stomachThreshold;
+    /**
+     * Whether an animal wants food at this hunger: yes below {@link #WANTS_FOOD_BELOW} of the maximum, no above
+     * {@link #FULL_ABOVE}, and as before ({@code wantedFood}) between the two lines.
+     */
+    public static boolean wantsFood(boolean wantedFood, float hunger, float maxHunger) {
+        if (hunger < maxHunger * WANTS_FOOD_BELOW) {
+            return true;
+        }
+        if (hunger > maxHunger * FULL_ABOVE) {
+            return false;
+        }
+        return wantedFood;
+    }
+
+    /**
+     * Sets or clears the {@code IS_HUNGRY} memory by the bar ({@link #wantsFood}). The hunger tick and {@link #feed}
+     * call it when the bar changes, and the dinosaur's server tick calls it every tick, which also covers a bar set by a
+     * command and an animal just loaded (the memory is not saved).
+     */
+    public static void updateHungryFlag(Dinosaur dinosaur) {
+        boolean wasHungry = isHungry(dinosaur);
+        boolean hungry = wantsFood(wasHungry, getCurrentHunger(dinosaur), getMaxHunger(dinosaur));
+        if (hungry && !wasHungry) {
+            BrainUtil.setMemory(dinosaur, MemoryModuleTypeInit.IS_HUNGRY.get(), true);
+        } else if (!hungry && wasHungry) {
+            BrainUtil.clearMemory(dinosaur, MemoryModuleTypeInit.IS_HUNGRY.get());
+        }
     }
     public static boolean isThirsty(Dinosaur dinosaur){return dinosaur.getEntityData().get(THIRST) < DinoNeedsUtils.getMaxThirst(dinosaur) * dinosaur.getDinoBehaviour().uncomfortableThreshold();}
     public static boolean isTired(Dinosaur dinosaur){return dinosaur.getEntityData().get(STAMINA) < DinoNeedsUtils.getMaxStamina(dinosaur) * dinosaur.getDinoBehaviour().rageThreshold();}
@@ -184,8 +224,8 @@ public class DinoNeedsUtils {
         }
 
         dinosaur.getEntityData().set(HUNGER, newCurrentHunger);
-        //Let brain know dinosaur is hungry
-        BrainUtil.setMemory(dinosaur, MemoryModuleTypeInit.IS_HUNGRY.get(), true);
+        // Wants food only below the 75 % line, not after every tick (before Task 40 every tick set it, at 97 % too).
+        updateHungryFlag(dinosaur);
     }
     public static void tickThirst(Dinosaur dinosaur, int timeSinceLastDrink, int dehydrationTime){
         float currentThirst = dinosaur.getEntityData().get(THIRST);
@@ -270,11 +310,29 @@ public class DinoNeedsUtils {
         BrainUtil.setMemory(dinosaur, MemoryModuleTypeInit.DAYS_SINCE_LAST_FED.get(), 0);
 
         DinoNeedsUtils.setCurrentHunger(dinosaur, Math.min(pCurrentHunger, maxHunger));
-
+        // Above the 90 % line the animal stops eating, so the next behaviour this tick already sees it full.
+        updateHungryFlag(dinosaur);
     }
 
+    /** Fills the thirst bar and starts the days-without-water count again ({@link #daysWithoutWater}). */
     public static void drink(Dinosaur dinosaur){
         DinoNeedsUtils.setCurrentThirst(dinosaur, getMaxThirst(dinosaur));
+        Integer stored = BrainUtil.getMemory(dinosaur, MemoryModuleTypeInit.DAYS_SINCE_LAST_DRANK.get());
+        BrainUtil.setMemory(dinosaur, MemoryModuleTypeInit.DAYS_SINCE_LAST_DRANK.get(), daysWithoutWater(stored, true));
+    }
+
+    /**
+     * The days-without-water count (the {@code DAYS_SINCE_LAST_DRANK} memory) after a drink or a day rollover, from the
+     * stored count ({@code null} before the first rollover). A drink starts the count again at 0, as {@link #feed} does
+     * for days without food; a rollover adds one day, and {@link #tickThirst} kills the animal when the count reaches
+     * {@code max_days_without_water} (3 for every species). Before Task 40 no drink set the count back (the same on
+     * 1.20.1), so every animal died of thirst on its third day.
+     */
+    public static int daysWithoutWater(@Nullable Integer stored, boolean drinks) {
+        if (drinks) {
+            return 0;
+        }
+        return stored == null ? 1 : stored + 1;
     }
 
 }
