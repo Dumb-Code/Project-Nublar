@@ -24,6 +24,7 @@ Every speed gate holds on both tiers. For example, 20 Gallimimus on screen keep 
 | Window size | 1920 × 1080 |
 | Graphics | Fast for a minimum-PC gate. Fancy for a recommended-PC gate. |
 | Render distance | 12 chunks |
+| Simulation distance | 12 chunks |
 | Shaders | None |
 | Optimization mods | None |
 | Fullscreen | Off |
