@@ -32,6 +32,13 @@ import com.geckolib.animation.state.AnimationTest;
  * {@link #REACTION_TRANSITION_TICKS}, so a hit or a bite shows at once.
  * <p>
  * A missing name is never requested (GeckoLib prints a line per frame for one); the controller stops instead.
+ * <p>
+ * Stop: in GeckoLib 5 a handler that returns {@code STOP} does not end a looping or holding clip; the controller
+ * loops or holds it for ever (GeckoLib 4 ended it at once). A walk would then never end, and an idle that never ends
+ * overwrites the walk, because the main controller runs after {@code movement}. So every stop here first calls the
+ * controller's {@code reset()} ({@link #stopController}), which ends the animation at once. The bones snap to rest:
+ * GeckoLib 4 faded them back over 5 ticks, and GeckoLib 5 has no fade for a stopped loop. The next start blends in
+ * from rest ({@link RestartableAnimationController}).
  */
 public final class DinoAnimator {
     /** Blend of the movement controller into walk or run, in ticks (Mowzie's Mobs uses 4-5 on such controllers). */
@@ -115,7 +122,7 @@ public final class DinoAnimator {
      */
     public PlayState movement(AnimationTest<Dinosaur> state) {
         if (this.dinosaur.isDeadOrDying() || !this.gait.moving()) {
-            return PlayState.STOP;
+            return stopController(state);
         }
         AnimationChoice choice = this.gait.gait() == MovementGait.Gait.RUN ? AnimationChoice.RUN : AnimationChoice.WALK;
         RawAnimation animation = first(choice);
@@ -124,7 +131,7 @@ public final class DinoAnimator {
             animation = fallback == null ? null : first(fallback);
         }
         if (animation == null) {
-            return PlayState.STOP;
+            return stopController(state);
         }
         state.controller().setAnimationSpeed(this.gait.animationSpeed());
         return state.setAndContinue(animation);
@@ -181,7 +188,7 @@ public final class DinoAnimator {
         if (!this.gait.moving() && dino.isIdle()) {
             return idle(state, AnimationChoice.mainIdleOnly(AnimationChoice.IDLE, dino.herdTravels()));
         }
-        return stop();
+        return stop(state);
     }
 
     /** Plays {@code animation} for {@code choice}, or the choice's fallback when the species has none. */
@@ -192,7 +199,7 @@ public final class DinoAnimator {
         if (AnimationChoice.resolve(choice, false) == AnimationChoice.IDLE) {
             return idle(state, AnimationChoice.mainIdleOnly(choice, this.dinosaur.herdTravels()));
         }
-        return stop();
+        return stop(state);
     }
 
     /**
@@ -215,7 +222,7 @@ public final class DinoAnimator {
         if (picked) {
             int index = pickIndex(AnimationChoice.IDLE);
             if (index < 0) {
-                return stop();
+                return stop(state);
             }
             RawAnimation next = DinoAnimationAvailability.raw(AnimationChoice.IDLE, index);
             if (next == this.idlePick && finished) {
@@ -239,7 +246,7 @@ public final class DinoAnimator {
     private PlayState mainIdle(AnimationTest<Dinosaur> state, long now) {
         int[] available = DinoAnimationAvailability.available(this.dinosaur.getType(), AnimationChoice.IDLE);
         if (available.length == 0) {
-            return stop();
+            return stop(state);
         }
         RawAnimation main = DinoAnimationAvailability.raw(AnimationChoice.IDLE, available[0]);
         if (this.idlePick != main) {
@@ -265,8 +272,18 @@ public final class DinoAnimator {
         return state.setAndContinue(animation);
     }
 
-    private PlayState stop() {
+    /** Stops the main controller. */
+    private PlayState stop(AnimationTest<Dinosaur> state) {
         this.playing = null;
+        return stopController(state);
+    }
+
+    /**
+     * Ends the controller's animation at once and returns {@code STOP}: in GeckoLib 5, {@code STOP} alone does not
+     * end a looping or holding clip (class comment). Package-private for the test.
+     */
+    static PlayState stopController(AnimationTest<?> state) {
+        state.controller().reset();
         return PlayState.STOP;
     }
 

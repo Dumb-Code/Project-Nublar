@@ -274,10 +274,15 @@ public abstract class Dinosaur extends TamableAnimal implements FossilRevived, G
     @Override
     public void registerControllers(AnimatableManager.ControllerRegistrar controllers) {
         // Walk or run from the real ground speed (fix P10; GeckoLib's generic walk controller only walks).
-        // Blends instead of snaps between animations (fix P12a).
+        // Blends instead of snaps between animations (fix P12a), and from rest after a stop (RestartableAnimationController).
         // The main controller restarts an animation that plays again (DinoAnimator.set).
-        controllers.add(new AnimationController<>("movement", DinoAnimator.MOVEMENT_TRANSITION_TICKS, this.animator::movement));
-        controllers.add(new RestartableAnimationController<>("dino_controller", DinoAnimator.MAIN_TRANSITION_TICKS, this.animator::main));
+        // The empty sound handlers: some clips (Brachiosaurus move.walk, run, eatingtall2) have sound keyframes for
+        // sounds the mod never registered. No footstep sound plays, the same as 1.20.1; without a handler GeckoLib 5
+        // logs a warning at every start of such a clip.
+        controllers.add(new RestartableAnimationController<>("movement", DinoAnimator.MOVEMENT_TRANSITION_TICKS, this.animator::movement)
+                .setSoundKeyframeHandler(event -> {}));
+        controllers.add(new RestartableAnimationController<>("dino_controller", DinoAnimator.MAIN_TRANSITION_TICKS, this.animator::main)
+                .setSoundKeyframeHandler(event -> {}));
         controllers.add(new AnimationController<>("dino_secondary_Controller", 0, this::animationPredicateAmbient));
     }
     private PlayState animationPredicateAmbient(AnimationTest<Dinosaur> test) {
