@@ -46,4 +46,21 @@ class HerdNeedsTest {
         assertTrue(HerdNeeds.isDown(false, false, false, true, false), "the resting memory (before the sit state shows)");
         assertTrue(HerdNeeds.isDown(false, false, false, false, true), "the getting-up memory (the tick between rest and get-up)");
     }
+
+    @Test
+    void anAnimalLiesDownWhenItsSleepWindowStarts() {
+        // Task 42: the window itself starts a rest, tired or not, for a solo animal, a leader and a member alike.
+        // SleepWindowsTest pins each species' window; here only the other conditions count.
+        assertTrue(HerdNeeds.sleepsNow(true, false, true, false, false), "in its window, on dry ground, fed and watered");
+        assertFalse(HerdNeeds.sleepsNow(false, false, true, false, false), "out of its window it lies down only when tired");
+    }
+
+    @Test
+    void theWindowStartsNoSleepWhileItGetsUpIsInWaterStarvesOrItsHerdTravels() {
+        assertFalse(HerdNeeds.sleepsNow(true, true, true, false, false), "it gets up from a rest: no sit-down mid get-up");
+        assertFalse(HerdNeeds.sleepsNow(true, false, false, false, false), "in water, or not on the ground");
+        assertFalse(HerdNeeds.sleepsNow(true, false, true, true, false), "starving or dehydrated: it stays awake to eat or drink");
+        assertFalse(HerdNeeds.sleepsNow(true, false, true, false, true),
+                "its herd travels: a roaming leader lies down through the journey pause, an urgent trip ends first");
+    }
 }

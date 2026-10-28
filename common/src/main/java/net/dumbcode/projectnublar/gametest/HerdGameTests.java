@@ -301,6 +301,7 @@ public final class HerdGameTests {
      * Spec T4: a pinned grazing herd of 20; no pair stays closer than the hard minimum for more than 20 ticks.
      */
     public static void grazingHerdHoldsHardMinimum(GameTestHelper helper) {
+        helper.setTime(MORNING_DAY_TIME);
         List<Dinosaur> animals = hatchTwenty(helper, 3);
         int[][] close = new int[animals.size()][animals.size()];
         long[] clock = new long[3]; // ticks, pinned ticks, counted ticks
@@ -331,6 +332,7 @@ public final class HerdGameTests {
      * grazing.
      */
     public static void grazingMembersStayPut(GameTestHelper helper) {
+        helper.setTime(MORNING_DAY_TIME);
         List<Dinosaur> animals = hatchTwenty(helper, 3);
         double[][] last = new double[animals.size()][2];
         long[] clock = new long[4]; // ticks, pinned ticks, counted ticks, ticks with enough members standing
@@ -391,6 +393,7 @@ public final class HerdGameTests {
      * so the spot check cannot pass with no spots.
      */
     public static void smallLeaderMovesKeepGraze(GameTestHelper helper) {
+        helper.setTime(MORNING_DAY_TIME);
         List<Dinosaur> animals = hatchTwenty(helper, 3);
         double[][] spots = new double[animals.size()][];
         Dinosaur[] ordered = new Dinosaur[1]; // the leader that got the last order
@@ -483,6 +486,7 @@ public final class HerdGameTests {
      * </ul>
      */
     public static void stackedMembersSeparate(GameTestHelper helper) {
+        helper.setTime(MORNING_DAY_TIME);
         List<Dinosaur> animals = new ArrayList<>();
         for (int i = 0; i < 3; i++) {
             animals.add(hatch(helper, EntityInit.GALLIMIMUS.get(), STACK_POS, 0D));
@@ -829,10 +833,11 @@ public final class HerdGameTests {
     }
 
     /**
-     * Morning day time for the travel tests: every travel test runs at most 4000 ticks, so it ends before the
-     * Gallimimus sleep window (day time 16000), when a roaming leader lies down (P13a ruling Q2).
+     * Morning day time for the travel tests and the graze and stand tests: each runs at most 4000 ticks, so it ends
+     * before the Gallimimus sleep window (day time 16000). In the window a grazing herd lies down (Task 42) and a
+     * roaming leader lies down (P13a ruling Q2), so the herd would neither graze nor walk.
      */
-    private static final long TRAVEL_DAY_TIME = 1000L;
+    private static final long MORNING_DAY_TIME = 1000L;
 
     /** The part of a travel test that differs per test: its own checks and its pass condition. */
     @FunctionalInterface
@@ -853,12 +858,12 @@ public final class HerdGameTests {
      * later tick: checks the walls ({@link #checkWalls}), also while the herd is split; then, while the
      * animals are one herd, runs {@code check}. Succeeds when {@code check} passes; fails with {@code failure}
      * if it has not passed {@code limitTicks} after the journey started (a split herd included). The day time is
-     * set to {@link #TRAVEL_DAY_TIME} at the start (P13a fix round 1): in its sleep window the leader lies down until
+     * set to {@link #MORNING_DAY_TIME} at the start (P13a fix round 1): in its sleep window the leader lies down until
      * the window ends and the journey pauses (ruling Q2), which would time the test out.
      */
     private static void runJourney(GameTestHelper helper, List<Dinosaur> animals, BlockPos goal, int limitTicks,
                                    String failure, Runnable everyTick, JourneyCheck check) {
-        helper.setTime(TRAVEL_DAY_TIME);
+        helper.setTime(MORNING_DAY_TIME);
         long[] clock = {0L, -1L}; // ticks, tick the journey started
         helper.onEachTick(() -> {
             long tick = ++clock[0];

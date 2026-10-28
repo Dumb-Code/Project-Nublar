@@ -15,7 +15,8 @@ import org.jetbrains.annotations.Nullable;
  * whenever it is tired. The leader rests at normal tiredness (P13a ruling 2: no critical gate for the leader;
  * its rest pauses the journey, {@link #isDown}). The leader and every grazing or groupless animal follow
  * their needs as before. In every state, a member does not start a rest while it steps aside for a make-way
- * ask ({@link #mayStartRest}).
+ * ask ({@link #mayStartRest}). In its sleep window an animal lies down tired or not, unless its herd travels
+ * ({@link #sleepsNow}).
  */
 public final class HerdNeeds {
 
@@ -49,6 +50,33 @@ public final class HerdNeeds {
     /** The animal gets up from a rest: the get-up state, or the getting-up memory (fix round 1, item 2). */
     static boolean isRising(Dinosaur dinosaur) {
         return dinosaur.isRising() || BrainUtil.hasMemory(dinosaur, MemoryModuleTypeInit.GETTING_UP.get());
+    }
+
+    /**
+     * Task 42 (backlog F2.0 "Sleep windows"): the animal lies down because its sleep window has begun, tired or
+     * not. {@code Rest} starts on this or on tiredness, and keeps the sleeper down until the window ends. The rule
+     * is the same for a solo animal, a leader and a member. No sleep starts while the animal gets up, off dry
+     * ground, with an empty hunger or thirst bar (it must eat or drink; {@code Rest} also gets it up then), or
+     * while its herd travels: a roaming leader lies down through the journey pause ({@link #lieDown}), and an
+     * urgent trip ends before the herd sleeps.
+     *
+     * @param inSleepWindow        the day time is in the species' sleep window
+     * @param rising               the animal gets up from a rest ({@link #isRising})
+     * @param onDryGround          the animal stands on the ground and not in water
+     * @param starvingOrDehydrated its hunger or thirst bar is at zero
+     * @param herdTravels          its herd is in the travel state
+     */
+    static boolean sleepsNow(boolean inSleepWindow, boolean rising, boolean onDryGround, boolean starvingOrDehydrated,
+                             boolean herdTravels) {
+        return inSleepWindow && !rising && onDryGround && !starvingOrDehydrated && !herdTravels;
+    }
+
+    /** {@link #sleepsNow} for an animal: besides tiredness, the start test of {@code Rest}. */
+    public static boolean sleepsNow(Dinosaur dinosaur) {
+        DinoGroup group = GroupManager.groupOf(dinosaur);
+        return sleepsNow(dinosaur.getDinoBehaviour().inSleepWindow(dinosaur.level().getOverworldClockTime()),
+                isRising(dinosaur), dinosaur.onGround() && !dinosaur.isInWater(),
+                DinoNeedsUtils.isDehydratedOrStarving(dinosaur), group != null && group.state() == HerdState.TRAVEL);
     }
 
     /**
