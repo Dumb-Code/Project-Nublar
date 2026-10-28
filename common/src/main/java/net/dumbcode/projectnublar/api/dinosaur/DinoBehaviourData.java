@@ -122,8 +122,18 @@ public record DinoBehaviourData(
         return switch (this.activityWindow) {
             case DIURNAL -> SleepWindow.DIURNAL.contains(dayTick);
             case NOCTURNAL -> SleepWindow.NOCTURNAL.contains(dayTick);
-            case CATHEMERAL -> this.sleepWindows.stream().anyMatch(window -> window.contains(dayTick));
+            case CATHEMERAL -> inAny(this.sleepWindows, dayTick);
         };
+    }
+
+    /** A plain loop: the herd code asks every tick, for every leader and resting animal. */
+    private static boolean inAny(List<SleepWindow> windows, int dayTick) {
+        for (SleepWindow window : windows) {
+            if (window.contains(dayTick)) {
+                return true;
+            }
+        }
+        return false;
     }
 
     public static DinoBehaviourData fromNBT(CompoundTag tag) {
@@ -168,7 +178,8 @@ public record DinoBehaviourData(
         boolean pPack = tag.getBooleanOr("can_form_group", false);
         // An animal saved before the activity window has only the old flag: nocturnal true is the nocturnal window.
         ActivityWindow pActivityWindow = tag.read(ACTIVITY_WINDOW_KEY, ActivityWindow.CODEC)
-                .orElseGet(() -> tag.getBooleanOr(OLD_NOCTURNAL_KEY, false) ? ActivityWindow.NOCTURNAL : ActivityWindow.DIURNAL);
+                .orElseGet(() -> tag.getBooleanOr(OLD_NOCTURNAL_KEY, false)
+                        ? ActivityWindow.NOCTURNAL : ActivityWindow.DIURNAL);
         List<SleepWindow> pSleepWindows = tag.read(SLEEP_WINDOWS_KEY, SleepWindow.CODEC.listOf()).orElse(List.of());
 
         return new DinoBehaviourData(pSpeciesID,pDietID,pMaxHealth,pEnergyCapacity,pAttack,pSpeed,pSize,

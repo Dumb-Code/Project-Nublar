@@ -165,13 +165,15 @@ public class BehaviourDataReloadListener extends SimpleJsonResourceReloadListene
         boolean pack = GsonHelper.getAsBoolean(jsonObject, CAN_FORM_GROUP_KEY);
         // Engineering backlog F2.0 "Sleep windows": a diurnal or nocturnal species has a fixed window, no list.
         JsonElement activityJson = GsonHelper.getNonNull(jsonObject, DinoBehaviourData.ACTIVITY_WINDOW_KEY);
-        JsonArray sleepJson = GsonHelper.getAsJsonArray(jsonObject, DinoBehaviourData.SLEEP_WINDOWS_KEY, new JsonArray());
+        JsonArray sleepJson = GsonHelper.getAsJsonArray(jsonObject, DinoBehaviourData.SLEEP_WINDOWS_KEY,
+                new JsonArray());
         ActivityWindow activityWindow = ActivityWindow.CODEC.parse(JsonOps.INSTANCE, activityJson)
                 .getOrThrow(JsonSyntaxException::new);
         List<SleepWindow> sleepWindows = SleepWindow.CODEC.listOf().parse(JsonOps.INSTANCE, sleepJson)
                 .getOrThrow(JsonSyntaxException::new);
         if (activityWindow == ActivityWindow.CATHEMERAL && sleepWindows.isEmpty()) {
-            throw new JsonSyntaxException("A cathemeral species never sleeps without its " + DinoBehaviourData.SLEEP_WINDOWS_KEY);
+            throw new JsonSyntaxException("A cathemeral species never sleeps without its "
+                    + DinoBehaviourData.SLEEP_WINDOWS_KEY);
         }
 
         return new DinoBehaviourData(

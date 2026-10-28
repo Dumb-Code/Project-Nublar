@@ -440,17 +440,7 @@ class JourneyPolicyTest {
                 "a still leader moves less than one trail spacing");
     }
 
-    // --- P13a: journeys pause, night, start rule, need detours, logs ---
-
-    @Test
-    void nightIsFromSunsetUntilMorning() {
-        assertFalse(JourneyPolicy.isNight(0L));
-        assertFalse(JourneyPolicy.isNight(JourneyPolicy.SUNSET_DAY_TIME));
-        assertTrue(JourneyPolicy.isNight(JourneyPolicy.SUNSET_DAY_TIME + 1));
-        assertTrue(JourneyPolicy.isNight(23999L));
-        assertFalse(JourneyPolicy.isNight(24000L), "morning of the next day");
-        assertTrue(JourneyPolicy.isNight(24000L + 13000L));
-    }
+    // --- P13a: journeys pause, sleep window, start rule, need detours, logs ---
 
     /** A behaviour profile with only its sleep data, as an animal saves it. */
     private static DinoBehaviourData sleepsIn(ActivityWindow activityWindow, SleepWindow... sleepWindows) {

@@ -29,7 +29,7 @@ import java.util.function.DoubleSupplier;
  *       {@link HerdArea#SPOT_CANDIDATES} candidates inside the herd area that is farther than the graze
  *       spacing from every reserved spot and reachable in a straight line by the clearance box. Without a
  *       spot: walk into the area, then stand only where a herd mate can pass ({@link #roomBeside}).</li>
- *   <li><b>Travel</b>: see {@link #travel}. While the leader rests on a roaming journey at night or longer than
+ *   <li><b>Travel</b>: see {@link #travel}. While the leader rests on a roaming journey in its sleep window or longer than
  *       {@link JourneyPolicy#SHORT_REST_PAUSE_TICKS}, the herd spreads out to rest instead ({@link #restSpread}).</li>
  *   <li><b>Stuck</b> ({@link ProgressMonitor}, or every heading masked by blocks for
  *       {@link #BLOCKED_FALLBACK_TICKS}): a fallback vanilla path to a fixed point, within the herd's
@@ -313,14 +313,14 @@ public class FollowFormation<E extends Dinosaur> extends ExtendedBehaviour<E> {
     }
 
     /**
-     * P13a ruling Q1: the leader rests on a roaming journey at night, or longer than
+     * P13a ruling Q1: the leader rests on a roaming journey in its sleep window, or longer than
      * {@link JourneyPolicy#SHORT_REST_PAUSE_TICKS}, so the herd leaves its slots and spreads out round the leader
      * to rest, as when grazing. Once per pause the member picks a rest spot the way it picks a graze spot
      * ({@link #pickSpot}: inside the herd radius R round the leader, the graze spacing from every reserved spot and
      * the leader, reachable in a straight line, within {@link #FALLBACK_RANGE}); with none, where it stands. It
      * walks there at {@link #GRAZE_SPEED} (a fallback path when stuck; stuck within
      * {@link #FALLBACK_MIN_DISTANCE}, that place is its spot) and lies down there, tired or not
-     * ({@link JourneyPolicy#sleepsAtSpot}: always at night, in the daytime below its maximum stamina; never once
+     * ({@link JourneyPolicy#sleepsAtSpot}: always in the sleep window, outside it below its maximum stamina; never once
      * the leader gets up). A member that slept through a spread's start picks again for the next spread.
      */
     private void restSpread(ServerLevel level, E entity, DinoGroup group, Dinosaur leader, HerdMoveControl control, long now) {

@@ -183,9 +183,6 @@ final class JourneyPolicy {
      * slot; a longer one, or any in the rest hours, lets the herd spread out to rest ({@link #herdSpreads}).
      */
     static final int SHORT_REST_PAUSE_TICKS = 400;
-    /** Sunset: from this day time on it is night ({@link #isNight}). */
-    static final long SUNSET_DAY_TIME = 12000L;
-    static final long DAY_TICKS = 24000L;
     /** Ruling Q3: a roaming journey starts only with at least this fraction of the maximum stamina (150 of 200 for Gallimimus). */
     static final double JOURNEY_MIN_STAMINA_FRACTION = 0.75D;
     static final int OUTSIDE_RECENTRE_TICKS = 100;
@@ -425,11 +422,6 @@ final class JourneyPolicy {
             return Gathering.GO;
         }
         return Gathering.SLOW;
-    }
-
-    /** {@code true} at night: day time (mod {@link #DAY_TICKS}) after {@link #SUNSET_DAY_TIME}. */
-    static boolean isNight(long dayTime) {
-        return Math.floorMod(dayTime, DAY_TICKS) > SUNSET_DAY_TIME;
     }
 
     /**

@@ -829,8 +829,8 @@ public final class HerdGameTests {
     }
 
     /**
-     * Morning day time for the travel tests: every travel test runs at most 4000 ticks, so it ends before sunset
-     * (day time 12000), when a roaming leader lies down for the night (P13a ruling Q2).
+     * Morning day time for the travel tests: every travel test runs at most 4000 ticks, so it ends before the
+     * Gallimimus sleep window (day time 16000), when a roaming leader lies down (P13a ruling Q2).
      */
     private static final long TRAVEL_DAY_TIME = 1000L;
 
@@ -853,8 +853,8 @@ public final class HerdGameTests {
      * later tick: checks the walls ({@link #checkWalls}), also while the herd is split; then, while the
      * animals are one herd, runs {@code check}. Succeeds when {@code check} passes; fails with {@code failure}
      * if it has not passed {@code limitTicks} after the journey started (a split herd included). The day time is
-     * set to {@link #TRAVEL_DAY_TIME} at the start (P13a fix round 1): at night the leader lies down until
-     * morning and the journey pauses (ruling Q2), which would time the test out.
+     * set to {@link #TRAVEL_DAY_TIME} at the start (P13a fix round 1): in its sleep window the leader lies down until
+     * the window ends and the journey pauses (ruling Q2), which would time the test out.
      */
     private static void runJourney(GameTestHelper helper, List<Dinosaur> animals, BlockPos goal, int limitTicks,
                                    String failure, Runnable everyTick, JourneyCheck check) {

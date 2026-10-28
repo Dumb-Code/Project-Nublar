@@ -53,10 +53,10 @@ public final class HerdNeeds {
 
     /**
      * Makes the animal lie down: {@code Rest} starts on a later brain tick when the needs rule allows it
-     * ({@link #mayRest}). In a day animal's night the rest lasts until morning, whatever its stamina; in the
-     * daytime it ends at full stamina. P13a rulings Q1 and Q2: the leader on a roaming journey at night, and a
-     * member at its rest spot while the herd rests. The group remembers an animal this marked tired (fix round
-     * 1, item 5), so the mark is dropped again if it never rests ({@link #dropUnusedTired}).
+     * ({@link #mayRest}). In the species' sleep window the rest lasts until the window ends, whatever its stamina;
+     * outside it the rest ends at full stamina. P13a rulings Q1 and Q2: the leader on a roaming journey in its sleep
+     * window, and a member at its rest spot while the herd rests. The group remembers an animal this marked tired
+     * (fix round 1, item 5), so the mark is dropped again if it never rests ({@link #dropUnusedTired}).
      */
     static void lieDown(Dinosaur dinosaur, DinoGroup group) {
         if (!BrainUtil.hasMemory(dinosaur, MemoryModuleTypeInit.IS_TIRED.get())) {

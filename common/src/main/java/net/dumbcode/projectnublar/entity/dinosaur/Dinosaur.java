@@ -937,9 +937,10 @@ public abstract class Dinosaur extends TamableAnimal implements FossilRevived, G
             }
             processThirstSchedule();
             processHungerSchedule();
-            // A fed animal stops hunting and forgets its hunger: every hunger tick sets IS_HUNGRY, and only this
-            // clears it, so without it one tick would leave the animal hungry for good.
-            if(!DinoNeedsUtils.isHungry(this)){
+            // A fed hunter stops hunting and forgets its hunger: every hunger tick sets IS_HUNGRY, and only this
+            // clears it, so without it one tick would start hunt after hunt. Eating at a feeder or from the ground
+            // keeps its own IS_HUNGRY rule.
+            if(!DinoNeedsUtils.isHungry(this) && BrainUtil.hasMemory(this, MemoryModuleTypeInit.HUNTING.get())){
                 BrainUtil.clearMemory(this, MemoryModuleTypeInit.HUNTING.get());
                 BrainUtil.clearMemory(this, MemoryModuleTypeInit.IS_HUNGRY.get());
             }
