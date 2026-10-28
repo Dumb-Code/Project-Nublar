@@ -13,6 +13,7 @@ import net.minecraft.network.chat.Component;
 import net.dumbcode.projectnublar.entity.dinosaur.Dinosaur;
 import net.minecraft.world.entity.EntityType;
 
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -92,24 +93,20 @@ public class CommonClientClass {
         //Herbivores
 
         // The Triceratops sets are the art team's Nublar skins, the female set here and the male set below: base.png
-        // (the base pass) is the plain base layer, then the set's other layers in the art set's order, then the four
-        // horn layers (art Brown v1, Horn1 to Horn4; each paints one of the model's four horn sets, and all four paint
-        // the nose horn, beak and frill spikes). Colour or fixed (-1) as the art list marks each layer; a colour index
-        // follows the layer with the same role in another species (see the comment on each line).
-        LAYER_REGISTRY.put(EntityInit.TRICERATOPS.get(),List.of(
+        // (the base pass) is the plain base layer, then the set's other layers in the art set's order, then the twelve
+        // horn layers, of which each animal draws one (see withTriceratopsHorns). Colour or fixed (-1) as the art list
+        // marks each layer; a colour index follows the layer with the same role in another species (see the comment on
+        // each line).
+        LAYER_REGISTRY.put(EntityInit.TRICERATOPS.get(),withTriceratopsHorns(
                 new DinoLayer("belly",2),        // as every belly
                 new DinoLayer("osteoderms",1),   // as back (proposed)
                 new DinoLayer("toes",-1),
                 new DinoLayer("mouth",-1),
                 new DinoLayer("nostrils",-1),
                 new DinoLayer("eyes",-1),
-                new DinoLayer("eyelids",-1).visibleWhen(Dinosaur::isResting),
-                new DinoLayer("horn1",3),        // horn colour (proposed)
-                new DinoLayer("horn2",3),
-                new DinoLayer("horn3",3),
-                new DinoLayer("horn4",3)
+                new DinoLayer("eyelids",-1).visibleWhen(Dinosaur::isResting)
         ));
-        MALE_LAYER_REGISTRY.put(EntityInit.TRICERATOPS.get(),List.of(
+        MALE_LAYER_REGISTRY.put(EntityInit.TRICERATOPS.get(),withTriceratopsHorns(
                 new DinoLayer("midtone",1),      // as back (proposed)
                 new DinoLayer("darkercolor",1),  // as Gallimimus body-darkness (proposed)
                 new DinoLayer("pattern",3),      // as Tyrannosaurus and Dilophosaurus pattern
@@ -121,11 +118,7 @@ public class CommonClientClass {
                 new DinoLayer("eyesockets",1),   // dark shade, as back (proposed)
                 new DinoLayer("nostrils",-1),
                 new DinoLayer("eyes",-1),
-                new DinoLayer("eyelids",-1).visibleWhen(Dinosaur::isResting),
-                new DinoLayer("horn1",3),        // horn colour (proposed)
-                new DinoLayer("horn2",3),
-                new DinoLayer("horn3",3),
-                new DinoLayer("horn4",3)
+                new DinoLayer("eyelids",-1).visibleWhen(Dinosaur::isResting)
         ));
 
         LAYER_REGISTRY.put(EntityInit.BRACHIOSAURUS.get(),List.of(
@@ -168,6 +161,26 @@ public class CommonClientClass {
                 new DinoLayer("eyelids",-1).visibleWhen(Dinosaur::isResting)
         ));
     }
+
+    /**
+     * Returns {@code layers} followed by the twelve Triceratops horn layers, one per horn set and horn colour: the art's
+     * Brown ({@code horn<N>}), Grey ({@code horn<N>_grey}) and Black ({@code horn<N>_black}) v1 textures. Each texture
+     * paints one horn set, plus the nose horn, beak and frill spikes that every set shares. A horn layer is fixed (no
+     * tint) and draws only on the animals whose {@link TriceratopsHorns} pick it is, so each animal shows one horn set
+     * in one colour.
+     */
+    private static List<DinoLayer> withTriceratopsHorns(DinoLayer... layers) {
+        List<DinoLayer> all = new ArrayList<>(List.of(layers));
+        for (int set = 1; set <= TriceratopsHorns.SETS; set++) {
+            for (int colour = 0; colour < TriceratopsHorns.COLOURS.size(); colour++) {
+                TriceratopsHorns horns = new TriceratopsHorns(set, colour);
+                all.add(new DinoLayer(horns.layerName(), -1)
+                        .visibleWhen(dino -> horns.equals(TriceratopsHorns.of(dino.getUUID()))));
+            }
+        }
+        return List.copyOf(all);
+    }
+
     public static List<DinoLayer> getDinoLayers(EntityType<?> type){
         if(!LAYER_REGISTRY.containsKey(type)){
             return List.of(new DinoLayer("base", 0));
