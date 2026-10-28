@@ -142,7 +142,7 @@ public record DinoBehaviourData(
 
 
         double pMaxHealth = tag.getDoubleOr("default_health", 0);
-        double pEnergyCapacity= tag.getDoubleOr("default_energy_capacity", 0);
+        double pEnergyCapacity= tag.getDoubleOr("default_stamina", 0);
         double pAttack = tag.getDoubleOr("default_attack_damage", 0);
         double pSpeed= tag.getDoubleOr("default_speed", 0);
         double pSize= tag.getDoubleOr("default_size", 0);
