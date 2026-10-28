@@ -2469,6 +2469,7 @@ The species sections below list what each species needs. The Art list gives the 
 - **2020 board list:** walk, run, swim, jump, drink, eat, graze, attack (horn attack 1), attack 2 (horn attack 2), call, call 2, idle 1, idle 2, sit, sleep, sniff air, sniff ground, look left and right, shake head, limp, death.
 - **Added by a Beta behaviour:** turn left and right, rest, rest idle, get up, roar threat display, ram wind-up, ram, injured/flinch, yawn, sneeze, startled, shake body, scratch, speak.
   - Sit needs its own clip, apart from rest.
+  - The last pose of rest (the lie-down) is the rest pose. Rest idle holds that pose for the whole rest.
   - Limp uses the injured clip until its own limp clip exists.
 
 **Sounds**
@@ -2569,10 +2570,11 @@ See Art list → each species (Animations, Sounds), Dinosaur effects.
 - Every species plays the T. rex roar as its warning, which is a defect.
 - No dinosaur effect exists.
 - Every species walks and runs at the same body speeds. Each species' walk and run clips show its own pace, so the feet slide.
+- A resting Triceratops lies down, then stands again while it rests, because its rest idle and get up clips are empty.
 
 **Engineering:** backlog F2.3.
 
-**Changed since last review:** Gallimimus gets blood drips and a bloody mouth. Screen shake only on T. rex, Triceratops and Brachiosaurus. T. rex and Dilophosaurus get bloody claws. Only T. rex and Velociraptor play a nesting clip. Per-species walk and run speeds are open.
+**Changed since last review:** Gallimimus gets blood drips and a bloody mouth. Screen shake only on T. rex, Triceratops and Brachiosaurus. T. rex and Dilophosaurus get bloody claws. Only T. rex and Velociraptor play a nesting clip. Per-species walk and run speeds are open. Triceratops rest idle holds the last pose of its lie-down.
 ### F2.4 Needs: hunger, thirst, stamina, sleep, stress and company
 
 Dinosaurs get hungry, thirsty, tired, sleepy, lonely and stressed, and a park that neglects them pays for it.
@@ -3288,6 +3290,8 @@ Each feeder is a block of its own. In each model, y = 0 is the ground. The origi
 | Live-Bait Feeder | Release | At the set interval, the hatch opens and one animal comes out on the chain |
 | All feeders | Fill look | Empty look at an empty gauge, full look when the gauge holds food |
 
+- A carnivore platform rises in one smooth motion, with the meat on it for the whole rise.
+- As dinosaurs eat, the meat pieces on the platform disappear one at a time, in step with the food left.
 - Feeder 6 has no open loop. It holds its open pose.
 - Until the artist delivers the close clip, code plays the open clip in reverse.
 - No new bait animal comes out while the last one lives.
@@ -3375,11 +3379,12 @@ See Art list → Feeders: models, the Live-Bait pole, empty and full looks, open
 
 - One carnivore feeder (Feeder 1) exists with its open clip and its full and empty looks.
 - It skips its third slot and does not save its contents. Eating does not raise hunger.
+- Its platform does not rise smoothly, and the meat shows only when the platform reaches the top. The meat shows all or nothing, whatever the food left.
 - No herbivore or live-bait feeder exists, and no feeder has a screen.
 
 **Engineering:** backlog F3.3.
 
-**Changed since last review:** Every feeder is an in-ground hatch. The old model heights (2.9 to 8.7 blocks) were mostly shaft below the ground. Every feeder screen has timer buttons. Hatch stays open until all animals finish. Each feeder gets a close clip. Code draws the live-bait chain.
+**Changed since last review:** Every feeder is an in-ground hatch. The old model heights (2.9 to 8.7 blocks) were mostly shaft below the ground. Every feeder screen has timer buttons. Hatch stays open until all animals finish. Each feeder gets a close clip. Code draws the live-bait chain. The carnivore platform rises smoothly with the meat on it. Meat pieces disappear one at a time as dinosaurs eat.
 
 ### F3.4 Park recipes
 

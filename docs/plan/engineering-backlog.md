@@ -3679,6 +3679,7 @@ What needs each added clip:
 ##### Clip wiring
 
 - REST plays the species' own `sleep` clip while the animal sleeps (F2.4).
+- Triceratops: the last pose of `rest` (the lie-down, 2.3 s) is the rest pose. `restidle` holds that pose for the whole rest (Art list).
 - Rename the Triceratops `Sprint ` and `injured` clips to `run` and `flinch` if they are the same motion.
 - Wire `RUN_ANIM`. Read flinch lengths from the animation file.
 - Walk starts at 0.05 and run at 0.2 blocks per tick (start values). F2.4's running state reads the same signal.
@@ -3784,8 +3785,9 @@ See Art list → each species (every clip and sound row), and Dinosaur effects. 
 
 - `ThreatDisplay` plays the T. rex roar for every species.
 - Every species walks and runs at the same body speeds. Each species' walk and run clips show its own pace, so the feet slide.
+- The Triceratops `restidle` and `getup` clips are empty. A resting Triceratops lies down with `rest`, then stands again while it rests.
 
-**Changed since last review:** Every species gets own clips and sounds, placeholders count as missing. Per-species warning sounds. Only T. rex and Velociraptor have nesting clips. Limp in Beta below 30 % health. Get-up idle fallback is development only. Gallimimus gets blood effects. Screen shake for three large species. Per-species walk and run speeds are open.
+**Changed since last review:** Every species gets own clips and sounds, placeholders count as missing. Per-species warning sounds. Only T. rex and Velociraptor have nesting clips. Limp in Beta below 30 % health. Get-up idle fallback is development only. Gallimimus gets blood effects. Screen shake for three large species. Per-species walk and run speeds are open. Triceratops rest idle holds the last pose of its lie-down.
 ### F2.4: Needs
 
 F2.4 gives each dinosaur hunger, thirst, stamina, sleep and stress, makes each need have results, and keeps a 100-dinosaur park at 20 ticks per second.
@@ -5347,6 +5349,9 @@ F3.3 adds seven in-ground feeders that hoppers can stock and that open on a time
   - Fix the range mismatch: eat range = walk stop distance + half the species width.
   - Fix the sensor cache expiry.
   - Rename the id.
+- [ ] Fix the Feeder 1 platform and meat. Today the platform does not rise smoothly, and the meat shows only at the top. The meat shows all or nothing.
+  - The platform rises smoothly, with the meat on it for the whole rise.
+  - The meat pieces disappear one at a time as dinosaurs eat (see "Feeder motion").
 
 #### Scope: Block and storage
 
@@ -5440,6 +5445,7 @@ The clips are the ones in each model file.
 - **Open.** The open clip plays once when the feeding timer fires and the gauge holds food. On a carnivore feeder the doors slide apart and the meat platform rises. On a herbivore feeder the food rises to the feeder's height.
 - **Live-Bait open.** The open clip plays once when a release fires. One animal comes out on the chain.
 - **Bites.** Each bite plays the food-drop sound. A carnivore bite also shows a few food particles.
+- **Meat on the platform.** A carnivore platform rises smoothly, with the meat on it for the whole rise. As dinosaurs eat, the meat pieces disappear one at a time, in step with the food left.
 - **Close.** The close clip plays after 100 ticks with no bite, or at once when the gauge is empty. The Live-Bait Feeder closes when the animal is out (proposal, lead decides).
 - **Close clip.** Each feeder gets a close clip from the artist (an Art list row). Until it exists, the open clip plays backwards through GeckoLib 5.
 - **Sync.** The server owns the state (closed, opening, open, closing) and its start game time. It syncs them on change only. Clients play the clips from game time, so every player sees the same motion.
@@ -5472,6 +5478,7 @@ The clips are the ones in each model file.
 #### Acceptance (both loaders)
 
 - A hopper keeps a Small Carnivore Feeder stocked. When its timer fires, the hatch opens, the meat rises, and a T. rex eats from it with a rising hunger value.
+- The platform of a Small Carnivore Feeder rises smoothly, and its meat shows for the whole rise. As a T. rex eats, the meat pieces disappear one at a time.
 - A Brachiosaurus eats from the Very Tall Herbivore Feeder at head height. A Triceratops eats from the Low Herbivore Feeder.
 - Eight Gallimimus, hunger at 0.3, share one Low Herbivore Feeder with one open long side.
   - At most 3 eat at once (spot count, proposal, lead decides). The others wait within 6 blocks.
@@ -6837,6 +6844,7 @@ These rows come from a review of the specs against mechanics in other games.
 | D290 | F2.2, F1.5, F2.0, F2.5 | The Triceratops model has four horn sets, and each art file paints one set. The 26.2 port drew all four sets on every animal. Which horn set and horn colour does an animal show, and who chooses them? | Answered 2026-10-28 (lead): horn models and colours are "tied to genes so that players can modify". They are "passed down from parents to offsprings". Horn set and horn colour are look genes. Each animal shows one horn set in one horn colour. The player picks and edits both in the Sequencer. A bred young takes each from a random parent, one roll per trait. The colours are the art's colour files (Brown, Grey, Black), not a tint. Until the genes exist, each animal gets a random set and colour, fixed for that animal (M0.P2 Task 46). Open for the art team: the `v2` files and the Black/Yellow overlays (Art list question 22) | Answered |
 | D291 | F2.0, F2.1 | The plan has a water path cost and a "Swimming and wading" activity. Today an animal in deep water sinks to the bottom and drowns if it cannot climb out, as on 1.20.1. When does an animal wade, and when does it swim? | Answered 2026-10-28 (lead): dinosaurs "wade through water and then swim based on the depth to height ratio". There is "no vanilla floating". An animal wades while the water is shallower than a set share of its body height, and swims in deeper water. A swimming animal does not bob like a vanilla mob, at any depth. A wading or swimming animal climbs out where the shore lets it. The share: value open, lead decides | Answered |
 | D292 | M0.B00, F2.3 | Every species walks and runs at the same body speeds. Each species' walk and run clips show its own pace, so the feet slide, as on 1.20.1. The species data has a `speed` stat, but no walk speed, run speed or walk-to-run switch per species. What are they? | Lead (2026-10-28): "It was more the speed of their walking itself. And it's still not much better as there is still a sliding effect." Each species gets its own walk speed, run speed and walk-to-run switch. The values: value open, lead decides. Until then, every species keeps the shared body speeds | Lead decision pending |
+| D293 | F3.3 | In the lead's playtest of 2026-10-28, the Small Carnivore Feeder platform does not rise smoothly, and the meat shows only at the top. The meat shows all or nothing. How do the platform and the meat look? | Answered 2026-10-28 (lead): "There's a lot of glitching as the platform rises and meat only appears when the platform hits the top - note this for later to fix". "Also the meat chunks should disappear chunk by chunk as the dinosaurs eat from it". A carnivore platform rises smoothly, with the meat on it for the whole rise. As dinosaurs eat, the meat pieces disappear one at a time, in step with the food left. The fix is F3.3 work | Answered |
 
 ---
 
@@ -6922,3 +6930,4 @@ These rows come from a review of the specs against mechanics in other games.
 - **2026-10-25 (lead: M0.P0 and playtest items):** D274, D275 and D277 to D283 answered. Fence `brokenSide` fix confirmed with no save migration. F1.1 gets fossil blocks for all six species per sprite, and no species fallback for fossil ore. F1.5 preview look set. F1.10 gets the status panel, the glow regions, two creative items per machine and the machine gate. F1.8 lamp glows and gives light whenever powered. The bird Embryo Syringe takes the 1.12 texture.
 - **2026-10-25 (lead: machine screen widgets):** D289 answered. F1.10 gets a Nublar widget look for sliders, dropdown arrows, buttons and text boxes, in the Sequencer style. Four Missing art rows under Machine shared parts.
 - **2026-10-28 (lead: M0.P2 playtest, round 3):** D290 to D292. F2.2 gets Triceratops horn set and horn colour as look genes, one of each per animal, with F1.5 lists and F2.0 and F2.5 heredity. F2.0 and F2.1 get wading and swimming by water depth against body height, with no vanilla bobbing. M0.B00 and F2.3 get per-species walk and run speeds as open values. D14 gets the lead's note on animation speed. Art list question 22.
+- **2026-10-28 (lead: M0.P2 playtest, round 4):** D293. F3.3 gets a smooth platform rise with the meat on it, and meat pieces that disappear one at a time as dinosaurs eat. F2.3 and the Art list get the Triceratops rest hold: `restidle` holds the last pose of `rest`. The Triceratops also needs a `getup` clip.

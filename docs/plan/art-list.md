@@ -110,7 +110,7 @@ Status words:
 - **Guns:** blocked on D08. They are not in the total.
 - **Per-milestone counts:** the roadmap's milestone table. They come from the Feature column of each row (F1.x is M1, F2.x is M2, F3.x is M3, F4.x is M4), with guns left out.
 
-**Changed since last review:** Vehicle assembly uses existing groups, so the chassis and engine rows are gone and the wheel split is a Done developer row. Large Generator gets its own ignite, fuel-out and loop rows. Release 1 asset groups listed, not counted. Question 21 settled. One glow mask row per lab machine. Incubator lamp colours set as placeholders. The bird Embryo Syringe takes the 1.12 texture. The dinosaur-embryo syringe needs a new sprite. Edit-tab censor static row added. Generic pelvis, foot and spine are Missing: no shared sprite exists. Nublar widget kit for machine screens (sliders, dropdown arrows, buttons, text boxes), Sequencer style. Triceratops horn sets named: one file per set, one set and one colour per animal. Question 22 on the horn `v2` files and the Black/Yellow overlays.
+**Changed since last review:** Vehicle assembly uses existing groups, so the chassis and engine rows are gone and the wheel split is a Done developer row. Large Generator gets its own ignite, fuel-out and loop rows. Release 1 asset groups listed, not counted. Question 21 settled. One glow mask row per lab machine. Incubator lamp colours set as placeholders. The bird Embryo Syringe takes the 1.12 texture. The dinosaur-embryo syringe needs a new sprite. Edit-tab censor static row added. Generic pelvis, foot and spine are Missing: no shared sprite exists. Nublar widget kit for machine screens (sliders, dropdown arrows, buttons, text boxes), Sequencer style. Triceratops horn sets named: one file per set, one set and one colour per animal. Question 22 on the horn `v2` files and the Black/Yellow overlays. Triceratops rest idle holds the last pose of its lie-down, and it needs a get-up clip. Feeder 2 needs one bone per meat piece.
 
 ## Questions for the artist and lead
 
@@ -921,8 +921,8 @@ Clip file: MOD/animations/entity/triceratops.animation.json. REPO file: models/T
 | Startled (extra) | Stand-or-flee reaction. Wanted for every species | Missing | F2.3 | None |
 | Shake body (extra) | Idle variety. Wanted for every species | Missing | F2.3 | None |
 | Scratch (extra) | Idle variety. Wanted for every species | Missing | F2.3 | None |
-| Rest idle | Lying idle | Placeholder | F2.3 | Stand-in: `restidle` is an empty clip |
-| Get up | Stand after rest | Placeholder | F2.3 | Stand-in: `getup` is an empty clip |
+| Rest idle | Lying idle. It holds the rest pose, the last pose of `rest`, for the whole rest | Placeholder | F2.3 | Stand-in: `restidle` is an empty clip, so the animal stands again after it lies down. It needs a `restidle` that holds the last pose of `rest` |
+| Get up | Stand after rest, from the rest pose | Placeholder | F2.3 | Stand-in: `getup` is an empty clip. It needs its own `getup` clip |
 | Sleep | Sleep need | Placeholder | F2.3 | Stand-in: the rest clip. No own sleep pose |
 | Sit | Sit and tame stay. The rest clip cannot serve it | Placeholder | F2.3 | Stand-in: `rest` |
 | Limp | Low-health walk. It replaces the walk below 30 % health, a config value | Placeholder | F2.3 | Stand-in: `injured`. Each species needs a new limp clip |
@@ -942,7 +942,7 @@ Clip file: MOD/animations/entity/triceratops.animation.json. REPO file: models/T
 | Graze low plants (eat) | Eats low plants | Done | F2.3 | `eat1` (12 bones) |
 | Ram wind-up and ram | Charge attack: Triceratops attacks, does not flee | Done | F2.3 | `ramwindup`, `ram` |
 | Threat display (roar) | Warning before attack | Done | F2.3 | `roar` |
-| Rest (lie down) | Rest need | Done | F2.3 | `rest` (REPO `rest/sleep`) |
+| Rest (lie down) | Rest need. Its last pose is the rest pose | Done | F2.3 | `rest` (REPO `rest/sleep`) |
 | Injured | Hit reaction | Done | F2.3 | `injured` |
 | Death | Death | Done | F2.3 | `dead` |
 | Sniff ground | Detection and idle. Scent trails are not in Beta | Done | F2.3 | `sniffground` |
@@ -2471,12 +2471,12 @@ Each feeder gets a close clip. No model has one yet. Until the artist makes it, 
 | Asset | Used for | Status | Feature | Where / reference |
 | --- | --- | --- | --- | --- |
 | Live-Bait Feeder: model and texture | Feeder 1 with a pole. Code draws the chain to the animal that is out, like a lead | Missing | F3.3 | None. Adapt REPO Feeder 1/Feeder 1.bbmodel |
-| Feeder 2, Large Carnivore Feeder: model and texture | Large carnivore hatch with more feeding spots | Needs export | F3.3 | REPO Feeder 2/ (bbmodel and PNG) |
+| Feeder 2, Large Carnivore Feeder: model and texture | Large carnivore hatch with more feeding spots. Each meat piece on the platform needs a bone of its own, so the meat disappears piece by piece | Needs export | F3.3 | REPO Feeder 2/ (bbmodel and PNG). Most of its meat cubes sit directly in the platform bone `Food_Panel` |
 | Feeder 3, Medium Herbivore Feeder: model and texture | Medium-height herbivore hatch | Needs export | F3.3 | REPO Feeder 3/ |
 | Feeder 4, Tall Herbivore Feeder: model and texture | Tall herbivore hatch | Needs export | F3.3 | REPO Feeder 4/ |
 | Feeder 5, Low Herbivore Feeder: model and texture | Low herbivore hatch for the Triceratops and the Gallimimus | Needs export | F3.3 | REPO Feeder 5/ |
 | Feeder 6, Very Tall Herbivore Feeder: model and texture | Very tall hatch for the Brachiosaurus | Needs export | F3.3 | REPO Feeder 6/ |
-| Feeder 1, Small Carnivore Feeder: model | Small carnivore hatch | Done | F3.3 | MOD/geo/block/carnivore_feeder_one.geo.json. REPO Feeder 1/Feeder 1.bbmodel |
+| Feeder 1, Small Carnivore Feeder: model | Small carnivore hatch. Its five meat pieces are bones of their own on the platform, so the meat can disappear piece by piece | Done | F3.3 | MOD/geo/block/carnivore_feeder_one.geo.json. REPO Feeder 1/Feeder 1.bbmodel |
 | Fish Feeder | Aquatic species are Release 1 | Not in Beta | F3.3 | REPO Fish Feeder/ |
 
 ### Skins and textures
@@ -2534,7 +2534,7 @@ Each feeder gets a close clip. No model has one yet. Until the artist makes it, 
 - **Carnivore feeder screen:** 3 × 3 meat slots, a red gauge and the timer buttons.
 - **Live-bait feeder screen:** pen count per animal type, interval buttons (2, 5, 10, 20 min), the animal on the chain and the next release.
 
-**Changed since last review:** Every feeder is an in-ground hatch. Feeders 3 and 4 ship. Live-Bait Feeder is Feeder 1 with a pole and a code-drawn chain. Each feeder gets a close clip. Three shared screens with timer buttons.
+**Changed since last review:** Every feeder is an in-ground hatch. Feeders 3 and 4 ship. Live-Bait Feeder is Feeder 1 with a pole and a code-drawn chain. Each feeder gets a close clip. Three shared screens with timer buttons. Meat pieces disappear one at a time as dinosaurs eat, so Feeder 2 needs one bone per meat piece.
 
 ---
 
