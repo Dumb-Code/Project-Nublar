@@ -44,7 +44,10 @@ import net.minecraft.world.phys.Vec3;
  * head look of GeckoLib 4 ({@code turnsHead}) was off for every species, so no bone pass turns the head.
  */
 public class DinosaurRenderer extends GeoEntityRenderer<Dinosaur, LivingEntityRenderState> {
-    /** The animal is male (gender gene 2.0, as {@link Dinosaur#isMale()}); the Gallimimus base texture reads it. */
+    /**
+     * The animal is male (gender gene 2.0, as {@link Dinosaur#isMale()}); the Gallimimus base texture and the
+     * Brachiosaurus crests read it.
+     */
     public static final DataTicket<Boolean> MALE = DataTicket.create("projectnublar_dinosaur_male", Boolean.class);
     /** Per colour layer, by its position in {@link Dinosaur#getLayers()}: its ARGB colour. */
     static final DataTicket<int[]> LAYER_COLOURS = DataTicket.create("projectnublar_dinosaur_layer_colours", int[].class);
@@ -59,6 +62,12 @@ public class DinosaurRenderer extends GeoEntityRenderer<Dinosaur, LivingEntityRe
     private static final float CROWN_GAP = 0.5F;
     /** The culling box is the model's bind-pose bounds plus 25 %, for poses that reach further. */
     private static final float CULLING_MARGIN = 1.25F;
+    /**
+     * The first bone of each gender's crest chain in the Brachiosaurus model ({@code crestMale1-4},
+     * {@code crestFemale1, 2, 4, 5}); no other species model has gender bones.
+     */
+    private static final String MALE_CREST = "crestMale1";
+    private static final String FEMALE_CREST = "crestFemale1";
 
     /** The colour layers of each gender are built (once, with the first animal of that gender). */
     private boolean maleLayersBuilt;
@@ -150,7 +159,10 @@ public class DinosaurRenderer extends GeoEntityRenderer<Dinosaur, LivingEntityRe
     }
 
     /**
-     * Adds the always-on breathing sway ({@link IdleSway}, fix P12a) to the bones the species' model has, after
+     * Shows only the animal's own gender's crest: the Brachiosaurus model carries both, and without this every
+     * Brachiosaurus drew the two on top of each other (on 1.20.1 too).
+     *
+     * <p>Then adds the always-on breathing sway ({@link IdleSway}, fix P12a) to the bones the species' model has, after
      * GeckoLib applied the keyframed animations, so the sway shows under every animation. A dead animal does not
      * sway. The time is the one Molang's {@code query.life_time} uses for this animal (GeckoLib 5
      * {@code AnimationProcessor.extractControllerStates}: {@code getAnimatableAge()} minus the manager's
@@ -160,6 +172,9 @@ public class DinosaurRenderer extends GeoEntityRenderer<Dinosaur, LivingEntityRe
      */
     @Override
     public void adjustModelBonesForRender(RenderPassInfo<LivingEntityRenderState> renderPassInfo, BoneSnapshots snapshots) {
+        boolean male = renderPassInfo.getGeckolibData(MALE);
+        setHidden(snapshots, MALE_CREST, !male);
+        setHidden(snapshots, FEMALE_CREST, male);
         if (renderPassInfo.getGeckolibData(DataTickets.IS_DEAD_OR_DYING)) {
             return;
         }
@@ -173,6 +188,11 @@ public class DinosaurRenderer extends GeoEntityRenderer<Dinosaur, LivingEntityRe
                 snapshot.setRotY(snapshot.getRotY() - (float) Math.toRadians(IdleSway.yawDegrees(bone, seconds)));
             });
         }
+    }
+
+    /** Hides or shows a bone and its children, as GeckoLib 4's {@code GeoBone.setHidden} did. */
+    private static void setHidden(BoneSnapshots snapshots, String bone, boolean hidden) {
+        snapshots.ifPresent(bone, snapshot -> snapshot.skipRender(hidden).skipChildrenRender(hidden));
     }
 
     @Override
