@@ -46,7 +46,7 @@ Nothing blocks M0. No draft, reading or flag waits for you. The full lists are i
 **For the artist**
 
 3. Which asset-repo folder holds the real T. rex sounds, and mod or REPO `hurt_1` (D91, Art list question 1)? Can both genders share the eye, teeth, nostril and claw layers (question 4)?
-4. Art list questions 5, 7, 9, 10, 11, 12, 13, 14, 19 and 20:
+4. Art list questions 5, 7, 9, 10, 11, 12, 13, 14, 19, 20 and 22:
     - the possible layer gaps per species
     - whether each raptor crest and quill variant is one texture layer or also a model part
     - the egg model findings
@@ -56,7 +56,8 @@ Nothing blocks M0. No draft, reading or flag waits for you. The full lists are i
     - the reach of the Incubator arm
     - the shared machine and carnivore eat sounds
     - the pylon head on a fence pole
-    - the parts of each vehicle that take the dye tint.
+    - the parts of each vehicle that take the dye tint
+    - the Triceratops horn `v2` files and the Black/Yellow overlays.
 5. New art from your answers is on the Art list. The raptor crouch-then-leap clip waits for later.
     - bloody claws for the T. rex and the Dilophosaurus, the generic pelvis set, the Wrench sprite
     - the Egg Printer lamp glow, a close clip for each feeder, the fence power-up and power-down sounds

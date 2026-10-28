@@ -548,6 +548,7 @@ Check on that day the current stable versions. Write them with dates and URLs in
 
 - id, clade
 - stats: `max_health`, `health_regen_ticks_per_half_heart`, `attack_damage`, `defense`, `speed`, `energy`, `hunger`, `thirst`
+- walk speed, run speed and the walk-to-run switch speed, in blocks per second (F2.3): value open, lead decides
 - `group_size_min`/`max`, `egg_clutch_min`/`max`, `hatch_success` (nest), `lab_hatch_success` (lab egg), `growth_days`
 - `base_height_blocks`, `height_range_min`/`max`, `gender_size_weights`, `incubation_minutes` (30 for every species in Beta)
 - `diet` tag id, `prey_preferences` (clade to weight)
@@ -663,7 +664,7 @@ Check on that day the current stable versions. Write them with dates and URLs in
 - Unit test: the depth band split gives each period at least 1 layer and uses every layer.
 - With the fossil ore switch false, 100 new chunks hold no fossil ore. An older chunk keeps its ore.
 
-**Changed since last review:** `features.breeding` is the only feature switch. Personal-space radius replaces territory radius. Activity window replaces the nocturnal flag: the three carnivores are cathemeral. Brachiosaurus defends. Carnivores stand or retreat by threat. Clutches, hatch rates and growth days set.
+**Changed since last review:** `features.breeding` is the only feature switch. Personal-space radius replaces territory radius. Activity window replaces the nocturnal flag: the three carnivores are cathemeral. Brachiosaurus defends. Carnivores stand or retreat by threat. Clutches, hatch rates and growth days set. Per-species walk speed, run speed and walk-to-run switch are open fields.
 
 ---
 ## M1. Fossil to egg
@@ -1483,13 +1484,14 @@ Matches video 6:35-10:25, with the section 11.6 changes.
 - [ ] Number genes: a box with the percent and a slider limited to the gene's range ("Immunity +40%").
   - The range grows with the DNA %: ±10 % of the species base at 70 %, growing in a line to ±30 % at 100 %.
   - Example: ±17 % at 80 %.
-- [ ] Choice genes (gender, skin variant, special gene) from a list.
+- [ ] Choice genes (gender, skin variant, special gene, Triceratops horn set, Triceratops horn colour) from a list.
   - Gender is a button that cycles Male, Female, Random, with a "Reset Gene" button.
 - [ ] Colour: a colour wheel with a brightness strip and a tinted backdrop.
   - Per layer: saturation, opacity and tint strength.
   - Primary and secondary mode is the default colour mode.
   - Fixed layers (claws, teeth, nostrils, eyes, mouth) are not listed.
 - [ ] The skin variant list unlocks at 100 %. Below that it shows the biome-decided variant, read-only.
+- [ ] The Triceratops horn set and horn colour lists unlock at a DNA share: value open, lead decides.
 
 ##### Risk panel
 
@@ -1584,7 +1586,7 @@ See Art list → Screens (GUI): Edit tab, colour wheel background and blip, valu
 - Each screen allocates a new 400 × 400 colour-wheel texture (640 KB) in `ColorWheelWidget.java:45,110`.
 - The preview cuts off large animals and does not turn. The player model beside it looks up in one fixed pose (lead playtest 2026-10-24).
 
-**Changed since last review:** Gene sliders unlock at 70 %, donor sliders at 50 %. Attack and defense edits need 90 %. Clone count unlocks edit slots. Jump can clear the low post. Risk curve and slider range set. Donor pick by click. Risk panel position set. Preview fits, turns by itself and by drag, and shows black under censor static below 30 % DNA. Player model looks toward the mouse.
+**Changed since last review:** Gene sliders unlock at 70 %, donor sliders at 50 %. Attack and defense edits need 90 %. Clone count unlocks edit slots. Jump can clear the low post. Risk curve and slider range set. Donor pick by click. Risk panel position set. Preview fits, turns by itself and by drag, and shows black under censor static below 30 % DNA. Player model looks toward the mouse. Triceratops horn set and horn colour lists.
 
 ### F1.6: Sequencer: synthesis
 
@@ -3262,6 +3264,9 @@ F2.1 gives each species its own stats, smooth growth, a carcass at death, baby b
 - Water path cost: water deeper than the animal's height costs more, scaled by the underwater gene.
   - Babies and small species go around deep water. Large ones wade.
   - It is a cost, not a wall.
+- Wading and swimming: an animal in water wades while the water is shallower than a set share of its body height. In deeper water it swims. The share: value open, lead decides.
+  - A swimming animal does not bob like a vanilla mob, at any depth.
+  - A wading or swimming animal climbs out where the shore lets it.
 
 ##### Death and carcass
 
@@ -3441,8 +3446,9 @@ See Art list → each species, and Fossils and amber. Not done until those rows 
 - All six species use tracking range 10.
 - A large animal can path through a 1-wide gap.
 - The debug status goes out as a broadcast to all players.
+- No animal swims. An animal in deep water sinks to the bottom and drowns if it cannot climb out.
 
-**Changed since last review:** A carcass lasts one in-game day. Only three species drop a special item, and only the T. rex drops teeth. Hatchlings use their own sounds. Mates share a carcass by feeding spots.
+**Changed since last review:** A carcass lasts one in-game day. Only three species drop a special item, and only the T. rex drops teeth. Hatchlings use their own sounds. Mates share a carcass by feeding spots. Animals wade, then swim, by water depth against body height, with no vanilla bobbing.
 
 ### F2.2: Appearance
 
@@ -3474,7 +3480,7 @@ F2.2 makes each animal render its own genome, with complete Beta skin sets and a
 #### Scope: layers and colour
 
 - Each entity selects its own layers. Fix `DinosaurRenderer.createLayers`, which builds the layers once from the first entity. Layers read the entity's `DinoData`.
-- Each species draws every layer of its set, the Velociraptor and Triceratops too.
+- Each species draws every layer of its set, the Velociraptor and Triceratops too. Exception: a Triceratops draws one horn set in one horn colour.
 - Layer colours come from `DinoData.layerColors` with saturation, opacity and tint strength. Fixed layers are never tinted.
 - Gender textures for all six species.
 - Skin variants: a data list per species in `SpeciesData.variants` (id, biome group, texture set).
@@ -3549,6 +3555,15 @@ Each set is complete with every layer for both genders. A layer shared by both g
 - The mixed looks: Nublar with quills, Nublar with Sorna crest, Sorna with Nublar crest.
 - Breeding: a Nublar × Sorna young takes each look trait from a random parent, one roll per trait. The traits are the base skin set, the crest and the quills.
 
+##### Triceratops horns
+
+- The model has four horn sets. Each animal draws exactly one horn set in exactly one horn colour.
+- One art file paints one horn set: `Horn1` paints set 2, `Horn2` set 3, `Horn3` set 1 and `Horn4` set 4. Each file also paints the shared nose horn, beak and frill spikes.
+- Horn colour is a choice among the art's colour files (Brown, Grey, Black). It is not a tint layer.
+- Horn set and horn colour are look genes. They are choice genes: the player picks and edits them in the Sequencer Advanced view.
+- Breeding: a young takes the horn set and the horn colour each from a random parent, one roll per trait.
+- The horn set and horn colour of a clone that the player does not edit: value open, lead decides.
+
 #### Scope: render cost
 
 - Far animals animate at lower cost with GeckoLib 5 extension points.
@@ -3576,7 +3591,7 @@ See Art list → each species: skin layers per set and gender, glow masks. Not d
 
 - Two T. rex of different genders and colours render differently, on both loaders.
 - Each Beta skin set renders for both genders with every layer (male only for the quill sets). No layer file is a byte copy of the other gender's file, except layers marked `shared_by_genders` after the artist confirms them.
-- A Velociraptor and a Triceratops draw every layer of their set.
+- A Velociraptor and a Triceratops draw every layer of their set. A Triceratops draws one horn set in one horn colour.
 - A Dilophosaurus herd of 10 keeps client FPS above a baseline recorded in the PR.
 - A Triceratops measures about 3 blocks at full growth.
 - 20 baked Gallimimus in view keep at least 30 fps on the minimum PC (Fast) and 60 fps on the recommended PC (Fancy). Record the layers-off figure (138 fps today) and the frame time with layers on in the PR. That frame time is the F2.2 baseline that F2.3 measures against.
@@ -3594,9 +3609,10 @@ See Art list → each species: skin layers per set and gender, glow masks. Not d
 
 - 20 Gallimimus on screen run at 26 to 28 fps.
 - Each Gallimimus draws 23 passes.
-- The Velociraptor and Triceratops registries draw `base` only.
+- The Velociraptor registry draws `base` only.
+- Each Triceratops draws one horn set in one horn colour, picked at random and fixed for that animal. No gene holds them yet.
 
-**Changed since last review:** Triceratops and Brachiosaurus height targets set. Morphs are tints, with no morph textures. One glow mask per species. JW looks only for Brachiosaurus, Gallimimus and Dilophosaurus. Quill card set in Beta. DNA share picks the skin set. Velociraptor crest, quill and breeding rules. CPU bake, no core shader.
+**Changed since last review:** Triceratops and Brachiosaurus height targets set. Morphs are tints, with no morph textures. One glow mask per species. JW looks only for Brachiosaurus, Gallimimus and Dilophosaurus. Quill card set in Beta. DNA share picks the skin set. Velociraptor crest, quill and breeding rules. CPU bake, no core shader. Triceratops horn set and horn colour are look genes, one of each per animal.
 
 ### F2.3: Animations, sounds and visual effects per species
 
@@ -3666,6 +3682,7 @@ What needs each added clip:
 - Rename the Triceratops `Sprint ` and `injured` clips to `run` and `flinch` if they are the same motion.
 - Wire `RUN_ANIM`. Read flinch lengths from the animation file.
 - Walk starts at 0.05 and run at 0.2 blocks per tick (start values). F2.4's running state reads the same signal.
+- Walk speed, run speed and the walk-to-run switch are per species, in the species data: value open, lead decides.
 - During a roar, the head-look and sway updaters scale by `1 − max(walk-block weight, action weight × suppression)`. Suppression starts at 0.75, and 0.8 for the T. rex.
 - Limp is in Beta for every species. Limp replaces walk below `behaviour.limp_health_fraction` (0.30).
   - Until its own limp clip exists, the T. rex and the Triceratops play their injured clip.
@@ -3766,8 +3783,9 @@ See Art list → each species (every clip and sound row), and Dinosaur effects. 
 #### Today in the code
 
 - `ThreatDisplay` plays the T. rex roar for every species.
+- Every species walks and runs at the same body speeds. Each species' walk and run clips show its own pace, so the feet slide.
 
-**Changed since last review:** Every species gets own clips and sounds, placeholders count as missing. Per-species warning sounds. Only T. rex and Velociraptor have nesting clips. Limp in Beta below 30 % health. Get-up idle fallback is development only. Gallimimus gets blood effects. Screen shake for three large species.
+**Changed since last review:** Every species gets own clips and sounds, placeholders count as missing. Per-species warning sounds. Only T. rex and Velociraptor have nesting clips. Limp in Beta below 30 % health. Get-up idle fallback is development only. Gallimimus gets blood effects. Screen shake for three large species. Per-species walk and run speeds are open.
 ### F2.4: Needs
 
 F2.4 gives each dinosaur hunger, thirst, stamina, sleep and stress, makes each need have results, and keeps a 100-dinosaur park at 20 ticks per second.
@@ -4410,7 +4428,7 @@ One pure function with tests.
 - **Number genes:** the parents' midpoint plus the per-clone variation.
   - The midpoint runs when the egg is laid, and the egg stores it, so a syringe can sample it.
   - The per-clone variation rolls at hatch.
-- **Choice traits:** colour layers, skin, special gene and morph each come from one parent, plus the normal `editing.morph_chance` roll. The default special gene comes from one parent.
+- **Choice traits:** colour layers, skin, Triceratops horn set, Triceratops horn colour, special gene and morph each come from one parent, plus the normal `editing.morph_chance` roll. The default special gene comes from one parent.
 - **Risk behaviour:** comes from one parent with a 50 % chance.
 - **Nublar × Sorna Velociraptor:** the young rolls a random parent for each look trait: base skin set, crest and quills.
 - Every bred gene clamps to the edit limits.
@@ -4513,7 +4531,7 @@ Both loaders.
 
 - A young's gender change also changes the mother's, because both share one genome.
 
-**Changed since last review:** Slot spacing scales with body size. Followers detour only at the urgent need band. A hungry pack journeys, a fed pack roams near its leader. No home territory. Dilophosaurus hunts as a pack. Nest from vanilla blocks. Breeding needs full health and no young near. Eggs count as young. Young do not count toward group size. Hatch rates raised.
+**Changed since last review:** Slot spacing scales with body size. Followers detour only at the urgent need band. A hungry pack journeys, a fed pack roams near its leader. No home territory. Dilophosaurus hunts as a pack. Nest from vanilla blocks. Breeding needs full health and no young near. Eggs count as young. Young do not count toward group size. Hatch rates raised. Triceratops horn set and horn colour come from one parent.
 ### F2.6: The player: threat displays, detection, taming
 
 F2.6 decides how a dinosaur notices a player, how it warns before an attack, and how a player tames a calm animal.
@@ -6446,7 +6464,7 @@ D40 to D68 come from the questions Q1 to Q29 of [ai-behaviour-genetics-reconcili
 | D11 | F2.2 | Approve the render-scale targets (Triceratops 3.0 blocks, Brachiosaurus 12.5) and the section 11.16 missing-stat draft | Answered 2026-10-12 (lead): use the height targets, Triceratops 3.0 blocks (scale 1.32) and Brachiosaurus 12.5 (scale 1.61). They are interim values until real cards exist | Answered |
 | D12 | F2.1 | Real stat cards for five species | Answered 2026-10-12 (lead): the section 11.16 interim stats stay the working values | Answered |
 | D13 | M0.B00, F2.6 | Flee or stand for Tyrannosaurus, Velociraptor, Dilophosaurus and Brachiosaurus? `stress_threshold` and `territory_radius` per species? | Answered 2026-10-12 (lead): one `stress_threshold` per species in the species data, default 50, no gender split. The Brachiosaurus defends with tail whip and stomp after a roar warning (D50). A personal-space radius replaces the territory radius (D165). Follow-up pass: the three carnivores stand or retreat by threat and group size. Each animal adds its pair's or pack's summed threat to its own. It stands unless the attacker's threat is more than 2 × (D112). This replaces "the carnivores always stand" | Answered |
-| D14 | F2.3 | Animation speed that follows body size, and look-around clips on the second controller (review items ANI-6, ANI-2) | Not built. The lead answered "not decided" on 2026-10-06. | Blocked |
+| D14 | F2.3 | Animation speed that follows body size, and look-around clips on the second controller (review items ANI-6, ANI-2) | Not built. The lead answered "not decided" on 2026-10-06. Note 2026-10-28 (lead, playtest): "The animation speed wasn't the issue, although it should be more dynamic." The foot slide comes from the walking speed itself (D292). | Blocked |
 | D15 | F2.6 | How long does an awareness episode last before a dinosaur rolls again for the same player? | Answered 2026-10-12 (lead, follow-up pass): one notice roll every 10 s (200 ticks) for each player in range, `detection.episode_ticks` | Answered |
 | D16 | F2.6 | Which sources drop scent points, at what spacing, and with what cap per chunk? | Moot 2026-10-12 (lead): scent is not in Beta. A predator that loses sight of its target searches the last seen spot. This reverses the decision of 2026-10-05 | Answered |
 | D17 | F1.9 | Does a hatchling get an owner? | Answered 2026-10-12 (lead, follow-up pass): no owner. The hatchling stays wild until a player tames it | Answered |
@@ -6816,6 +6834,9 @@ These rows come from a review of the specs against mechanics in other games.
 | D287 | F2.0, F2.6 | Hand-feeding puts the player inside the animal's personal space (5 to 10 blocks). There, a noticed player gets a warning and then an attack, and a Gallimimus flees at once. The rules have no exception for a player who tames. Example: a player who walks up to a calm T. rex with meat in hand gets a roar and a bite. How does a player get close enough to hand-feed? | Answered 2026-10-25 (lead): approved as proposed. While the animal is calm (stress below 20), a sneaking player who holds its food can enter the personal space with no warning. Any other act, or stress of 20 or more, brings back the normal rule | Answered |
 | D288 | F4.2 | Lead (2026-10-25): a basic level of arcade racing makes the vehicles more fun. Which handling moves ship, on which vehicles, and when? | Answered 2026-10-25 (lead): drift boost, slipstream, air pitch control and air trick boost. The Jeep has them, and so does the Explorer while the player drives it by hand. They ship in Beta. The question also offered a countdown start boost, and the lead did not pick it. The values in F4.2 are proposals | Answered |
 | D289 | F1.10 | The 26.2 port draws the machine-screen sliders and dropdown arrows with vanilla's sprites, because vanilla removed the old slider texture. Should machine screens use their own look? | Answered 2026-10-25 (lead): yes. Sliders, dropdown arrows, buttons and text boxes on machine screens get Nublar sprites in the Sequencer style, in F1.10. Until the art exists they use the vanilla 26.2 sprites and plain code-drawn frames | Answered |
+| D290 | F2.2, F1.5, F2.0, F2.5 | The Triceratops model has four horn sets, and each art file paints one set. The 26.2 port drew all four sets on every animal. Which horn set and horn colour does an animal show, and who chooses them? | Answered 2026-10-28 (lead): horn models and colours are "tied to genes so that players can modify". They are "passed down from parents to offsprings". Horn set and horn colour are look genes. Each animal shows one horn set in one horn colour. The player picks and edits both in the Sequencer. A bred young takes each from a random parent, one roll per trait. The colours are the art's colour files (Brown, Grey, Black), not a tint. Until the genes exist, each animal gets a random set and colour, fixed for that animal (M0.P2 Task 46). Open for the art team: the `v2` files and the Black/Yellow overlays (Art list question 22) | Answered |
+| D291 | F2.0, F2.1 | The plan has a water path cost and a "Swimming and wading" activity. Today an animal in deep water sinks to the bottom and drowns if it cannot climb out, as on 1.20.1. When does an animal wade, and when does it swim? | Answered 2026-10-28 (lead): dinosaurs "wade through water and then swim based on the depth to height ratio". There is "no vanilla floating". An animal wades while the water is shallower than a set share of its body height, and swims in deeper water. A swimming animal does not bob like a vanilla mob, at any depth. A wading or swimming animal climbs out where the shore lets it. The share: value open, lead decides | Answered |
+| D292 | M0.B00, F2.3 | Every species walks and runs at the same body speeds. Each species' walk and run clips show its own pace, so the feet slide, as on 1.20.1. The species data has a `speed` stat, but no walk speed, run speed or walk-to-run switch per species. What are they? | Lead (2026-10-28): "It was more the speed of their walking itself. And it's still not much better as there is still a sliding effect." Each species gets its own walk speed, run speed and walk-to-run switch. The values: value open, lead decides. Until then, every species keeps the shared body speeds | Lead decision pending |
 
 ---
 
@@ -6900,3 +6921,4 @@ These rows come from a review of the specs against mechanics in other games.
 - **2026-10-25 (lead: vehicle handling):** D288 answered. F4.2 gets arcade handling in Beta: drift boost, slipstream, air pitch and air tricks on the Jeep and the hand-driven Explorer. The values are proposals.
 - **2026-10-25 (lead: M0.P0 and playtest items):** D274, D275 and D277 to D283 answered. Fence `brokenSide` fix confirmed with no save migration. F1.1 gets fossil blocks for all six species per sprite, and no species fallback for fossil ore. F1.5 preview look set. F1.10 gets the status panel, the glow regions, two creative items per machine and the machine gate. F1.8 lamp glows and gives light whenever powered. The bird Embryo Syringe takes the 1.12 texture.
 - **2026-10-25 (lead: machine screen widgets):** D289 answered. F1.10 gets a Nublar widget look for sliders, dropdown arrows, buttons and text boxes, in the Sequencer style. Four Missing art rows under Machine shared parts.
+- **2026-10-28 (lead: M0.P2 playtest, round 3):** D290 to D292. F2.2 gets Triceratops horn set and horn colour as look genes, one of each per animal, with F1.5 lists and F2.0 and F2.5 heredity. F2.0 and F2.1 get wading and swimming by water depth against body height, with no vanilla bobbing. M0.B00 and F2.3 get per-species walk and run speeds as open values. D14 gets the lead's note on animation speed. Art list question 22.

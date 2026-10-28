@@ -500,7 +500,7 @@ The player designs the dinosaur: base species, donor animals, gender, colours an
 - **Right of the preview:** the control for the selected gene.
   - Gender: a button that cycles Male, Female, Random, and a "Reset Gene" button.
   - Number gene: title, a box with the %, a slider in a limited range.
-  - Choice gene (skin, special gene): a list.
+  - Choice gene (skin, special gene, Triceratops horn set, Triceratops horn colour): a list.
 - **Colour:** primary and secondary mode by default, and a mode for each layer.
   - Each layer has a colour wheel with a brightness strip, plus saturation, opacity and tint strength.
   - Claws, teeth, nostrils, eyes and mouth are not listed.
@@ -589,7 +589,7 @@ See Art list → Sequencer (Edit tab: base page, effect panel, chromosome grid, 
 
 **Engineering:** backlog F1.5.
 
-**Changed since last review:** Donor pick by row click then animal click. A strong jump edit can clear the low-security fence. Gene slider range and risk curves set. Clone-count edit slots added. Mob variants change colour only. Edit-tab preview fits its box, turns by itself and by drag, and shows a black animal under censor static below 30 % DNA. Steve looks toward the mouse.
+**Changed since last review:** Donor pick by row click then animal click. A strong jump edit can clear the low-security fence. Gene slider range and risk curves set. Clone-count edit slots added. Mob variants change colour only. Edit-tab preview fits its box, turns by itself and by drag, and shows a black animal under censor static below 30 % DNA. Steve looks toward the mouse. Triceratops horn set and horn colour are choice lists.
 
 ---
 
@@ -1412,12 +1412,15 @@ Each activity below is in Beta. "Ends when" names what stops it. The ladder afte
 | Rank contest (no damage) | A member passes the leader in dominance (size, age, aggression gene), or the leader dies | One display each. The higher dominance leads |
 | Following a parent, guarded by adults (baby) | Hatch | Grown past the young band |
 | Walking, running, sprinting | Every move | n/a |
-| Swimming and wading | Water deeper than its height is on its path | Back on land |
+| Swimming and wading | It enters water | Back on land |
 | Jumping and falling | A ledge, or the jump gene | Landing |
 
 - A hungry pack journeys to find prey. Otherwise it roams its home area near its leader. It defends no home territory.
 - A pack that loses its leader flees to safety first. Then the two members with the highest dominance contest the lead.
 - Small animals go round deep water. Large animals wade.
+- An animal in water wades while the water is shallower than a set share of its body height. In deeper water it swims. The share: value open, lead decides.
+- A swimming animal does not bob like a vanilla mob, at any depth.
+- A wading or swimming animal climbs out where the shore lets it.
 
 ##### Rest
 
@@ -2092,7 +2095,7 @@ Every abnormal animal still warns before it attacks. The Debug Stick names the a
 | Gene | How a bred young gets it | Range or limit |
 | --- | --- | --- |
 | Number genes (aggression, intelligence, herd and pack size, tamability, nocturnal, the need and stat genes) | The middle value of its parents plus the clone variation | Inside the edit limits |
-| Choice genes (special gene, morph, skin, colour layers) | Each comes from one parent, picked at random | One parent |
+| Choice genes (special gene, morph, skin, colour layers, Triceratops horn set, Triceratops horn colour) | Each comes from one parent, picked at random | One parent |
 | Quirks | Each parent that has the quirk passes it with a 50 % chance | 50 % per parent |
 | Abnormal behaviour | It can take the abnormal behaviour of one parent | One parent, 50 % |
 
@@ -2114,10 +2117,11 @@ See Art list → each species, Dinosaur effects, Dinosaur hover box. Shared with
 - The idle pick only changes the standing clip.
 - No species looks at a player, flees, or warns a player before an attack. Every species plays the T. rex roar.
 - Stress and social do nothing. No contentment score and no hover box for dinosaurs exist.
+- No animal swims. An animal in deep water sinks to the bottom and drowns if it cannot climb out.
 
 **Engineering:** backlog F2.0 (new package). Scope owned here: the activity ladder and the idle pool (from F2.4), the stress-band idle shift (from F2.3), the temperament mapping (from F2.6). It adds feeding together (with F2.4, F2.5 and F3.3), contentment, and the behaviour gene readers (with F1.5).
 
-**Changed since last review:** Pairs count as company: only a lone adult gets the alone stress. Herd water trips. No scent trails. No home territory. Brachiosaurus defends. Carnivores stand or retreat by threat. Raptors hatch hyper-intelligent. Gallimimus is an omnivore. Loneliness is part of stress. Lost sleep gives no stress. Hover box shows icons only. Nest from vanilla blocks.
+**Changed since last review:** Pairs count as company: only a lone adult gets the alone stress. Herd water trips. No scent trails. No home territory. Brachiosaurus defends. Carnivores stand or retreat by threat. Raptors hatch hyper-intelligent. Gallimimus is an omnivore. Loneliness is part of stress. Lost sleep gives no stress. Hover box shows icons only. Nest from vanilla blocks. Animals wade, then swim, by water depth against body height, with no vanilla bobbing. Triceratops horn set and horn colour come from one parent.
 ### F2.1 Species core
 
 F2.1 gives the six species their own stats, smooth growth, real-size bodies, hits that land where you aim, and a carcass when they die.
@@ -2216,6 +2220,7 @@ F2.2 makes each animal show its own genome: gender, skin set, layer colours and 
 - **Unique colours.** Each colour layer has its own tint, so no two clones look the same.
 - **Rare morphs.** About one clone in twenty (about 5 %) is albino or melanistic.
 - **Raptor looks.** A Velociraptor from Nublar biomes is a Nublar raptor. One from Sorna biomes is a Sorna raptor. Mixed looks come from breeding or advanced editing.
+- **Triceratops horns.** Each Triceratops shows one of four horn sets in one horn colour. The player picks and edits both in the Sequencer. Bred young inherit them.
 
 #### Not in Beta
 
@@ -2292,23 +2297,35 @@ A dash means that the species has no ore in that group. Velociraptor cells give 
   - Advanced gene editing after the player unlocks both skin sets.
 - **Nublar × Sorna young:** takes each look trait from a random parent, one roll per trait: base skin set, crest, quills.
 
+#### Triceratops horn sets and horn colours
+
+- **Horn sets:** the model has four horn sets. Each animal shows exactly one horn set.
+- **Horn colours:** Brown, Grey and Black, from the art's colour files. Each animal shows exactly one horn colour. The colour is a choice among the files, not a tint layer.
+- **Genes:** horn set and horn colour are look genes. The player picks and edits each one in the Sequencer, like the other look choices.
+- **Bred young:** takes each horn trait from a random parent, one roll per trait.
+
 #### Art needed
 
-See Art list → each species (Skins and textures: JP, JP3/Sorna and JW sets, crest and quill variants. Models: Velociraptor Sorna, Brachiosaurus JP3).
+See Art list → each species (Skins and textures: JP, JP3/Sorna and JW sets, crest and quill variants, Triceratops horn files. Models: Velociraptor Sorna, Brachiosaurus JP3).
 
 #### Open questions
 
 - Shared layers (eyes, teeth, claws, nostrils): the artist confirms that one file is right for both genders.
+- Triceratops horn art (Art list question 22): the use of the `v2` files. Is Black/Yellow a fourth horn colour or an overlay on Black?
+- Triceratops horn genes (value open, lead decides):
+  - the DNA share that unlocks the horn set and horn colour lists
+  - the horn set and horn colour of a clone that the player does not edit.
 
 #### Today in the code
 
 - The renderer builds every animal's layers from the first animal it sees.
-- It draws only the base layer for Velociraptor and Triceratops.
+- It draws only the base layer for the Velociraptor.
+- Each Triceratops draws one horn set in one horn colour (Brown, Grey or Black), picked at random and fixed for that animal. The player cannot pick them, and young do not inherit them.
 - It ships one skin set per species.
 
 **Engineering:** backlog F2.2.
 
-**Changed since last review:** Skin set follows the biome group with the largest DNA share. Ties give the base set. Amber counts, syringe and remains DNA do not. Raptor crest follows the biome. Quills belong to Sorna. Mixed raptor looks need breeding or advanced editing.
+**Changed since last review:** Skin set follows the biome group with the largest DNA share. Ties give the base set. Amber counts, syringe and remains DNA do not. Raptor crest follows the biome. Quills belong to Sorna. Mixed raptor looks need breeding or advanced editing. Triceratops horn set and horn colour are look genes: one of each per animal, picked in the Sequencer and inherited.
 
 ### F2.3 Animations, sounds and visual effects per species
 
@@ -2544,16 +2561,18 @@ See Art list → each species (Animations, Sounds), Dinosaur effects.
 
 - T. rex sounds: the artist names the folder that holds the real T. rex recordings (D91). New dinosaur sounds come from Jurassic World Evolution 3.
 - Animation speed that follows body size: not built. The lead parked this decision (D14).
+- Walk speed, run speed and the walk-to-run switch of each species: value open, lead decides (D292).
 
 #### Today in the code
 
 - Only the T. rex has sounds in the mod.
 - Every species plays the T. rex roar as its warning, which is a defect.
 - No dinosaur effect exists.
+- Every species walks and runs at the same body speeds. Each species' walk and run clips show its own pace, so the feet slide.
 
 **Engineering:** backlog F2.3.
 
-**Changed since last review:** Gallimimus gets blood drips and a bloody mouth. Screen shake only on T. rex, Triceratops and Brachiosaurus. T. rex and Dilophosaurus get bloody claws. Only T. rex and Velociraptor play a nesting clip.
+**Changed since last review:** Gallimimus gets blood drips and a bloody mouth. Screen shake only on T. rex, Triceratops and Brachiosaurus. T. rex and Dilophosaurus get bloody claws. Only T. rex and Velociraptor play a nesting clip. Per-species walk and run speeds are open.
 ### F2.4 Needs: hunger, thirst, stamina, sleep, stress and company
 
 Dinosaurs get hungry, thirsty, tired, sleepy, lonely and stressed, and a park that neglects them pays for it.

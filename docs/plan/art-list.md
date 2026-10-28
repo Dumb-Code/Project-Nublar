@@ -110,7 +110,7 @@ Status words:
 - **Guns:** blocked on D08. They are not in the total.
 - **Per-milestone counts:** the roadmap's milestone table. They come from the Feature column of each row (F1.x is M1, F2.x is M2, F3.x is M3, F4.x is M4), with guns left out.
 
-**Changed since last review:** Vehicle assembly uses existing groups, so the chassis and engine rows are gone and the wheel split is a Done developer row. Large Generator gets its own ignite, fuel-out and loop rows. Release 1 asset groups listed, not counted. Question 21 settled. One glow mask row per lab machine. Incubator lamp colours set as placeholders. The bird Embryo Syringe takes the 1.12 texture. The dinosaur-embryo syringe needs a new sprite. Edit-tab censor static row added. Generic pelvis, foot and spine are Missing: no shared sprite exists. Nublar widget kit for machine screens (sliders, dropdown arrows, buttons, text boxes), Sequencer style.
+**Changed since last review:** Vehicle assembly uses existing groups, so the chassis and engine rows are gone and the wheel split is a Done developer row. Large Generator gets its own ignite, fuel-out and loop rows. Release 1 asset groups listed, not counted. Question 21 settled. One glow mask row per lab machine. Incubator lamp colours set as placeholders. The bird Embryo Syringe takes the 1.12 texture. The dinosaur-embryo syringe needs a new sprite. Edit-tab censor static row added. Generic pelvis, foot and spine are Missing: no shared sprite exists. Nublar widget kit for machine screens (sliders, dropdown arrows, buttons, text boxes), Sequencer style. Triceratops horn sets named: one file per set, one set and one colour per animal. Question 22 on the horn `v2` files and the Black/Yellow overlays.
 
 ## Questions for the artist and lead
 
@@ -162,6 +162,10 @@ The Decisions register in the Engineering backlog holds the answers to all other
   - Does the REPO pylon head (`pylon_pole_head.tbl`) fit on the low and the high fence post?
   - The REPO pylon pole is not used.
 - Q20. **Vehicle dye tint (artist).** Dye tints the colours of a vehicle. Which parts of each Jeep and Explorer texture take the tint?
+- Q22. **Triceratops horn files (artist and lead).**
+  - Each horn colour has a `v1` and a `v2` file per horn set. `v2` also paints horn colour on the two frill cheeks. What is `v2` for, and which file ships?
+  - Is Black/Yellow a fourth horn colour, or an overlay on Black?
+  - The mod uses the `v1` files today.
 
 ---
 
@@ -829,7 +833,7 @@ Milestone: Dinosaurs.
 
 ### Skins and textures: Nublar set (JP)
 
-Mod folder: MOD/textures/entity/triceratops/<gender>/. Today the renderer draws only `base` (a code task, not art).
+Mod folder: MOD/textures/entity/triceratops/<gender>/. Today the renderer draws every layer of this set. Each animal draws one horn file, picked at random.
 
 | Asset | Used for | Status | Feature | Where / reference |
 | --- | --- | --- | --- | --- |
@@ -862,6 +866,14 @@ Mod folder: MOD/textures/entity/triceratops/<gender>/. Today the renderer draws 
 
 REPO folders: textures/_skins/jp3_female/ and jp3_male/. None is in the mod.
 
+**Horn sets and horn colours** (REPO textures/_skins/horns/, files `Trike_<Colour>_Horn<N>_v1.png` and `_v2.png`):
+
+- The model has four horn sets. Set N is six bones: `hornLeftBottomN`, `hornLeftMiddleN`, `hornLeftTopN` and the same three on the right.
+- One file paints one horn set: `Horn1` paints set 2, `Horn2` set 3, `Horn3` set 1 and `Horn4` set 4.
+- Each file also paints the shared nose horn, beak and frill spikes.
+- Each animal draws one horn set in one horn colour. Horn colour is a choice among the colour files Brown, Grey and Black. It is not a tint layer.
+- Open for the artist and lead: the `v2` files and the Black/Yellow overlays (Q22).
+
 | Asset | Used for | Status | Feature | Where / reference |
 | --- | --- | --- | --- | --- |
 | Female: osteoderms | Colour layer | Missing | F2.2 | Possible gap: the Nublar female and the Sorna male have one |
@@ -889,7 +901,7 @@ REPO folders: textures/_skins/jp3_female/ and jp3_male/. None is in the mod.
 | Male: mouth | Fixed layer | Ready to import | F2.2 | …_8_mouth.png |
 | Male: nostrils | Fixed layer | Ready to import | F2.2 | …_9_nostrils.png |
 | Male: eyelids | Fixed layer | Ready to import | F2.2 | …_12_eyelids.png |
-| Horn colour variants (28 layers) | Horn colour (editable layer) | Ready to import | F2.2 | REPO textures/_skins/horns (Black, Black/Yellow, Brown, Grey) |
+| Horn colour variants (28 layers) | Horn set and horn colour: one file per animal, a choice among the colour files, not a tint layer | Ready to import | F2.2 | REPO textures/_skins/horns (Black, Black/Yellow, Brown, Grey) |
 | Male: toes | Fixed layer | Shared, artist to confirm | F2.2 | …_10_toes.png, same bytes as the female toes |
 | Male: eyes | Fixed layer | Shared, artist to confirm | F2.2 | …_11_eyes.png, same bytes as the female eyes |
 

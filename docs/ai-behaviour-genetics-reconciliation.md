@@ -177,6 +177,8 @@ Each gap gets a default. Each default is a config value or a data field, so play
 | Look | `color` | Per-layer tint, primary and secondary modes | None | Tropical fish colours | Lost on save |
 | Look | Skin variant (choice) | Biome-decided variant, free pick at 100 % | None | Fossil biome shares | Missing |
 | Look | Morph (rolled) | Albino or melanistic, about 5 % | None | Rabbit (older design: albinism chance) | Missing |
+| Look | Triceratops horn set (choice) | One of four horn sets per animal. Player pick and edit in the Sequencer. A bred young takes it from a random parent | None | None. Player choice | Missing |
+| Look | Triceratops horn colour (choice) | One horn colour per animal: Brown, Grey or Black art file, not a tint. Player pick and edit in the Sequencer. A bred young takes it from a random parent | None | None. Player choice | Missing |
 | Special | Special gene (choice) | One of seven (B10) | Hyper intelligence finds unpowered fence sections. Poison raises keeper risk | Cave Spider, Bee, Glow Squid, Frog, Wolf, Parrot | Missing |
 
 ## Donor catalogue
