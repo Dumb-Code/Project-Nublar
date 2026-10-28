@@ -50,6 +50,9 @@ public class RestartableAnimationController<T extends GeoAnimatable> extends Ani
     public void setAnimation(RawAnimation animation) {
         RawAnimation previous = this.currentRawAnimation;
         super.setAnimation(animation);
+        // Only when super took a new animation: GeckoLib also clears the from-point while a clip plays (at each loop
+        // wrap), and setAndContinue calls this every frame, so without the check REST would be set on every frame of
+        // a playing clip.
         if (this.currentRawAnimation != previous && this.transitionFromPoint == null) {
             this.transitionFromPoint = REST;
         }

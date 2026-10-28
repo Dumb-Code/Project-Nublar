@@ -20,13 +20,17 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 
 /**
  * Drives a real GeckoLib 5 controller the way {@link DinoAnimator#movement} does: a looping walk while
- * {@link #moving}, else {@link DinoAnimator#stopController}.
+ * {@link #moving}, else {@link DinoAnimator#stopController}. Which {@link DinoAnimator} handlers end with
+ * {@code stopController} (both stops of {@code movement}, every stop of the main controller) is checked in game,
+ * not here: {@code DinoAnimator} needs a live {@code Dinosaur}.
  */
 class RestartableAnimationControllerTest {
 
     private static final RawAnimation WALK = RawAnimation.begin().thenLoop("move.walk");
     /** The test model's clip for every name: one second, no bones. */
     private static final Animation CLIP = Animation.generateWaitAnimation(1);
+    /** Frames of walk that pass the first loop wrap: the blend (15 frames) plus the one-second clip (60 frames). */
+    private static final int PAST_A_LOOP_WRAP = 90;
 
     private boolean moving;
     /** Animatable age in ticks; each frame is a third of a tick (60 fps). */
@@ -81,18 +85,20 @@ class RestartableAnimationControllerTest {
         }
     }
 
+    /** After a bare STOP, GeckoLib 5 plays a loop on; with the reset, no bone moves from the stop frame on. */
     @Test
     void stopEndsTheLoopAtOnce() {
-        walk(90);
+        walk(PAST_A_LOOP_WRAP);
         assertTrue(this.controller.isAnimatingBones());
         this.moving = false;
         assertNull(frame());
         assertFalse(this.controller.isAnimatingBones());
-        for (int i = 0; i < 90; i++) {
+        for (int i = 0; i < PAST_A_LOOP_WRAP; i++) {
             assertNull(frame(), "frame " + i + " after the stop");
         }
     }
 
+    /** With no from-point, GeckoLib 5 fades from the first frame toward rest and jumps back (the start pop). */
     @Test
     void firstStartBlendsFromRest() {
         this.moving = true;
@@ -102,9 +108,10 @@ class RestartableAnimationControllerTest {
         assertNotNull(start.prevAnimationPoint());
     }
 
+    /** After the reset nothing plays, so a restart needs the rest point as much as a first start does. */
     @Test
     void startAfterAStopBlendsFromRest() {
-        walk(90);
+        walk(PAST_A_LOOP_WRAP);
         this.moving = false;
         frame();
         this.moving = true;
@@ -112,6 +119,18 @@ class RestartableAnimationControllerTest {
         assertNotNull(start);
         assertEquals(0D, start.transitionTime());
         assertNotNull(start.prevAnimationPoint());
+    }
+
+    /**
+     * GeckoLib clears the from-point at a loop wrap and {@code setAndContinue} sets the same clip every frame: the rest
+     * point is only for a new start, so a playing clip keeps GeckoLib's own (empty) from-point.
+     */
+    @Test
+    void aPlayingClipKeepsItsOwnFromPoint() {
+        walk(PAST_A_LOOP_WRAP);
+        ControllerState playing = frame();
+        assertNotNull(playing);
+        assertNull(playing.prevAnimationPoint());
     }
 
     private static final class Animatable implements GeoAnimatable {

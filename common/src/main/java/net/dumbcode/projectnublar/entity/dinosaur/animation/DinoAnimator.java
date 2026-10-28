@@ -41,8 +41,12 @@ import com.geckolib.animation.state.AnimationTest;
  * from rest ({@link RestartableAnimationController}).
  */
 public final class DinoAnimator {
-    /** Blend of the movement controller into walk or run, in ticks (Mowzie's Mobs uses 4-5 on such controllers). */
-    public static final int MOVEMENT_TRANSITION_TICKS = 4;
+    /**
+     * Blend of the movement controller into walk or run, in ticks (Mowzie's Mobs uses 4-5 on such controllers).
+     * GeckoLib 5 plays a blend to its end only at some lengths (5, 7, 9, 10 ticks; none under 5), because it turns
+     * the ticks into seconds as a float and counts a length a hair over n ticks as n + 1: 4 ticks end at 80 % and step.
+     */
+    public static final int MOVEMENT_TRANSITION_TICKS = 5;
     /** Blend of the main controller into a new state or idle pick, in ticks. */
     public static final int MAIN_TRANSITION_TICKS = 5;
     /** Blend into flinch and attack, in ticks: shorter, so the reaction does not lag the hit. */
