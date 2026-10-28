@@ -29,7 +29,7 @@ import net.minecraft.world.item.crafting.RecipeType;
  * The Fabric client entry point: the {@code client} entrypoint in {@code fabric.mod.json}, run on
  * the physical client only, after {@code ProjectNublarFabric}. It registers what NeoForge's
  * {@code NeoForgeClientEvents} and {@code NeoForgeClientGameEvents} register: the entity and block
- * entity renderers, the menu screens and dinosaur textures, the colour layers and gene widgets,
+ * entity renderers, the menu screens, the colour layers and gene widgets,
  * the fossil block tint, the Sequencer's picture-in-picture renderer, the item model properties of
  * the fossil and the test tube, and the hooks that fill and clear the client recipe store. It is
  * the one class of the Fabric module that names client classes.
