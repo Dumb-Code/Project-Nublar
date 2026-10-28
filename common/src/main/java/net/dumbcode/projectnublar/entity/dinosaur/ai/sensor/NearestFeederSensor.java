@@ -1,7 +1,7 @@
 package net.dumbcode.projectnublar.entity.dinosaur.ai.sensor;
 
-import com.mojang.datafixers.util.Pair;
 import it.unimi.dsi.fastutil.objects.ObjectArrayList;
+import net.dumbcode.projectnublar.block.entity.DinosaurFeederBlockEntity;
 import net.dumbcode.projectnublar.entity.dinosaur.Dinosaur;
 import net.dumbcode.projectnublar.registry.MemoryModuleTypeInit;
 import net.dumbcode.projectnublar.registry.SensorTypesInit;
@@ -41,34 +41,26 @@ protected SquareRadius radius = new SquareRadius(10, 3);
 
         return this;
     }
-    @Nullable BlockPos nearestFeeder;
-
+    /**
+     * Remembers the nearest feeder in the radius that holds food, or forgets the feeder when none does. Each scan starts
+     * afresh: before Task 41 the sensor kept the first feeder it ever saw, at any distance, also when it was broken or
+     * empty, so animals walked to it from up to 95 blocks away.
+     */
     @Override
     protected void doTick(ServerLevel level, E entity) {
-
-            List<Pair<BlockPos, BlockState>> blocks = new ObjectArrayList<>();
-
-            for (BlockPos pos : BlockPos.betweenClosed(entity.blockPosition().subtract(this.radius.toVec3i()), entity.blockPosition().offset(this.radius.toVec3i()))) {
-                BlockState state = level.getBlockState(pos);
-
-                if (this.predicate().test(entity, state))
-                    blocks.add(Pair.of(pos.immutable(), state));
-            }
-
-
-            for (int i = 0; i < blocks.size(); i++) {
-                BlockPos currentTarget = blocks.get(i).getFirst();
-                if (nearestFeeder == null) {
-                    nearestFeeder = currentTarget;
-                } else if (entity.distanceToSqr(Vec3.atCenterOf(nearestFeeder))
-                        > entity.distanceToSqr(Vec3.atCenterOf(currentTarget))) {
-                    nearestFeeder = currentTarget;
+        @Nullable BlockPos nearestFeeder = null;
+        double nearestDistance = Double.MAX_VALUE;
+        for (BlockPos pos : BlockPos.betweenClosed(entity.blockPosition().subtract(this.radius.toVec3i()), entity.blockPosition().offset(this.radius.toVec3i()))) {
+            if (this.predicate().test(entity, level.getBlockState(pos))
+                    && level.getBlockEntity(pos) instanceof DinosaurFeederBlockEntity feeder && !feeder.isEmpty()) {
+                double distance = entity.distanceToSqr(Vec3.atCenterOf(pos));
+                if (distance < nearestDistance) {
+                    nearestFeeder = pos.immutable();
+                    nearestDistance = distance;
                 }
             }
-
-            if (nearestFeeder != null) {
-                BrainUtil.setMemory(entity, MemoryModuleTypeInit.HAS_FOUND_FEEDER.get(), nearestFeeder);
-            }
         }
+        BrainUtil.setOrClearMemory(entity, MemoryModuleTypeInit.HAS_FOUND_FEEDER.get(), nearestFeeder);
+    }
 
 }

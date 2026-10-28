@@ -839,7 +839,8 @@ public abstract class Dinosaur extends TamableAnimal implements FossilRevived, G
                 new SetHunting<>(),
                 // Lead decision 8: a travelling follower leaves the line only for a critical need (HerdNeeds).
                 new SetWalkTargetToWaterSource<>().closeEnoughWhen((entity, pos)-> 3).startCondition(HerdNeeds::mayLeaveForNeeds),
-                new WalkToNearestFeeder<>().closeEnoughWhen((entity, pos) -> 3).startCondition(HerdNeeds::mayLeaveForNeeds),
+                // Its own close-enough of 0: the walk ends in eating reach, not 3 blocks out (Task 41).
+                new WalkToNearestFeeder<>().startCondition(HerdNeeds::mayLeaveForNeeds),
                 new SetWalkTargetToFoodItem<>().predicate(Dinosaur::canTargetFoodItem).startCondition(HerdNeeds::mayLeaveForNeeds),
                 // isFamily is true only for a Dinosaur parent.
                 new FollowParent<>().parentPredicate((baby, parent)-> baby instanceof Dinosaur dino && dino.isFamily(parent)

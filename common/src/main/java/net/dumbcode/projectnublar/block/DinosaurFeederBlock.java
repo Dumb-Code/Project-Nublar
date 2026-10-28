@@ -11,7 +11,6 @@ import net.minecraft.world.InteractionHand;
 import net.minecraft.world.InteractionResult;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
-import net.minecraft.world.item.Items;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.BaseEntityBlock;
 import net.minecraft.world.level.block.Block;
@@ -53,19 +52,8 @@ public class DinosaurFeederBlock extends BaseEntityBlock {
             BlockEntity blockEntity = level.getBlockEntity(pos);
 
             if(blockEntity instanceof DinosaurFeederBlockEntity fbe) {
-                if ((player.getItemInHand(hand).is(TagInit.FEEDER_MEAT) && fbe.getItem(0).isEmpty()) || (!fbe.getItem(0).isEmpty() && player.getItemInHand(hand).is(fbe.getItem(0).getItem()))) {
-                    fbe.setItem(0, player.getItemInHand(hand));
-                    player.getItemInHand(hand).shrink(1);
-                    return InteractionResult.SUCCESS_SERVER;
-                }
-                if ((player.getItemInHand(hand).is(TagInit.FEEDER_MEAT) && fbe.getItem(1).isEmpty()) || (!fbe.getItem(1).isEmpty() && player.getItemInHand(hand).is(fbe.getItem(1).getItem()))) {
-                    fbe.setItem(1, player.getItemInHand(hand));
-                    player.getItemInHand(hand).shrink(1);
-                    return InteractionResult.SUCCESS_SERVER;
-                }
-                if ((player.getItemInHand(hand).is(TagInit.FEEDER_MEAT) && fbe.getItem(2).isEmpty()) || (!fbe.getItem(2).isEmpty() && player.getItemInHand(hand).is(fbe.getItem(2).getItem()))) {
-                    fbe.setItem(2, player.getItemInHand(hand));
-                    player.getItemInHand(hand).shrink(1);
+                // Meat goes into the slots as copies; the server sets and syncs the food display (fill).
+                if (player.getItemInHand(hand).is(TagInit.FEEDER_MEAT) && fbe.fill(player.getItemInHand(hand))) {
                     return InteractionResult.SUCCESS_SERVER;
                 }
                 if (player.getItemInHand(hand).isEmpty() && !fbe.coolDown && !player.isCrouching()) {
@@ -73,43 +61,20 @@ public class DinosaurFeederBlock extends BaseEntityBlock {
                     return InteractionResult.SUCCESS_SERVER;
                 }
                 if (player.getItemInHand(hand).isEmpty() && player.isCrouching()) {
-                    if(!fbe.getItem(0).isEmpty()){
-                        ItemStack stack = new ItemStack(fbe.getItem(0).getItem());
-                        ItemStack copy = stack.copy();
-                        copy.setCount(stack.getCount());
-                        player.setItemInHand(hand, copy);
-                        fbe.setItem(0, ItemStack.EMPTY);
-                        return InteractionResult.SUCCESS_SERVER;
-                    }
-                    if(!fbe.getItem(1).isEmpty()){
-                        ItemStack stack = new ItemStack(fbe.getItem(1).getItem());
-                        ItemStack copy = stack.copy();
-                        copy.setCount(stack.getCount());
-                        player.setItemInHand(hand, copy);
-                        fbe.setItem(1, ItemStack.EMPTY);
-                        return InteractionResult.SUCCESS_SERVER;
-                    }
-                    if(!fbe.getItem(2).isEmpty()){
-                        ItemStack stack = new ItemStack(fbe.getItem(2).getItem());
-                        ItemStack copy = stack.copy();
-                        copy.setCount(stack.getCount());
-                        player.setItemInHand(hand, copy);
-                        fbe.setItem(2, ItemStack.EMPTY);
-                        return InteractionResult.SUCCESS_SERVER;
+                    // Sneak with an empty hand: take the first slot back whole. A slot now holds real items (fill), so
+                    // the old one-item take would destroy the rest of the stack.
+                    for (int slot = 0; slot < fbe.getContainerSize(); slot++) {
+                        if (!fbe.getItem(slot).isEmpty()) {
+                            player.setItemInHand(hand, fbe.removeItem(slot, fbe.getItem(slot).getCount()));
+                            if (fbe.isEmpty()) {
+                                fbe.setTexture(false);
+                            }
+                            return InteractionResult.SUCCESS_SERVER;
+                        }
                     }
                 }
             }
 
-        }
-        if(level.isClientSide()){
-            BlockEntity blockEntity = level.getBlockEntity(pos);
-            if(blockEntity instanceof DinosaurFeederBlockEntity fbe) {
-                if (player.getItemInHand(hand).is(Items.PORKCHOP)|| player.getItemInHand(hand).is(Items.BEEF)|| player.getItemInHand(hand).is(Items.CHICKEN)) {
-                    if(!fbe.shouldDisplayFood){
-                        fbe.setTexture(true);
-                    }
-                }
-            }
         }
         return super.useItemOn(itemStack, state, level, pos, player, hand, hit);
     }

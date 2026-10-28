@@ -3,6 +3,7 @@ package net.dumbcode.projectnublar.block.entity;
 import net.blay09.mods.balm.platform.energy.BalmEnergyStorageProvider;
 import net.blay09.mods.balm.platform.energy.EnergyStorage;
 import net.dumbcode.projectnublar.block.api.sync.SyncingContainerBlockEntity;
+import net.dumbcode.projectnublar.entity.dinosaur.Dinosaur;
 import net.dumbcode.projectnublar.registry.BlockInit;
 import net.dumbcode.projectnublar.util.SaveVersion;
 import net.minecraft.core.BlockPos;
@@ -31,6 +32,10 @@ import com.geckolib.animation.state.AnimationTest;
 import com.geckolib.util.GeckoLibUtil;
 
 public class DinosaurFeederBlockEntity extends SyncingContainerBlockEntity implements GeoBlockEntity, BalmEnergyStorageProvider {
+
+    private static final String FOOD_SLOT_1_TAG = "food_slot_1";
+    private static final String FOOD_SLOT_2_TAG = "food_slot_2";
+    private static final String FOOD_SLOT_3_TAG = "food_slot_3";
 
     private AnimatableInstanceCache INSTANCE = GeckoLibUtil.createInstanceCache(this);
 
@@ -92,12 +97,19 @@ public class DinosaurFeederBlockEntity extends SyncingContainerBlockEntity imple
         return null;
     }
 
+    /**
+     * Saves the flags and the food slots. Before Task 41 the slots were not saved (the same on 1.20.1), so a reloaded
+     * feeder showed food but held none. The client sync sends only the flags ({@link #getUpdateTag}).
+     */
     @Override
     protected void saveData(ValueOutput output) {
         SaveVersion.write(output);
         output.putInt("progress", progress);
         output.putBoolean("shouldDispenseFood", shouldDispenseFood);
         output.putBoolean("shouldDisplayFood", shouldDisplayFood);
+        output.store(FOOD_SLOT_1_TAG, ItemStack.OPTIONAL_CODEC, foodSlot1);
+        output.store(FOOD_SLOT_2_TAG, ItemStack.OPTIONAL_CODEC, foodSlot2);
+        output.store(FOOD_SLOT_3_TAG, ItemStack.OPTIONAL_CODEC, foodSlot3);
     }
 
     @Override
@@ -105,6 +117,49 @@ public class DinosaurFeederBlockEntity extends SyncingContainerBlockEntity imple
         shouldDispenseFood = input.getBooleanOr("shouldDispenseFood", false);
         shouldDisplayFood = input.getBooleanOr("shouldDisplayFood", false);
         progress = input.getIntOr("progress", 0);
+        foodSlot1 = input.read(FOOD_SLOT_1_TAG, ItemStack.OPTIONAL_CODEC).orElse(ItemStack.EMPTY);
+        foodSlot2 = input.read(FOOD_SLOT_2_TAG, ItemStack.OPTIONAL_CODEC).orElse(ItemStack.EMPTY);
+        foodSlot3 = input.read(FOOD_SLOT_3_TAG, ItemStack.OPTIONAL_CODEC).orElse(ItemStack.EMPTY);
+    }
+
+    /**
+     * Moves as much of the held stack as fits into the slots: a slot that holds the same food grows, an empty slot
+     * takes a copy, and the held stack shrinks by what went in. Then the food display is set on the server and synced
+     * (the rule of {@link #dispenseFood}: food shows while the hatch is open). Before Task 41 a slot held the player's own
+     * stack object and only the client set the display, so the feeder lost its food when the player moved that stack,
+     * and the next sync hid the food. Returns whether anything went in.
+     */
+    public boolean fill(ItemStack held) {
+        int before = held.getCount();
+        for (int slot = 0; slot < getContainerSize() && !held.isEmpty(); slot++) {
+            ItemStack stack = getItem(slot);
+            if (stack.isEmpty()) {
+                setItem(slot, held.split(getMaxStackSize(held)));
+            } else if (ItemStack.isSameItemSameComponents(stack, held)) {
+                int moved = Math.min(held.getCount(), getMaxStackSize(stack) - stack.getCount());
+                stack.grow(moved);
+                held.shrink(moved);
+            }
+        }
+        if (held.getCount() == before) {
+            return false;
+        }
+        setTexture(this.shouldDispenseFood);
+        return true;
+    }
+
+    /** Whether a slot holds food in this animal's diet (meat for a meat-eater; never for a plant-eater). */
+    public boolean holdsFoodFor(Dinosaur dinosaur) {
+        if (dinosaur.getDinoDiet() == null) {
+            return false;
+        }
+        for (int slot = 0; slot < getContainerSize(); slot++) {
+            ItemStack stack = getItem(slot);
+            if (!stack.isEmpty() && dinosaur.getDinoDiet().foodMap().containsKey(stack.getItem().getDescriptionId())) {
+                return true;
+            }
+        }
+        return false;
     }
 
     /** The feeder holds no energy yet, as on 1.20.1; a generator next to it gives it nothing. */
@@ -147,9 +202,10 @@ public class DinosaurFeederBlockEntity extends SyncingContainerBlockEntity imple
         };
     }
 
+    /** Takes up to {@code i1} items from slot {@code i}; a change marks the feeder for saving. */
     @Override
     public ItemStack removeItem(int i, int i1) {
-        return switch(i){
+        ItemStack removed = switch(i){
             case 0 -> {
                 if(!foodSlot1.isEmpty()){
                     ItemStack stack;
@@ -203,6 +259,10 @@ public class DinosaurFeederBlockEntity extends SyncingContainerBlockEntity imple
             }
             default -> ItemStack.EMPTY;
         };
+        if (!removed.isEmpty()) {
+            this.setChanged();
+        }
+        return removed;
     }
 
     @Override
@@ -223,6 +283,8 @@ public class DinosaurFeederBlockEntity extends SyncingContainerBlockEntity imple
                 foodSlot3 = itemStack;
                 break;
         }
+        // The slots are saved now, so a change marks the feeder for saving.
+        this.setChanged();
     }
 
     @Override
