@@ -34,6 +34,17 @@ public class TyrannosaurusRexEntity extends CarnivoreDinosaur {
      * "Model heights", line 2782 (inside the card's adult range of 3.78 to 6 blocks). Used only with the scale attribute on.
      */
     private static final float BOX_HEIGHT = 4.0F;
+    /**
+     * Drawn model reach, in blocks at render scale 1: the largest horizontal distance of any vertex from the model
+     * origin in {@code tyrannosaurus_rex.geo.json}'s bind pose, bone and cube rotations applied (the tail tip). Used
+     * only for view culling.
+     */
+    private static final float MODEL_REACH = 6.194F;
+    /**
+     * Drawn model top, in blocks at render scale 1: the same measurement's highest vertex (the neck, bone
+     * {@code bone}).
+     */
+    private static final float MODEL_TOP = 4.023F;
 
     public TyrannosaurusRexEntity(EntityType<? extends TyrannosaurusRexEntity> $$0, Level $$1) {
         super($$0, $$1, 34);
@@ -47,6 +58,11 @@ public class TyrannosaurusRexEntity extends CarnivoreDinosaur {
     @Override
     protected EntityDimensions correctedBaseBox() {
         return EntityDimensions.scalable(BOX_WIDTH / ADULT_SCALE_OFFSET, BOX_HEIGHT / ADULT_SCALE_OFFSET);
+    }
+
+    @Override
+    public EntityDimensions modelBounds() {
+        return EntityDimensions.scalable(2 * MODEL_REACH, MODEL_TOP);
     }
 
     /** The head part, in unscaled sizes: the part follows this animal's scale itself ({@code PartEntity}). */

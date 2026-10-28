@@ -22,6 +22,7 @@ import net.minecraft.client.renderer.rendertype.RenderTypes;
 import net.minecraft.client.renderer.state.level.CameraRenderState;
 import net.minecraft.resources.Identifier;
 import net.minecraft.util.LightCoordsUtil;
+import net.minecraft.world.phys.AABB;
 import net.minecraft.world.phys.Vec3;
 
 /**
@@ -55,6 +56,8 @@ public class DinosaurRenderer extends GeoEntityRenderer<Dinosaur, LivingEntityRe
     private static final Identifier LEADER_CROWN = Identifier.fromNamespaceAndPath(Constants.MODID,"textures/misc/leader_crown.png");
     private static final float CROWN_SIZE = 0.6F;
     private static final float CROWN_GAP = 0.5F;
+    /** The culling box is the model's bind-pose bounds plus 25 %, for poses that reach further. */
+    private static final float CULLING_MARGIN = 1.25F;
 
     /** The colour layers of each gender are built (once, with the first animal of that gender). */
     private boolean maleLayersBuilt;
@@ -115,6 +118,20 @@ public class DinosaurRenderer extends GeoEntityRenderer<Dinosaur, LivingEntityRe
         }
     }
 
+    /**
+     * The box vanilla tests against the view (after inflating it by 0.5): the hitbox, grown to hold the drawn model.
+     * The hitbox alone sits at the feet, so a Brachiosaurus vanished while the camera saw only its head or tail. The
+     * model's bind-pose bounds ({@link Dinosaur#modelBounds()}) are scaled by the render scale
+     * ({@link Dinosaur#scaleFactor()}, in both size modes) and by {@link #CULLING_MARGIN}. Turning culling off instead
+     * would draw every dinosaur behind the camera too, which costs too much on player hardware.
+     */
+    @Override
+    protected AABB getBoundingBoxForCulling(Dinosaur entity) {
+        float scale = entity.scaleFactor() * CULLING_MARGIN;
+        AABB model = entity.modelBounds().scale(scale).makeBoundingBox(entity.position());
+        return super.getBoundingBoxForCulling(entity).minmax(model);
+    }
+
     /** Scales by {@link Dinosaur#scaleFactor()} by hand only with the scale attribute off (see the class note). */
     @Override
     public void scaleModelForRender(RenderPassInfo<LivingEntityRenderState> renderPassInfo, float widthScale, float heightScale) {
@@ -165,8 +182,9 @@ public class DinosaurRenderer extends GeoEntityRenderer<Dinosaur, LivingEntityRe
         poseStack.pushPose();
         poseStack.translate(0.0F, renderState.boundingBoxHeight + CROWN_GAP + CROWN_SIZE / 2F, 0.0F);
         poseStack.mulPose(camera.orientation);
-        // After the camera rotation, +x points left on screen; flip it so u runs left to right.
-        poseStack.scale(-CROWN_SIZE, CROWN_SIZE, CROWN_SIZE);
+        // On 26.2 the camera rotation turns the quad's front to the viewer with +x to the right, as vanilla's XP orb
+        // uses it, so no flip: the 1.20.1 x flip now shows the back, which the text render type culls.
+        poseStack.scale(CROWN_SIZE, CROWN_SIZE, CROWN_SIZE);
         collector.submitCustomGeometry(poseStack, RenderTypes.text(LEADER_CROWN), (pose, consumer) -> {
             crownVertex(consumer, pose, -0.5F, -0.5F, 0F, 1F);
             crownVertex(consumer, pose, 0.5F, -0.5F, 1F, 1F);

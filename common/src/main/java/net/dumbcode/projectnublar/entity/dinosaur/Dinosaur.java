@@ -373,6 +373,13 @@ public abstract class Dinosaur extends TamableAnimal implements FossilRevived, G
      */
     protected abstract EntityDimensions correctedBaseBox();
 
+    /**
+     * Client: the drawn model's bind-pose size at render scale 1, in blocks, for the renderer's view culling (not a
+     * hitbox): the width is twice the largest horizontal distance of any vertex from the model origin, the height is
+     * the model's top. Measured from the species' {@code .geo.json}.
+     */
+    public abstract EntityDimensions modelBounds();
+
     /** This animal's {@link #scaleFactor}, from its {@code SIZE} gene, growth stage and species offset. */
     public float scaleFactor() {
         return scaleFactor(this.getDinoData().getGeneValue(GeneInit.SIZE.get()), this.getGrowthStage(), this.adultScaleOffset());

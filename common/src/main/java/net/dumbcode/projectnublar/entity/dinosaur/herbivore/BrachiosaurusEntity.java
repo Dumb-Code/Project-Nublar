@@ -22,6 +22,14 @@ public class BrachiosaurusEntity extends HerbivoreDinosaur {
      * the value with F3+B. Used only with the scale attribute on.
      */
     private static final float BOX_HEIGHT = 19.31F;
+    /**
+     * Drawn model reach, in blocks at render scale 1: the largest horizontal distance of any vertex from the model
+     * origin in {@code brachiosaurus.geo.json}'s bind pose, bone and cube rotations applied (the tail tip). Used only
+     * for view culling.
+     */
+    private static final float MODEL_REACH = 4.666F;
+    /** Drawn model top, in blocks at render scale 1: the same measurement's highest vertex (the male crest). */
+    private static final float MODEL_TOP = 7.723F;
 
     public BrachiosaurusEntity(EntityType<? extends BrachiosaurusEntity> $$0, Level $$1) {
         super($$0, $$1, 0);
@@ -35,6 +43,11 @@ public class BrachiosaurusEntity extends HerbivoreDinosaur {
     @Override
     protected EntityDimensions correctedBaseBox() {
         return EntityDimensions.scalable(BOX_WIDTH / ADULT_SCALE_OFFSET, BOX_HEIGHT / ADULT_SCALE_OFFSET);
+    }
+
+    @Override
+    public EntityDimensions modelBounds() {
+        return EntityDimensions.scalable(2 * MODEL_REACH, MODEL_TOP);
     }
 
     @Override

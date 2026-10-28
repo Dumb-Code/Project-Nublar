@@ -20,6 +20,14 @@ public class TriceratopsEntity extends HerbivoreDinosaur {
      * {@code docs/codebase-analysis.md}, "Model heights", line 2786. Used only with the scale attribute on.
      */
     private static final float BOX_HEIGHT = 4.6F;
+    /**
+     * Drawn model reach, in blocks at render scale 1: the largest horizontal distance of any vertex from the model
+     * origin in {@code triceratops.geo.json}'s bind pose, bone and cube rotations applied (the tail tip). Used only
+     * for view culling.
+     */
+    private static final float MODEL_REACH = 2.945F;
+    /** Drawn model top, in blocks at render scale 1: the same measurement's highest vertex (the frill). */
+    private static final float MODEL_TOP = 2.267F;
 
     public TriceratopsEntity(EntityType<? extends TriceratopsEntity> $$0, Level $$1) {
         super($$0, $$1, 39);
@@ -33,6 +41,11 @@ public class TriceratopsEntity extends HerbivoreDinosaur {
     @Override
     protected EntityDimensions correctedBaseBox() {
         return EntityDimensions.scalable(BOX_WIDTH / ADULT_SCALE_OFFSET, BOX_HEIGHT / ADULT_SCALE_OFFSET);
+    }
+
+    @Override
+    public EntityDimensions modelBounds() {
+        return EntityDimensions.scalable(2 * MODEL_REACH, MODEL_TOP);
     }
 
     // TODO(BUG): calls super.canTarget(...) but ignores the result, reducing this species to
