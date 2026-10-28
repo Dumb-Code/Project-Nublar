@@ -9,9 +9,7 @@ package net.dumbcode.projectnublar.entity.dinosaur.ai.behavior.social;
  * chases 1.5). Hysteresis: a walker starts to run above the speed of {@link #ENTER_MODIFIER}, a runner walks
  * again below the speed of {@link #EXIT_MODIFIER}, so the animation does not flicker at the threshold.
  * <p>
- * Fix P12a: {@link #authoredSpeed} is the ground speed each leg cycle is made for, so the client can scale the
- * cycle rate by the real ground speed ({@code MovementGait}). The run is made for the walk's stride per cycle, from
- * the species' own cycle lengths, so the step rate does not change at the run switch for any species.
+ * The leg cycle rate that keeps the feet in pace with this speed is the client's ({@code MovementGait}, fix P12a).
  * <p>
  * P13b: the stamina a walk or a run costs ({@link #staminaDrain}).
  */
@@ -20,16 +18,6 @@ public final class RunGait {
     static final double ENTER_MODIFIER = 1.05D;
     /** A runner walks below the ground speed of this setting. */
     static final double EXIT_MODIFIER = 0.95D;
-    /**
-     * The walk cycle is made for the ground speed of this setting (the roaming journey): the Gallimimus
-     * {@code move.walk} (1.875 s) then covers about 3 blocks per cycle.
-     */
-    static final double WALK_AUTHORED_MODIFIER = 0.8D;
-    /**
-     * Fallback when a cycle length is not known: the run cycle is made for the ground speed of this setting
-     * (catch-up), where the Gallimimus {@code run} (0.79 s) covers about 3 blocks, as its walk does.
-     */
-    static final double RUN_AUTHORED_MODIFIER = 1.2D;
     /**
      * A walk drains this fraction of the species' stamina drain (P13b, ruling Q3: 25 % less than before, so a
      * Gallimimus on a roaming journey walks about 80 blocks from the start minimum of 150 to tired, 80; 60 before).
@@ -51,29 +39,6 @@ public final class RunGait {
             return groundSpeed >= GroundSpeed.groundSpeed(EXIT_MODIFIER, attribute);
         }
         return groundSpeed > GroundSpeed.groundSpeed(ENTER_MODIFIER, attribute);
-    }
-
-    /**
-     * The ground speed in blocks per tick that the walk or the run ({@code running}) cycle is made for.
-     * <p>
-     * The walk is made for {@link #WALK_AUTHORED_MODIFIER}. The run is made for the same stride per cycle as the walk
-     * (P12a fix round 1): walk speed x walk length / run length. At one ground speed both cycles then step at the same
-     * rate, so the legs neither speed up nor slow down at the run switch. The species' walk-to-run length ratio goes
-     * from 1.33 (dilophosaurus) to 3.3 (triceratops); one fixed run speed slowed the legs of three species at the
-     * switch. When a length is not known (0 or less), the run uses {@link #RUN_AUTHORED_MODIFIER}.
-     *
-     * @param walkCycleTicks the species' walk length in ticks; 0 or less when not known
-     * @param runCycleTicks  the species' run length in ticks; 0 or less when not known
-     */
-    public static double authoredSpeed(boolean running, double attribute, int walkCycleTicks, int runCycleTicks) {
-        double walk = GroundSpeed.groundSpeed(WALK_AUTHORED_MODIFIER, attribute);
-        if (!running) {
-            return walk;
-        }
-        if (walkCycleTicks <= 0 || runCycleTicks <= 0) {
-            return GroundSpeed.groundSpeed(RUN_AUTHORED_MODIFIER, attribute);
-        }
-        return walk * walkCycleTicks / runCycleTicks;
     }
 
     /**

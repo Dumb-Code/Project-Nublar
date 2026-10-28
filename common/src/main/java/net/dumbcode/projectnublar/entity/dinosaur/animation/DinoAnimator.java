@@ -3,6 +3,8 @@ package net.dumbcode.projectnublar.entity.dinosaur.animation;
 import net.dumbcode.projectnublar.entity.dinosaur.Dinosaur;
 import net.dumbcode.projectnublar.util.DinoAnimationAvailability;
 import net.dumbcode.projectnublar.util.DinoAnimationLengths;
+import net.minecraft.core.registries.BuiltInRegistries;
+import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.entity.ai.attributes.Attributes;
 import org.jetbrains.annotations.Nullable;
 import com.geckolib.animation.RawAnimation;
@@ -15,8 +17,8 @@ import com.geckolib.animation.state.AnimationTest;
  * variants. Two controllers use it:
  * <ul>
  *   <li>{@link #movement}: stand, walk or run from the smoothed ground speed, with a minimum time in each gait, and
- *       the leg cycle rate scaled by the ground speed ({@link MovementGait}, fix P12a). It stops for a dead animal,
- *       so a corpse that knockback slides does not walk.</li>
+ *       the leg cycle rate scaled by the ground speed over the species' own stride ({@link MovementGait}, fix P12a,
+ *       Task 45). It stops for a dead animal, so a corpse that knockback slides does not walk.</li>
  *   <li>{@link #main}, in priority order: dead, flinch, roar, attack, the server's one-shot action
  *       ({@link OneShotAction}: call, sentry, startled), sit down, get up, rest, drink, eat, swim, standing idle.
  *       Eat, drink and get up play the idle choice when the species has none of their names; dead plays
@@ -61,6 +63,8 @@ public final class DinoAnimator {
     /** The species' walk and run lengths in ticks, read once ({@link DinoAnimationLengths}). */
     private int walkCycleTicks = CYCLE_NOT_READ;
     private int runCycleTicks;
+    /** The species' leg strides, read with the lengths ({@link MovementGait#strides}). */
+    private MovementGait.Strides strides = MovementGait.Strides.NOT_MEASURED;
     private boolean wasAttacking;
     private boolean wasEating;
     private boolean wasDrinking;
@@ -88,13 +92,22 @@ public final class DinoAnimator {
     /** Once per client tick, after the entity moved: the gait and the starts of states. */
     public void clientTick() {
         if (this.walkCycleTicks == CYCLE_NOT_READ) {
-            this.walkCycleTicks = DinoAnimationLengths.lengthTicks(this.dinosaur.getType(), AnimationChoice.WALK);
-            this.runCycleTicks = DinoAnimationLengths.lengthTicks(this.dinosaur.getType(), AnimationChoice.RUN);
+            EntityType<?> type = this.dinosaur.getType();
+            this.walkCycleTicks = DinoAnimationLengths.lengthTicks(type, AnimationChoice.WALK);
+            this.runCycleTicks = DinoAnimationLengths.lengthTicks(type, AnimationChoice.RUN);
+            this.strides = MovementGait.strides(BuiltInRegistries.ENTITY_TYPE.getKey(type).getPath());
         }
+        // The render scale grows with the animal, so the speeds its leg clips are made for are read on every tick.
+        float scale = this.dinosaur.scaleFactor();
+        double walkSpeed = MovementGait.authoredSpeed(this.strides.walk(), scale, this.walkCycleTicks);
+        // A species with no run clip plays its walk for a run (movement()), so its run is made for the walk's speed.
+        double runSpeed = this.runCycleTicks == AnimationChoice.LENGTH_NOT_DEFINED
+                ? walkSpeed
+                : MovementGait.authoredSpeed(this.strides.run(), scale, this.runCycleTicks);
         double dx = this.dinosaur.getX() - this.dinosaur.xo;
         double dz = this.dinosaur.getZ() - this.dinosaur.zo;
         this.gait.tick(Math.sqrt(dx * dx + dz * dz), this.dinosaur.getAttributeBaseValue(Attributes.MOVEMENT_SPEED),
-                this.walkCycleTicks, this.runCycleTicks);
+                walkSpeed, runSpeed);
 
         boolean attacking = this.dinosaur.isAttacking();
         if (attacking && !this.wasAttacking) {

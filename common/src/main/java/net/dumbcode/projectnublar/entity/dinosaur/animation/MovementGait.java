@@ -16,19 +16,14 @@ import net.dumbcode.projectnublar.entity.dinosaur.ai.behavior.social.RunGait;
  *       free);</li>
  *   <li>walk or run uses the {@link RunGait} hysteresis on the smoothed speed.</li>
  * </ul>
- * The leg cycle plays at the smoothed speed over the speed it was made for ({@link RunGait#authoredSpeed}), clamped,
- * so the feet do not slide and the step rate does not jump at the run switch.
+ * The leg cycle plays at the smoothed speed over the speed the clip was made for ({@link #authoredSpeed}: the
+ * species' measured stride, Task 45), clamped, so the planted feet keep pace with the ground. The walk and the run
+ * each have their own stride, so at the run switch the step rate changes with the stride while the feet keep pace.
  * <p>
- * GeckoLib plays a cycle at {@code speed x (ticks since the cycle started)}, so a change of the speed also moves
- * the leg phase by {@code change x ticks since the start}. The change per tick is limited so that this never moves
- * the legs more than {@link #MAX_RATE_ERROR} of the wanted rate: at most {@code MAX_RATE_ERROR x speed / elapsed},
- * where elapsed is the ticks since the gait started, but not more than one cycle. The legs then never run backward.
- * A new gait starts its animation from the first frame, so there the speed may change at once. A walk from a stand
- * takes its target at once. A change between walk and run keeps the step rate (cycles per tick) of the previous gait
- * (P12a fix round 1): in a settled walk the speed follows an acceleration slowly, so taking the run's target at once
- * made the legs step up to about 1.9 times faster at the switch (a Gallimimus that speeds up over 1 to 10 ticks).
- * Early in the new cycle the limit is wide, so the speed then reaches its target in a few ticks; for those ticks it
- * may lie outside the clamp.
+ * The speed takes its target on every tick. GeckoLib 5 adds each frame's time times the speed to the clip's time
+ * ({@code AnimationController.checkControllerState}, javap of 5.5.6), so a change of the speed changes the rate and
+ * never moves the leg phase. (GeckoLib 4 played a cycle at the speed times the ticks since its start, so a change also
+ * moved the phase, and a limit on the change per tick kept the legs from jumping. GeckoLib 5 does not need it.)
  */
 public final class MovementGait {
     /** Weight of the newest tick in the exponential average of the ground speed (time constant about 3 ticks). */
@@ -40,13 +35,13 @@ public final class MovementGait {
     public static final double MOVING_SPEED = 0.015D;
     /** A gait plays at least this many ticks before it changes. */
     public static final int HOLD_TICKS = 8;
-    /** Clamp of the leg cycle rate, as a multiple of the rate the animation was made for. */
-    public static final double MIN_ANIMATION_SPEED = 0.5D;
+    /**
+     * Clamp of the leg cycle rate, as a multiple of the rate the animation was made for. The floor is low because a
+     * long-stride walk is made for a fast ground speed: the Velociraptor's walk plays at about 0.25 when it grazes
+     * (modifier 0.6), so a floor of 0.5 made its feet twice as fast as the ground.
+     */
+    public static final double MIN_ANIMATION_SPEED = 0.2D;
     public static final double MAX_ANIMATION_SPEED = 2.0D;
-    /** Largest error of the leg rate that a change of the animation speed may cause, as a fraction of the speed. */
-    public static final double MAX_RATE_ERROR = 0.5D;
-    /** Cycle length in ticks when the species' animation length is not known (about the Gallimimus walk). */
-    public static final int FALLBACK_CYCLE_TICKS = 40;
     /**
      * Most blocks one tick counts in the average (P12a fix round 1). The fastest setting the AI uses is a chase
      * (modifier 1.5: 0.30 blocks per tick at {@code MOVEMENT_SPEED} 0.25), and a burst tick moves 4/3 of that (0.40).
@@ -62,22 +57,68 @@ public final class MovementGait {
         RUN
     }
 
+    /**
+     * The ground the planted feet cover in one leg cycle, in blocks at render scale 1: the walk ({@code move.walk}) and
+     * the run (the species' {@link AnimationChoice#RUN} clip).
+     */
+    public record Strides(double walk, double run) {
+        /** A species with no measurement: its leg clips play at rate 1. */
+        public static final Strides NOT_MEASURED = new Strides(0D, 0D);
+    }
+
     private double groundSpeed;
     private Gait gait = Gait.IDLE;
     private int heldTicks = HOLD_TICKS;
-    /** Ticks since the gait changed, up to {@link Integer#MAX_VALUE}. */
-    private int gaitTicks;
     private double animationSpeed = 1D;
+
+    /**
+     * The strides of the species with the registry id {@code speciesId}. Measured from the species' model and clip
+     * files, not seen in game (Task 15 round 2, R3): the foot contact point followed through one cycle of GeckoLib
+     * 5.5.6's own evaluation of the clip at render scale 1; the stride is the mean of two estimates, the planted foot's
+     * backward speed times the cycle (D1) and twice the foot's front-to-back range (D3). The comments give the clip
+     * length and D1 / D3 in blocks. Starting values: the lead tunes them by eye in game.
+     */
+    public static Strides strides(String speciesId) {
+        return switch (speciesId) {
+            // move.walk 19.2 ticks: 6.48 / 6.47; run 14.2 ticks: 12.61 / 8.21
+            case "velociraptor" -> new Strides(6.5D, 10.4D);
+            // move.walk 45 ticks: 5.66 / 6.11; run 20 ticks: 9.66 / 8.56
+            case "tyrannosaurus_rex" -> new Strides(5.9D, 9.1D);
+            // move.walk 37.5 ticks: 2.40 / 2.96; run 15.8 ticks: 6.71 / 5.21
+            case "gallimimus" -> new Strides(2.7D, 6.0D);
+            // move.walk 26.7 ticks: 3.85 / 3.95; run 20 ticks: 6.11 / 5.84
+            case "dilophosaurus" -> new Strides(3.9D, 6.0D);
+            // move.walk 60 ticks: 1.63 / 2.17; run ("Sprint ") 18.3 ticks: 2.70 / 2.78
+            case "triceratops" -> new Strides(1.9D, 2.7D);
+            // move.walk 80.8 ticks: 1.89 / 2.77; run 55.8 ticks: 2.27 / 3.25
+            case "brachiosaurus" -> new Strides(2.3D, 2.8D);
+            default -> Strides.NOT_MEASURED;
+        };
+    }
+
+    /**
+     * Ground speed in blocks per tick that a leg cycle is made for: the ground the planted feet cover in one cycle at
+     * render scale 1 ({@code strideBlocks}, measured per species and clip), times the animal's render scale, over the
+     * clip's length. Played at this ground speed at rate 1, the planted feet stay put on the ground.
+     *
+     * @param strideBlocks the clip's stride per cycle at render scale 1, in blocks; 0 when not measured
+     * @param scale        the animal's render scale ({@code Dinosaur.scaleFactor()})
+     * @param cycleTicks   the clip's length in ticks; 0 or less when not known
+     * @return the speed, or 0 when the stride or the length is not known
+     */
+    public static double authoredSpeed(double strideBlocks, double scale, int cycleTicks) {
+        return cycleTicks > 0 ? strideBlocks * scale / cycleTicks : 0D;
+    }
 
     /**
      * One client tick.
      *
-     * @param groundSpeed    horizontal blocks moved on this tick
-     * @param attribute      the animal's {@code MOVEMENT_SPEED} attribute
-     * @param walkCycleTicks length of the species' walk animation in ticks; 0 or less when not known
-     * @param runCycleTicks  length of the species' run animation in ticks; 0 or less when not known
+     * @param groundSpeed horizontal blocks moved on this tick
+     * @param attribute   the animal's {@code MOVEMENT_SPEED} attribute
+     * @param walkSpeed   {@link #authoredSpeed} of the walk; 0 when not known (the walk then plays at rate 1)
+     * @param runSpeed    {@link #authoredSpeed} of the run; 0 when not known (the run then plays at rate 1)
      */
-    public void tick(double groundSpeed, double attribute, int walkCycleTicks, int runCycleTicks) {
+    public void tick(double groundSpeed, double attribute, double walkSpeed, double runSpeed) {
         this.groundSpeed += SMOOTHING * (Math.min(groundSpeed, MAX_GROUND_SPEED) - this.groundSpeed);
         Gait wanted;
         if (this.groundSpeed < MOVING_SPEED) {
@@ -88,33 +129,16 @@ public final class MovementGait {
         if (this.heldTicks < HOLD_TICKS) {
             this.heldTicks++;
         }
-        if (this.gaitTicks < Integer.MAX_VALUE) {
-            this.gaitTicks++;
-        }
-        Gait previous = this.gait;
-        boolean changed = wanted != this.gait && this.heldTicks >= HOLD_TICKS;
-        if (changed) {
+        if (wanted != this.gait && this.heldTicks >= HOLD_TICKS) {
             this.gait = wanted;
             this.heldTicks = 0;
-            this.gaitTicks = 0;
         }
-        if (this.gait == Gait.IDLE) {
+        double authored = this.gait == Gait.RUN ? runSpeed : walkSpeed;
+        if (this.gait == Gait.IDLE || authored <= 0D) {
             this.animationSpeed = 1D;
             return;
         }
-        double target = Math.max(MIN_ANIMATION_SPEED, Math.min(MAX_ANIMATION_SPEED,
-                this.groundSpeed / RunGait.authoredSpeed(this.gait == Gait.RUN, attribute, walkCycleTicks, runCycleTicks)));
-        int cycle = this.gait == Gait.RUN ? runCycleTicks : walkCycleTicks;
-        if (changed) {
-            int previousCycle = previous == Gait.RUN ? runCycleTicks : walkCycleTicks;
-            // Walk to run or back: the same cycles per tick as before (class comment). From a stand: the target.
-            boolean keepStepRate = previous != Gait.IDLE && cycle > 0 && previousCycle > 0;
-            this.animationSpeed = keepStepRate ? this.animationSpeed * cycle / previousCycle : target;
-            return;
-        }
-        double elapsed = Math.min(this.gaitTicks, (cycle > 0 ? cycle : FALLBACK_CYCLE_TICKS) / this.animationSpeed);
-        double step = MAX_RATE_ERROR * this.animationSpeed / Math.max(1D, elapsed);
-        this.animationSpeed += Math.max(-step, Math.min(step, target - this.animationSpeed));
+        this.animationSpeed = Math.max(MIN_ANIMATION_SPEED, Math.min(MAX_ANIMATION_SPEED, this.groundSpeed / authored));
     }
 
     public Gait gait() {
