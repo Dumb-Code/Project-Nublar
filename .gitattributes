@@ -13,3 +13,6 @@
 *.pyd binary
 *.cfg text eol=lf
 *.jks binary
+*.ogg binary
+*.wav binary
+*.nbt binary
