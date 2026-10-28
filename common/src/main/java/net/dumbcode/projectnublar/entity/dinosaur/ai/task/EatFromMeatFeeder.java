@@ -7,11 +7,13 @@ import net.dumbcode.projectnublar.util.DinoNeedsUtils;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.entity.ai.behavior.declarative.MemoryCondition;
 import net.minecraft.world.entity.ai.memory.MemoryModuleType;
+import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.phys.Vec3;
 import net.tslat.smartbrainlib.api.core.behaviour.base.DelayedBehaviour;
 import net.tslat.smartbrainlib.library.object.MemoryTest;
 import net.tslat.smartbrainlib.util.BrainUtil;
 
+import java.util.Map;
 import java.util.Set;
 import java.util.function.BiPredicate;
 
@@ -42,48 +44,37 @@ public class EatFromMeatFeeder<E extends Dinosaur> extends DelayedBehaviour<E> {
         } else return false;
     }
 
+    /**
+     * Eats from the first feeder slot that holds food in the animal's diet, one item at a time through
+     * {@link DinoNeedsUtils#feed} (as {@code Eat} does with food on the ground), until the animal is full or the slot
+     * is empty. The diet is keyed by item description id; the old check looked items up by stack, which never
+     * matched, so a feeder visit fed nothing (the same on 1.20.1).
+     */
     @Override
     protected void doDelayedAction(E dinosaur) {
-       if(feeder != null) {
-           if((dinosaur.getDinoDiet().foodMap().containsKey(feeder.getItem(0)))
-                   || (dinosaur.getDinoDiet().foodMap().containsKey(feeder.getItem(1)))
-                   || (dinosaur.getDinoDiet().foodMap().containsKey(feeder.getItem(2)))) {
-               double foodIncreasePerUnit = 0;
-
-               if(!feeder.getItem(0).isEmpty()) {
-                   foodIncreasePerUnit = dinosaur.getDinoDiet().foodMap().get(feeder.getItem(0));
-                   for (double i = DinoNeedsUtils.getCurrentHunger(dinosaur); i < DinoNeedsUtils.getMaxHunger(dinosaur); i += foodIncreasePerUnit) {
-                       feeder.removeItem(0, 1);
-                       if(feeder.getItem(0).isEmpty()) {return;}
-                       if (DinoNeedsUtils.getCurrentHunger(dinosaur) >= DinoNeedsUtils.getMaxHunger(dinosaur)) {
-                           DinoNeedsUtils.setCurrentHunger(dinosaur, DinoNeedsUtils.getMaxHunger(dinosaur));
-                           return;
-                       }
-
-                   }
-               } else if(!feeder.getItem(1).isEmpty()) {
-                   foodIncreasePerUnit = dinosaur.getDinoDiet().foodMap().get(feeder.getItem(1));
-                   for (double i = DinoNeedsUtils.getCurrentHunger(dinosaur); i < DinoNeedsUtils.getMaxHunger(dinosaur); i += foodIncreasePerUnit) {
-                       feeder.removeItem(1, 1);
-                       if(feeder.getItem(1).isEmpty()) {return;}
-                       if (DinoNeedsUtils.getCurrentHunger(dinosaur) >= DinoNeedsUtils.getMaxHunger(dinosaur)) {
-                           DinoNeedsUtils.setCurrentHunger(dinosaur, DinoNeedsUtils.getMaxHunger(dinosaur));
-                           return;
-                       }
-                   }
-               } else if(!feeder.getItem(2).isEmpty()) {
-                   foodIncreasePerUnit = dinosaur.getDinoDiet().foodMap().get(feeder.getItem(2));
-                   for (double i = DinoNeedsUtils.getCurrentHunger(dinosaur); i < DinoNeedsUtils.getMaxHunger(dinosaur); i += foodIncreasePerUnit) {
-                       feeder.removeItem(2, 1);
-                       if(feeder.getItem(2).isEmpty()) {return;}
-                       if (DinoNeedsUtils.getCurrentHunger(dinosaur) >= DinoNeedsUtils.getMaxHunger(dinosaur)) {
-                           DinoNeedsUtils.setCurrentHunger(dinosaur, DinoNeedsUtils.getMaxHunger(dinosaur));
-                           return;
-                       }
-                   }
-               } else return;
-           }
-       }
+        if (this.feeder == null || dinosaur.getDinoDiet() == null) {
+            return;
+        }
+        Map<String, Double> diet = dinosaur.getDinoDiet().foodMap();
+        for (int slot = 0; slot < this.feeder.getContainerSize(); slot++) {
+            ItemStack stack = this.feeder.getItem(slot);
+            if (stack.isEmpty() || !diet.containsKey(stack.getItem().getDescriptionId())) {
+                continue;
+            }
+            String food = stack.getItem().getDescriptionId();
+            while (!this.feeder.getItem(slot).isEmpty()
+                    && DinoNeedsUtils.getCurrentHunger(dinosaur) < DinoNeedsUtils.getMaxHunger(dinosaur)) {
+                float before = DinoNeedsUtils.getCurrentHunger(dinosaur);
+                DinoNeedsUtils.feed(dinosaur, food);
+                this.feeder.removeItem(slot, 1);
+                // feed caps hunger at 100; an animal whose need maximum is higher stops here instead of
+                // emptying the slot for nothing.
+                if (DinoNeedsUtils.getCurrentHunger(dinosaur) <= before) {
+                    break;
+                }
+            }
+            return;
+        }
     }
 
     @Override
