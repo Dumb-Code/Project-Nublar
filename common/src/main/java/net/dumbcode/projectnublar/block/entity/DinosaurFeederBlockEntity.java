@@ -142,7 +142,7 @@ public class DinosaurFeederBlockEntity extends SyncingContainerBlockEntity imple
         return switch(i){
             case 0 -> foodSlot1;
             case 1 -> foodSlot2;
-            case 3 -> foodSlot3;
+            case 2 -> foodSlot3;
             default -> ItemStack.EMPTY;
         };
     }

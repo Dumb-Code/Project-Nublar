@@ -73,6 +73,11 @@ public class EatFromMeatFeeder<E extends Dinosaur> extends DelayedBehaviour<E> {
                     break;
                 }
             }
+            // An emptied feeder stops showing food; otherwise SetHunting keeps waiting for it and the carnivore
+            // keeps walking back to an empty feeder.
+            if (this.feeder.isEmpty()) {
+                this.feeder.setTexture(false);
+            }
             return;
         }
     }
