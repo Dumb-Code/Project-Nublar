@@ -100,6 +100,8 @@ public class CommonClientClass {
         LAYER_REGISTRY.put(EntityInit.BRACHIOSAURUS.get(),List.of(
                 new DinoLayer("back",1),
                 new DinoLayer("belly",2),
+                // Male only: the JW male skin's blue on the male crest and neck.
+                new DinoLayer("blue", -1, Dinosaur::isMale),
                 new DinoLayer("eyes", -1),
                 new DinoLayer("mouth", -1),
                 new DinoLayer("nostrils",-1),

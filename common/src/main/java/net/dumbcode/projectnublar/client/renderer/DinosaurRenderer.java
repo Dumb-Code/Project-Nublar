@@ -45,7 +45,7 @@ import net.minecraft.world.phys.Vec3;
  */
 public class DinosaurRenderer extends GeoEntityRenderer<Dinosaur, LivingEntityRenderState> {
     /**
-     * The animal is male (gender gene 2.0, as {@link Dinosaur#isMale()}); the Gallimimus base texture and the
+     * The animal is male (gender gene 2.0, as {@link Dinosaur#isMale()}); the base texture of every species and the
      * Brachiosaurus crests read it.
      */
     public static final DataTicket<Boolean> MALE = DataTicket.create("projectnublar_dinosaur_male", Boolean.class);
