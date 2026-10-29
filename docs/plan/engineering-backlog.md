@@ -93,6 +93,10 @@ Every work package follows these rules.
   2. Keep the codebase as light as feasibly possible: optimized, efficient, performant, and in line with the basics of OOP. No speculative abstractions. No utility layer for one caller. No new dependency when the JDK or Minecraft has the function. Measure before you optimize, but never leave known per-tick waste.
   3. Review your own work as an adversary does. Do not add or remove code only for the sake of it.
   4. A human must be able to continue from where you stopped. Javadoc, a short package note and tests that explain intent make this possible.
+- **Java best practices.** All new and changed Java follows [java-best-practices.md](../java-best-practices.md).
+  - It merges Effective Java (3rd edition), the Google and Oracle style guides and three shorter guides into one checklist.
+  - It states where this repo differs from those sources: 4-space indent, 100 columns, `TODO(TAG)` comments, `Constants.LOG`.
+  - Do not reformat code that a change does not touch.
 - **Libraries first.** If SmartBrainLib 2, GeckoLib 5 or Balm gives a hook, call the library. Do not copy library code. Do not write a second version of a library feature. Examples:
   - SmartBrainLib 2 ticks the brain. Remove the manual brain tick.
   - Gate sensors with `onlyScanIf` and set a scan rate per entity. No always-on block scan.
@@ -240,6 +244,7 @@ A reviewer (a human, or a fresh agent that did not write the code) checks:
 - [ ] Shared animation state is server-owned and uses game time.
 - [ ] Nothing outside the work package changed without a reason in the PR.
 - [ ] The four code quality standards hold.
+- [ ] New and changed Java follows [java-best-practices.md](../java-best-practices.md).
 
 ---
 
@@ -6969,3 +6974,4 @@ These rows come from a review of ten game-engine libraries, for example Jolt Phy
 - **2026-10-28 (lead: M0.P2 playtest, round 4):** D293. F3.3 gets a smooth platform rise with the meat on it, and meat pieces that disappear one at a time as dinosaurs eat. F2.3 and the Art list get the Triceratops rest hold: `restidle` holds the last pose of `rest`. The Triceratops also needs a `getup` clip.
 - **2026-10-28 (lead: M0.P2 playtest, round 5):** D294 to D296. F3.1 gets a post outline and collision box that turn with the post. F1.11 and the Art list get the Creative Generator look: the 1.12.2 cube with the five 1.12.2 coal generator textures. F1.1 and the Art list get the amber ore look: an amber layer, cut from the assets-repo ore texture, over each host stone. The Art list marks the imported Triceratops species icon Done.
 - **2026-10-29 (engine-library review):** D297 to D299, all proposals. F2.4 gets a path budget charged by search cost, and path repair. F2.2 gets a small-cube cut for far animals. BH.1 measures them first.
+- **2026-10-29 (Java best practices):** Global constraints and the Reviewer checklist add `docs/java-best-practices.md`, one Java checklist for all new and changed code.
