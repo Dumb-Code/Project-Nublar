@@ -959,10 +959,22 @@ public class SequencerScreen extends AbstractContainerScreen<SequencerMenu> {
      * Creates a preview entity in the client level. Like 1.20.1 {@code EntityType.create(Level)},
      * only the type's feature flags are checked: 26.2's {@code create(Level, EntitySpawnReason)}
      * would also refuse a monster on Peaceful.
+     *
+     * <p>The preview gets the id -1, as vanilla's spawner display entity does
+     * ({@code BaseSpawner.SET_DISPLAY_ENTITY_ID}). A 26.2 entity takes its id from
+     * {@code Level.getNextEntityId()}, which is 0 on the client (only the server hands out ids),
+     * and {@code getId()} throws on 0. The renderer reads the id of every living entity it draws.
      */
     private @Nullable Entity createPreview(EntityType<?> type) {
         Level level = this.minecraft.level;
-        return type.isEnabled(level.enabledFeatures()) ? type.create(level, new EntitySpawnRequest(EntitySpawnReason.LOAD, true)) : null;
+        if (!type.isEnabled(level.enabledFeatures())) {
+            return null;
+        }
+        Entity entity = type.create(level, new EntitySpawnRequest(EntitySpawnReason.LOAD, true));
+        if (entity != null) {
+            entity.setId(-1);
+        }
+        return entity;
     }
 
     /**
