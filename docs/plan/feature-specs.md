@@ -162,7 +162,7 @@ See Art list → Fossils and amber (ore overlays, fossil and amber sprites, pelv
 
 #### Today in the code
 
-- No worldgen runs. Fossil blocks exist for two species, drops are broken, and fossils hold 0% DNA.
+- Fossil veins generate in stone at y 37 to 59 under every overworld biome. The deepslate vein never places (its height band is above the deepslate layer), the sandstone vein almost never places, and the fossil config's biome list is not read. Fossil blocks exist for two species, drops are broken, and fossils hold 0% DNA.
 - No pouch or DNA labels.
 - Amber ore blocks exist, but nothing places them in the world. Each amber ore is its host stone (stone, deepslate or sandstone) with the amber nugget sprite on every face.
 
