@@ -3580,6 +3580,9 @@ Each set is complete with every layer for both genders. A layer shared by both g
   - Two controllers at most.
   - Expected: 50 to 75 % fewer keyframe evaluations at 32 to 96 blocks (estimate).
   - Risk: this relies on an override of `applyAnimationControllers` on an internal GeckoLib interface. If unsupported, pause far controllers instead.
+- Far animals skip small cubes, for example cubes with no side over 2 px beyond 48 blocks (proposal, lead decides, D299).
+  - The gain is small today. Gallimimus has 19 such cubes of 66. The other five species have 0 to 6 of 61 to 111.
+  - Do it only if the BH.1 client profile shows that cube drawing is a large part of the frame time.
 - Render types stay batchable and shader-safe: one `RenderType` per texture, cached. No core shader. No `sortOnUpload` on an opaque type.
 - The culling box is F2.1's. F2.2 renders inside it.
 
@@ -3620,7 +3623,7 @@ See Art list → each species: skin layers per set and gender, glow masks. Not d
 - The Velociraptor registry draws `base` only.
 - Each Triceratops draws one horn set in one horn colour, picked at random and fixed for that animal. No gene holds them yet.
 
-**Changed since last review:** Triceratops and Brachiosaurus height targets set. Morphs are tints, with no morph textures. One glow mask per species. JW looks only for Brachiosaurus, Gallimimus and Dilophosaurus. Quill card set in Beta. DNA share picks the skin set. Velociraptor crest, quill and breeding rules. CPU bake, no core shader. Triceratops horn set and horn colour are look genes, one of each per animal.
+**Changed since last review:** Triceratops and Brachiosaurus height targets set. Morphs are tints, with no morph textures. One glow mask per species. JW looks only for Brachiosaurus, Gallimimus and Dilophosaurus. Quill card set in Beta. DNA share picks the skin set. Velociraptor crest, quill and breeding rules. CPU bake, no core shader. Triceratops horn set and horn colour are look genes, one of each per animal. A small-cube cut for far animals waits for the lead (D299).
 
 ### F2.3: Animations, sounds and visual effects per species
 
@@ -4004,6 +4007,12 @@ Stress start values for playtest (proposal, lead decides):
 - Claims change on events only, never by a per-tick scan. A feeder never serves one animal only.
 - **Sensor offset:** offset every sensor start by entity id, for example `scanRate(e -> base + (e.getId() & 15))`.
 - **Path budget:** a need walk asks for a path only while the per-level counter is under `ai.path_budget_per_tick`. Otherwise it queues for the next tick. Herd paths use the hitbox design's budget split.
+  - The counter charges each search by its node limit, not 1 per search (proposal, lead decides, D297). The herd fallback budget does the same.
+  - Reason: a Brachiosaurus search costs about 5 ms and a Gallimimus search 1 to 2 ms. A count of searches does not cap the time.
+- **Path repair (proposal, lead decides, D298):** a stuck need walk or leader journey first asks for a short path. It goes to a node about 16 blocks ahead on the old path.
+  - The short path has a small node limit. The animal joins its old path at that node.
+  - A full path to the target runs only if the short path fails.
+  - Herd followers do not need it. Their fallback path already goes to a near trail point or graze spot.
 - **Danger memory:** a spot where the animal took damage or a group mate died is a soft path cost within 6 blocks. It lasts 24,000 ticks, 1 in-game day.
 
 ##### Timers and logs
@@ -4129,7 +4138,7 @@ GameTests on both loaders.
 - The block scans make about 735,000 reads per tick at 100 dinosaurs: about 22 ms, with spikes near 440 ms (estimates).
 - Timers count `tickCount` (`Dinosaur.java:581,723,760-765`, `DinoOneShots.java:70`).
 
-**Changed since last review:** Loneliness is part of stress, with no bar. Need cooldown is 5 minutes. Lost sleep halves stamina regeneration and adds no stress. Danger memory lasts one in-game day. Five food tiers replace clade chunks. Herds graze together and idle-graze. Feeders are shared.
+**Changed since last review:** Loneliness is part of stress, with no bar. Need cooldown is 5 minutes. Lost sleep halves stamina regeneration and adds no stress. Danger memory lasts one in-game day. Five food tiers replace clade chunks. Herds graze together and idle-graze. Feeders are shared. Two path-cost proposals wait for the lead (D297, D298).
 
 ### F2.5: Groups: herds, packs, leaders, breeding, nests
 
@@ -5968,6 +5977,10 @@ BH.1 removes dead code and makes a large park run at full speed on a server.
   - Load B: 100 dinosaurs in 5 herds, 10 large, 3 players, 600 other entities.
 - Today's load B estimate: about 28 ms plus spikes near 440 ms. Target: 9 to 15 ms plus repath spikes. Nobody has profiled 26.2.
 - Use SmartBrainLib profiler sections and the herd timings.
+- Measure what D297 to D299 need:
+  - the search time and the nodes per search, for each species,
+  - the re-path spikes,
+  - the client frame time to draw 100 animals.
 - Profile the four lab machines at work, on the server and on the client. In the lead's playtest of 2026-10-24 the 1.20.1 machines caused visible lag. The whole park meets the machine gate of F1.10: less than 2 ms more server tick with the four machines at work, and at least 90 % of the client frame rate with the lab in view.
 - Profile the JDK vertex-allocation claim once on 26.2 with 100 creatures. Report it upstream if true. The mod has no `Unsafe` vertex code.
 
@@ -6859,6 +6872,16 @@ These rows come from a review of the specs against mechanics in other games.
 | D295 | F1.11 | In the lead's playtest of 2026-10-28, a placed Creative Generator shows the missing-texture cube. It has no blockstate, model or texture, as on 1.20.1. The plan has a model only for the Basic Generator. What does the Creative Generator look like? | Answered 2026-10-28 (lead): "check 1.12.2 for the textures, it should be there". The Creative Generator is the 1.12.2 creative power block: a plain cube (parent `block/cube`) with the five 1.12.2 coal generator textures `textures/blocks/coal_generator_{bottom,front,left,right,top}.png` (`Dumb-Code/ProjectNublar`, branch `master`). The Basic Generator keeps its `.tbl` model conversion. The Art list has the row | Answered |
 | D296 | F1.1 | In the lead's playtest of 2026-10-28, each amber ore is its host stone (stone, deepslate, sandstone) with the amber nugget sprite `fossil_overlay/amber/amber.png` on every face, as on 1.20.1. The assets repo has an amber ore texture that the mod never used: `blocks/amber_ore/textures/amber_ore.png`, grey stone with amber flecks, opaque. What does amber ore look like? | Answered 2026-10-28 (lead): "Cut an amber layer". An art job cuts the amber flecks out of `amber_ore.png` into a see-through layer. Each amber ore draws that layer over its own host stone. The Art list has the row | Answered |
 
+### D297 and later: engine-library review of 2026-10-29
+
+These rows come from a review of ten game-engine libraries, for example Jolt Physics, Recast and Detour, ozz-animation and meshoptimizer. The mod adds none of them. The rows copy three of their ideas into Java.
+
+| Id | Work package | Question | Default if unanswered | Status |
+| --- | --- | --- | --- | --- |
+| D297 | F2.4, F2.5 | `ai.path_budget_per_tick` and the herd fallback budget count path searches. The Detour path queue limits search work instead. A Brachiosaurus search costs about 5 ms and a Gallimimus search 1 to 2 ms, so 4 searches cost from 4 ms to 20 ms. Should the budget charge each search by its node limit? | Keep the count of searches. The BH.1 profile measures the search time per species first | Lead decision pending |
+| D298 | F2.4, F2.5 | Today a stuck need walk or leader journey searches again all the way to its target. The Detour path corridor repairs a path near the agent instead. Should a stuck animal first path to a node about 16 blocks ahead on its old path, with a small node limit? A search to the target then runs only if the short path fails | Keep the full re-path. The BH.1 profile measures the re-path spikes first | Lead decision pending |
+| D299 | F2.2 | The F2.2 distance rules cut keyframe work only. Every cube still draws every frame. Should far animals skip small cubes, for example cubes with no side over 2 px beyond 48 blocks? Only Gallimimus has many: 19 of 66 cubes. The other five species have 0 to 6 of 61 to 111 | Skip no cubes. Revisit only if the BH.1 client profile shows that cube drawing is a large part of the frame time | Lead decision pending |
+
 ---
 
 ## Change log
@@ -6945,3 +6968,4 @@ These rows come from a review of the specs against mechanics in other games.
 - **2026-10-28 (lead: M0.P2 playtest, round 3):** D290 to D292. F2.2 gets Triceratops horn set and horn colour as look genes, one of each per animal, with F1.5 lists and F2.0 and F2.5 heredity. F2.0 and F2.1 get wading and swimming by water depth against body height, with no vanilla bobbing. M0.B00 and F2.3 get per-species walk and run speeds as open values. D14 gets the lead's note on animation speed. Art list question 22.
 - **2026-10-28 (lead: M0.P2 playtest, round 4):** D293. F3.3 gets a smooth platform rise with the meat on it, and meat pieces that disappear one at a time as dinosaurs eat. F2.3 and the Art list get the Triceratops rest hold: `restidle` holds the last pose of `rest`. The Triceratops also needs a `getup` clip.
 - **2026-10-28 (lead: M0.P2 playtest, round 5):** D294 to D296. F3.1 gets a post outline and collision box that turn with the post. F1.11 and the Art list get the Creative Generator look: the 1.12.2 cube with the five 1.12.2 coal generator textures. F1.1 and the Art list get the amber ore look: an amber layer, cut from the assets-repo ore texture, over each host stone. The Art list marks the imported Triceratops species icon Done.
+- **2026-10-29 (engine-library review):** D297 to D299, all proposals. F2.4 gets a path budget charged by search cost, and path repair. F2.2 gets a small-cube cut for far animals. BH.1 measures them first.
