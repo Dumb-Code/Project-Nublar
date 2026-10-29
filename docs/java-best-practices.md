@@ -1,7 +1,7 @@
 # Java best practices for Project Nublar
 
 Apply this checklist to all Java that you write or review in this repo. An agent that hands Java
-work to a subagent passes this file on. It merges six sources (listed at the end) and resolves
+work to a subagent passes this file on. It merges seven sources (listed at the end) and resolves
 their conflicts for this codebase. "EJ n" is Effective Java item n.
 
 ## Precedence
@@ -279,6 +279,26 @@ their conflicts for this codebase. "EJ n" is Effective Java item n.
   null check for a game-thread-only field.
 - Never depend on thread timing: no busy-waiting, `Thread.yield()` or thread priorities.
 
+## Brain behaviours (SmartBrainLib)
+
+These rules apply to every `ExtendedBehaviour`, sensor and scoring method of the dinosaur brain.
+
+- SmartBrainLib checks `getMemoryRequirements`, `startCondition` and `checkExtraStartConditions`
+  only when a behaviour starts. While it runs, `shouldKeepRunning` (or `stopIf`) checks again each
+  memory, target and condition the behaviour uses, so a hunt stops when its prey is gone.
+- A behaviour that runs for more than one tick overrides `shouldKeepRunning`. The default returns
+  `false`: the behaviour stops at its first running check, before any `tick` call, so `tick`
+  never runs and `start` (a new path, a new clip) repeats each time it starts again.
+- `start` sets up one run and `stop` ends it; neither clears a cooldown. `cooldownFor` starts the
+  cooldown on every stop, whatever stopped the behaviour. A cooldown that more than one behaviour
+  obeys (a hunt, a threat display) lives on the animal, in a memory with an expiry time or an
+  entity field, not in one behaviour.
+- When code picks between options by score (needs, targets, headings), every score uses one scale,
+  so an option does not win only because its raw unit is larger.
+- The current choice keeps a margin (hysteresis), so the animal does not switch between two nearly
+  equal options every tick. `ContextSteering` headings and the run gait already do this.
+- `shouldKeepRunning`, `tick` and sensor scans are tick paths: the Performance rules apply.
+
 ## Tests
 
 - JUnit 5 tests for logic that can run without the game (codecs, maths, data parsing). Name
@@ -306,3 +326,6 @@ their conflicts for this codebase. "EJ n" is Effective Java item n.
 - Google Java Style Guide: https://google.github.io/styleguide/javaguide.html
 - Joshua Bloch, Effective Java, 3rd edition (2018), items 1-90, read in full from the user's copy
   on 2026-10-29 and checked line by line against this list.
+- awesome-gamedev-agent-skills, `ai-behavior-trees-utility-ai` skill, Pitfalls section only, read
+  on 2026-10-29 and rewritten for SmartBrainLib:
+  https://github.com/gamedev-skills/awesome-gamedev-agent-skills/blob/main/skills/disciplines/ai-behavior-trees-utility-ai/SKILL.md
