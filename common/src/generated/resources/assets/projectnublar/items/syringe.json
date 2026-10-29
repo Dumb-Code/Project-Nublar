@@ -11,7 +11,7 @@
       },
       "on_true": {
         "type": "minecraft:model",
-        "model": "projectnublar:item/syringe_embryo"
+        "model": "projectnublar:item/syringe_dna"
       },
       "property": "minecraft:has_component"
     },

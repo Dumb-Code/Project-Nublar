@@ -263,21 +263,21 @@ public class ModModelProvider extends ModelProvider {
     }
 
     /**
-     * The syringe item: a syringe with an embryo or with DNA data shows the filled syringe
-     * ({@code item/syringe_embryo}); any other syringe shows {@code item/syringe}. The model
-     * {@code item/syringe_dna} is written as 1.20.1 had it; no definition uses it.
+     * The syringe item, one look per content as 1.12.2's three syringe items had: a syringe with an
+     * embryo shows {@code item/syringe_embryo}, a syringe with DNA data shows {@code item/syringe_dna}
+     * (texture {@code item/syringe_blood}), and any other syringe shows {@code item/syringe}.
      */
     private static void syringeItem(ItemModelGenerators itemModels) {
         Item syringe = ItemInit.SYRINGE.get();
         Identifier empty = flatModel(itemModels, ModelLocationUtils.getModelLocation(syringe), "item/syringe");
-        flatModel(itemModels, ModelLocationUtils.getModelLocation(syringe, "_dna"), "item/syringe_blood");
-        Identifier filled = flatModel(itemModels, ModelLocationUtils.getModelLocation(syringe, "_embryo"), "item/syringe_embryo");
+        Identifier dna = flatModel(itemModels, ModelLocationUtils.getModelLocation(syringe, "_dna"), "item/syringe_blood");
+        Identifier embryo = flatModel(itemModels, ModelLocationUtils.getModelLocation(syringe, "_embryo"), "item/syringe_embryo");
         itemModels.itemModelOutput.accept(syringe, ItemModelUtils.conditional(
                 ItemModelUtils.hasComponent(DataComponentInit.EMBRYO.get()),
-                ItemModelUtils.plainModel(filled),
+                ItemModelUtils.plainModel(embryo),
                 ItemModelUtils.conditional(
                         ItemModelUtils.hasComponent(DataComponentInit.DNA_DATA.get()),
-                        ItemModelUtils.plainModel(filled),
+                        ItemModelUtils.plainModel(dna),
                         ItemModelUtils.plainModel(empty))));
     }
 
