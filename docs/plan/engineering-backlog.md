@@ -1226,19 +1226,27 @@ F1.4 delivers the Sequencer block, its frame screen and the Sequence tab. F1.5 a
 
 - Screen art: the current `textures/gui/sequencer.png` (frame and tab shapes) and `center_pieces.png` (ring arcs and "PN" logo).
   - The "PN" logo sits in the middle with ring arcs that turn slowly.
-- Three angled tab buttons at the top: "Sequence", "Edit", "Synthesis". The chosen tab is brighter.
+- Three angled tab buttons at the top: "Sequence", "Edit", "Synthesis". The chosen tab is brighter. A short cyan line under its name slides to the new tab on a change.
 - The status bar on the left edge.
-- White Minecraft font. Positive values green, negative red, zero white.
+- White Minecraft font with its normal shadow. Positive values green, negative red, zero white.
+- The screen style and screen motion of the F1.4 spec, on all three tabs:
+  - Buttons in the 45° tab shape. Small controls, chips and messages with 45° cut corners. No round ends.
+  - One soft pulsing glow on the input needed next (D305 sets how it draws). No dashed or moving borders.
+  - A faint item icon in each empty slot. A label only under the slot needed next.
+  - A status chip, event messages (one at a time) and hover tooltips.
+  - Scroll bars on the lists that grow. The mouse wheel and a bar drag scroll them.
+  - Material Design 3 motion that only decorates. A click shows its result in the same frame, and text never fades.
 - Clicking a slot opens a small popup with a title and one slot. The main screen dims behind it.
   - "Insert Hard Drive", "Insert Genetic Material", "Collect Leftover Item".
 - The Sequencer tab icon for the F1.10 tab host: DNA, in an active and an inactive look.
 
 #### Sequence tab
 
-- A "Regular | Isolated" toggle under the tab bar.
-- A drive slot at the top left.
-- A list box of "Name: N%" rows that scrolls.
+- "Regular" and "Isolated" labels under the tab bar. A cyan line under the chosen view slides on a change.
+- A drive slot at the top left. A status chip at the top right.
+- A list box of rows that scrolls. Each row has the name, a thin progress bar and the percent. A bar at 100 % is green.
   - Hover or select shows a turning model of the animal and a card with its name, time period and diet.
+  - The card also shows the clone stats Hatched, Failed and Skins for the species on this drive.
   - The card shows real species data.
   - For a vanilla animal it shows the time period "Modern" and the real diet of the animal. Each vanilla animal has one data entry for this.
   - Remove the "Cretaceous/Apple" placeholder.
@@ -1252,7 +1260,10 @@ F1.4 delivers the Sequencer block, its frame screen and the Sequence tab. F1.5 a
 
 #### Isolated view
 
-- A left list of genes with the percent covered. A right list of the animals that the selected gene needs, each with its percent.
+- A left list of genes that scrolls. Each row has one square for each animal that the gene needs, filled at 100 %, and a count ("Strength 2/4"). An isolated gene's row is purple.
+- A right card for the selected gene. It shows the state, the animals that the gene needs with their percents, and the next step ("Next: Turtle to 100%").
+  - When the gene is isolated, the last line opens the Edit tab.
+- The status chip counts the isolated genes ("4 of 19 isolated").
 - Colour isolation needs a sample of each of the 15 tropical-fish colours except black.
   - The drive records each colour.
   - `geneCompletion(colour)` = colours sampled ÷ 15.
@@ -1265,6 +1276,9 @@ F1.4 delivers the Sequencer block, its frame screen and the Sequence tab. F1.5 a
 - Drive data is a compact data component with a `StreamCodec`, not NBT.
 - Size target: test at 1,000 entries. Players have no entry limit.
 - Variants (parrot colours, cat breeds, other vanilla variants) keep separate entries.
+- For each species the drive counts its hatched and failed eggs, for the info card.
+  - The hatch count is the F1.5 clone count.
+  - A failed egg counts the same way as a hatch (proposal, lead decides, D304).
 - A second tube of the same species must not reset progress.
 - A broken Sequencer drops all 9 slots. Fix `getContainerSize`.
 - Fix the NaN from `DiskStorageItem.getGeneCompletion` for genes with no donor (gender).
@@ -1328,7 +1342,10 @@ F1.4 delivers the Sequencer block, its frame screen and the Sequence tab. F1.5 a
 - `machine_chain_smoke` passes on both loaders after this machine moves onto the F1.10 framework.
 - A survival player builds the Sequencer from its four parts in the video's order, on both loaders. The monitor is refused before the computer.
 - A broken Sequencer drops every item and returns the other parts as items, on both loaders.
-- The Sequence tab and the Isolated view match the video at 2:45-4:50 and 7:48-10:30 (screenshots in the PR).
+- The Sequence tab and the Isolated view match the video at 2:45-4:50 and 7:48-10:30, except the F1.4 screen style (screenshots in the PR).
+- With 30 species on a drive, the species list scrolls by mouse wheel and by a bar drag.
+- A click on a species row or a tab shows its result in the same frame. A label that changes, such as "Sequencing 42%", never fades or flickers (screen recording in the PR).
+- Only the input needed next glows: the drive slot with no drive, then the input slot with no sample.
 - Sequencing two parrot colours gives two entries.
 - The biome share changes after a tube from a desert fossil.
 - Unit tests on addition and the cap.
@@ -1346,7 +1363,7 @@ F1.4 delivers the Sequencer block, its frame screen and the Sequence tab. F1.5 a
 - Each recipe row crafts in survival.
 - The machine gate of F1.10 holds for this machine.
 
-**Changed since last review:** Sequencing is the only step that identifies amber DNA. Empty tubes and syringes come back. Vanilla cards show "Modern" and real diet. Power draw 20 (HDD) and 42 (SSD) FE per tick. Door animation and monitor glow added. The monitor glows whenever powered. No Ender SSD.
+**Changed since last review:** Sequencing is the only step that identifies amber DNA. Empty tubes and syringes come back. Vanilla cards show "Modern" and real diet. Power draw 20 (HDD) and 42 (SSD) FE per tick. Door animation and monitor glow added. The monitor glows whenever powered. No Ender SSD. Screen style and motion for all three tabs (D300 to D303). Clone stats on the info card, with a failed-egg count on the drive (D304). The Isolated view shows the animals each gene needs.
 ### F1.5: Sequencer: gene editing
 
 F1.5 is the Edit tab of the Sequencer: the player mixes donor DNA, edits isolated genes and colours, and sees the risk before synthesis.
@@ -1470,17 +1487,25 @@ F1.5 is the Edit tab of the Sequencer: the player mixes donor DNA, edits isolate
 
 Matches video 4:50-7:00, with the section 11.6 changes.
 
-- [ ] A base row and donor rows.
+- [ ] "Basic" and "Advanced" labels at the top left, with the Edit page's trapezoid under the chosen one. The trapezoid slides on a click.
+- [ ] A base row and donor rows. Each row has the animal's colour swatch, name, percent and a slider with a thin handle.
   - To pick a donor, the player clicks an empty donor row, then clicks an animal in the DNA list on the right.
+  - The open donor row is a "+ Add donor" button with a soft amber glow. While the player picks, the animal list glows instead.
+  - The pick fills the row, the DNA mix, the effects and the risk in the same frame.
+  - The next unopened donor row shows "Locked" and the DNA percent that opens it.
   - The player drags the slider of the row to set its share. The total stays 100 %.
+- [ ] A DNA mix bar under the rows, with one part for each animal.
+- [ ] Each animal has a data entry with a set of three colours for its swatch, slider, mix part and effect bars.
+  - A donor's set follows its in-game look. The base dinosaur uses the screen's cyan-to-blue set, never its skin colours.
 - [ ] A turning preview of the animal with a player for scale.
   - The client makes the preview with vanilla `EntityType.create`, with no server entity.
   - The whole animal fits inside the preview frame at every size and growth stage. The preview scales the animal to the frame, so nothing is cut off.
   - The preview turns slowly on its own. The player drags it to turn it.
   - The player model beside it looks toward the mouse, like the player model in the vanilla inventory.
 - [ ] Below 30 % DNA the animal draws solid black with no texture, under a light censor static. From 30 % the preview shows the real animal.
-- [ ] A list of sequenced animals.
+- [ ] A list of sequenced animals that scrolls. Animals that are not in the mix are dim.
 - [ ] An effect panel in two columns. Each effect has a title ("Speed +3%") in green, red or white and a colour bar.
+  - The bar shows each donor's part of the effect, in that donor's colours.
   - A large edit names the paddock effect, for example "Size +40 %: needs the high fence".
 - [ ] Each donor colour bar has two swatches. A click puts that colour on the primary or the secondary layer.
   - By default the first colour is primary and the second secondary. The swatch swap stays.
@@ -1489,8 +1514,12 @@ Matches video 4:50-7:00, with the section 11.6 changes.
 
 Matches video 6:35-10:25, with the section 11.6 changes.
 
-- [ ] A grid of gene bars. Dull bars cannot be edited. Purple bars are isolated and editable. The selected bar is red. Hover shows the gene name.
-- [ ] Number genes: a box with the percent and a slider limited to the gene's range ("Immunity +40%").
+- [ ] A grid of gene bars. Dull bars cannot be edited. Purple bars are isolated and editable. The selected bar is red. Hover shows the gene name, and "locked" on a locked gene.
+  - A locked bar is dim, in the colour of its gene group. A colour strip at the left marks each group.
+- [ ] Over the gene control: the gene name and one mark for each edit slot. The mark of a used slot is filled.
+  - Under the name: a chip for each animal that gives the gene.
+- [ ] Number genes: a box with the percent, a "Reset" button and a slider limited to the gene's range ("Immunity +40%").
+  - The slider is centred on 0 and shows its range at each end. Its handle gets thinner while the player drags it.
   - The range grows with the DNA %: ±10 % of the species base at 70 %, growing in a line to ±30 % at 100 %.
   - Example: ±17 % at 80 %.
 - [ ] Choice genes (gender, skin variant, special gene, Triceratops horn set, Triceratops horn colour) from a list.
@@ -1581,7 +1610,8 @@ See Art list → Screens (GUI): Edit tab, colour wheel background and blip, valu
 - On both loaders: a +30 % speed edit changes the movement speed attribute.
 - A herd size edit changes the group memory, and a fertility edit changes the clutch roll (lands with F2.5).
 - An animal with the maximum jump edit clears the 3-block low-security post and does not clear the 8-block high-security post.
-- The Edit tab matches the video at 4:50-10:25 except the section 11.6 changes (screenshots in the PR).
+- The Edit tab matches the video at 4:50-10:25 except the section 11.6 changes and the F1.4 screen style (screenshots in the PR).
+- A donor pick shows the new row, slider, DNA mix, effects and risk in the frame of the click (screen recording in the PR).
 - Every control round-trips to the server and back after the screen opens again.
 - A reviewer edits speed, gender and a layer colour. The hatched animal shows all three (colour lands with F2.2).
 - Opening the Edit tab again allocates no new colour-wheel texture.
@@ -1595,7 +1625,7 @@ See Art list → Screens (GUI): Edit tab, colour wheel background and blip, valu
 - Each screen allocates a new 400 × 400 colour-wheel texture (640 KB) in `ColorWheelWidget.java:45,110`.
 - The preview cuts off large animals and does not turn. The player model beside it looks up in one fixed pose (lead playtest 2026-10-24).
 
-**Changed since last review:** Gene sliders unlock at 70 %, donor sliders at 50 %. Attack and defense edits need 90 %. Clone count unlocks edit slots. Jump can clear the low post. Risk curve and slider range set. Donor pick by click. Risk panel position set. Preview fits, turns by itself and by drag, and shows black under censor static below 30 % DNA. Player model looks toward the mouse. Triceratops horn set and horn colour lists.
+**Changed since last review:** Gene sliders unlock at 70 %, donor sliders at 50 %. Attack and defense edits need 90 %. Clone count unlocks edit slots. Jump can clear the low post. Risk curve and slider range set. Donor pick by click. Risk panel position set. Preview fits, turns by itself and by drag, and shows black under censor static below 30 % DNA. Player model looks toward the mouse. Triceratops horn set and horn colour lists. Basic and Advanced switch, donor rows with colour sets, "+ Add donor" and locked rows, DNA mix bar, gene control layout (D300 to D303).
 
 ### F1.6: Sequencer: synthesis
 
@@ -1625,11 +1655,15 @@ F1.6 is the Synthesis tab of the Sequencer: it turns a bird-embryo syringe and f
 
 Matches video 7:00-7:45, with the section 11.7 changes.
 
-- [ ] The F1.4 frame. Four corner groups, each with a slot, a label and a bar that is bright cyan when full:
+- [ ] The F1.4 frame, screen style and screen motion. Four corner groups, each with a slot, a label with the amount, and a bar in the ingredient's colours:
   - Water top left, Sugar bottom left, Bone Matter top right, Plant Matter bottom right.
+  - A white tick marks what one run uses. Below the tick, the label and the tick turn amber, and the slot glows.
+- [ ] A status chip at the top left: the missing input, "Ready", "Synthesizing N%" or "Done".
 - [ ] A centre picture of an embryo in a DNA helix fills with cyan from the bottom as the run goes.
-- [ ] A "Begin" button that reads "Cancel" while running. Hover shows time and percent ("9m 59s (0%)").
-- [ ] At the bottom: the input slot, an arrow that fills, the output slot.
+- [ ] A "Begin" button in the tab shape that reads "Cancel" while running. Hover shows time and percent ("9m 59s (0%)").
+  - Dim while an input is missing. Green with a soft glow when every input is in.
+- [ ] At the bottom: the input slot, an arrow that fills, the output slot. A countdown under the arrow while running.
+  - When the run ends, the output slot glows green and the message "Embryo syringe ready" shows.
   - Slot popups: "Insert Water", "Insert Bone Matter", "Insert Syringe".
 - [ ] The risk summary of F1.5 shows before the player presses Begin.
 
@@ -1712,7 +1746,8 @@ See Art list → Sequencer (synthesis tab, chip and tank looks, synthesis sounds
 
 #### Acceptance
 
-- The Synthesis tab matches the video at 7:00-7:45 except the section 11.7 changes (screenshots in the PR).
+- The Synthesis tab matches the video at 7:00-7:45 except the section 11.7 changes and the F1.4 screen style (screenshots in the PR).
+- With 2 bone meal in the tank, the Bone Matter label and tick are amber and its slot glows. Begin glows only when every input is in.
 - A base-tier run takes 10 minutes, 7 with an iron chip, 4 with a gold chip and 2 with a diamond chip.
 - A bone block adds 9 bone meal. Wheat, a sapling and a modded leaf block each count as plant matter.
 - Cancel at 57 % returns the bird-embryo syringe and the unused ingredients. The drive keeps its DNA.
@@ -1729,7 +1764,7 @@ See Art list → Sequencer (synthesis tab, chip and tank looks, synthesis sounds
 - The diamond chip has a synthesis time of −1 in `ItemInit`, so `SequencerBlock` refuses it. The plan sets 2 minutes ("function and numbers").
 - The 1.20.1 build has no netherite tank upgrade. "Function and numbers" and F1.10 list it.
 
-**Changed since last review:** Diamond chip added (2 minutes). Bone block counts as 9 bone meal. Plant matter is an item tag. Cancel returns unused ingredients and keeps the DNA. Power values set. Sound events set. Creative dinosaur-embryo syringes use the new dinosaur-embryo syringe sprite.
+**Changed since last review:** Diamond chip added (2 minutes). Bone block counts as 9 bone meal. Plant matter is an item tag. Cancel returns unused ingredients and keeps the DNA. Power values set. Sound events set. Creative dinosaur-embryo syringes use the new dinosaur-embryo syringe sprite. Tank amounts and run ticks, status chip, tab-shaped Begin button with its states, countdown (D300 to D303).
 
 ### F1.7: Egg Printer
 
@@ -6887,6 +6922,19 @@ These rows come from a review of ten game-engine libraries, for example Jolt Phy
 | D298 | F2.4, F2.5 | Today a stuck need walk or leader journey searches again all the way to its target. The Detour path corridor repairs a path near the agent instead. Should a stuck animal first path to a node about 16 blocks ahead on its old path, with a small node limit? A search to the target then runs only if the short path fails | Keep the full re-path. The BH.1 profile measures the re-path spikes first | Lead decision pending |
 | D299 | F2.2 | The F2.2 distance rules cut keyframe work only. Every cube still draws every frame. Should far animals skip small cubes, for example cubes with no side over 2 px beyond 48 blocks? Only Gallimimus has many: 19 of 66 cubes. The other five species have 0 to 6 of 61 to 111 | Skip no cubes. Revisit only if the BH.1 client profile shows that cube drawing is a large part of the frame time | Lead decision pending |
 
+### D300 and later: Sequencer screen mock-ups of 2026-10-26 to 2026-10-29
+
+These rows come from the lead's review of the Sequencer screen mock-ups. The lead approved the last mock-up on 2026-10-29 ("Feels right").
+
+| Id | Work package | Question | Answer or default | Status |
+| --- | --- | --- | --- | --- |
+| D300 | F1.4, F1.5, F1.6 | How do the Sequencer screens look? Today the inputs "require too much dependence on guides rather than the user knowing where to place inputs or get more information" | Answered 2026-10-26 to 2026-10-29 (lead). Keep the current art and the plain Minecraft font: "straightforward easy to read minecraft font the way it is now". Add status chips, empty-slot hints, clone stats, corner brackets on the info card and event messages. The screen must be "less busy and cleaner": one glow at a time, a label only on the slot needed next, at most one message. Purple marks an isolated gene. Each animal has a three-colour set ("match the colours to the donors"). The dinosaur does not take its skin colours ("I don't want the dinosaur to match their skins"). A full Material Design 3 restyle "strip[s] too much of the original design" and leans "too hard into the pixel art style". The M3 parts sit on the current art | Answered |
+| D301 | F1.4, F1.5, F1.6, F1.10 | What marks the input needed next, and what shape do the buttons have? | Answered 2026-10-29 (lead). Dashed and moving borders "need to go away" and are "replaced with a subtle pulsating glow effect". Pill-shaped buttons "clash with the existing tab designs". A button takes the 45° tab trapezoid. Small controls, chips and messages take 45° cut corners | Answered |
+| D302 | F1.4, F1.5 | The lists grow with the number of animals and genes sequenced. How does the player reach the rest? | Answered 2026-10-29 (lead): "there will need to be scroll bars to go up and down the lists". The species list, the gene list and the Edit-tab animal list scroll by mouse wheel and by a bar drag | Answered |
+| D303 | F1.4, F1.5, F1.6 | Does the Sequencer screen use Material Design 3 motion, and can motion slow the screen? | Answered 2026-10-29 (lead). The lead asked for M3 motion ("Is it not possible to incorporate them?"). A delay after a click is one "I don't want impacting the actual experience". Motion only decorates. A click shows its result in the same frame, and text never fades | Answered |
+| D304 | F1.4 | Which clone stats does the info card show, and how does the drive count them? | The lead asked for "total individuals cloned successfully and clones that failed and variants unlocked" (2026-10-26). The card shows Hatched, Failed and Skins. Default: a failed egg counts on its drive the same way as a hatch (F1.5 clone count). What unlocks a skin variant: value open, lead decides | Lead decision pending |
+| D305 | F1.4, F1.10 | How does the screen draw the soft glow? | A glow sprite for each shape (slot, button, panel), and code pulses its opacity. No shader, so both loaders draw it the same way | Lead decision pending |
+
 ---
 
 ## Change log
@@ -6975,3 +7023,4 @@ These rows come from a review of ten game-engine libraries, for example Jolt Phy
 - **2026-10-28 (lead: M0.P2 playtest, round 5):** D294 to D296. F3.1 gets a post outline and collision box that turn with the post. F1.11 and the Art list get the Creative Generator look: the 1.12.2 cube with the five 1.12.2 coal generator textures. F1.1 and the Art list get the amber ore look: an amber layer, cut from the assets-repo ore texture, over each host stone. The Art list marks the imported Triceratops species icon Done.
 - **2026-10-29 (engine-library review):** D297 to D299, all proposals. F2.4 gets a path budget charged by search cost, and path repair. F2.2 gets a small-cube cut for far animals. BH.1 measures them first.
 - **2026-10-29 (Java best practices):** Global constraints and the Reviewer checklist add `docs/java-best-practices.md`, one Java checklist for all new and changed code.
+- **2026-10-29 (lead: Sequencer screen mock-ups):** D300 to D305. F1.4 gets the screen style and the screen motion for all three Sequencer tabs. It also gets scroll bars, clone stats on the info card and a gene-by-animal Isolated view. F1.5 gets the Basic and Advanced switch, donor rows with colour sets, the DNA mix bar and the gene control layout. F1.6 gets tank amounts and run ticks, the status chip and the Begin button states. F1.10 widgets add scroll bars and the tab shape. The Art list adds 4 rows.

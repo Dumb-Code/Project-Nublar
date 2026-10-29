@@ -88,10 +88,10 @@ Status words:
 | Dinosaur hover box | 0 | 0 | 0 | 0 | 2 | 0 | 0 |
 | Eggs and hatching | 1 | 0 | 4 | 5 | 18 | 0 | 0 |
 | Fossil Processor | 9 | 1 | 0 | 0 | 8 | 3 | 0 |
-| Sequencer | 8 | 4 | 1 | 0 | 17 | 1 | 0 |
+| Sequencer | 8 | 4 | 1 | 0 | 20 | 1 | 0 |
 | Egg Printer | 8 | 1 | 0 | 0 | 13 | 2 | 0 |
 | Incubator | 8 | 6 | 1 | 0 | 13 | 2 | 0 |
-| Machine shared parts | 0 | 1 | 1 | 0 | 9 | 0 | 0 |
+| Machine shared parts | 0 | 1 | 1 | 0 | 10 | 0 | 0 |
 | Lab items | 11 | 0 | 3 | 0 | 6 | 0 | 0 |
 | Fossils and amber | 1 | 0 | 15 | 0 | 18 | 0 | 0 |
 | Lab power | 1 | 0 | 2 | 1 | 8 | 0 | 0 |
@@ -100,17 +100,17 @@ Status words:
 | Feeders | 3 | 0 | 0 | 10 | 20 | 0 | 0 |
 | Digsites and villagers | 0 | 0 | 1 | 0 | 7 | 0 | 0 |
 | Vehicles | 1 | 0 | 2 | 5 | 26 | 0 | 0 |
-| **Total (without guns)** | **251** | **24** | **179** | **69** | **449** | **42** | **1** |
+| **Total (without guns)** | **251** | **24** | **179** | **69** | **453** | **42** | **1** |
 | Guns (blocked) | 0 | 0 | 2 | 11 | 3 | 0 | 0 |
 
-- **Counted rows:** 1014 (guns not included).
-- **Work left:** 721 rows (449 to make, 69 to export or convert, 179 to import, 24 to check in game), plus 42 shared files for the artist to confirm.
+- **Counted rows:** 1018 (guns not included).
+- **Work left:** 725 rows (453 to make, 69 to export or convert, 179 to import, 24 to check in game), plus 42 shared files for the artist to confirm.
 - **Done:** 251.
 - **Not counted:** 1 row that waits on the lead, 32 rows with no art needed, 38 rows not in Beta (6 of them Release 1 groups).
 - **Guns:** blocked on D08. They are not in the total.
 - **Per-milestone counts:** the roadmap's milestone table. They come from the Feature column of each row (F1.x is M1, F2.x is M2, F3.x is M3, F4.x is M4), with guns left out.
 
-**Changed since last review:** Vehicle assembly uses existing groups, so the chassis and engine rows are gone and the wheel split is a Done developer row. Large Generator gets its own ignite, fuel-out and loop rows. Release 1 asset groups listed, not counted. Question 21 settled. One glow mask row per lab machine. Incubator lamp colours set as placeholders. The bird Embryo Syringe takes the 1.12 texture. The dinosaur-embryo syringe needs a new sprite. Edit-tab censor static row added. Generic pelvis, foot and spine are Missing: no shared sprite exists. Nublar widget kit for machine screens (sliders, dropdown arrows, buttons, text boxes), Sequencer style. Triceratops horn sets named: one file per set, one set and one colour per animal. Question 22 on the horn `v2` files and the Black/Yellow overlays. Triceratops rest idle holds the last pose of its lie-down, and it needs a get-up clip. Feeder 2 needs one bone per meat piece. Triceratops species icon imported. Amber ore needs an amber layer cut from the REPO ore texture. Creative Generator textures from 1.12.2 are ready to import.
+**Changed since last review:** Vehicle assembly uses existing groups, so the chassis and engine rows are gone and the wheel split is a Done developer row. Large Generator gets its own ignite, fuel-out and loop rows. Release 1 asset groups listed, not counted. Question 21 settled. One glow mask row per lab machine. Incubator lamp colours set as placeholders. The bird Embryo Syringe takes the 1.12 texture. The dinosaur-embryo syringe needs a new sprite. Edit-tab censor static row added. Generic pelvis, foot and spine are Missing: no shared sprite exists. Nublar widget kit for machine screens (sliders, dropdown arrows, buttons, text boxes), Sequencer style. Triceratops horn sets named: one file per set, one set and one colour per animal. Question 22 on the horn `v2` files and the Black/Yellow overlays. Triceratops rest idle holds the last pose of its lie-down, and it needs a get-up clip. Feeder 2 needs one bone per meat piece. Triceratops species icon imported. Amber ore needs an amber layer cut from the REPO ore texture. Creative Generator textures from 1.12.2 are ready to import. Sequencer screen rows for empty-slot icons, the soft glow and the status chip and event message. Shared scroll bar row.
 
 ## Questions for the artist and lead
 
@@ -1672,11 +1672,11 @@ Milestone: Fossil to egg.
 - **REPO model:** machines/sequencer/Sequencer.bbmodel has the same groups, with the monitor still inside `computer`.
 - **Behind the door:** inside `mainBody`, the model already has a tube tray with 16 tubes, 3 system racks and 4 chip cubes. REPO cube names: `system_rack1` to `3`, `computer_chip01` to `04`.
 
-**To make (17)**
+**To make (20)**
 
 - Skins (4): Tank texture swap per tank tier; Dye mask (black parts take the dye colour); Lit monitor while powered; Glow mask: screens and readouts, indicator lights, lamps and bulbs, tanks and fluid.
 - Sounds (3): Start; Done; Door open and close.
-- GUI (10): Edit tab: donor rows with sliders, effect panel, chromosome grid, gender and reset buttons, colour wheel with brightness strip, layer controls, number slider box, risk panel, Basic and Advanced button; Edit-tab censor static overlay.
+- GUI (13): Edit tab: donor rows with sliders, effect panel, chromosome grid, gender and reset buttons, colour wheel with brightness strip, layer controls, number slider box, risk panel, Basic and Advanced switch; Edit-tab censor static overlay; Empty-slot icons; Soft glow on the next input; Status chip and event message.
 
 **To import (1)**
 
@@ -1743,25 +1743,28 @@ Screen contents follow the video. Screen art is the current GUI texture in the m
 
 | Asset | Used for | Status | Feature | Where / reference |
 | --- | --- | --- | --- | --- |
-| Edit tab: donor rows with sliders | Preview with a player for scale, donor rows with sliders, animal list | Missing | F1.5 | The page uses the current frame (sequencer.png) and tab (edit_page.png). The rows and sliders have no art |
+| Edit tab: donor rows with sliders | Preview with a player for scale, donor rows (colour swatch, name, %, slider), "+ Add donor" and locked rows, DNA mix bar, animal list | Missing | F1.5 | The page uses the current frame (sequencer.png) and tab (edit_page.png). The rows and sliders have no art. Each animal's three-colour set is data, not art |
 | Edit tab: effect panel | Effect rows with colour bars and two colour swatches | Missing | F1.5 | None |
-| Edit tab: chromosome grid | Gene bars: cyan, purple for isolated, red for selected | Missing | F1.5 | None |
+| Edit tab: chromosome grid | Gene bars: dim gene-group colours when locked, purple for isolated, red for selected, a colour strip for each group | Missing | F1.5 | None |
 | Edit tab: gender and reset buttons | Gender cycles male, female, random | Missing | F1.5 | None |
 | Edit tab: colour wheel with brightness strip | Colour genes | Missing | F1.5 | None |
 | Edit tab: layer controls | Per-layer mode with saturation, opacity and tint strength | Missing | F1.5 | None. Not in the video |
 | Edit tab: number slider box | Number genes such as Immunity | Missing | F1.5 | None |
 | Edit tab: risk panel | Incubation failure chance and stat drops | Missing | F1.5 | None. Not in the video |
-| Edit tab: Basic and Advanced button | Two views | Missing | F1.5 | None |
+| Edit tab: Basic and Advanced switch | Two labels with the Edit page's trapezoid under the chosen one. The trapezoid slides on a click | Missing | F1.5 | edit_page.png has the trapezoid at a fixed place (x 14 to 82). The slide needs the trapezoid as a sprite of its own, and the page texture without it |
 | Edit-tab censor static overlay (preview below 30 % DNA) | A light static over the solid black animal in the preview while the DNA is below 30 % | Missing | F1.5 | None |
+| Empty-slot icons | A faint icon in each empty slot: drive, sample, leftover, water, sugar, bone matter, plant matter, bird-embryo syringe, dinosaur-embryo syringe | Missing | F1.4, F1.6 | None. Vanilla draws its empty armour slots the same way (style reference) |
+| Soft glow on the next input | A soft pulsing glow around the slot, button or list that the player must use next | Missing | F1.4 | None. A glow sprite for each shape: slot, button, panel (proposal, lead decides, D305) |
+| Status chip and event message | The machine state chip and the short message after an event: cut-corner frames, and the icons alert, tick, turning ring and dot | Missing | F1.4, F1.6 | None |
 | Screen frame with turning ring logo | All tabs: frame, three tab shapes, "PN" logo with ring arcs that turn | To check in game | F1.4 | MOD/textures/gui/sequencer.png (frame, tabs) and center_pieces.png (5 ring arcs, PN logo). REPO guis/sequencer is another set. Check in game that the rings turn |
 | Sequence tab | See the list below | To check in game | F1.4 | MOD/textures/gui/sequencer.png, sequencer_page.png. Check in game that each item from the video is there |
 | Synthesis tab | Four ingredient bars, embryo picture that fills, Begin and Cancel button, arrow | To check in game | F1.6 | MOD/textures/gui/synth_page.png, center_pieces.png. Check in game that each item from the video is there |
 | DNA helix that grows while sequencing | Progress | Done | F1.4 | MOD/textures/gui/dna_spiral.png |
-| Info card beside the 3D model | Name, time period, diet | No art needed | F1.4 | Code draws the text on the current frame (MOD/textures/gui/sequencer.png) |
+| Info card beside the 3D model | Name, time period, diet, clone stats, corner brackets | No art needed | F1.4 | Code draws the text and the brackets on the current frame (MOD/textures/gui/sequencer.png) |
 
 Sequence tab parts: drive slot, Regular and Isolated toggle, species list, Isolated gene and animal lists, input and leftover slots, DNA track.
 
-**Changed since last review:** The monitor glows whenever the Sequencer has power and animates while it works. Each upgrade changes the look with a texture swap, except the chip cubes. Glow mask row added. Edit-tab censor static row added.
+**Changed since last review:** The monitor glows whenever the Sequencer has power and animates while it works. Each upgrade changes the look with a texture swap, except the chip cubes. Glow mask row added. Edit-tab censor static row added. Rows added for empty-slot icons, the soft glow on the next input, and the status chip and event message. The Basic and Advanced button is now a switch with a sliding trapezoid.
 
 ---
 
@@ -2021,9 +2024,9 @@ Screen contents follow the video. Screen art is the current GUI texture in the m
 Screen parts, sounds and looks that all four lab machines share. Each machine's own screen is listed under its machine.
 Milestone: Fossil to egg.
 
-**To make (9)**
+**To make (10)**
 
-- GUI (7): Pop-up slot dialog; Warning tab; Power symbol: powered and unpowered; Slider: track and handle, normal and highlighted; Dropdown arrows: up and down; Button frame: normal, highlighted and inactive; Text box frame: normal and focused.
+- GUI (8): Pop-up slot dialog; Warning tab; Power symbol: powered and unpowered; Slider: track and handle, normal and highlighted; Dropdown arrows: up and down; Button frame: normal, highlighted and inactive; Text box frame: normal and focused; Scroll bar: track and thumb, normal and highlighted.
 - Sounds (2): Part placed; Upgrade installed.
 
 **To import (1)**
@@ -2045,7 +2048,8 @@ Milestone: Fossil to egg.
 | Linked-machine tabs (4 machines, active and inactive) | Change machines without leaving the screen | Ready to import | F1.10 | REPO guis/tabs/ (8 PNG). Not in the mod |
 | Slider: track and handle, normal and highlighted | Every slider on a machine screen, for example the Edit-tab donor and gene sliders | Missing | F1.10 | None. Since the 26.2 port the sliders draw vanilla's `widget/slider` sprites. REPO guis/sequencer/buttons_loading_bars.png (slanted cyan and dark-blue bars) is the style reference |
 | Dropdown arrows: up and down | The open and close arrows of the species and animal dropdowns | Missing | F1.10 | None. Since the 26.2 port they draw vanilla's `transferable_list` arrows. REPO guis/sequencer/buttons_loading_bars.png (slanted cyan and dark-blue bars) is the style reference |
-| Button frame: normal, highlighted and inactive | Machine screen buttons, for example Begin and Cancel and the gene buttons | Missing | F1.10 | None. Code draws a plain border today. REPO guis/sequencer/buttons_loading_bars.png (slanted cyan and dark-blue bars) is the style reference |
+| Button frame: normal, highlighted and inactive | Machine screen buttons, for example Begin and Cancel (with a green ready state) and the gene buttons | Missing | F1.10 | None. Code draws a plain border today. Shape: the 45° tab trapezoid of MOD/textures/gui/sequencer.png, or 45° cut corners, with no round ends. REPO guis/sequencer/buttons_loading_bars.png (slanted cyan and dark-blue bars) is the style reference |
+| Scroll bar: track and thumb, normal and highlighted | Lists that grow, for example the Sequencer species, gene and animal lists | Missing | F1.10 | None. A thin bar at the right edge of the list. REPO guis/sequencer/buttons_loading_bars.png is the style reference |
 | Text box frame: normal and focused | Search and number boxes on machine screens | Missing | F1.10 | None. Code draws a vanilla-like box today. REPO guis/sequencer/buttons_loading_bars.png (slanted cyan and dark-blue bars) is the style reference |
 
 ### Sounds
