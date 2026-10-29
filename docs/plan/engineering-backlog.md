@@ -834,6 +834,9 @@ F1.1 puts fossil and amber ore in the world and turns it into fossil items, ambe
 
 - Amber ore in the three host stones, placed by the fossil feature set with its own rarity.
   - The block stores depth band and biome group.
+- Amber ore look: each amber ore draws a see-through amber layer over its own host stone (stone, deepslate, sandstone).
+  - The layer is the amber flecks cut out of REPO `blocks/amber_ore/textures/amber_ore.png` (Art list → Fossils and amber).
+  - It replaces the amber nugget sprite `fossil_overlay/amber/amber.png`.
 - The amber item carries only depth band and biome group. Its tooltip says "Unknown species".
 - The Fossil Processor accepts amber. Fix the `dna_percentage` tag check (with F1.3).
 - At run end, the Processor rolls the species and the yield (with F1.3).
@@ -931,8 +934,9 @@ F1.1 puts fossil and amber ore in the world and turns it into fossil items, ambe
 
 - 910 fossil blocks exist for two species. Six species would make 3,000 to 3,600 (`FossilCollection.java:35-52`).
 - Every fossil gives 0 % DNA, because the yield lookup in `DNAData.java:46-52` is in comments.
+- Each amber ore is its host stone (stone, deepslate or sandstone) with the amber nugget sprite `fossil_overlay/amber/amber.png` on every face (`ModModelProvider.amberBlock`).
 
-**Changed since last review:** No Identification Tag: only sequencing identifies amber DNA. Equal species share. Dilophosaurus uses the Jurassic rarity. Depths per species set. Shared generic pelvis. Fortune +7.5 % per level. Four opacity levels in Beta. No percent label on the tube icon. Fossil blocks for all six species, one per piece with a sprite. A vein block with no block for its piece stays stone. No species fallback for fossil ore.
+**Changed since last review:** No Identification Tag: only sequencing identifies amber DNA. Equal species share. Dilophosaurus uses the Jurassic rarity. Depths per species set. Shared generic pelvis. Fortune +7.5 % per level. Four opacity levels in Beta. No percent label on the tube icon. Fossil blocks for all six species, one per piece with a sprite. A vein block with no block for its piece stays stone. No species fallback for fossil ore. Amber ore shows its host stone with an amber layer cut from the assets-repo ore texture.
 
 ### F1.2: DNA from animals
 
@@ -2589,6 +2593,9 @@ F1.11 delivers the Basic Generator, the Power Conduit and the power network that
 - [ ] One constant "energy per fuel tick" sets generator output and burn time.
 - [ ] Generator screen: a fuel slot, a burning flame and an energy bar. The video and the spec give no layout.
 - [ ] Generator look: while it burns, the flame glows and a smoke puff rises every 2 s. It gives light 13 while it burns, like a lit furnace.
+- [ ] Creative Generator look: the 1.12.2 creative power block, a plain cube (parent `block/cube`) with the five 1.12.2 coal generator textures. Today a placed Creative Generator shows the missing-texture cube.
+  - Faces: down `coal_generator_bottom`, up `coal_generator_top`, north `coal_generator_front`, east `coal_generator_left`, south `coal_generator_bottom`, west `coal_generator_right`. Particle `coal_generator_front`.
+  - Source: `Dumb-Code/ProjectNublar`, branch `master`: `blockstates/creative_power.json`, `models/block/creative_power.json`, `models/item/creative_power.json`, and `textures/blocks/coal_generator_{bottom,front,left,right,top}.png` (Art list → Lab power).
 - [ ] Generator sounds: ignite, running loop and out of fuel.
   - Each event has its own file.
   - The generator gets sounds of its own, not the generic lab sounds.
@@ -2666,7 +2673,7 @@ Basic Generator (id `basic_generator`, see the F1.12 id renames). Power Conduit 
 
 #### Art
 
-See Art list → Power (Basic Generator model and texture, conduit block, item sprites, generator screen, sounds). Not done until those rows are Done (no Placeholder, no To check).
+See Art list → Power (Basic Generator model and texture, Creative Generator textures, conduit block, item sprites, generator screen, sounds). Not done until those rows are Done (no Placeholder, no To check).
 
 #### Acceptance
 
@@ -2687,8 +2694,9 @@ See Art list → Power (Basic Generator model and texture, conduit block, item s
 
 - The generator makes 0.2 FE per tick, and one post drains 10.
 - The generator sends a block update every tick, also when idle.
+- A placed Creative Generator shows the missing-texture cube. It has no blockstate, model or texture, as on 1.20.1.
 
-**Changed since last review:** Basic Generator gives 200 FE per tick with a 20,000 FE buffer. Overload trips every generator on the network. No network capacity limit and no export cap. Fuel end gives 5 s of buffer. Generator has its own look and sounds. Grid memory for unloaded chunks.
+**Changed since last review:** Basic Generator gives 200 FE per tick with a 20,000 FE buffer. Overload trips every generator on the network. No network capacity limit and no export cap. Fuel end gives 5 s of buffer. Generator has its own look and sounds. Grid memory for unloaded chunks. The Creative Generator is the 1.12.2 cube with the five 1.12.2 coal generator textures.
 
 ### F1.12: Lab recipes and advancements
 
@@ -5107,6 +5115,8 @@ Outside these additions, the fence stays 1:1 with the original. Each addition ch
 - Draw each wire once, from the lower end, with 4 to 6 segments for a short span.
 - A remaining block-entity renderer returns a box over its span and never sets `shouldRenderOffScreen`. A wire stays visible while its span is on screen.
 - Port rft's Forge-only model data mixins to the platform layer.
+- The outline and the collision box of a post turn with the post. Wire outlines follow F9.
+  - Today the outline and the collision of a post are the wire boxes, or the fixed upright `DEFAULT_SHAPE` when the block has no live wire. The turned post shape `cachedShape` serves only the aim check. Same on 1.20.1 (Forge).
 - Today every fence block uses `ENTITYBLOCK_ANIMATED`, so 300 posts submit 300 or more renders per frame.
 
 ##### Network, config and messages
@@ -5184,7 +5194,7 @@ See Art list → Fences (posts, lamp states, spool stages, removers, voltage sig
 - Low and high security wires each do ½ ♥ (F25).
 - `/projectnublar regenfence` runs at operator level 2, or the PR says why it is not needed (F28).
 
-**Changed since last review:** The 1.12.2 fence is the baseline and wins over earlier Beta designs. Same damage for both posts. No wire health. Only a Tyrannosaurus breaks fences, with no starvation trigger. Every entity climbs dead wires. Three voltage-sign looks, sneak-click removes. Spool has 10 stages. Power-up and power-down sounds.
+**Changed since last review:** The 1.12.2 fence is the baseline and wins over earlier Beta designs. Same damage for both posts. No wire health. Only a Tyrannosaurus breaks fences, with no starvation trigger. Every entity climbs dead wires. Three voltage-sign looks, sneak-click removes. Spool has 10 stages. Power-up and power-down sounds. The outline and the collision box of a post turn with the post.
 ### F3.2: Power grid
 
 F3.2 adds the Large Generator and pylons, and it puts fence power on the F1.11 power network.
@@ -6845,6 +6855,9 @@ These rows come from a review of the specs against mechanics in other games.
 | D291 | F2.0, F2.1 | The plan has a water path cost and a "Swimming and wading" activity. Today an animal in deep water sinks to the bottom and drowns if it cannot climb out, as on 1.20.1. When does an animal wade, and when does it swim? | Answered 2026-10-28 (lead): dinosaurs "wade through water and then swim based on the depth to height ratio". There is "no vanilla floating". An animal wades while the water is shallower than a set share of its body height, and swims in deeper water. A swimming animal does not bob like a vanilla mob, at any depth. A wading or swimming animal climbs out where the shore lets it. The share: value open, lead decides | Answered |
 | D292 | M0.B00, F2.3 | Every species walks and runs at the same body speeds. Each species' walk and run clips show its own pace, so the feet slide, as on 1.20.1. The species data has a `speed` stat, but no walk speed, run speed or walk-to-run switch per species. What are they? | Lead (2026-10-28): "It was more the speed of their walking itself. And it's still not much better as there is still a sliding effect." Each species gets its own walk speed, run speed and walk-to-run switch. The values: value open, lead decides. Until then, every species keeps the shared body speeds | Lead decision pending |
 | D293 | F3.3 | In the lead's playtest of 2026-10-28, the Small Carnivore Feeder platform does not rise smoothly, and the meat shows only at the top. The meat shows all or nothing. How do the platform and the meat look? | Answered 2026-10-28 (lead): "There's a lot of glitching as the platform rises and meat only appears when the platform hits the top - note this for later to fix". "Also the meat chunks should disappear chunk by chunk as the dinosaurs eat from it". A carnivore platform rises smoothly, with the meat on it for the whole rise. As dinosaurs eat, the meat pieces disappear one at a time, in step with the food left. The fix is F3.3 work | Answered |
+| D294 | F3.1 | In the lead's playtest of 2026-10-28, the black outline and the collision box of a fence post do not turn with the post. They are a fixed upright box (`DEFAULT_SHAPE`) or the wire boxes. Only the aim check uses the turned post shape (`cachedShape`). Same on 1.20.1 (Forge). Parity row F9 covers the wire outline only. Does the plan add an outline and a collision box that turn with the post? | Answered 2026-10-28 (lead): "Add to plan, later". The outline and the collision box of a post turn with the post. The fix is F3.1 work | Answered |
+| D295 | F1.11 | In the lead's playtest of 2026-10-28, a placed Creative Generator shows the missing-texture cube. It has no blockstate, model or texture, as on 1.20.1. The plan has a model only for the Basic Generator. What does the Creative Generator look like? | Answered 2026-10-28 (lead): "check 1.12.2 for the textures, it should be there". The Creative Generator is the 1.12.2 creative power block: a plain cube (parent `block/cube`) with the five 1.12.2 coal generator textures `textures/blocks/coal_generator_{bottom,front,left,right,top}.png` (`Dumb-Code/ProjectNublar`, branch `master`). The Basic Generator keeps its `.tbl` model conversion. The Art list has the row | Answered |
+| D296 | F1.1 | In the lead's playtest of 2026-10-28, each amber ore is its host stone (stone, deepslate, sandstone) with the amber nugget sprite `fossil_overlay/amber/amber.png` on every face, as on 1.20.1. The assets repo has an amber ore texture that the mod never used: `blocks/amber_ore/textures/amber_ore.png`, grey stone with amber flecks, opaque. What does amber ore look like? | Answered 2026-10-28 (lead): "Cut an amber layer". An art job cuts the amber flecks out of `amber_ore.png` into a see-through layer. Each amber ore draws that layer over its own host stone. The Art list has the row | Answered |
 
 ---
 
@@ -6931,3 +6944,4 @@ These rows come from a review of the specs against mechanics in other games.
 - **2026-10-25 (lead: machine screen widgets):** D289 answered. F1.10 gets a Nublar widget look for sliders, dropdown arrows, buttons and text boxes, in the Sequencer style. Four Missing art rows under Machine shared parts.
 - **2026-10-28 (lead: M0.P2 playtest, round 3):** D290 to D292. F2.2 gets Triceratops horn set and horn colour as look genes, one of each per animal, with F1.5 lists and F2.0 and F2.5 heredity. F2.0 and F2.1 get wading and swimming by water depth against body height, with no vanilla bobbing. M0.B00 and F2.3 get per-species walk and run speeds as open values. D14 gets the lead's note on animation speed. Art list question 22.
 - **2026-10-28 (lead: M0.P2 playtest, round 4):** D293. F3.3 gets a smooth platform rise with the meat on it, and meat pieces that disappear one at a time as dinosaurs eat. F2.3 and the Art list get the Triceratops rest hold: `restidle` holds the last pose of `rest`. The Triceratops also needs a `getup` clip.
+- **2026-10-28 (lead: M0.P2 playtest, round 5):** D294 to D296. F3.1 gets a post outline and collision box that turn with the post. F1.11 and the Art list get the Creative Generator look: the 1.12.2 cube with the five 1.12.2 coal generator textures. F1.1 and the Art list get the amber ore look: an amber layer, cut from the assets-repo ore texture, over each host stone. The Art list marks the imported Triceratops species icon Done.

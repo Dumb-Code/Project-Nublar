@@ -97,6 +97,7 @@ Fossil ore and amber hide in the right rock at the right depth, and each find ca
 
 #### Amber
 
+- **Ore look:** each amber ore shows its own host stone (stone, deepslate or sandstone) with a see-through amber layer on top. The layer holds the amber flecks of the assets-repo ore texture `amber_ore.png`.
 - Amber ore drops an amber item. The item shows "Unknown species".
 - The tube that the Fossil Processor makes from amber also hides the species. Sequencing reveals the species on the drive entry (F1.4).
 - Beta has no Identification Tag.
@@ -162,11 +163,12 @@ See Art list → Fossils and amber (ore overlays, fossil and amber sprites, pelv
 #### Today in the code
 
 - No worldgen runs. Fossil blocks exist for two species, drops are broken, and fossils hold 0% DNA.
-- No amber, pouch or DNA labels.
+- No pouch or DNA labels.
+- Amber ore blocks exist, but nothing places them in the world. Each amber ore is its host stone (stone, deepslate or sandstone) with the amber nugget sprite on every face.
 
 **Engineering:** backlog F1.1.
 
-**Changed since last review:** The pouch takes amber by hand and empties into the Processor on use. No hopper reaches the pouch. Ore overlay uses four fixed opacity levels. Every species has a pelvis piece. No Identification Tag: sequencing alone identifies amber. Fortune tier-up is +7.5 % per level. Per-species biome and depth table added. Fossil blocks for all six species, one for each piece with a sprite in the assets repo. A vein block with no block for its piece stays stone. No species stands in for another in fossil ore.
+**Changed since last review:** The pouch takes amber by hand and empties into the Processor on use. No hopper reaches the pouch. Ore overlay uses four fixed opacity levels. Every species has a pelvis piece. No Identification Tag: sequencing alone identifies amber. Fortune tier-up is +7.5 % per level. Per-species biome and depth table added. Fossil blocks for all six species, one for each piece with a sprite in the assets repo. A vein block with no block for its piece stays stone. No species stands in for another in fossil ore. Amber ore shows its host stone with an amber layer cut from the assets-repo ore texture.
 
 ---
 
@@ -1195,6 +1197,7 @@ F1.11 is the lab's power: a fuel-burning Basic Generator and a power conduit run
 - **Screen.** Fuel slot, burning flame, energy bar. Layout not set (proposal, lead decides).
 - **Animation.** The original has none. The flame glows while it burns. A smoke puff rises every 2 s (proposal, lead decides).
 - **Light.** Light level 13 while it burns, like a lit furnace.
+- **Creative Generator (creative only).** A plain cube, as in 1.12.2. It uses the five 1.12.2 coal generator textures: top, bottom, front, left and right.
 - **Hover box.** Always on. A client setting hides it.
 - **Sounds.** Run loop, ignite, fuel out (events: proposal, lead decides). The generator gets sounds of its own.
 
@@ -1234,7 +1237,7 @@ Machine draw in FE per tick, with the run time in brackets. Machines draw only w
 
 #### Art needed
 
-See Art list → Lab power (Basic Generator, flame glow and smoke, generator sounds, conduit).
+See Art list → Lab power (Basic Generator, Creative Generator, flame glow and smoke, generator sounds, conduit).
 
 #### Open questions
 
@@ -1244,10 +1247,11 @@ See Art list → Lab power (Basic Generator, flame glow and smoke, generator sou
 
 - A coal generator gives 0.2 FE per tick (4 FE each second) and loses its energy on reload.
 - Machines only pretend to draw power, so nothing uses it. No conduit exists.
+- A placed Creative Generator shows the missing-texture cube. It has no blockstate, model or texture.
 
 **Engineering:** backlog F1.11 (machine power).
 
-**Changed since last review:** Basic Generator makes 200 FE per tick with a 20,000 FE buffer. Overload trips the generator. Conduits have no capacity limit. Catch-up burn on chunk load. Machine draw per tier set.
+**Changed since last review:** Basic Generator makes 200 FE per tick with a 20,000 FE buffer. Overload trips the generator. Conduits have no capacity limit. Catch-up burn on chunk load. Machine draw per tier set. The Creative Generator is the 1.12.2 cube with the five 1.12.2 coal generator textures.
 
 ---
 
@@ -3007,6 +3011,7 @@ F3.1 is an electric fence that plays exactly like the original 1.12.2 fence, plu
 - Right-click post A with a spool, then post B. Wires string between them, and B becomes the next start.
 - Wires follow any slope. A solid block on the line leaves a gap.
 - A post turns to face its wires. An empty-hand click on a post flips it 180°.
+- The outline and the collision box of a post turn with the post.
 - Wires are solid. The crosshair picks one wire and outlines it. A click breaks only that wire, at once.
 
 #### Spools
@@ -3112,12 +3117,13 @@ See Art list → Fences: posts, lamps, textures, wires, voltage signs, switch le
 
 - Posts, wires, three of the four repairs and the shock work.
 - Lamps never light, cut wires are invisible and sparks never show.
+- The outline and the collision box of a post do not turn with the post. They are a fixed upright box or the wire boxes. Only the aim check uses the turned post shape.
 - The shock counts as thorns damage.
 - Every post does work every tick.
 
 **Engineering:** backlog F3.1.
 
-**Changed since last review:** Voltage sign comes from an empty-hand click, with no item. Clicks cycle its three looks, and a sneak-click removes it. Spool shows 10 stages. Five fence sounds added. No decorative fences. Switch is a lever on a post plate.
+**Changed since last review:** Voltage sign comes from an empty-hand click, with no item. Clicks cycle its three looks, and a sneak-click removes it. Spool shows 10 stages. Five fence sounds added. No decorative fences. Switch is a lever on a post plate. The outline and the collision box of a post turn with the post.
 
 ### F3.2 Power grid: Large Generator, pylons, fence power
 
@@ -3219,7 +3225,7 @@ See Art list → Power: Large Generator, pylons, power line.
 
 #### Today in the code
 
-- The mod has one coal generator with no model.
+- The mod has one coal generator and one Creative Generator, both with no model.
 - It makes 0.2 FE per tick, so it cannot run even one fence post.
 - No pylon or Large Generator exists.
 

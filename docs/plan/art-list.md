@@ -81,7 +81,7 @@ Status words:
 | Tyrannosaurus | 39 | 3 | 3 | 8 | 28 | 2 | 0 |
 | Velociraptor | 31 | 2 | 31 | 24 | 33 | 1 | 1 |
 | Dilophosaurus | 34 | 0 | 22 | 5 | 73 | 3 | 0 |
-| Triceratops | 34 | 4 | 34 | 6 | 29 | 2 | 0 |
+| Triceratops | 35 | 4 | 33 | 6 | 29 | 2 | 0 |
 | Brachiosaurus | 25 | 2 | 27 | 2 | 37 | 15 | 0 |
 | Gallimimus | 30 | 0 | 23 | 1 | 36 | 11 | 0 |
 | Dinosaur effects | 0 | 0 | 0 | 0 | 32 | 0 | 0 |
@@ -93,24 +93,24 @@ Status words:
 | Incubator | 8 | 6 | 1 | 0 | 13 | 2 | 0 |
 | Machine shared parts | 0 | 1 | 1 | 0 | 9 | 0 | 0 |
 | Lab items | 11 | 0 | 3 | 0 | 6 | 0 | 0 |
-| Fossils and amber | 2 | 0 | 15 | 0 | 17 | 0 | 0 |
-| Lab power | 1 | 0 | 1 | 1 | 8 | 0 | 0 |
+| Fossils and amber | 1 | 0 | 15 | 0 | 18 | 0 | 0 |
+| Lab power | 1 | 0 | 2 | 1 | 8 | 0 | 0 |
 | Park power | 0 | 0 | 3 | 2 | 7 | 0 | 0 |
 | Fences | 6 | 0 | 7 | 0 | 9 | 0 | 0 |
 | Feeders | 3 | 0 | 0 | 10 | 20 | 0 | 0 |
 | Digsites and villagers | 0 | 0 | 1 | 0 | 7 | 0 | 0 |
 | Vehicles | 1 | 0 | 2 | 5 | 26 | 0 | 0 |
-| **Total (without guns)** | **251** | **24** | **179** | **69** | **448** | **42** | **1** |
+| **Total (without guns)** | **251** | **24** | **179** | **69** | **449** | **42** | **1** |
 | Guns (blocked) | 0 | 0 | 2 | 11 | 3 | 0 | 0 |
 
-- **Counted rows:** 1013 (guns not included).
-- **Work left:** 720 rows (448 to make, 69 to export or convert, 179 to import, 24 to check in game), plus 42 shared files for the artist to confirm.
+- **Counted rows:** 1014 (guns not included).
+- **Work left:** 721 rows (449 to make, 69 to export or convert, 179 to import, 24 to check in game), plus 42 shared files for the artist to confirm.
 - **Done:** 251.
 - **Not counted:** 1 row that waits on the lead, 32 rows with no art needed, 38 rows not in Beta (6 of them Release 1 groups).
 - **Guns:** blocked on D08. They are not in the total.
 - **Per-milestone counts:** the roadmap's milestone table. They come from the Feature column of each row (F1.x is M1, F2.x is M2, F3.x is M3, F4.x is M4), with guns left out.
 
-**Changed since last review:** Vehicle assembly uses existing groups, so the chassis and engine rows are gone and the wheel split is a Done developer row. Large Generator gets its own ignite, fuel-out and loop rows. Release 1 asset groups listed, not counted. Question 21 settled. One glow mask row per lab machine. Incubator lamp colours set as placeholders. The bird Embryo Syringe takes the 1.12 texture. The dinosaur-embryo syringe needs a new sprite. Edit-tab censor static row added. Generic pelvis, foot and spine are Missing: no shared sprite exists. Nublar widget kit for machine screens (sliders, dropdown arrows, buttons, text boxes), Sequencer style. Triceratops horn sets named: one file per set, one set and one colour per animal. Question 22 on the horn `v2` files and the Black/Yellow overlays. Triceratops rest idle holds the last pose of its lie-down, and it needs a get-up clip. Feeder 2 needs one bone per meat piece.
+**Changed since last review:** Vehicle assembly uses existing groups, so the chassis and engine rows are gone and the wheel split is a Done developer row. Large Generator gets its own ignite, fuel-out and loop rows. Release 1 asset groups listed, not counted. Question 21 settled. One glow mask row per lab machine. Incubator lamp colours set as placeholders. The bird Embryo Syringe takes the 1.12 texture. The dinosaur-embryo syringe needs a new sprite. Edit-tab censor static row added. Generic pelvis, foot and spine are Missing: no shared sprite exists. Nublar widget kit for machine screens (sliders, dropdown arrows, buttons, text boxes), Sequencer style. Triceratops horn sets named: one file per set, one set and one colour per animal. Question 22 on the horn `v2` files and the Black/Yellow overlays. Triceratops rest idle holds the last pose of its lie-down, and it needs a get-up clip. Feeder 2 needs one bone per meat piece. Triceratops species icon imported. Amber ore needs an amber layer cut from the REPO ore texture. Creative Generator textures from 1.12.2 are ready to import.
 
 ## Questions for the artist and lead
 
@@ -802,11 +802,11 @@ Milestone: Dinosaurs.
 - Animations (15): Jump; Idle 2; Turn left and right; Guard nest; Hatch; Yawn; Sneeze; Startled (extra); Shake body (extra); Scratch (extra); Rest idle (placeholder); Get up (placeholder); Sleep (placeholder); Sit (placeholder); Limp (placeholder).
 - Sounds (10): Eat (plant chew); Drink; Sleep breath; Footsteps (heavy); Nest call; Mating call; Yawn; Sneeze; Hatchling sounds; Hurt 1 (placeholder).
 
-**To import (34)**
+**To import (33)**
 
 - Skins, Sorna set (JP3) and horns (24): Female: base, belly, mid-tone, dark green, purple, feet, toes, mouth, snout, eye sockets, nostrils, eyes, eyelids; Male: base, belly, mid-tone, dark green, feet, white, osteoderms, mouth, nostrils, eyelids; Horn colour variants (28 layers).
 - Sounds (7): Call (3) and social (4); Small roar (2) and domination display (2); Growl (7), hiss, snort, exhale; Charge wind-up; Attack and bite; Hurt 2; Death (3 files).
-- Sprites (3): Raw meat; Cooked meat; Species icon (egg and DNA).
+- Sprites (2): Raw meat; Cooked meat.
 
 **To fix (12)**
 
@@ -980,7 +980,7 @@ None is in the mod. REPO folder: dinosaurs/triceratops/sounds/ (32 files).
 | --- | --- | --- | --- | --- |
 | Raw meat | Drop | Ready to import | F2.1 | REPO sprites/meat/triceratops/ |
 | Cooked meat | Cooked drop | Ready to import | F2.1 | REPO sprites/meat/triceratops/ |
-| Species icon (egg and DNA) | Egg and tube show the species | Ready to import | F1.1 | REPO dna_icons (Triceratops). The mod file is a copy of the T. rex icon |
+| Species icon (egg and DNA) | Egg and tube show the species | Done | F1.1 | MOD/textures/item/dino_overlay/triceratops.png, from REPO sprites/dna_icons/triceratops_dna_icon.png |
 
 ---
 
@@ -2149,9 +2149,9 @@ The pouch has 27 slots.
 Fossil ore in stone, sandstone and deepslate, amber ore, and the items they drop. The ore shows the bone piece and its quality before the player mines it. Fresh pieces from a dead dinosaur are here too.
 Milestone: Fossil to egg (fresh drops and soft tissue: Dinosaurs, F2.1).
 
-**To make (17)**
+**To make (18)**
 
-- Skins, ore overlays (7): Special piece: Tyrannosaurus tooth, Velociraptor toe claw, Triceratops horn; Generic pelvis; Generic foot; Generic spine; Quality looks: fragmented, poor, common, pristine (placeholder).
+- Skins, ore overlays (8): Special piece: Tyrannosaurus tooth, Velociraptor toe claw, Triceratops horn; Generic pelvis; Generic foot; Generic spine; Quality looks: fragmented, poor, common, pristine (placeholder); Amber ore (placeholder).
 - Sprites: items (10): Fourth quality look for each piece; Generic pelvis item, 3 looks; Tyrannosaurus tooth: fossil item; Velociraptor toe claw: fossil item; Triceratops horn: fossil item; Tyrannosaurus tooth: fresh drop; Velociraptor toe claw: fresh drop; Triceratops horn: fresh drop; Triceratops teeth: fresh drop; Soft tissue.
 
 **To import (15)**
@@ -2176,6 +2176,7 @@ Mod folder: MOD/textures/block/fossil_overlay/. The overlay sits on the vanilla 
 | Generic foot | Foot piece. No species has a foot block until it exists | Missing | F1.1 | None. No shared sprite exists. The files in common/ are old T. rex copies or empty: common/foot.png is T. rex art. No generic foot in REPO _common |
 | Generic spine | Spine piece. No species has a spine block until it exists | Missing | F1.1 | None. No shared sprite exists. The files in common/ are old T. rex copies or empty: common/spine.png is an old T. rex copy. No generic spine in REPO _common |
 | Quality looks: fragmented, poor, common, pristine | Ore shows its quality | Placeholder | F1.1 | Stand-in: 2 looks for skulls only. Fragmented and poor share one |
+| Amber ore | Amber. Each amber ore shows its own host stone (stone, deepslate, sandstone) with a see-through amber layer on top | Placeholder | F1.1 | Stand-in: the amber nugget sprite amber/amber.png on every face. Art job: cut the amber flecks out of REPO blocks/amber_ore/textures/amber_ore.png (grey stone with amber flecks, opaque, 16 × 16) into a see-through layer |
 | Generic arm | Other bones use generic art | Ready to import | F1.1 | REPO sprites/fossils_bones/_common (arm). Mod common/arm.png is T. rex art |
 | Generic leg | Other bones use generic art | Ready to import | F1.1 | REPO _common (leg). Mod file is T. rex art |
 | Generic ribcage | Other bones use generic art | Ready to import | F1.1 | REPO _common (ribcage). Mod file is Microceratus art |
@@ -2187,7 +2188,6 @@ Mod folder: MOD/textures/block/fossil_overlay/. The overlay sits on the vanilla 
 | Skull: Brachiosaurus | Species skull piece | Ready to import | F1.1 | REPO sprites/fossils_bones/brachiosaurus/ |
 | Skull: Gallimimus | Species skull piece | Ready to import | F1.1 | REPO sprites/fossils_bones/gallimimus/ |
 | Skull: Tyrannosaurus | Special piece with species art | Done | F1.1 | tyrannosaurus_rex/ (fresh, fragmented, rex_skull) |
-| Amber ore | Amber | Done | F1.1 | amber/amber.png |
 | Generic, trace and terracotta fossils | Not selected for Beta | Not in Beta | F1.1 | REPO blocks/fossils/textures/ |
 
 ### Sprites: items
@@ -2225,9 +2225,9 @@ Milestone: Fossil to egg.
 - Sounds (3): Generator start; Generator running loop; Generator stop or out of fuel.
 - Sprites (2): Basic Generator item; Conduit item.
 
-**To import (1)**
+**To import (2)**
 
-- Skins (1): Basic Generator texture.
+- Skins (2): Basic Generator texture; Creative Generator textures.
 
 **To fix (1)**
 
@@ -2246,6 +2246,7 @@ Milestone: Fossil to egg.
 | --- | --- | --- | --- | --- |
 | Conduit texture | Conduit look | Missing | F1.11 | None |
 | Basic Generator texture | Machine look | Ready to import | F1.11 | REPO machines/basic_power_generator/textures/basic_power_generator.png |
+| Creative Generator textures | Creative Generator look: a plain cube, as in 1.12.2 | Ready to import | F1.11 | The five 1.12 textures `Dumb-Code/ProjectNublar` branch `master`, src/main/resources/assets/projectnublar/textures/blocks/coal_generator_bottom.png, coal_generator_front.png, coal_generator_left.png, coal_generator_right.png, coal_generator_top.png. The 1.12 cube model models/block/creative_power.json (parent block/cube) puts bottom on the down and south faces, top up, front north, left east and right west. The item uses the block model |
 | Basic Generator flame glow and smoke | The flame glows while it burns. A smoke puff rises every 2 s. Light 13 | Missing | F1.11 | None. An emissive flame texture. The smoke can use the vanilla particle unless the artist makes a smoke texture |
 
 ### Sounds
@@ -2271,7 +2272,7 @@ Generators get sounds of their own.
 | --- | --- | --- | --- | --- |
 | Basic Generator screen | Fuel slot, flame, energy bar | Done | F1.11 | MOD/textures/gui/coal_generator.png |
 
-**Changed since last review:** The Basic Generator gets a lit state: flame glow, smoke puff, light 13.
+**Changed since last review:** The Basic Generator gets a lit state: flame glow, smoke puff, light 13. The Creative Generator is the 1.12.2 cube with the five 1.12.2 coal generator textures.
 
 ---
 
