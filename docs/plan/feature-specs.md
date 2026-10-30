@@ -431,6 +431,7 @@ The player reads DNA samples onto a hard drive and watches each species fill tow
   - A thin bar at the right edge shows the position.
   - The mouse wheel or a drag on the bar scrolls the list.
 - **Hover.** Hover lights a button, a tab or a row. Gene bars and donor rows show a small tooltip.
+- **Type roles.** Titles, the chosen tab, names, stats and values are bold. Labels and hints stay regular (proposal, lead decides). The font has one size, so bold takes the place of a type scale.
 
 ##### Screen motion (all three tabs)
 
@@ -438,14 +439,31 @@ The screen uses the Material Design 3 motion rules (https://m3.material.io/style
 
 - A click shows its result in the same frame. The motion plays on top of the new state.
 - Text never fades. A label that changes, for example "Sequencing 42%", changes in place.
-- **Tab change:** the page slides about 10 px and cross-fades in 0.24 s. The new page shows from the first frame.
-- **View change** (Regular and Isolated, Basic and Advanced): a cross-fade in 0.18 s.
-- **Markers:** the tab line, the view line and the Basic and Advanced trapezoid slide to the new choice, with a slight spring.
+- **Tab change:** the new page shows from the first frame and slides 14 px in 0.25 s, from the side of the new tab. No fade and no bounce (proposal, lead decides).
+- **View change** (Regular and Isolated, Basic and Advanced): the same slide, 8 px in 0.2 s (proposal, lead decides).
+- **Markers:** the tab line, the view line and the Basic and Advanced trapezoid slide to the new choice. They move on a spring: stiffness 380, damping 0.8 (proposal, lead decides).
 - **Values:** percentages, bars, sliders, tanks, the DNA mix and the risk bar move to a new value in about 0.15 s.
+- **Selected row:** its fill grows to full width and gets its 45° cut corners. It moves on a fast spring: stiffness 800, damping 0.6 (proposal, lead decides).
+- **Work that runs:** the run icon of the status chip steps through a square, a circle and a diamond. The bar of the row that runs waves, and the wave goes flat when the run ends (proposal, lead decides).
+- **Pop-ups:** the pop-up shows from the first frame. An outline grows out of the clicked slot to the pop-up in 0.3 s, and the screen dims. On close the pop-up goes at once, and the outline goes back into the slot in 0.2 s (proposal, lead decides).
+- **Panels that open on demand:** the animal picker, the gene control and the narrow-window card. Each one shows from the first frame and slides 8 to 12 px in about 0.2 s. A click outside closes it at once.
 - **Feedback:** hover fades in a light highlight. A click sends a ripple out from the cursor, inside the control.
 - **Scrolling** eases to its new position.
-- **Messages and tooltips** ease in and out on the M3 emphasized curves.
+- **Messages** open up from their bottom edge in 0.25 s and close the same way (proposal, lead decides). **Tooltips** ease in and out on the M3 emphasized curves.
+- **Settings** (proposal, lead decides): two client config options.
+  - Reduced motion: no slides, shape changes, waves, ripples or pulses. Each change still shows at once.
+  - Contrast: standard, medium or high. Medium and high make dim text, borders, tracks and lines brighter. Each level uses fixed colour values.
 - Screen motion is client-only. It uses the frame time and changes nothing in the world.
+
+##### Narrow window (all three tabs)
+
+The frame is 351 px wide. When the scaled window is narrower, the screen uses a 320 px layout. Example: a 1280 × 1024 window at GUI scale 4.
+
+- **Frame:** the two outer 160 px halves of `gui/sequencer.png`, side by side, with the "PN" logo in the new middle. No part of the texture stretches.
+- **Sequence and Isolated:** the list fills the width. A click on a row opens its card in the place of the list, with a "Back" link.
+  - The card slides 12 px in from the right in 0.22 s. Back slides the list in from the left.
+- **Edit:** the Basic and Advanced labels sit under the tabs. The preview takes the rest of the width. The animal picker and the gene control open over it.
+- **Synthesis:** the tanks get narrower around the embryo picture. Each amount shows under its bar.
 
 ##### Screen cost (all machine screens)
 
@@ -467,13 +485,16 @@ Every machine screen draws on the client only. It must stay cheap on the minimum
 - **Species list** centre left. It scrolls.
   - Each row has the name, a thin progress bar and the % ("Tyrannosaurus 88%"). A bar at 100% is green.
   - The hovered row is lighter. A click selects a row, and the selected row is filled blue.
-- **Info card** on the right: a turning 3D model of the selected animal. Below it: the name, then the time period and diet ("Cretaceous · Carnivore").
-- **Clone stats** at the bottom of the card: Hatched, Failed and Skins, for example "12", "3" and "2/5". Failed is red.
+- **Info card** on the right: a turning 3D model of the selected animal fills about two thirds of the card's height. A chip on the model area gives the name. Below the model: the time period and diet ("Cretaceous · Carnivore").
+- **Clone stats** in one short row at the bottom of the card: Hatched, Failed and Skins, for example "12", "3" and "2/5". Failed is red.
   - Hatched and Failed count the eggs of the species made from this drive.
   - A failed egg counts on its drive the same way as a hatch (proposal, lead decides).
   - Skins: the skin variants that the player unlocked, out of the species total. What unlocks a variant: value open, lead decides.
 - **Bottom row:** input slot left (with count), a double-helix track, leftover slot right (with count).
 - The helix fills from left to right with progress. Tooltip "9s (13%)".
+  - Its strands stay fixed. While a sample runs, light flows along the lit part toward a bright read head at the fill edge, and new rungs flash.
+  - When the run ends, one sweep of light crosses the helix.
+  - The light draws in 5 px slices (Screen cost).
 
 ##### Isolated view
 
@@ -522,7 +543,7 @@ Every machine screen draws on the client only. It must stay cheap on the minimum
 
 #### Art needed
 
-See Art list → Sequencer (models, dye mask, lit monitor, door animation, sounds, screen frame, Sequence tab, info card, empty-slot icons, next-input glow, status chip and event message), Screens (GUI) (pop-up slot dialog, status bar, scroll bar), Lab items (Hard Drive, SSD).
+See Art list → Sequencer (models, dye mask, lit monitor, door animation, sounds, screen frame, Sequence tab, info card, empty-slot icons, next-input glow, status chip and event message, motion sprites), Screens (GUI) (pop-up slot dialog, status bar, scroll bar), Lab items (Hard Drive, SSD).
 
 #### Today in the code
 
@@ -532,7 +553,7 @@ See Art list → Sequencer (models, dye mask, lit monitor, door animation, sound
 
 **Engineering:** backlog F1.4.
 
-**Changed since last review:** The monitor stays as a fourth build part. Amber is identified only by sequencing. Vanilla animals show "Modern" and their real diet. Power per drive set. The monitor glows whenever powered and animates while working. Screen style and motion for all three tabs: tab-shaped buttons, one soft glow on the next input, status chip, empty-slot icons, event messages, scroll bars, M3 motion that never delays content. Clone stats on the info card. The Isolated view shows the animals each gene needs. Screen cost rules for every machine screen (D309, D311).
+**Changed since last review:** The monitor stays as a fourth build part. Amber is identified only by sequencing. Vanilla animals show "Modern" and their real diet. Power per drive set. The monitor glows whenever powered and animates while working. Screen style and motion for all three tabs: tab-shaped buttons, one soft glow on the next input, status chip, empty-slot icons, event messages, scroll bars, M3 motion that never delays content. Clone stats on the info card. The Isolated view shows the animals each gene needs. Screen cost rules for every machine screen (D309, D311). The model fills most of the info card. Light flows along the helix. Every tab has a narrow-window layout. Proposals: Material 3 Expressive motion, reduced motion, contrast levels and bold type roles.
 
 ---
 
@@ -574,8 +595,9 @@ Same frame, screen style, screen motion and screen cost as F1.4.
   - Each row has the animal's colour swatch, its name, its % and a slider under them.
   - The slider has a thin white handle with a small gap on each side. The filled part of the track shows the animal's colours. A dot marks the end of the track.
 - **Open donor row:** a "+ Add donor" button with a soft amber glow.
-  - A click on it changes it to "Pick one →", and the animal list on the right glows.
-  - A click on an animal fills the row at once. The slider, the DNA mix, the effects and the risk change in the same frame.
+  - A click on it changes it to "Pick one →" and opens the animal picker. The picker glows.
+  - A click on an animal fills the row at once and closes the picker. The slider, the DNA mix, the effects and the risk change in the same frame.
+  - A click on a filled donor row opens the picker to swap that donor.
   - The player drags the slider of the row to set its share.
 - **Locked row:** the next donor row that the DNA % has not opened. It shows "Locked" and the % that opens it ("100% DNA").
 - **DNA mix:** a bar under the rows with one part for each animal, in that animal's colours, and the total ("100%").
@@ -587,8 +609,10 @@ Same frame, screen style, screen motion and screen cost as F1.4.
   - The preview turns slowly on its own. The player drags it to turn it.
   - The Steve model looks toward the mouse, like the player model in the vanilla inventory.
   - Below 30 % DNA the animal draws solid black with no texture, under a light censor static. From 30 % the preview shows the real animal.
-- **Right:** a framed list of sequenced animals. Each row has the colour swatch, the name and the %. It scrolls.
+  - While the picker is open, the preview moves left to stay in view. When the picker closes, the preview gets the space back.
+- **Animal picker:** a raised list of sequenced animals at the right. It shows only after a click on a donor row. Each row has the colour swatch, the name and the %. It scrolls.
   - Animals that are not in the mix are dim. The chosen row is solid blue.
+  - A click outside the picker closes it at once.
 - **Bottom:** a wide panel with two columns of effect rows.
   - Each title is green (plus), red (minus) or white (zero), with its value at the right ("+50%").
   - The bar under each title shows each donor's part of the effect, in that donor's colours.
@@ -600,7 +624,7 @@ Same frame, screen style, screen motion and screen cost as F1.4.
   - Locked bars are dim, in the colour of their gene group. A colour strip at the left marks each group.
   - Purple = isolated, can edit. Red = selected.
   - A key under the grid reads "Purple: editable".
-- **Right of the preview:** the control for the selected gene.
+- **Gene control:** a raised panel at the right. It shows only after a click on a purple gene. With no gene picked, the preview uses the whole right side. A click outside the panel closes it at once.
   - Top line: the gene name, and the edit slots ("Edits") with one mark for each slot. A used slot is filled.
   - "From" with a chip for each animal that gives the gene, with its colour swatch.
   - Gender: a button that cycles Male, Female, Random ("‹ Male ›"), and a "Reset Gene" button. A line under it shows whether the gender is sure ("Sure at 80%" with a tick).
@@ -695,7 +719,7 @@ See Art list → Sequencer (Edit tab: base page, donor rows, effect panel, chrom
 
 **Engineering:** backlog F1.5.
 
-**Changed since last review:** Donor pick by row click then animal click. A strong jump edit can clear the low-security fence. Gene slider range and risk curves set. Clone-count edit slots added. Mob variants change colour only. Edit-tab preview fits its box, turns by itself and by drag, and shows a black animal under censor static below 30 % DNA. Steve looks toward the mouse. Triceratops horn set and horn colour are choice lists. Basic and Advanced switch with a sliding trapezoid. Donor rows with a three-colour set per animal, an "+ Add donor" button and a locked row. DNA mix bar. A donor pick fills its row in the same frame. Gene control with "From" chips, edit-slot marks and a centred slider. Locked gene bars take their group colour.
+**Changed since last review:** Donor pick by row click then animal click. A strong jump edit can clear the low-security fence. Gene slider range and risk curves set. Clone-count edit slots added. Mob variants change colour only. Edit-tab preview fits its box, turns by itself and by drag, and shows a black animal under censor static below 30 % DNA. Steve looks toward the mouse. Triceratops horn set and horn colour are choice lists. Basic and Advanced switch with a sliding trapezoid. Donor rows with a three-colour set per animal, an "+ Add donor" button and a locked row. DNA mix bar. A donor pick fills its row in the same frame. Gene control with "From" chips, edit-slot marks and a centred slider. Locked gene bars take their group colour. The animal picker and the gene control show only on demand, and the preview uses their space.
 
 ---
 
@@ -734,6 +758,7 @@ The Sequencer joins the designed genome with a bird embryo and makes a dinosaur-
   - It is green with a soft glow when every input is in. Then it is the only thing that glows.
   - It reads "Cancel" while running.
 - **Bottom:** input slot, a right arrow that fills cyan, output slot. Under the arrow the run time counts down ("9m 12s"). Tooltip "9m 59s (0%)".
+  - The arrow has a plain fill, with no wave and no moving head.
 - When the run ends, the output slot glows green and the message "Embryo syringe ready" shows.
 - **Pop-ups** when a slot is clicked: "Insert Water", "Insert Bone Matter", and "Insert Syringe" in place of "Insert Test Tube".
 - **Upgrade slots:** chip and tank (F1.10). A new mock-up of this tab sets where they go.
@@ -804,7 +829,7 @@ See Art list → Sequencer (Synthesis tab, sounds, computer pieces per chip tier
 
 **Engineering:** backlog F1.6.
 
-**Changed since last review:** A Diamond Chip cuts synthesis to 2 minutes. Bone blocks count as 9 bone meal. Cancel returns unused ingredients and uses no DNA. Power per chip tier set. The dinosaur-embryo syringe gets a new sprite. Tank amounts and a tick for one run. A low tank turns amber and its slot glows. Status chip and risk summary at the top. Tab-shaped Begin button that glows green when ready. Countdown under the arrow. Chip and tank slots on the tab.
+**Changed since last review:** A Diamond Chip cuts synthesis to 2 minutes. Bone blocks count as 9 bone meal. Cancel returns unused ingredients and uses no DNA. Power per chip tier set. The dinosaur-embryo syringe gets a new sprite. Tank amounts and a tick for one run. A low tank turns amber and its slot glows. Status chip and risk summary at the top. Tab-shaped Begin button that glows green when ready. Countdown under the arrow. Chip and tank slots on the tab. The arrow keeps a plain fill.
 
 ---
 ### F1.7 Egg Printer

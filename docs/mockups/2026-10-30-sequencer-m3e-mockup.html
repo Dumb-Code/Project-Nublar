@@ -1,0 +1,363 @@
+<h2 class="sr-only">Sequencer mock-up v10 on the real textures: every view adapts to a 320 px narrow window. Sequence and Isolated show a list, then a card with a Back link. Edit moves Basic and Advanced under the tabs and narrows the preview. Synthesis narrows its tanks around the embryo picture. Type roles and the v7 motion stay.</h2>
+<div style="display:flex;flex-wrap:wrap;gap:6px;margin:4px 0 6px">
+<button data-m="seq">Sequence</button><button data-m="iso">Isolated</button><button data-m="eb">Edit: basic</button><button data-m="ea">Edit: advanced</button><button data-m="syn">Synthesis</button><button id="pp">Pause</button>
+</div>
+<div style="display:flex;flex-wrap:wrap;gap:6px;margin:0 0 8px">
+<button id="mo">Motion: full</button><button id="co">Contrast: standard</button><button id="sl">Slow motion: off</button><button id="hx">Helix: expressive</button><button id="nw">Window: wide</button><button id="tr">Type roles: on</button>
+</div>
+<canvas id="cv" width="702" height="398" style="display:block;width:100%;max-width:702px;image-rendering:pixelated;border-radius:4px;touch-action:none"></canvas>
+<p id="st" style="font-size:13px;color:var(--text-secondary);margin:8px 0 2px"></p>
+<p id="mt" style="font-size:13px;color:var(--text-secondary);margin:0 0 2px">Last motion: none yet</p>
+<p style="font-size:12px;color:var(--text-muted);margin:0 0 1rem">Window: narrow shows a 320 px wide window, and every tab adapts. Sequence and Isolated: pick a row to open its card, and use Back to return. Edit: Basic and Advanced sit under the tabs. Type roles switches bold titles and values on and off.</p>
+<script>
+const BU='https://cdn.jsdelivr.net/gh/Dumb-Code/Project-Nublar@0838bd4a9ed4b5b95929a4c2b747b11c3523dea4/common/src/main/resources/assets/projectnublar/textures/gui/';
+const SRC={seq:'sequencer.png',ctr:'center_pieces.png',page:'sequencer_page.png',dna:'dna_spiral.png',edit:'edit_page.png',syn:'synth_page.png'};
+const I={};for(const k in SRC){const im=new Image();im.src=BU+SRC[k];I[k]=im}
+function ok(k){return I[k]&&I[k].complete&&I[k].naturalWidth>0}
+const cv=document.getElementById('cv'),M=cv.getContext('2d');M.scale(2,2);M.imageSmoothingEnabled=false;
+function mkL(){const e=document.createElement('canvas');e.width=702;e.height=398;const x=e.getContext('2d');x.scale(2,2);x.imageSmoothingEnabled=false;return{e,x}}
+const LB=mkL();let c=M;
+const P={bd:'#577694',panel:'rgba(15,34,52,0.81)',box:'rgba(25,59,89,0.85)',dark:'rgba(11,26,40,0.88)',hi:'#5FD3F3',tx:'#FFFFFF',dim:'#8FB3D1',ok:'#6EE36E',warn:'#F0B43C',bad:'#E08080',off:'#20384f',sel:'rgba(52,96,136,0.75)',iso:'#B07CFF',isoSel:'rgba(90,60,140,0.65)',line:'rgba(87,118,148,0.6)',tab:'#163758',tabHi:'#5398AC'};
+const CT=[{dim:'#8FB3D1',bd:'#577694',off:'#20384f',line:'rgba(87,118,148,0.6)',panel:'rgba(15,34,52,0.81)',fa:.28},{dim:'#B4CEE4',bd:'#7393B2',off:'#2B4866',line:'rgba(115,147,178,0.8)',panel:'rgba(12,28,44,0.9)',fa:.4},{dim:'#DCE9F5',bd:'#A3BDD6',off:'#3A5D80',line:'rgba(163,189,214,0.95)',panel:'rgba(8,20,32,0.96)',fa:.55}];
+let CI=0,FA=.28,RM=false,SPD=1,RT=0;
+function setCT(i){CI=i;const s=CT[i];P.dim=s.dim;P.bd=s.bd;P.off=s.off;P.line=s.line;P.panel=s.panel;FA=s.fa}
+const GR={'T. rex':['#7FE6F7','#3FA6E0','#2E6FD0'],'Turtle':['#4E9E40','#8FA84A','#C9BC86'],'Wolf':['#EDEDED','#B8B0A4','#7E6E5A'],'Pig':['#FBC6CA','#F2A0A6','#D9707C'],'Cow':['#5E3B24','#9A6A48','#EAE4DA'],'Horse':['#E09A58','#B0703A','#5A3418'],'Panda':['#F4F4F4','#9A9A9A','#2A2A2A'],'Chicken':['#FFFFFF','#E8E2D6','#D84A3A'],'Sheep':['#F2EFE8','#D9D3C7','#B5AA9A'],'Frog':['#8FD45A','#5E9E3A','#D9C27A'],'Parrot':['#E23B2E','#3B7BE2','#F2D23A'],'_iso':['#D0A8FF','#B07CFF','#7E4FE0'],water:['#9FE3FF','#3FA6F0','#2558C8'],sugar:['#FFFFFF','#E6DDF0','#B9AECB'],bone:['#F6F2E4','#D8CFB4','#A0927A'],plant:['#C2F27A','#5FBF3A','#2E7A2A'],run:['#9FF0FF','#5FD3F3','#2E8FD0'],risk:['#6EE36E','#F0B43C','#E05050'],up:['#6EE36E','#3FE0A0','#3FE0A0']};
+const CAT=['#5FA8F3','#4FD1C5','#F0B43C','#FF8FB8','#8BE36E'],MOD=[0.31,0.62,0.44,0.71,0.27];
+const FG={A:'.###.|#...#|#...#|#####|#...#|#...#|#...#',B:'####.|#...#|####.|#...#|#...#|#...#|####.',C:'.###.|#...#|#....|#....|#....|#...#|.###.',D:'####.|#...#|#...#|#...#|#...#|#...#|####.',E:'#####|#....|###..|#....|#....|#....|#####',F:'#####|#....|###..|#....|#....|#....|#....',G:'.####|#....|#..##|#...#|#...#|#...#|.###.',H:'#...#|#...#|#####|#...#|#...#|#...#|#...#',I:'###|.#.|.#.|.#.|.#.|.#.|###',J:'....#|....#|....#|....#|....#|#...#|.###.',K:'#...#|#..#.|###..|#..#.|#...#|#...#|#...#',L:'#....|#....|#....|#....|#....|#....|#####',M:'#...#|##.##|#.#.#|#...#|#...#|#...#|#...#',N:'#...#|##..#|#.#.#|#..##|#...#|#...#|#...#',O:'.###.|#...#|#...#|#...#|#...#|#...#|.###.',P:'####.|#...#|####.|#....|#....|#....|#....',Q:'.###.|#...#|#...#|#...#|#...#|#..#.|.##.#',R:'####.|#...#|####.|#...#|#...#|#...#|#...#',S:'.####|#....|.###.|....#|....#|#...#|.###.',T:'#####|..#..|..#..|..#..|..#..|..#..|..#..',U:'#...#|#...#|#...#|#...#|#...#|#...#|.###.',V:'#...#|#...#|#...#|#...#|#...#|.#.#.|..#..',W:'#...#|#...#|#...#|#...#|#.#.#|##.##|#...#',X:'#...#|.#.#.|..#..|.#.#.|#...#|#...#|#...#',Y:'#...#|.#.#.|..#..|..#..|..#..|..#..|..#..',Z:'#####|....#|...#.|..#..|.#...|#....|#####',
+a:'.....|.....|.###.|....#|.####|#...#|.####',b:'#....|#....|#.##.|##..#|#...#|#...#|####.',c:'.....|.....|.###.|#...#|#....|#...#|.###.',d:'....#|....#|.##.#|#..##|#...#|#...#|.####',e:'.....|.....|.###.|#...#|#####|#....|.####',f:'..##|.#..|####|.#..|.#..|.#..|.#..',g:'.....|.....|.####|#...#|#...#|.####|....#|####.',h:'#....|#....|#.##.|##..#|#...#|#...#|#...#',i:'#|.|#|#|#|#|#',j:'....#|.....|....#|....#|....#|#...#|#...#|.###.',k:'#...|#...|#..#|#.#.|##..|#.#.|#..#',l:'#.|#.|#.|#.|#.|#.|.#',m:'.....|.....|##.#.|#.#.#|#.#.#|#...#|#...#',n:'.....|.....|####.|#...#|#...#|#...#|#...#',o:'.....|.....|.###.|#...#|#...#|#...#|.###.',p:'.....|.....|#.##.|##..#|#...#|#...#|####.|#....',q:'.....|.....|.##.#|#..##|#...#|#...#|.####|....#',r:'.....|.....|#.##.|##..#|#....|#....|#....',s:'.....|.....|.####|#....|.###.|....#|####.',t:'.#.|.#.|###|.#.|.#.|.#.|..#',u:'.....|.....|#...#|#...#|#...#|#...#|.####',v:'.....|.....|#...#|#...#|#...#|.#.#.|..#..',w:'.....|.....|#...#|#...#|#.#.#|#.#.#|.####',x:'.....|.....|#...#|.#.#.|..#..|.#.#.|#...#',y:'.....|.....|#...#|#...#|#...#|.####|....#|####.',z:'.....|.....|#####|...#.|..#..|.#...|#####',
+'0':'.###.|#...#|#..##|#.#.#|##..#|#...#|.###.','1':'..#..|.##..|..#..|..#..|..#..|..#..|#####','2':'.###.|#...#|....#|..##.|.#...|#...#|#####','3':'.###.|#...#|....#|..##.|....#|#...#|.###.','4':'...##|..#.#|.#..#|#...#|#####|....#|....#','5':'#####|#....|####.|....#|....#|#...#|.###.','6':'..##.|.#...|#....|####.|#...#|#...#|.###.','7':'#####|#...#|....#|...#.|..#..|..#..|..#..','8':'.###.|#...#|#...#|.###.|#...#|#...#|.###.','9':'.###.|#...#|#...#|.####|....#|...#.|.##..',
+' ':'...','.':'.|.|.|.|.|.|#',',':'.|.|.|.|.|.|#|#',':':'.|.|#|.|.|.|#','!':'#|#|#|#|#|.|#','?':'.###.|#...#|....#|...#.|..#..|.....|..#..',"'":'#|#','%':'##..#|##.#.|...#.|..#..|.#...|.#.##|#..##','/':'....#|...#.|...#.|..#..|.#...|.#...|#....','+':'.....|..#..|..#..|#####|..#..|..#..','-':'.....|.....|.....|#####','=':'.....|.....|#####|.....|#####','(':'..##|.#..|#...|#...|#...|.#..|..##',')':'##..|..#.|...#|...#|...#|..#.|##..',
+'\u00b7':'.|.|.|.|#','\u2713':'.....|.....|....#|...#.|#.#..|.#...','\u2192':'.....|.....|...#.|#####|...#.','\u2039':'..|..|.#|#.|.#','\u203a':'..|..|#.|.#|#.'};
+const GL={};for(const ch in FG){const r=FG[ch].split('|');GL[ch]={w:r[0].length,r}}
+const IC={warn:'..###..|.#...#.|#..#..#|#..#..#|#.....#|.#.#.#.|..###..',ok:'.......|......#|.....#.|#...#..|.#.#...|..#....|.......',iso:'.......|..###..|.#####.|.#####.|.#####.|..###..|.......',plus:'..#..|..#..|#####|..#..|..#..',lock:'.###.|#...#|#####|##.##|#####',close:'#...#|.#.#.|..#..|.#.#.|#...#'};
+const MS=['.......|.#####.|.#####.|.#####.|.#####.|.#####.|.......','..###..|.#####.|#######|#######|#######|.#####.|..###..','...#...|..###..|.#####.|#######|.#####.|..###..|...#...','..###..|.#####.|#######|#######|#######|.#####.|..###..'];
+const DINOS=[['Velociraptor',62,'Cretaceous \u00b7 Carnivore','12','3','2/5'],['T. rex',88,'Cretaceous \u00b7 Carnivore','4','1','1/4'],['Triceratops',35,'Cretaceous \u00b7 Herbivore','0','0','0/3'],['Gallimimus',100,'Cretaceous \u00b7 Omnivore','9','2','3/3'],['Dilophosaurus',54,'Jurassic \u00b7 Carnivore','2','1','1/3'],['Brachiosaurus',21,'Jurassic \u00b7 Herbivore','0','0','0/2'],['Spinosaurus',77,'Cretaceous \u00b7 Carnivore','5','0','2/4'],['Stegosaurus',46,'Jurassic \u00b7 Herbivore','1','2','0/3'],['Compsognathus',93,'Jurassic \u00b7 Carnivore','7','1','2/2']];
+const ORD={seq:0,iso:1,eb:2,ea:3,syn:4},GRP={seq:0,iso:0,eb:1,ea:1,syn:2};
+let mode='seq',paused=false,pt=0,base=0,mx=-99,my=-99,HIT=[],WHEEL=[],SBAR=[],RIP=[],trans=null,curMode='',noHit=false,CLIP=null,FRAME=0,dt=.016,last=performance.now(),NOW=0,CLK=0,press=null,drag=null,POP=null,UIP=null,PK={open:false,t0:0},UIG=null,GK={open:false,t0:0},GEN=0,HX=1,HPH=0,WH=null,NW=false,TRON=true,HOX=0,OX=0,HX0=56,ND=null,NDS=false,NDT=null,NDI=null,NIS=false,NIT=null;
+const SP={},SCR={},SEL={seq:0};let SELT=-1e9;
+function bez(x1,y1,x2,y2){return x=>{if(x<=0)return 0;if(x>=1)return 1;let t=x;for(let i=0;i<8;i++){const u=1-t,fx=3*x1*t*u*u+3*x2*t*t*u+t*t*t-x,d=3*x1*u*u+6*(x2-x1)*t*u+3*(1-x2)*t*t;if(Math.abs(d)<1e-6)break;t=Math.max(0,Math.min(1,t-fx/d))}const u=1-t;return 3*y1*t*u*u+3*y2*t*t*u+t*t*t}}
+const EMPH=bez(.2,0,0,1),DEC=bez(.05,.7,.1,1),ACC=bez(.3,0,.8,.15);
+function cl01(v){return Math.max(0,Math.min(1,v))}
+function S2(v){return Math.round(v*2)/2}
+function spr(key,target,stiff,zeta,init,shared){const k=(shared?'':curMode)+key;let s=SP[k];if(!s)s=SP[k]={x:init===undefined?target:init,v:0,f:-1};if(RM){s.x=target;s.v=0;s.f=FRAME;return s.x}if(s.f!==FRAME){s.f=FRAME;const K=stiff||380,Z=zeta===undefined?.8:zeta,C=2*Z*Math.sqrt(K),n=4,h=dt/n;for(let i=0;i<n;i++){s.v+=(-K*(s.x-target)-C*s.v)*h;s.x+=s.v*h}}return s.x}
+function hx(h){const n=parseInt(h.slice(1),16);return[n>>16&255,n>>8&255,n&255]}
+function ctw(key,hex,shared){const a=hx(hex);return 'rgb('+a.map((v,i)=>Math.round(spr(key+'c'+i,v,500,1,undefined,shared))).join(',')+')'}
+function tfade(){return 1}
+function A(a,fn){const g=c.globalAlpha;c.globalAlpha=g*a;fn();c.globalAlpha=g}
+function fr(x,y,w,h,col){if(w<=0||h<=0)return;c.fillStyle=col;c.fillRect(x,y,w,h)}
+function bx(x,y,w,h,col){fr(x,y,w,1,col);fr(x,y+h-1,w,1,col);fr(x,y,1,h,col);fr(x+w-1,y,1,h,col)}
+function chp(x,y,w,h,k){k=Math.max(0,Math.min(k,w/2,h/2));c.beginPath();c.moveTo(x+k,y);c.lineTo(x+w-k,y);c.lineTo(x+w,y+k);c.lineTo(x+w,y+h-k);c.lineTo(x+w-k,y+h);c.lineTo(x+k,y+h);c.lineTo(x,y+h-k);c.lineTo(x,y+k);c.closePath()}
+function cham(x,y,w,h,k,col){if(w<=0||h<=0)return;chp(x,y,w,h,k);c.fillStyle=col;c.fill()}
+function chs(x,y,w,h,k,col){chp(x+.5,y+.5,w-1,h-1,Math.max(0,k-.3));c.strokeStyle=col;c.lineWidth=1;c.stroke()}
+function trp(x,y,w,h,up){c.beginPath();if(up){c.moveTo(x+h,y);c.lineTo(x+w-h,y);c.lineTo(x+w,y+h);c.lineTo(x,y+h)}else{c.moveTo(x,y);c.lineTo(x+w,y);c.lineTo(x+w-h,y+h);c.lineTo(x+h,y+h)}c.closePath()}
+function rp(x,y,w,h,r){c.beginPath();c.roundRect(x,y,w,h,Math.max(0,Math.min(r,w/2,h/2)))}
+function rf(x,y,w,h,r,col){if(w<=0||h<=0)return;rp(x,y,w,h,r);c.fillStyle=col;c.fill()}
+function grd(x,w,k){const a=GR[k],g=c.createLinearGradient(x,0,x+w,0);g.addColorStop(0,a[0]);g.addColorStop(.5,a[1]);g.addColorStop(1,a[2]);return g}
+function gf(x,y,w,h,r,k){if(w<=0)return;rf(x,y,w,h,r,GR[k]?grd(x,w,k):k)}
+function pulse(t){return RM?.5:.5+.5*Math.sin(t*3)}
+function wob(t,f){return RM?0:Math.sin(t*f)}
+function glowP(path,col,t){const a=pulse(t);c.save();c.globalAlpha*=(.3+.35*a);c.shadowColor=col;c.shadowBlur=5+7*a;path();c.strokeStyle=col;c.lineWidth=1;c.stroke();c.restore()}
+function glowK(x,y,w,h,k,col,t){glowP(()=>chp(x+.5,y+.5,w-1,h-1,k),col,t)}
+function glow(col,b){c.shadowColor=col;c.shadowBlur=b}
+function noglow(){c.shadowBlur=0}
+function sh(h){if(h[0]!='#')return 'rgba(0,0,0,0.5)';const n=parseInt(h.slice(1),16);return 'rgb('+((n>>16&255)>>2)+','+((n>>8&255)>>2)+','+((n&255)>>2)+')'}
+function tw(s,sc,b){sc=sc||1;b=b&&TRON?1:0;let w=0;for(const ch of s){const g=GL[ch]||GL['?'];w+=(g.w+1+b)*sc}return Math.max(0,w-sc)}
+function draw(s,x,y,col,sc,b){b=b&&TRON?1:0;c.fillStyle=col;let cx=x;for(const ch of s){const g=GL[ch]||GL['?'];for(let o=0;o<=b;o++)for(let j=0;j<g.r.length;j++){const row=g.r[j];let i=0;while(i<row.length){if(row[i]=='#'){let k=i;while(k<row.length&&row[k]=='#')k++;c.fillRect(cx+(i+o)*sc,y+j*sc,(k-i)*sc,sc);i=k}else i++}}cx+=(g.w+1+b)*sc}}
+function tx(s,x,y,col,al,sc,ns,b){sc=sc||1;const w=tw(s,sc,b);if(al=='center')x=Math.round(x-w/2);else if(al=='right')x=x-w;if(!ns)draw(s,x+sc,y+sc,col[0]=='#'?sh(col):'rgba(0,0,0,0.6)',sc,b);draw(s,x,y,col,sc,b);return w}
+function ic(n,x,y,col){c.fillStyle=col;IC[n].split('|').forEach((r,j)=>{for(let i=0;i<r.length;i++)if(r[i]=='#')c.fillRect(x+i,y+j,1,1)})}
+function morph(x,y,t,col){const s=MS[RM?1:Math.floor(t*7)%MS.length];c.fillStyle=col;s.split('|').forEach((r,j)=>{for(let i=0;i<r.length;i++)if(r[i]=='#')c.fillRect(x+i,y+j,1,1)})}
+function wave(x,y,a,k,amp,t){c.fillStyle=GR[k]?grd(x,a,k):k;for(let i=0;i<a*2;i++){const o=Math.round(2*amp*Math.sin(i/20*Math.PI*2-t*6))/2;c.fillRect(x+i/2,y+o,.5,3)}}
+function inside(x,y,w,h){const X=mx-HOX;if(CLIP&&!(X>=CLIP[0]&&X<CLIP[0]+CLIP[2]&&my>=CLIP[1]&&my<CLIP[1]+CLIP[3]))return false;return X>=x&&X<x+w&&my>=y&&my<y+h}
+function hov(x,y,w,h,k,key,path){const a=spr('hv'+(key||x+','+y+','+w),inside(x,y,w,h)&&!noHit?1:0,900,1);if(a<.01)return;A(.09*a,()=>{if(path)path();else chp(x,y,w,h,k||0);c.fillStyle='#fff';c.fill()})}
+function hit(x,y,w,h,fn,k){if(noHit)return;if(CLIP){const x0=Math.max(x,CLIP[0]),y0=Math.max(y,CLIP[1]),x1=Math.min(x+w,CLIP[0]+CLIP[2]),y1=Math.min(y+h,CLIP[1]+CLIP[3]);if(x1<=x0||y1<=y0)return;x=x0;y=y0;w=x1-x0;h=y1-y0}HIT.push([x+HOX,y,w,h,fn,k||0])}
+function faint(fn,x,y,a){A(FA,()=>fn(x,y,a))}
+function corners(x,y,w,h,col){A(.7,()=>{const L=5;[[x,y,L,1],[x,y,1,L],[x+w-L,y,L,1],[x+w-1,y,1,L],[x,y+h-1,L,1],[x,y+h-L,1,L],[x+w-L,y+h-1,L,1],[x+w-1,y+h-L,1,L]].forEach(r=>fr(r[0],r[1],r[2],r[3],col))})}
+function ellipse(cx,cy,rx,ry){A(.35,()=>{c.strokeStyle=P.hi;c.lineWidth=1;c.beginPath();c.ellipse(cx,cy,rx,ry||4,0,0,Math.PI*2);c.stroke()})}
+function cursor(x,y,down){for(let r=0;r<8;r++)fr(x,y+r,Math.min(r+1,5),1,'#fff');fr(x+2,y+6,2,4,'#fff');if(down)A(.5,()=>chs(x-3,y-3,7,7,2,'#fff'))}
+function swatch(x,y,n){const a=GR[n];fr(x,y,6,2,a[0]);fr(x,y+2,6,2,a[1]);fr(x,y+4,6,2,a[2])}
+function panel(x,y,w,h){fr(x,y,w,h,P.panel);bx(x,y,w,h,P.bd)}
+function chip(key,x,y,s,kind,t,right){const col={warn:P.warn,run:P.hi,ok:P.ok,iso:P.iso}[kind],em=kind=='ok'||kind=='iso',tc=ctw(key+'t',col),w=S2(spr(key+'w',tw(s,1,em)+18,900,1)),h=11;if(right)x-=w;cham(x,y,w,h,2,P.dark);A(.2,()=>cham(x,y,w,h,2,tc));c.save();chp(x,y,w,h,2);c.clip();if(kind=='run')morph(x+3,y+2,NOW/1000,col);else ic(kind,x+3,y+2,col);tx(s,x+13,y+2,P.tx,0,1,0,em);c.restore()}
+function chipA(x,y,s,n){const w=tw(s)+16;cham(x,y,w,11,2,P.dark);swatch(x+3,y+2,n);tx(s,x+12,y+2,P.tx)}
+function chipIn(x,y,s,n){const w=tw(s)+13;cham(x,y,w,11,2,P.dark);chs(x,y,w,11,2,P.bd);swatch(x+2,y+2,n);tx(s,x+10,y+2,P.tx);return w}
+function toast(s,k,d,cx,y0){if(d<0||d>=2.4)return;const w=tw(s)+16,h=14,x=Math.round(cx-w/2),y=y0;let hh=h;if(!RM){if(d<.25)hh=S2(h*DEC(d/.25));else if(d>2.15)hh=S2(h*(1-ACC((d-2.15)/.25)))}if(hh<=0)return;c.save();c.beginPath();c.rect(x-2,y+h-hh,w+4,hh+5);c.clip();c.save();c.shadowColor='rgba(0,0,0,0.6)';c.shadowBlur=6;c.shadowOffsetY=2;cham(x,y,w,h,3,'rgba(11,26,40,0.95)');c.restore();chs(x,y,w,h,3,P.bd);gf(x+4,y+3,2,8,1,k);tx(s,x+10,y+4,P.tx);c.restore()}
+function tip(s,x,y,col,d){const e=RM?1:DEC(cl01(d/.15)),w=tw(s)+8,yy=S2(y+(1-e)*3);cham(x,yy,w,11,2,'rgba(11,26,40,0.95)');chs(x,yy,w,11,2,col||P.bd);tx(s,x+4,yy+2,col||P.dim)}
+function stabs(sel,dx,L0){dx=dx||0;const L=(L0||[['Regular',174,1,'seq'],['Isolated',180,0,'iso']]).map(l=>[l[0],l[1]+dx,l[2],l[3]]);L.forEach((l,i)=>{const w=tw(l[0]),x=l[2]?l[1]-w:l[1],m=l[3];hov(x-4,19,w+8,13,2,'st'+i);hit(x-4,19,w+8,13,()=>setMode(m));tx(l[0],x,22,ctw('stc'+i,i==sel?P.tx:P.dim,1))});const s=L[sel],w=tw(s[0]),x=s[2]?s[1]-w:s[1],ix=spr('stx',x-1,380,.8,undefined,1),iw=spr('stw',w+2,380,.8,undefined,1);rf(S2(ix),30,S2(iw),2,1,P.hi)}
+function esub(sel){if(ok('seq')){c.drawImage(I.seq,4,5,96,14,4,5,96,14);c.drawImage(I.seq,4,204,96,14,4,5,96,14)}const L=[['Basic',10,'eb'],['Advanced',39,'ea']],s=L[sel],w=tw(s[0]),tx0=S2(spr('esx',s[1]-3,380,.8,undefined,1)),tw0=S2(spr('esw',w+6,380,.8,undefined,1));c.save();c.beginPath();c.rect(4,0,94,19);c.clip();trp(tx0-9,8,tw0+18,9,1);c.fillStyle=P.tab;c.fill();fr(tx0,8,tw0,1,P.tabHi);c.restore();L.forEach((l,i)=>{const lw=tw(l[0]),m=l[2];hov(l[1]-3,7,lw+6,11,1,'es'+i);hit(l[1]-3,6,lw+6,13,()=>setMode(m));tx(l[0],l[1],10,ctw('esc'+i,i==sel?P.tx:P.dim,1))})}
+function prog(x,y,w,v,trk,key,act){const a=Math.round(w*v/100*2)/2;if(v>=99.5){rf(x,y,w,3,1.5,P.ok);return}const am=key?spr('wa'+key,act&&!RM?1:0,300,1):0;if(am>.25)wave(x,y,a,P.hi,am,NOW/1000);else rf(x,y,a,3,1.5,P.hi);rf(x+a+1,y,w-a-1,3,1.5,trk||P.off);fr(x+w-2,y+1,1,1,P.hi)}
+function slider(x,y,w,v,n,hw){hw=hw||2;const hx0=Math.max(x+2,Math.min(x+w-2,x+w*v/100));gf(x,y,hx0-x-1-hw/2,4,2,n);rf(hx0+1+hw/2,y,x+w-hx0-1-hw/2,4,2,P.off);rf(x+w-3,y+1,2,2,1,P.hi);rf(hx0-hw/2,y-3,hw,10,1,'#fff')}
+function slist(key,x,y,w,h,pitch,n,pad,row){const s=SCR[key]||(SCR[key]={t:0}),full=n*pitch+pad*2,max=Math.max(0,full-h);s.t=Math.max(0,Math.min(max,s.t));const off=spr('sc'+key,s.t,260,1);c.save();c.beginPath();c.rect(x,y,w,h);c.clip();CLIP=[x,y,w,h];for(let i=0;i<n;i++){const ry=y+pad+i*pitch-off;if(ry>y-pitch&&ry<y+h)row(i,Math.round(ry*2)/2)}CLIP=null;c.restore();if(max>0){const bx0=x+w-4,th=Math.max(12,h*h/full),ty=S2(y+1+(h-2-th)*off/max),act=inside(x,y,w,h)||(drag&&drag.key==key);fr(bx0+1,y+2,1,h-4,'rgba(87,118,148,0.35)');cham(bx0,ty,3,th,1,ctw('sb'+key,act?P.hi:P.bd));if(!noHit){WHEEL.push({x:x+HOX,y,w,h,key,max});SBAR.push({x:bx0-2+HOX,y,w:7,h,key,max,th})}}}
+function disc(x,y){fr(x+1,y+1,14,14,'#9aa6b2');fr(x+2,y+2,12,12,'#c8d2dc');fr(x+6,y+6,4,4,P.hi);fr(x+7,y+7,2,2,'#0F2234')}
+function tube(x,y){fr(x+6,y+1,4,2,'#9aa6b2');fr(x+6,y+3,4,11,'#dfe8ee');fr(x+7,y+8,2,5,P.warn)}
+function vial(x,y){fr(x+5,y+3,6,2,'#9aa6b2');fr(x+5,y+5,6,9,'#dfe8ee');fr(x+6,y+6,4,7,'#b9e6ef')}
+function bucket(x,y){fr(x+3,y+4,10,10,'#9aa6b2');fr(x+4,y+5,8,3,'#3FA6F0');fr(x+4,y+8,8,5,'#7a8590');fr(x+2,y+2,1,4,'#9aa6b2');fr(x+13,y+2,1,4,'#9aa6b2');fr(x+3,y+1,10,1,'#9aa6b2')}
+function sugar(x,y){fr(x+4,y+9,8,4,'#F4F4F4');fr(x+5,y+7,6,2,'#FFFFFF');fr(x+3,y+12,10,2,'#DADADA')}
+function bonemeal(x,y){fr(x+4,y+5,3,3,'#EEE8D8');fr(x+8,y+7,4,4,'#F6F2E4');fr(x+5,y+10,4,3,'#D8CFB4');fr(x+10,y+3,2,2,'#EEE8D8')}
+function leaf(x,y){fr(x+5,y+3,6,10,'#5FBF3A');fr(x+3,y+5,10,6,'#4FA830');fr(x+7,y+4,2,9,'#2E7A2A')}
+function syringe(x,y,f){fr(x+2,y+7,10,3,'#C8D2DC');fr(x+3,y+8,8,1,f);fr(x+12,y+8,3,1,'#9aa6b2');fr(x,y+6,2,5,'#9aa6b2')}
+function steve(x,yf){const y=yf-32;fr(x+4,y,8,8,'#c69c6d');fr(x+4,y,8,2,'#4a2f1a');fr(x+5,y+4,2,1,'#3a5fcd');fr(x+9,y+4,2,1,'#3a5fcd');fr(x+4,y+8,8,12,'#2aa3b5');fr(x,y+8,4,12,'#2aa3b5');fr(x+12,y+8,4,12,'#2aa3b5');fr(x,y+16,4,4,'#c69c6d');fr(x+12,y+16,4,4,'#c69c6d');fr(x+4,y+20,8,12,'#3b3f8f')}
+function page(k){if(ok(k))c.drawImage(I[k],0,0,351,199,0,0,351,199)}
+function whiteHelix(){if(WH||!ok('dna'))return WH;const e=document.createElement('canvas');e.width=241;e.height=19;const x=e.getContext('2d');x.drawImage(I.dna,0,0);x.globalCompositeOperation='source-in';x.fillStyle='#fff';x.fillRect(0,0,241,19);WH=e;return WH}
+function helix(p,on,t,fin){if(!ok('dna'))return;fin=fin===undefined?-1:fin;const w=Math.floor(241*p);if(w<=0)return;const X0=HX0;
+if(on)glow(P.hi,5+2*wob(t,5));else if(fin>=0&&HX)glow(P.hi,4);c.drawImage(I.dna,0,0,w,19,X0,152,w,19);noglow();if(!HX)return;
+if(on&&!RM)HPH=(HPH+dt*.5)%1;const W=whiteHelix();if(!W)return;
+const sl=(a0,a1,a)=>{a0=Math.max(0,a0);a1=Math.min(w,a1);if(a1>a0&&a>.02)A(a,()=>c.drawImage(W,a0,0,a1-a0,19,X0+a0,152,a1-a0,19))};
+if(on&&!RM)for(let x=0;x<w;x+=5)sl(x,x+5,.45*Math.pow(Math.max(0,Math.sin(((x+2.5)/50-HPH)*Math.PI*2)),4));
+if(on&&!RM)for(let k=0;k<3;k++)sl(w-5*(k+1),w-5*k,.6*(1-k/3));
+if(on&&w<241){const hx=X0+w;glow(P.hi,6);fr(hx,150,1,23,'#E8FBFF');noglow();fr(hx,147,1,1,'#E8FBFF');fr(hx-1,148,3,1,'#E8FBFF');fr(hx,149,1,1,'#E8FBFF');fr(hx,173,1,1,'#E8FBFF');fr(hx-1,174,3,1,'#E8FBFF');fr(hx,175,1,1,'#E8FBFF')}
+if(fin>=0&&fin<.8&&!RM){const sx=Math.round(EMPH(fin/.8)*265-12);for(let k=-2;k<=2;k++)sl(sx+k*5-2,sx+k*5+3,.75*(1-Math.abs(k)/3))}}
+function drawSeq(t){const T=t%16,ph=T<4?0:T<8?1:T<13?2:3,p=ph==2?(T-8)/5:ph==3?1:0;page('page');stabs(0);
+chip('st',340,21,['Insert a disc','Add a DNA sample','Sequencing '+Math.floor(p*100)+'%','Done'][ph],['warn','warn','run','ok'][ph],t,1);
+panel(36,42,150,102);
+if(ph==0){faint(disc,103,68);tx('Insert a storage disc',111,90,P.dim,'center')}
+else slist('seqL',37,43,148,100,16,DINOS.length,2,(i,y)=>{const d=DINOS[i],s=SEL.seq==i,v=i==0&&ph==3&&T>13.2?66:d[1],sa=spr('sa'+i,s?1:0,1200,1),sm=spr('sm'+i,s?1:0,800,.6);if(sa>.01){const sw=S2(140*(.85+.15*sm)),k=Math.round(3*cl01(sm));A(Math.min(1,sa),()=>cham(S2(108-sw/2),y,sw,15,k,P.sel))}hov(38,y,140,15,0,'r'+i);hit(38,y,140,15,()=>{if(SEL.seq!=i){SEL.seq=i;SELT=NOW}});tx(d[0],42,y+4,P.tx);const vv=spr('pv'+i,v,900,1);prog(124,y+6,26,vv,s?'rgba(15,34,52,0.9)':P.off,'r'+i,i==0&&ph==2);tx(Math.round(vv)+'%',177,y+4,s?P.tx:P.dim,'right')});
+fr(197,37,142,108,P.panel);corners(196,36,144,110,P.hi);
+if(ph==0)tx('No dinosaur selected',268,88,P.dim,'center');
+else{const d=DINOS[SEL.seq],e=RM?1:DEC(cl01((NOW-SELT)/150)),dy=Math.round((1-e)*3*2)/2;fr(200,39,136,66,'rgba(25,59,89,0.45)');ellipse(268,96+dy,42,6);tx(d[0]+' model',268,64+dy,P.dim,'center');const nw=tw(d[0],1,1)+8;cham(202,41+dy,nw,11,2,P.dark);tx(d[0],206,43+dy,P.tx,0,1,0,1);tx(d[2],204,108+dy,P.dim);fr(204,118,128,1,P.line);[[d[3],'Hatched',P.tx],[d[4],'Failed',P.bad],[d[5],'Skins',P.tx]].forEach((s,i)=>{const x=225+i*43;tx(s[0],x,122+dy,s[2],'center',1,0,1);tx(s[1],x,131+dy,P.dim,'center');if(i)fr(x-22,122,1,16,P.line)})}
+if(ph==0)glowK(8,42,21,21,0,P.warn,t);else if(ph==1)glowK(24,150,21,21,0,P.warn,t);
+if(ph==0){faint(disc,11,45);tx('Disc',19,66,P.warn,'center')}else disc(11,45);
+if(ph==2)tube(27,153);else faint(tube,27,153);if(ph==1)tx('DNA in',35,174,P.warn,'center');
+const vOut=ph==3&&T>14;if(vOut)vial(308,153);else faint(vial,308,153);
+hov(8,42,21,21,0,'sl0');hit(8,42,21,21,()=>openPop('Insert Hard Drive',[8,42,21,21],'disc',ph>0));
+hov(24,150,21,21,0,'sl1');hit(24,150,21,21,()=>openPop('Insert Genetic Material',[24,150,21,21],'tube',ph==2));
+hov(305,150,21,21,0,'sl2');hit(305,150,21,21,()=>openPop('Collect Leftover Item',[305,150,21,21],'vial',vOut));
+helix(p,ph==2,t,ph==3?T-13:-1);toast('+4% Velociraptor DNA','run',T-13,176,178);
+return ['Step 1 of 4: no disc','Step 2 of 4: disc in, no sample','Step 3 of 4: sequencing (the active row waves)','Step 4 of 4: done (the wave goes flat)'][ph]}
+function drawIso(t){const T=t%10,p=Math.min(1,T/5),done=T>=5,turtle=70+30*p;page('page');stabs(1);
+if(!done)chip('st',340,21,'Sequencing '+Math.floor(p*100)+'%','run',t,1);else chip('st',340,21,'4 of 19 isolated','iso',t,1);
+panel(36,42,150,102);
+const G=[['Immunity',[1,done?1:0]],['Jump',[1]],['Herd size',[1,0]],['Strength',[1,1,0,0]],['Defense',[1,0,0,0,0,0]],['Nocturnal',[0,0]],['Swimming',[1,1,0]],['Speed',[1,0,0]],['Climbing',[0,1]],['Intelligence',[1,0,0,0]]];
+slist('isoL',37,43,148,100,16,G.length,2,(i,y)=>{const g=G[i],d=g[1].filter(v=>v).length,n=g[1].length,iso=d==n;if(i==0)fr(38,y,140,15,ctw('isel',iso?'#4A3270':'#2A4D6E'));hov(38,y,140,15,0,'g'+i);tx(g[0],42,y+4,ctw('gt'+i,iso?P.iso:P.tx));
+g[1].forEach((v,k)=>{const x=120+k*6;if(v){if(iso)gf(x,y+6,4,4,1,'_iso');else rf(x,y+6,4,4,1,P.hi)}else{rf(x,y+6,4,4,1,P.off);c.strokeStyle=P.bd;c.lineWidth=1;rp(x+.5,y+6.5,3,3,.5);c.stroke()}});tx(d+'/'+n,177,y+4,iso?P.iso:P.dim,'right')});
+const cc=ctw('ccol',done?P.iso:P.hi);fr(197,37,142,108,P.panel);corners(196,36,144,110,cc);
+tx('Immunity',204,43,ctw('imm',done?P.iso:P.tx),0,1,0,1);const bt=done?'Isolated':'Locked',bw=S2(spr('bw',tw(bt)+(done?8:15)));cham(332-bw,41,bw,11,2,ctw('bf',done?'#4A3270':'#13293D'));chs(332-bw,41,bw,11,2,ctw('bb',done?'#7E4FE0':'#577694'));if(done)tx('Isolated',332-bw+4,43,P.tx);else{ic('lock',332-bw+4,44,P.dim);tx('Locked',332-bw+11,43,P.dim)}
+tx('Every animal at 100%',204,56,P.dim);fr(204,67,128,1,P.line);
+[['Pig',100],['Turtle',turtle]].forEach((a,i)=>{const y=73+i*15,full=a[1]>=99.5,aw=48*a[1]/100,am=spr('wt'+i,i==1&&!done&&!RM?1:0,300,1);swatch(204,y+1,a[0]);tx(a[0],213,y,P.tx);if(i==1&&!done)glow(P.hi,4);if(am>.25)wave(254,y+2,aw,a[0],am,NOW/1000);else gf(254,y+2,aw,3,1.5,a[0]);noglow();if(aw<47.5){rf(254+aw+1,y+2,47-aw,3,1.5,P.off);fr(300,y+3,1,1,P.hi)}tx(full?'\u2713':Math.round(a[1])+'%',332,y,full?P.ok:P.dim,'right')});
+fr(204,105,128,1,P.line);if(done){hov(201,108,134,13,2,'nx');hit(201,108,134,13,()=>setMode('ea'));tx('Edit it in the Edit tab \u2192',204,111,P.iso)}else tx('Next: Turtle to 100%',204,111,P.warn);
+disc(11,45);if(!done)tube(27,153);else faint(tube,27,153);if(T>5.5)vial(308,153);else faint(vial,308,153);
+helix(done?0:p,!done,t);toast('Immunity isolated','_iso',T-5,176,178);
+return done?'Turtle done: Immunity is isolated, the wave goes flat':'Sequencing a turtle sample: its bar waves while it fills'}
+function preview(wide,cx,rx,o){o=o||{x:105,y:24,w:wide?236:118,h:101};cx=cx||o.x+73;fr(o.x+1,o.y+1,o.w-2,o.h-2,P.box);bx(o.x,o.y,o.w,o.h,P.bd);chipA(o.x+3,o.y+3,'T. rex \u00b7 88% DNA','T. rex');ellipse(cx,o.y+o.h-12,rx||30,wide?5:4);tx('T. rex model',cx,o.y+(o.ly||46),P.dim,'center');steve(o.x+11,o.y+o.h-9)}
+function effects(E,hl,W){W=W||236;const cw=Math.floor((W-24)/2),c2=Math.floor(W/2);panel(105,135,W,43);E.slice(0,6).forEach((e,i)=>{const col=i<3?0:1,x=111+col*c2,y=138+(i%3)*13,v=spr('ev'+i,e[1],900,1),vc=v>.5?P.ok:v<-.5?P.bad:P.tx,ha=spr('eh'+i,hl==e[0]?1:0,700,1);if(ha>.01)A(ha,()=>cham(x-3,y-2,cw+6,13,2,'rgba(176,124,255,0.3)'));tx(e[0],x,y,P.tx);const r=Math.round(v);tx((r>0?'+':'')+r+'%',x+cw,y,vc,'right',1,0,1);rf(x,y+9,cw,2,1,P.off);let x0=x;e[2].forEach((s,j)=>{const w=spr('es'+i+s[0],cw*Math.abs(s[1])/70,900,1,0);gf(x0,y+9,w,2,1,s[0]);x0+=w+1})})}
+function risk(r,dx){dx=dx||0;const v=spr('risk',r,900,1);tx('Hatch risk',108+dx,187,P.dim);rf(161+dx,189,28,3,1.5,P.off);gf(161+dx,189,28*v/30,3,1.5,'risk');tx(Math.round(v)+'%',193+dx,187,P.warn);tx('Odd behaviour',218+dx,187,P.dim);rf(292+dx,189,10,3,1.5,P.off);rf(292+dx,189,2,3,1,P.ok);tx('3%',305+dx,187,P.tx)}
+function donor(y,n,v,base){const vv=spr('dv'+n,v,900,1);swatch(12,y+1,n);tx(n,21,y,P.tx);if(base)tx('Base',tw(n)+25,y,P.dim);tx(Math.round(vv)+'%',98,y,P.tx,'right');slider(12,y+12,86,vv,n)}
+const ANIM=[['Turtle','100%',1],['Wolf','100%',0],['Pig','100%',0],['Cow','64%',0],['Horse','40%',0],['Panda','100%',0],['Chicken','82%',0],['Sheep','100%',0],['Frog','55%',0],['Parrot','30%',0]];
+function openPick(cur){UIP={cur};MT('Picker (enter): it is there in the first frame, slides 8 px in from the right in 200 ms, and the model moves left to stay in view')}
+function drawEB(t){const T=t%12,picked=T>=5.3,pick=T>=3.5&&T<5.3,rex=picked?60:70;page('edit');esub(0);
+const open=pick||!!UIP,cur=UIP&&UIP.cur,used=picked?['Turtle','Wolf']:['Turtle'];if(open&&!PK.open){PK.open=true;PK.t0=NOW}else if(!open)PK.open=false;
+donor(32,'T. rex',rex,1);donor(60,'Turtle',20);hov(10,58,90,22,0,'d1');hit(10,58,90,22,()=>openPick('Turtle'));
+const wf=picked?1-cl01((T-5.3)/.5):0;if(picked){if(wf>0)A(.6*wf,()=>fr(10,85,88,18,P.sel));donor(88,'Wolf',10);hov(10,86,90,22,0,'d2');hit(10,86,90,22,()=>openPick('Wolf'))}
+else{const pk=pick||(open&&!cur),bc=ctw('abc',pk?P.hi:P.warn),lab=pk?'Pick one \u2192':'Add donor ('+ANIM.length+')';cham(10,86,88,16,4,P.dark);A(.2,()=>cham(10,86,88,16,4,bc));chs(10,86,88,16,4,bc);hov(10,86,88,16,4,'ab');hit(10,86,88,16,()=>openPick(null));if(pk)tx(lab,54,90,P.hi,'center');else{const w=tw(lab)+8,x=Math.round(54-w/2);ic('plus',x,91,P.warn);tx(lab,x+8,90,P.warn)}if(!open)glowK(10,86,88,16,4,P.warn,t)}
+fr(10,112,88,24,'rgba(15,34,52,0.45)');A(.7,()=>{ic('lock',14,116,P.dim);tx('Locked',22,115,P.dim);tx('100% DNA',94,126,P.dim,'right')});
+tx('DNA mix',12,142,P.dim);tx('100%',98,142,P.tx,'right');
+const mix=[['T. rex',rex],['Turtle',20],['Wolf',picked?10:0]],tot=mix.reduce((a,m)=>a+m[1],0);let x0=12;mix.forEach((m,i)=>{const w=spr('mx'+m[0],87*m[1]/tot,900,1,0);if(w>.5)gf(x0,153,w-1,5,2,m[0]);x0+=w});
+preview(1,S2(spr('pvx',open?168:223,380,.8)),S2(spr('pvr',open?30:46,380,.8)));
+if(open){const e=RM?1:DEC(cl01((NOW-PK.t0)/200)),X=232+S2((1-e)*8);
+if(UIP)HIT.push([0,0,351,199,()=>{UIP=null;MT('Picker (exit): a click outside closes it at once')},'nr']);
+cham(X-2,27,109,100,3,'rgba(0,0,0,0.45)');cham(X,24,109,100,3,'#1F4568');chs(X,24,109,100,3,P.bd);fr(X+3,24,103,1,P.tabHi);
+tx(cur?'Swap '+cur:'Pick a donor',X+5,28,P.hi,0,1,0,1);if(UIP){hov(X+95,26,11,11,1,'pkx');hit(X+95,26,11,11,()=>{UIP=null;MT('Picker (exit): it closes at once')});ic('close',X+98,29,P.dim)}fr(X+4,39,101,1,P.line);
+slist('anL',X+1,41,107,82,13,ANIM.length,2,(i,y)=>{const a=ANIM[i],isCur=cur==a[0],inMix=used.includes(a[0])&&!isCur,sa=spr('as'+i,(pick&&i==1&&T>=5.1)||isCur?1:0,1200,1);if(sa>.01)A(sa,()=>fr(X+2,y-1,100,12,P.sel));hov(X+2,y-1,100,12,0,'a'+i);hit(X+2,y-1,100,12,()=>{if(UIP){MT('Picker (exit): '+a[0]+' fills the row in the same frame and the picker closes at once');UIP=null}});A(inMix?.55:1,()=>swatch(X+5,y+2,a[0]));tx(a[0],X+14,y+1,inMix?P.dim:P.tx);tx(inMix?'In mix':a[1],X+99,y+1,P.dim,'right')})}
+const E=picked?[['Immunity',50,[['Turtle',50]]],['Underwater',50,[['Turtle',50]]],['Tamability',35,[['Wolf',35]]],['Defense',20,[['Turtle',20]]],['Speed',-15,[['Turtle',20],['Wolf',5]]],['Health',-10,[['Turtle',10]]]]:[['Immunity',50,[['Turtle',50]]],['Underwater',50,[['Turtle',50]]],['Defense',20,[['Turtle',20]]],['Speed',-20,[['Turtle',20]]],['Health',-10,[['Turtle',10]]]];
+effects(E);risk(picked?13:12);toast('Wolf added as a donor','Wolf',T-5.3,164,108);
+if(T>2.6&&T<3.6)cursor(60,93,T>3.3);else if(T>=4.4&&T<5.8)cursor(262,58,T>5.1&&T<5.3);
+return cur?'Swap a donor: pick the animal that replaces '+cur:open?'Pick an animal for the empty donor row':picked?'Wolf added: the picker is gone and the preview has the space back':'The animal list stays hidden until a donor row is clicked'}
+const ISO=[5,14,22,37,51];
+const GN={5:'Jump',14:'Immunity',22:'Herd size',37:'Swimming',51:'Climbing'},GENS=[['Male','#7FB8FF',1],['Female','#FF9FC8',1],['Random','#8FB3D1',0]];
+function drawEA(t){const T=t%11,cyc=Math.floor(t/11);if(UIG&&UIG.cyc!==cyc)UIG=null;
+const tsel=T>=3.2,g=UIG?UIG.g:(tsel?14:-1),sel=g>=0,imm=g==14,auto=!UIG,nm=GN[g]||'Gene';
+const vT=tsel?Math.min(18,Math.max(0,(T-4.2)/2.2*18)):0,v=imm?vT:0,used=T>=6.6,drag2=imm&&auto&&T>4&&T<6.6;
+if(sel&&!GK.open){GK.open=true;GK.t0=NOW}else if(!sel)GK.open=false;
+page('edit');if(sel)HIT.push([0,0,351,199,()=>{UIG={g:-1,cyc};MT('Gene panel (exit): a click outside closes it at once')},'nr']);esub(1);
+tx('Genes',12,28,P.dim);tx('Edits',83,28,P.dim,'right');for(let k=0;k<2;k++){const x=86+k*7,f=spr('pip'+k,k==0&&used?1:0,600,.7);c.strokeStyle=P.bd;c.lineWidth=1;rp(x+.5,29.5,5,4,1);c.stroke();if(f>.01)A(cl01(f),()=>gf(x+3-3*f,29+2.5-2.5*f,6*f,5*f,1.5,'_iso'))}
+for(let i=0;i<80;i++){const x=12+(i%4)*21,ry=Math.floor(i/4),y=40+ry*6;if(ISO.includes(i)){glow(P.iso,3);gf(x,y,18,3,1.5,'_iso');noglow();hov(x-1,y-1,20,5,1,'gb'+i);hit(x-1,y-2,20,6,()=>{UIG={g:i,cyc};MT('Gene panel (enter): it is there in the first frame and slides 8 px in from the right in 200 ms')});const ra=spr('gr'+i,g==i?1:0,700,1);if(ra>.01)A(ra,()=>{c.strokeStyle='#fff';c.lineWidth=1;rp(x-.5,y-.5,19,4,2);c.stroke()})}else A(.32,()=>rf(x,y,18,3,1.5,CAT[Math.floor(ry/4)]))}
+for(let k=0;k<5;k++)fr(9,40+k*24,1,21,CAT[k]);rf(12,166,5,5,1.5,P.iso);tx('Purple: editable',20,165,P.dim);
+preview(1,S2(spr('pvx',sel?168:223,380,.8)),S2(spr('pvr',sel?30:46,380,.8)));
+const G=GENS[GEN],gs='\u2039 '+G[0]+' \u203a',cw=tw(gs)+(G[2]?17:8),cx0=338-cw;cham(cx0,110,cw,11,2,P.dark);chs(cx0,110,cw,11,2,P.bd);hov(cx0,110,cw,11,2,'gch');hit(cx0,110,cw,11,()=>{GEN=(GEN+1)%3;MT('Gender chip: one click cycles Male, Female and Random, and the preview updates in the same frame')});tx(gs,cx0+4,112,G[1]);if(G[2])ic('ok',cx0+cw-10,112,P.ok);if(inside(cx0,110,cw,11)&&!noHit){const ts=G[2]?'Sure at 80% DNA':'Random gender',sw=tw(ts)+8;tip(ts,338-sw,97,G[2]?P.ok:null,1)}
+if(sel){const e=RM?1:DEC(cl01((NOW-GK.t0)/200)),X=232+S2((1-e)*8);
+cham(X-2,27,109,70,3,'rgba(0,0,0,0.45)');cham(X,24,109,70,3,'#1F4568');chs(X,24,109,70,3,P.bd);fr(X+3,24,103,1,P.tabHi);HIT.push([X,24,109,70,()=>{},'nr']);
+tx(nm,X+5,28,P.iso,0,1,0,1);hov(X+95,26,11,11,1,'gkx');hit(X+95,26,11,11,()=>{UIG={g:-1,cyc};MT('Gene panel (exit): it closes at once')});ic('close',X+98,29,P.dim);
+tx('From',X+5,41,P.dim);if(imm){const w1=chipIn(X+31,39,'Pig','Pig');chipIn(X+33+w1,39,'Turtle','Turtle')}else chipIn(X+31,39,'Turtle','Turtle');
+fr(X+5,54,34,13,P.dark);bx(X+5,54,34,13,ctw('vf',drag2?P.hi:P.bd));tx((v>.5?'+':'')+Math.round(v)+'%',X+22,57,v>.5?P.ok:P.tx,'center');hov(X+81,54,26,13,2,'rs');tx('Reset',X+105,57,P.hi,'right');
+const mid=X+55,kx=mid+(v/22)*50,hw=spr('hw',drag2?1:2.5,500,.8);rf(X+5,73,100,4,2,P.off);fr(mid,71,1,8,P.dim);if(v>.5)gf(mid+1,73,kx-mid-1-hw/2,4,0,'up');rf(X+6,74,2,2,1,P.hi);rf(X+102,74,2,2,1,P.hi);if(drag2)glow(P.iso,6);rf(kx-hw/2,70,hw,10,1,'#fff');noglow();
+tx('-22%',X+5,82,P.bad);tx('+22%',X+105,82,P.ok,'right')}
+const E=[['Immunity',50+v,v?[['Turtle',50],['_iso',v]]:[['Turtle',50]]],['Underwater',50,[['Turtle',50]]],['Tamability',35,[['Wolf',35]]],['Defense',20,[['Turtle',20]]],['Speed',-15,[['Turtle',20],['Wolf',5]]],['Health',-10,[['Turtle',10]]]];
+effects(E,sel?nm:null);risk(used?14:13);
+if(auto){if(T>0.6&&T<2){cursor(39,53);tip('Speed \u00b7 locked',47,41,null,T-.6)}
+else if(T>=2&&T<3.6){cursor(60,59,T>3);tip('Immunity',68,47,P.iso,T-2)}
+else if(drag2)cursor(Math.round(287+(v/22)*50),75,true)}
+toast('1 of 2 edits used','_iso',T-6.6,164,108);
+return !sel?'No gene picked: the preview has the whole right side. Click a purple gene to open its panel':drag2?'Drag the slider inside its range':imm&&used?'Edit saved: Immunity +18%':nm+' panel is open: close it with the x, a click outside, or Esc'}
+function tank(x,y,label,k,v,max,nd,fmt,low,W,VB){W=W||98;const vv=spr('tk'+label,v,900,1),lc=ctw('tl'+label,low?P.warn:P.tx);tx(label,x,y-11,lc);tx(fmt(vv,max),x+W,VB?y+12:y-11,low?P.warn:P.dim,'right');const a=W*vv/max;fr(x,y,W,8,'#152a3e');gf(x,y,a,8,3,k);if(a<W-1.5){rf(x+a+1,y,W-1-a,8,3,P.off);rf(x+W-5,y+3,2,2,1,P.hi)}fr(x+Math.round(W*nd/max),y-2,1,12,ctw('tt'+label,low?P.warn:'#FFFFFF'))}
+function drawSyn(t){const T=t%18;let ph;if(T<3.5)ph=0;else if(T<6)ph=1;else if(T<8)ph=2;else if(T<15)ph=3;else ph=4;const p=ph==3?(T-8)/7:ph==4?1:0;page('syn');
+const run=ph>=3,u=run?1:0,it=(v,m)=>Math.round(v)+'/'+m,pc=v=>Math.round(v*100)+'%';
+tank(9,68,'Water','water',1-.25*u,1,.25,pc,false);tank(9,138,'Sugar','sugar',16-4*u,16,4,it,false);tank(245,68,'Bone matter','bone',(ph==0?2:16)-4*u,16,4,it,ph==0);tank(245,138,'Plant matter','plant',16-2*u,16,2,it,false);
+faint(bucket,49,37);faint(sugar,49,107);if(ph==1&&T<4.4)bonemeal(285,37);else faint(bonemeal,285,37);faint(leaf,285,107);if(ph==0)glowK(284,36,18,18,0,P.warn,t);
+if(ok('syn')){const h=Math.floor(128*p);if(h>0){if(run)glow(P.hi,ph==3?6+3*wob(t,3):4);c.drawImage(I.syn,351,128-h,128,h,111,164-h,128,h);noglow()}const aw=Math.floor(33*p);if(aw>0)c.drawImage(I.syn,351,136,aw,11,159,171,aw,11)}
+chip('st',9,20,['Add bone matter','Insert a bird embryo','Ready','Synthesizing '+Math.floor(p*100)+'%','Done'][ph],['warn','warn','ok','run','ok'][ph],t);
+tx('Risk 14% \u00b7 Male',343,22,P.dim,'right');
+const bs=ph==2?0:ph==3?1:2,fc=ctw('bF',['#2E8A48','#163758','#132C45'][bs]),ec=ctw('bE',['#6EE36E','#5FD3F3','#2C4A66'][bs]),lc=ctw('bL',['#FFFFFF','#FFFFFF','#5E7C98'][bs]),lab=ph==3?'Cancel':'Begin',pr=S2(spr('bp',press&&press.k=='begin'?1:0,800,.6));
+const bpath=()=>trp(140+pr,20,70-2*pr,12,0);bpath();c.fillStyle=fc;c.fill();fr(152,31,46,1,ec);hov(140,20,70,12,0,'bg',bpath);if(bs<2)hit(146,20,58,12,()=>{},'begin');tx(lab,175,22,lc,'center');if(bs==0)glowP(()=>trp(140.5,20.5,69,11,0),P.ok,t);
+if(ph==1&&T>=4.4&&T<5.5)glowK(128,168,18,18,0,P.warn,t);if(ph==2||(ph==1&&T>=5.5))syringe(129,169,'#F0D060');else faint(syringe,129,169,'#F0D060');
+if(ph==4){glowK(204,168,18,18,0,P.ok,t);syringe(205,169,P.hi)}else faint(syringe,205,169,P.hi);
+if(ph==3){const s=Math.max(0,Math.round(599*(1-p)));tx(Math.floor(s/60)+'m '+(s%60)+'s',175,187,P.dim,'center')}else tx('10m',175,187,P.dim,'center');
+toast('+14 bone matter','bone',T-3.6,175,150);toast('Embryo syringe ready','run',T-15,175,150);
+if(T>2.4&&T<3.6)cursor(292,44,T>3.2);else if(T>=6.6&&T<8)cursor(178,26,T>7.6);else if(T>=16.4)cursor(212,176,T>17.2);
+return ['Bone matter is below one run','Tanks full: insert a bird-embryo syringe','Everything is in: press Begin','Synthesizing: the embryo fills from the bottom','Done: take the embryo syringe'][ph]}
+function bgN(t){M.fillStyle='#05080c';M.fillRect(0,0,351,199);if(ok('seq')){M.drawImage(I.seq,0,0,160,199,OX,0,160,199);M.drawImage(I.seq,191,0,160,199,OX+160,0,160,199)}else{M.fillStyle='#1b4466';M.fillRect(OX,0,320,199)}
+if(ok('ctr')){for(let i=0;i<5;i++){M.save();M.translate(OX+160,99.5);M.rotate((t*20*(i%2==0?1:-1)*MOD[i]+.5)*Math.PI/180);M.drawImage(I.ctr,(i%3)*175,Math.floor(i/3)*175,175,175,-87.5,-87.5,175,175);M.restore()}M.drawImage(I.ctr,350,175,63,63,OX+128.5,68,63,63)}
+if(ok('seq')){[[92,61],[178,147],[264,233]].forEach(a=>M.drawImage(I.seq,a[0],204,79,10,OX+a[1],5,79,10));M.fillStyle='#43C0C7';M.fillRect(OX+8,19,304,1);M.fillRect(OX+8,183,304,1);M.drawImage(I.seq,325,385,18,9,OX+294,186,18,9)}}
+function drawSeqN(t){const T=t%16,ph=T<4?0:T<8?1:T<13?2:3,p=ph==2?(T-8)/5:ph==3?1:0,cyc=Math.floor(t/16);if(ND&&ND.cyc!==cyc)ND=null;
+const auto=!ND,open=ph>0&&(ND?ND.open:(T>=9.4&&T<12.4)),si=ND?ND.i:0;if(open!==NDS){NDT={t0:NOW,dir:open?1:-1};NDS=open}
+if(ok('page')){c.drawImage(I.page,112,23,130,12,96,23,130,12);c.drawImage(I.page,8,42,22,22,8,42,22,22);c.drawImage(I.page,24,150,22,22,8,150,22,22);c.drawImage(I.page,305,150,22,22,283,150,22,22);c.drawImage(I.page,52,148,250,26,32,148,250,26)}
+stabs(0,-16);chip('st',309,21,['Insert a disc','Add a DNA sample','Sequencing '+Math.floor(p*100)+'%','Done'][ph],['warn','warn','run','ok'][ph],t,1);
+const e=NDT&&!RM?DEC(cl01((NOW-NDT.t0)/220)):1,sx=NDT?S2((1-e)*12*NDT.dir):0;
+if(!open){panel(36+sx,42,264,102);
+if(ph==0){faint(disc,160,68);tx('Insert a storage disc',168,90,P.dim,'center')}
+else slist('seqN',37+sx,43,262,100,16,DINOS.length,2,(i,y)=>{const d=DINOS[i],v=i==0&&ph==3&&T>13.2?66:d[1];hov(38+sx,y,254,15,0,'n'+i);hit(38+sx,y,254,15,()=>{ND={open:true,i,cyc};MT('Narrow window, list to card: the card is there in the first frame and slides 12 px in from the right in 220 ms')});tx(d[0],42+sx,y+4,P.tx);tx(d[2].split(' \u00b7 ')[0],128+sx,y+4,P.dim);const vv=spr('pv'+i,v,900,1);prog(196+sx,y+6,66,vv,P.off,'n'+i,i==0&&ph==2);tx(Math.round(vv)+'%',286+sx,y+4,P.dim,'right');tx('\u203a',290+sx,y+4,P.dim)})}
+else{const d=DINOS[si],X=36+sx,R=X+172;fr(X,37,264,108,P.panel);corners(X-1,36,266,110,P.hi);
+hov(X+3,40,52,11,2,'nb');hit(X+3,40,52,11,()=>{ND={open:false,i:si,cyc};MT('Narrow window, back to the list: the list is there in the first frame and slides 12 px in from the left in 220 ms')});tx('\u2039 Species',X+6,42,P.hi);
+fr(X+4,54,160,86,'rgba(25,59,89,0.45)');const nw=tw(d[0],1,1)+8;cham(X+7,57,nw,11,2,P.dark);tx(d[0],X+11,59,P.tx,0,1,0,1);ellipse(X+84,128,52,6);tx(d[0]+' model',X+84,95,P.dim,'center');
+tx(d[2].split(' \u00b7 ')[0],R,58,P.dim);tx(d[2].split(' \u00b7 ')[1],R,69,P.dim);fr(R,81,86,1,P.line);
+[[d[3],'Hatched',P.tx],[d[4],'Failed',P.bad],[d[5],'Skins',P.tx]].forEach((q,i)=>{const y=87+i*13;tx(q[0],R,y,q[2],0,1,0,1);tx(q[1],R+24,y,P.dim)})}
+if(ph==0)glowK(8,42,21,21,0,P.warn,t);else if(ph==1)glowK(8,150,21,21,0,P.warn,t);
+if(ph==0){faint(disc,11,45);tx('Disc',19,66,P.warn,'center')}else disc(11,45);
+if(ph==2)tube(11,153);else faint(tube,11,153);if(ph==1)tx('DNA in',19,174,P.warn,'center');
+const vOut=ph==3&&T>14;if(vOut)vial(286,153);else faint(vial,286,153);
+hov(8,42,21,21,0,'sl0');hit(8,42,21,21,()=>openPop('Insert Hard Drive',[8+OX,42,21,21],'disc',ph>0));
+hov(8,150,21,21,0,'sl1');hit(8,150,21,21,()=>openPop('Insert Genetic Material',[8+OX,150,21,21],'tube',ph==2));
+hov(283,150,21,21,0,'sl2');hit(283,150,21,21,()=>openPop('Collect Leftover Item',[283+OX,150,21,21],'vial',vOut));
+HX0=36;helix(p,ph==2,t,ph==3?T-13:-1);HX0=56;toast('+4% Velociraptor DNA','run',T-13,160,178);
+if(auto){if(T>=8.6&&T<9.6)cursor(120,53,T>9.2);else if(T>=11.6&&T<12.6)cursor(48,45,T>12.2)}
+return ph==0?'Narrow: no disc yet':open?'Narrow: the card fills the pane. Back returns to the list':'Narrow: the species list fills the width. Pick a row to open its card'}
+const PVN={x:105,y:33,w:205,h:91,ly:38},EDL=[['Basic',174,1,'eb'],['Advanced',180,0,'ea']];
+function subLineN(){if(ok('page'))c.drawImage(I.page,112,23,130,12,96,23,130,12)}
+function pageN(){if(ok('page')){c.drawImage(I.page,112,23,130,12,96,23,130,12);c.drawImage(I.page,8,42,22,22,8,42,22,22);c.drawImage(I.page,24,150,22,22,8,150,22,22);c.drawImage(I.page,305,150,22,22,283,150,22,22);c.drawImage(I.page,52,148,250,26,32,148,250,26)}}
+function drawIsoN(t){const T=t%10,p=Math.min(1,T/5),done=T>=5,turtle=70+30*p,cyc=Math.floor(t/10);if(NDI&&NDI.cyc!==cyc)NDI=null;
+const auto=!NDI,open=NDI?NDI.open:(T>=.8&&T<9.2);if(open!==NIS){NIT={t0:NOW,dir:open?1:-1};NIS=open}
+pageN();stabs(1,-16);
+if(!done)chip('st',309,21,'Sequencing '+Math.floor(p*100)+'%','run',t,1);else chip('st',309,21,'4 of 19 isolated','iso',t,1);
+const e=NIT&&!RM?DEC(cl01((NOW-NIT.t0)/220)):1,sx=NIT?S2((1-e)*12*NIT.dir):0;
+const G=[['Immunity',[1,done?1:0]],['Jump',[1]],['Herd size',[1,0]],['Strength',[1,1,0,0]],['Defense',[1,0,0,0,0,0]],['Nocturnal',[0,0]],['Swimming',[1,1,0]],['Speed',[1,0,0]],['Climbing',[0,1]],['Intelligence',[1,0,0,0]]];
+if(!open){panel(36+sx,42,264,102);slist('isoN',37+sx,43,262,100,16,G.length,2,(i,y)=>{const g=G[i],d=g[1].filter(v=>v).length,n=g[1].length,iso=d==n;if(i==0)fr(38+sx,y,254,15,ctw('isel',iso?'#4A3270':'#2A4D6E'));hov(38+sx,y,254,15,0,'g'+i);hit(38+sx,y,254,15,()=>{if(i==0){NDI={open:true,cyc};MT('Narrow window, list to card: the card is there in the first frame and slides 12 px in from the right in 220 ms')}else MT('Only Immunity has a card in this mock-up')});tx(g[0],42+sx,y+4,ctw('gt'+i,iso?P.iso:P.tx));
+g[1].forEach((v,k)=>{const x=200+sx+k*6;if(v){if(iso)gf(x,y+6,4,4,1,'_iso');else rf(x,y+6,4,4,1,P.hi)}else{rf(x,y+6,4,4,1,P.off);c.strokeStyle=P.bd;c.lineWidth=1;rp(x+.5,y+6.5,3,3,.5);c.stroke()}});tx(d+'/'+n,286+sx,y+4,iso?P.iso:P.dim,'right');tx('\u203a',290+sx,y+4,P.dim)})}
+else{const X=36+sx,cc=ctw('ccol',done?P.iso:P.hi),R=X+258;fr(X,37,264,108,P.panel);corners(X-1,36,266,110,cc);
+hov(X+3,40,46,11,2,'nb');hit(X+3,40,46,11,()=>{NDI={open:false,cyc};MT('Narrow window, back to the list: the list is there in the first frame and slides 12 px in from the left in 220 ms')});tx('\u2039 Genes',X+6,42,P.hi);
+tx('Immunity',X+6,56,ctw('imm',done?P.iso:P.tx),0,1,0,1);const bt=done?'Isolated':'Locked',bw=S2(spr('bw',tw(bt)+(done?8:15)));cham(R-bw,54,bw,11,2,ctw('bf',done?'#4A3270':'#13293D'));chs(R-bw,54,bw,11,2,ctw('bb',done?'#7E4FE0':'#577694'));if(done)tx('Isolated',R-bw+4,56,P.tx);else{ic('lock',R-bw+4,57,P.dim);tx('Locked',R-bw+11,56,P.dim)}
+tx('Every animal at 100%',X+6,69,P.dim);fr(X+6,80,252,1,P.line);
+[['Pig',100],['Turtle',turtle]].forEach((a,i)=>{const y=86+i*15,full=a[1]>=99.5,BW=150,b0=X+62,aw=BW*a[1]/100,am=spr('wt'+i,i==1&&!done&&!RM?1:0,300,1);swatch(X+6,y+1,a[0]);tx(a[0],X+15,y,P.tx);if(i==1&&!done)glow(P.hi,4);if(am>.25)wave(b0,y+2,aw,a[0],am,NOW/1000);else gf(b0,y+2,aw,3,1.5,a[0]);noglow();if(aw<BW-.5){rf(b0+aw+1,y+2,BW-1-aw,3,1.5,P.off);fr(b0+BW-2,y+3,1,1,P.hi)}tx(full?'\u2713':Math.round(a[1])+'%',R,y,full?P.ok:P.dim,'right')});
+fr(X+6,117,252,1,P.line);if(done){hov(X+3,120,140,13,2,'nx');hit(X+3,120,140,13,()=>setMode('ea'));tx('Edit it in the Edit tab \u2192',X+6,123,P.iso)}else tx('Next: Turtle to 100%',X+6,123,P.warn)}
+disc(11,45);if(!done)tube(11,153);else faint(tube,11,153);if(T>5.5)vial(286,153);else faint(vial,286,153);
+HX0=36;helix(done?0:p,!done,t);HX0=56;toast('Immunity isolated','_iso',T-5,160,178);
+if(auto){if(T>=.2&&T<.9)cursor(120,53,T>.6);else if(T>=8.6&&T<9.3)cursor(48,45,T>9)}
+return open?(done?'Narrow: Immunity is isolated':'Narrow: the gene card fills the pane while the turtle sample runs'):'Narrow: the gene list fills the width. Pick Immunity to open its card'}
+function drawEBN(t){const T=t%12,picked=T>=5.3,pick=T>=3.5&&T<5.3,rex=picked?60:70;subLineN();stabs(0,-16,EDL);
+const open=pick||!!UIP,cur=UIP&&UIP.cur,used=picked?['Turtle','Wolf']:['Turtle'];if(open&&!PK.open){PK.open=true;PK.t0=NOW}else if(!open)PK.open=false;
+donor(32,'T. rex',rex,1);donor(60,'Turtle',20);hov(10,58,90,22,0,'d1');hit(10,58,90,22,()=>openPick('Turtle'));
+const wf=picked?1-cl01((T-5.3)/.5):0;if(picked){if(wf>0)A(.6*wf,()=>fr(10,85,88,18,P.sel));donor(88,'Wolf',10);hov(10,86,90,22,0,'d2');hit(10,86,90,22,()=>openPick('Wolf'))}
+else{const pk=pick||(open&&!cur),bc=ctw('abc',pk?P.hi:P.warn),lab=pk?'Pick one \u2192':'Add donor ('+ANIM.length+')';cham(10,86,88,16,4,P.dark);A(.2,()=>cham(10,86,88,16,4,bc));chs(10,86,88,16,4,bc);hov(10,86,88,16,4,'ab');hit(10,86,88,16,()=>openPick(null));if(pk)tx(lab,54,90,P.hi,'center');else{const w=tw(lab)+8,x=Math.round(54-w/2);ic('plus',x,91,P.warn);tx(lab,x+8,90,P.warn)}if(!open)glowK(10,86,88,16,4,P.warn,t)}
+fr(10,112,88,24,'rgba(15,34,52,0.45)');A(.7,()=>{ic('lock',14,116,P.dim);tx('Locked',22,115,P.dim);tx('100% DNA',94,126,P.dim,'right')});
+tx('DNA mix',12,142,P.dim);tx('100%',98,142,P.tx,'right');
+const mix=[['T. rex',rex],['Turtle',20],['Wolf',picked?10:0]],tot=mix.reduce((a,m)=>a+m[1],0);let x0=12;mix.forEach((m,i)=>{const w=spr('mx'+m[0],87*m[1]/tot,900,1,0);if(w>.5)gf(x0,153,w-1,5,2,m[0]);x0+=w});
+preview(1,S2(spr('pvx',open?153:207,380,.8)),S2(spr('pvr',open?30:40,380,.8)),PVN);
+if(open){const e=RM?1:DEC(cl01((NOW-PK.t0)/200)),X=201+S2((1-e)*8);
+if(UIP)HIT.push([0,0,351,199,()=>{UIP=null;MT('Picker (exit): a click outside closes it at once')},'nr']);
+cham(X-2,36,109,91,3,'rgba(0,0,0,0.45)');cham(X,33,109,91,3,'#1F4568');chs(X,33,109,91,3,P.bd);fr(X+3,33,103,1,P.tabHi);
+tx(cur?'Swap '+cur:'Pick a donor',X+5,37,P.hi,0,1,0,1);if(UIP){hov(X+95,35,11,11,1,'pkx');hit(X+95,35,11,11,()=>{UIP=null;MT('Picker (exit): it closes at once')});ic('close',X+98,38,P.dim)}fr(X+4,48,101,1,P.line);
+slist('anLN',X+1,50,107,72,13,ANIM.length,2,(i,y)=>{const a=ANIM[i],isCur=cur==a[0],inMix=used.includes(a[0])&&!isCur,sa=spr('as'+i,(pick&&i==1&&T>=5.1)||isCur?1:0,1200,1);if(sa>.01)A(sa,()=>fr(X+2,y-1,100,12,P.sel));hov(X+2,y-1,100,12,0,'a'+i);hit(X+2,y-1,100,12,()=>{if(UIP){MT('Picker (exit): '+a[0]+' fills the row in the same frame and the picker closes at once');UIP=null}});A(inMix?.55:1,()=>swatch(X+5,y+2,a[0]));tx(a[0],X+14,y+1,inMix?P.dim:P.tx);tx(inMix?'In mix':a[1],X+99,y+1,P.dim,'right')})}
+const E=picked?[['Immunity',50,[['Turtle',50]]],['Underwater',50,[['Turtle',50]]],['Tamability',35,[['Wolf',35]]],['Defense',20,[['Turtle',20]]],['Speed',-15,[['Turtle',20],['Wolf',5]]],['Health',-10,[['Turtle',10]]]]:[['Immunity',50,[['Turtle',50]]],['Underwater',50,[['Turtle',50]]],['Defense',20,[['Turtle',20]]],['Speed',-20,[['Turtle',20]]],['Health',-10,[['Turtle',10]]]];
+effects(E,null,205);risk(picked?13:12,-96);toast('Wolf added as a donor','Wolf',T-5.3,160,108);
+if(T>2.6&&T<3.6)cursor(60,93,T>3.3);else if(T>=4.4&&T<5.8)cursor(231,67,T>5.1&&T<5.3);
+return cur?'Narrow: swap a donor, pick the animal that replaces '+cur:open?'Narrow: pick an animal for the empty donor row':picked?'Narrow: Wolf added, and the preview has the space back':'Narrow: Basic and Advanced sit under the tabs, and the preview takes the width that is left'}
+function drawEAN(t){const T=t%11,cyc=Math.floor(t/11);if(UIG&&UIG.cyc!==cyc)UIG=null;
+const tsel=T>=3.2,g=UIG?UIG.g:(tsel?14:-1),sel=g>=0,imm=g==14,auto=!UIG,nm=GN[g]||'Gene';
+const vT=tsel?Math.min(18,Math.max(0,(T-4.2)/2.2*18)):0,v=imm?vT:0,used=T>=6.6,drag2=imm&&auto&&T>4&&T<6.6;
+if(sel&&!GK.open){GK.open=true;GK.t0=NOW}else if(!sel)GK.open=false;
+if(sel)HIT.push([0,0,351,199,()=>{UIG={g:-1,cyc};MT('Gene panel (exit): a click outside closes it at once')},'nr']);subLineN();stabs(1,-16,EDL);
+tx('Genes',12,28,P.dim);tx('Edits',83,28,P.dim,'right');for(let k=0;k<2;k++){const x=86+k*7,f=spr('pip'+k,k==0&&used?1:0,600,.7);c.strokeStyle=P.bd;c.lineWidth=1;rp(x+.5,29.5,5,4,1);c.stroke();if(f>.01)A(cl01(f),()=>gf(x+3-3*f,29+2.5-2.5*f,6*f,5*f,1.5,'_iso'))}
+for(let i=0;i<80;i++){const x=12+(i%4)*21,ry=Math.floor(i/4),y=40+ry*6;if(ISO.includes(i)){glow(P.iso,3);gf(x,y,18,3,1.5,'_iso');noglow();hov(x-1,y-1,20,5,1,'gb'+i);hit(x-1,y-2,20,6,()=>{UIG={g:i,cyc};MT('Gene panel (enter): it is there in the first frame and slides 8 px in from the right in 200 ms')});const ra=spr('gr'+i,g==i?1:0,700,1);if(ra>.01)A(ra,()=>{c.strokeStyle='#fff';c.lineWidth=1;rp(x-.5,y-.5,19,4,2);c.stroke()})}else A(.32,()=>rf(x,y,18,3,1.5,CAT[Math.floor(ry/4)]))}
+for(let k=0;k<5;k++)fr(9,40+k*24,1,21,CAT[k]);rf(12,166,5,5,1.5,P.iso);tx('Purple: editable',20,165,P.dim);
+preview(1,S2(spr('pvx',sel?153:207,380,.8)),S2(spr('pvr',sel?30:40,380,.8)),PVN);
+const G=GENS[GEN],gs='\u2039 '+G[0]+' \u203a',cw=tw(gs)+(G[2]?17:8),cx0=307-cw;cham(cx0,109,cw,11,2,P.dark);chs(cx0,109,cw,11,2,P.bd);hov(cx0,109,cw,11,2,'gch');hit(cx0,109,cw,11,()=>{GEN=(GEN+1)%3;MT('Gender chip: one click cycles Male, Female and Random, and the preview updates in the same frame')});tx(gs,cx0+4,111,G[1]);if(G[2])ic('ok',cx0+cw-10,111,P.ok);if(inside(cx0,109,cw,11)&&!noHit){const ts=G[2]?'Sure at 80% DNA':'Random gender',sw=tw(ts)+8;tip(ts,307-sw,96,G[2]?P.ok:null,1)}
+if(sel){const e=RM?1:DEC(cl01((NOW-GK.t0)/200)),X=201+S2((1-e)*8);
+cham(X-2,36,109,70,3,'rgba(0,0,0,0.45)');cham(X,33,109,70,3,'#1F4568');chs(X,33,109,70,3,P.bd);fr(X+3,33,103,1,P.tabHi);HIT.push([X+HOX,33,109,70,()=>{},'nr']);
+tx(nm,X+5,37,P.iso,0,1,0,1);hov(X+95,35,11,11,1,'gkx');hit(X+95,35,11,11,()=>{UIG={g:-1,cyc};MT('Gene panel (exit): it closes at once')});ic('close',X+98,38,P.dim);
+tx('From',X+5,50,P.dim);if(imm){const w1=chipIn(X+31,48,'Pig','Pig');chipIn(X+33+w1,48,'Turtle','Turtle')}else chipIn(X+31,48,'Turtle','Turtle');
+fr(X+5,63,34,13,P.dark);bx(X+5,63,34,13,ctw('vf',drag2?P.hi:P.bd));tx((v>.5?'+':'')+Math.round(v)+'%',X+22,66,v>.5?P.ok:P.tx,'center');hov(X+81,63,26,13,2,'rs');tx('Reset',X+105,66,P.hi,'right');
+const mid=X+55,kx=mid+(v/22)*50,hw=spr('hw',drag2?1:2.5,500,.8);rf(X+5,82,100,4,2,P.off);fr(mid,80,1,8,P.dim);if(v>.5)gf(mid+1,82,kx-mid-1-hw/2,4,0,'up');rf(X+6,83,2,2,1,P.hi);rf(X+102,83,2,2,1,P.hi);if(drag2)glow(P.iso,6);rf(kx-hw/2,79,hw,10,1,'#fff');noglow();
+tx('-22%',X+5,91,P.bad);tx('+22%',X+105,91,P.ok,'right')}
+const E=[['Immunity',50+v,v?[['Turtle',50],['_iso',v]]:[['Turtle',50]]],['Underwater',50,[['Turtle',50]]],['Tamability',35,[['Wolf',35]]],['Defense',20,[['Turtle',20]]],['Speed',-15,[['Turtle',20],['Wolf',5]]],['Health',-10,[['Turtle',10]]]];
+effects(E,sel?nm:null,205);risk(used?14:13,-96);
+if(auto){if(T>0.6&&T<2){cursor(39,53);tip('Speed \u00b7 locked',47,41,null,T-.6)}
+else if(T>=2&&T<3.6){cursor(60,59,T>3);tip('Immunity',68,47,P.iso,T-2)}
+else if(drag2)cursor(Math.round(256+(v/22)*50),84,true)}
+toast('1 of 2 edits used','_iso',T-6.6,160,108);
+return !sel?'Narrow: no gene picked, and the preview takes the width that is left':drag2?'Narrow: drag the slider inside its range':imm&&used?'Narrow: edit saved, Immunity +18%':'Narrow: '+nm+' panel is open'}
+function drawSynN(t){const T=t%18;let ph;if(T<3.5)ph=0;else if(T<6)ph=1;else if(T<8)ph=2;else if(T<15)ph=3;else ph=4;const p=ph==3?(T-8)/7:ph==4?1:0;
+if(ok('syn')){c.drawImage(I.syn,111,0,128,199,95,0,128,199);[[48,36,43,36],[48,106,43,106],[284,36,260,36],[284,106,260,106]].forEach(a=>c.drawImage(I.syn,a[0],a[1],18,18,a[2],a[3],18,18))}
+const run=ph>=3,u=run?1:0,it=(v,m)=>Math.round(v)+'/'+m,pc=v=>Math.round(v*100)+'%';
+tank(9,68,'Water','water',1-.25*u,1,.25,pc,false,86,1);tank(9,138,'Sugar','sugar',16-4*u,16,4,it,false,86,1);tank(226,68,'Bone matter','bone',(ph==0?2:16)-4*u,16,4,it,ph==0,86,1);tank(226,138,'Plant matter','plant',16-2*u,16,2,it,false,86,1);
+faint(bucket,44,37);faint(sugar,44,107);if(ph==1&&T<4.4)bonemeal(261,37);else faint(bonemeal,261,37);faint(leaf,261,107);if(ph==0)glowK(260,36,18,18,0,P.warn,t);
+if(ok('syn')){const h=Math.floor(128*p);if(h>0){if(run)glow(P.hi,ph==3?6+3*wob(t,3):4);c.drawImage(I.syn,351,128-h,128,h,95,164-h,128,h);noglow()}const aw=Math.floor(33*p);if(aw>0)c.drawImage(I.syn,351,136,aw,11,143,171,aw,11)}
+chip('st',9,20,['Add bone matter','Insert a bird embryo','Ready','Synthesizing '+Math.floor(p*100)+'%','Done'][ph],['warn','warn','ok','run','ok'][ph],t);
+tx('Risk 14% \u00b7 Male',312,22,P.dim,'right');
+const bs=ph==2?0:ph==3?1:2,fc=ctw('bF',['#2E8A48','#163758','#132C45'][bs]),ec=ctw('bE',['#6EE36E','#5FD3F3','#2C4A66'][bs]),lc=ctw('bL',['#FFFFFF','#FFFFFF','#5E7C98'][bs]),lab=ph==3?'Cancel':'Begin',pr=S2(spr('bp',press&&press.k=='begin'?1:0,800,.6));
+const bpath=()=>trp(127+pr,20,70-2*pr,12,0);bpath();c.fillStyle=fc;c.fill();fr(139,31,46,1,ec);hov(127,20,70,12,0,'bg',bpath);if(bs<2)hit(133,20,58,12,()=>{},'begin');tx(lab,162,22,lc,'center');if(bs==0)glowP(()=>trp(127.5,20.5,69,11,0),P.ok,t);
+if(ph==1&&T>=4.4&&T<5.5)glowK(112,168,18,18,0,P.warn,t);if(ph==2||(ph==1&&T>=5.5))syringe(113,169,'#F0D060');else faint(syringe,113,169,'#F0D060');
+if(ph==4){glowK(188,168,18,18,0,P.ok,t);syringe(189,169,P.hi)}else faint(syringe,189,169,P.hi);
+if(ph==3){const s=Math.max(0,Math.round(599*(1-p)));tx(Math.floor(s/60)+'m '+(s%60)+'s',159,187,P.dim,'center')}else tx('10m',159,187,P.dim,'center');
+toast('+14 bone matter','bone',T-3.6,159,150);toast('Embryo syringe ready','run',T-15,159,150);
+if(T>2.4&&T<3.6)cursor(266,44,T>3.2);else if(T>=6.6&&T<8)cursor(165,26,T>7.6);else if(T>=16.4)cursor(196,176,T>17.2);
+return 'Narrow: '+['bone matter is below one run','tanks full, insert a bird-embryo syringe','everything is in, press Begin','synthesizing, the embryo fills from the bottom','done, take the embryo syringe'][ph]+'. The tanks narrow around the embryo picture'}
+const D={seq:drawSeq,iso:drawIso,eb:drawEB,ea:drawEA,syn:drawSyn};
+const DN={seq:drawSeqN,iso:drawIsoN,eb:drawEBN,ea:drawEAN,syn:drawSynN};
+const TABS=[['Sequence',131,'seq'],['Edit',215,'eb'],['Synthesis',304,'syn']];
+function bg(t){c=M;curMode='';M.clearRect(0,0,351,199);if(OX){bgN(t);return}if(ok('seq'))M.drawImage(I.seq,0,0,351,199,0,0,351,199);else{M.fillStyle='#1b4466';M.fillRect(0,0,351,199)}
+if(ok('ctr')){for(let i=0;i<5;i++){M.save();M.translate(175.5,99.5);M.rotate((t*20*(i%2==0?1:-1)*MOD[i]+.5)*Math.PI/180);M.drawImage(I.ctr,(i%3)*175,Math.floor(i/3)*175,175,175,-87.5,-87.5,175,175);M.restore()}M.drawImage(I.ctr,350,175,63,63,144,68,63,63)}
+if(ok('seq'))M.drawImage(I.seq,0,199,351,199,0,0,351,199)}
+function chrome(po){c=M;curMode='';noHit=po;const g=GRP[mode],C=OX?[OX+100,OX+184,OX+272]:[131,215,304];TABS.forEach((b,i)=>{const sb=i==g,w=tw(b[0],1,sb),x0=Math.round(C[i]-w/2),m=b[2];hov(C[i]-38,5,77,10,0,'tab'+i,()=>trp(C[i]-39,5,78,10,0));hit(C[i]-38,3,76,13,()=>{if(GRP[mode]!=i)setMode(m)});tx(b[0],x0,5,ctw('tc'+i,sb?P.tx:P.dim),0,1,0,sb)});const w=tw(TABS[g][0],1,1),ix=spr('tix',C[g]-w/2-2),iw=spr('tiw',w+4);rf(S2(ix),15,S2(iw),2,1,P.hi);noHit=false}
+function layer(L,m,t,out){c=L.x;curMode=m+(OX?'n':'');noHit=out;HOX=OX;L.x.clearRect(0,0,351,199);let s='';try{s=(OX?DN[m]:D[m])(t)}catch(e){s='Error: '+e.message}c=M;curMode='';noHit=false;HOX=0;CLIP=null;return s}
+const PW=150,PH=76,PX=Math.round(175.5-PW/2),PY=Math.round(99.5-PH/2);
+function lerpR(a,b,e){return a.map((v,i)=>v+(b[i]-v)*e)}
+function openPop(title,from,item,has){POP={title,from,item,has,t0:NOW};MT(RM?'Reduced motion: the popup and the dim show at once, with no outline':'Container transform: the popup is there in the first frame, an outline grows out of the slot to it in 300 ms, and the screen dims')}
+function closePop(){if(POP&&!POP.closing){POP.closing=true;POP.tc=NOW;MT(RM?'Reduced motion: the popup and the dim go at once':'Container transform, reversed: the popup goes at once, and the outline shrinks back into the slot in 200 ms')}}
+function drawPop(t){if(!POP)return;c=M;curMode='pop';const to=[PX,PY,PW,PH];
+if(POP.closing){const p=RM?1:cl01((NOW-POP.tc)/200);if(p>=1){POP=null;curMode='';return}fr(0,0,351,199,'rgba(4,10,16,'+(.55*(1-p))+')');const r=lerpR(to,POP.from,EMPH(p));A(1-p,()=>chs(S2(r[0]),S2(r[1]),S2(r[2]),S2(r[3]),Math.round(4*(1-p)),P.hi));curMode='';return}
+const p=RM?1:cl01((NOW-POP.t0)/300),sa=RM?1:DEC(cl01((NOW-POP.t0)/150));
+fr(0,0,351,199,'rgba(4,10,16,'+(.55*sa)+')');
+HIT=[];WHEEL=[];SBAR=[];HIT.push([0,0,351,199,closePop,'nr']);HIT.push([PX,PY,PW,PH,()=>{},'nr']);
+cham(PX+2,PY+3,PW,PH,4,'rgba(0,0,0,0.45)');cham(PX,PY,PW,PH,4,'#1F4568');chs(PX,PY,PW,PH,4,P.bd);fr(PX+4,PY,PW-8,1,P.tabHi);
+tx(POP.title,PX+8,PY+7,P.tx,0,1,0,1);
+const cx=PX+PW-15,cy=PY+4;hov(cx,cy,11,11,2,'px');hit(cx,cy,11,11,closePop);ic('close',cx+3,cy+3,P.dim);
+fr(PX+6,PY+19,PW-12,1,P.line);
+const sx=PX+PW/2-10,sy=PY+27,IT={disc,tube,vial};fr(sx,sy,20,20,P.dark);bx(sx,sy,20,20,P.bd);
+if(POP.has)IT[POP.item](sx+2,sy+2);else{glowK(sx,sy,20,20,0,P.warn,t);faint(IT[POP.item],sx+2,sy+2)}
+hov(sx,sy,20,20,0,'ps');hit(sx,sy,20,20,()=>{});
+tx(POP.has?{disc:'Hard drive is in',tube:'DNA sample is in',vial:'Take the empty tube'}[POP.item]:{disc:'Drop a hard drive here',tube:'Drop a DNA sample here',vial:'Nothing to collect yet'}[POP.item],PX+PW/2,PY+56,P.dim,'center');
+if(p<1){const r=lerpR(POP.from,to,EMPH(p));A(1-p*p,()=>chs(S2(r[0]),S2(r[1]),S2(r[2]),S2(r[3]),Math.round(4*p),P.hi))}
+curMode=''}
+function ripples(){RIP=RIP.filter(r=>{const age=(NOW-r.t0)/1000,rel=r.up?(NOW-r.up)/1000:0,a=.22*(r.up?1-cl01(rel/.3):1)*(age<.08?age/.08:1);if(r.up&&a<=0)return false;const R=Math.hypot(Math.max(r.x-r.r[0],r.r[0]+r.r[2]-r.x),Math.max(r.y-r.r[1],r.r[1]+r.r[3]-r.y))*DEC(cl01(age/.45));M.save();M.beginPath();M.rect(r.r[0],r.r[1],r.r[2],r.r[3]);M.clip();M.globalAlpha=a;M.fillStyle='#fff';M.beginPath();M.arc(r.x,r.y,Math.max(.5,R),0,Math.PI*2);M.fill();M.restore();return true})}
+const st=document.getElementById('st'),mt=document.getElementById('mt'),btns=document.querySelectorAll('button[data-m]');
+function MT(s){mt.textContent='Last motion: '+s}
+function mark(){btns.forEach(b=>{b.style.background=b.dataset.m==mode?'var(--surface-1)':'';b.setAttribute('aria-pressed',b.dataset.m==mode)})}
+function setMode(m){if(m==mode)return;UIP=null;UIG=null;ND=null;NDI=null;const top=GRP[m]!=GRP[mode],dir=ORD[m]>ORD[mode]?1:-1,d=top?14:8,du=top?250:200;trans={t0:NOW,dur:du,d:d*dir};MT(RM?'Reduced motion: the new view swaps in with no slide':'Lateral transition ('+(top?'tab':'sub-tab')+'): the new view is there in the first frame and slides '+d+' px in '+du+' ms, with no fade and no bounce');mode=m;base=NOW;pt=0;mark()}
+function loop(now){const rdt=Math.min(.05,Math.max(.001,(now-last)/1000));last=now;dt=rdt*SPD;CLK+=rdt*1000*SPD;NOW=CLK;if(!RM)RT+=dt;FRAME++;if(!paused)pt=(NOW-base)/1000;HIT=[];WHEEL=[];SBAR=[];OX=NW?15.5:0;bg(RT);
+const po=!!(POP&&!POP.closing);let off=0;if(trans){const p=cl01((NOW-trans.t0)/trans.dur);if(p>=1||RM)trans=null;else off=S2(trans.d*(1-DEC(p)))}
+const s=layer(LB,mode,pt,po);M.drawImage(LB.e,off+OX,0,351,199);
+chrome(po);drawPop(NOW/1000);ripples();const miss=Object.keys(SRC).filter(k=>!ok(k));st.textContent=(miss.length?'Loading textures: '+miss.join(', ')+'. ':'Real textures loaded. ')+(NW?'Window 320 px wide. ':'')+s;requestAnimationFrame(loop)}
+function pos(e){const r=cv.getBoundingClientRect();mx=(e.clientX-r.left)/r.width*351;my=(e.clientY-r.top)/r.height*199}
+function at(list){for(let i=list.length-1;i>=0;i--){const h=list[i];if(mx>=h[0]&&mx<h[0]+h[2]&&my>=h[1]&&my<h[1]+h[3])return h}return null}
+cv.addEventListener('pointermove',e=>{pos(e);if(drag){const b=drag;SCR[b.key].t=cl01((my-b.y-b.th/2)/(b.h-b.th))*b.max}cv.style.cursor=at(HIT)||SBAR.some(b=>mx>=b.x&&mx<b.x+b.w&&my>=b.y&&my<b.y+b.h)?'pointer':'default'});
+cv.addEventListener('pointerleave',()=>{mx=-99;my=-99});
+cv.addEventListener('pointerdown',e=>{pos(e);const b=SBAR.find(b=>mx>=b.x&&mx<b.x+b.w&&my>=b.y&&my<b.y+b.h);if(b){drag=b;cv.setPointerCapture(e.pointerId);SCR[b.key].t=cl01((my-b.y-b.th/2)/(b.h-b.th))*b.max;return}const h=at(HIT);if(h){press={h,k:h[5]};if(!RM&&h[5]!='nr')RIP.push({x:mx,y:my,r:h.slice(0,4),t0:NOW})}});
+cv.addEventListener('pointerup',e=>{pos(e);if(drag){drag=null;return}RIP.forEach(r=>{if(!r.up)r.up=NOW});if(press){const h=at(HIT);if(h&&h[0]==press.h[0]&&h[1]==press.h[1])press.h[4]();press=null}});
+cv.addEventListener('wheel',e=>{pos(e);const w=WHEEL.find(w=>mx>=w.x&&mx<w.x+w.w&&my>=w.y&&my<w.y+w.h);if(w){e.preventDefault();SCR[w.key].t=Math.max(0,Math.min(w.max,SCR[w.key].t+e.deltaY*.15))}},{passive:false});
+btns.forEach(b=>b.onclick=()=>setMode(b.dataset.m));
+document.getElementById('pp').onclick=e=>{paused=!paused;if(!paused)base=NOW-pt*1000;e.target.textContent=paused?'Play':'Pause'};
+document.getElementById('mo').onclick=e=>{RM=!RM;RIP=[];e.target.textContent='Motion: '+(RM?'reduced':'full');MT(RM?'Reduced motion: no slides, shape morphs, waves, ripples or pulsing; every change still shows at once':'Full motion')};
+document.getElementById('co').onclick=e=>{setCT((CI+1)%3);e.target.textContent='Contrast: '+['standard','medium','high'][CI]};
+document.getElementById('hx').onclick=e=>{HX=1-HX;e.target.textContent='Helix: '+(HX?'expressive':'v5');MT(HX?'Expressive helix: light flows along the fixed strands toward a read head, new rungs flash, and a sweep marks the finish':'v5 helix: the lit part grows with a pulsing glow')};
+document.getElementById('nw').onclick=e=>{NW=!NW;ND=null;NDS=false;NDT=null;NDI=null;NIS=false;NIT=null;UIP=null;UIG=null;e.target.textContent='Window: '+(NW?'narrow':'wide');MT(NW?'Narrow window (320 px, for example 1280 by 1024 at GUI scale 4): every view adapts':'Wide window: the full 351 px layout')};
+document.getElementById('tr').onclick=e=>{TRON=!TRON;e.target.textContent='Type roles: '+(TRON?'on':'off');MT(TRON?'Type roles on: titles, chosen tabs, names, stats and values are bold':'Type roles off: the v7 type')};
+document.getElementById('sl').onclick=e=>{SPD=SPD==1?.2:1;e.target.textContent='Slow motion: '+(SPD==1?'off':'5x')};
+document.addEventListener('keydown',e=>{if(e.key=='Escape'){UIP=null;if(mode=='seq'&&NW)ND={open:false,i:0,cyc:Math.floor(pt/16)};if(mode=='iso'&&NW)NDI={open:false,cyc:Math.floor(pt/10)};if(mode=='ea')UIG={g:-1,cyc:Math.floor(pt/11)};closePop()}});
+mark();requestAnimationFrame(loop);
+</script>

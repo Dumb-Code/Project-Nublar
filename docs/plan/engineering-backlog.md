@@ -1247,6 +1247,8 @@ F1.4 delivers the Sequencer block, its frame screen and the Sequence tab. F1.5 a
   - A status chip, event messages (one at a time) and hover tooltips.
   - Scroll bars on the lists that grow. The mouse wheel and a bar drag scroll them.
   - Material Design 3 motion that only decorates. A click shows its result in the same frame, and text never fades.
+  - Material 3 Expressive motion, reduced-motion and contrast options, and bold type roles, as in the F1.4 spec (proposal, lead decides, D312, D313, D318).
+  - The narrow-window layout of every tab, below 351 px of scaled width (D317).
   - The screen cost rules: no shader passes, effects in slices, panel tiles of 16 px or more, at most two 3D models, layout only on open and on resize.
 - Clicking a slot opens a small popup with a title and one slot. The main screen dims behind it.
   - "Insert Hard Drive", "Insert Genetic Material", "Collect Leftover Item".
@@ -1259,12 +1261,14 @@ F1.4 delivers the Sequencer block, its frame screen and the Sequence tab. F1.5 a
 - A drive slot at the top left. A status chip at the top right.
 - A list box of rows that scrolls. Each row has the name, a thin progress bar and the percent. A bar at 100 % is green.
   - Hover or select shows a turning model of the animal and a card with its name, time period and diet.
+  - The model fills about two thirds of the card's height. The clone stats are one short row at the bottom (D315).
   - The card also shows the clone stats Hatched, Failed and Skins for the species on this drive.
   - The card shows real species data.
   - For a vanilla animal it shows the time period "Modern" and the real diet of the animal. Each vanilla animal has one data entry for this.
   - Remove the "Cretaceous/Apple" placeholder.
 - Bottom row: an input slot at the left, a double-helix track across, and a leftover slot at the right.
   - While sequencing, a cyan helix grows along the track.
+  - Light flows along the lit strands to a read head at the fill edge, and new rungs flash. One sweep of light marks the end. The strands stay fixed (D316).
   - Hover shows time and percent ("9s (13%)").
 - Each sample adds its DNA percent to the species entry.
   - An Unidentified amber tube adds its DNA to the entry of its stored species, and the entry shows that species.
@@ -1377,7 +1381,7 @@ F1.4 delivers the Sequencer block, its frame screen and the Sequence tab. F1.5 a
 - The machine gate of F1.10 holds for this machine.
 - The fps with the Sequencer screen open stays at 90 % or more of the fps with a chest screen open (proposal, lead decides, D311).
 
-**Changed since last review:** Sequencing is the only step that identifies amber DNA. Empty tubes and syringes come back. Vanilla cards show "Modern" and real diet. Power draw 20 (HDD) and 42 (SSD) FE per tick. Door animation and monitor glow added. The monitor glows whenever powered. No Ender SSD. Screen style and motion for all three tabs (D300 to D303). Clone stats on the info card, with a failed-egg count on the drive (D304). The Isolated view shows the animals each gene needs. Screen cost rules for every machine screen, with an fps check (D309, D311). The screen task makes its GUI sprites (D310).
+**Changed since last review:** Sequencing is the only step that identifies amber DNA. Empty tubes and syringes come back. Vanilla cards show "Modern" and real diet. Power draw 20 (HDD) and 42 (SSD) FE per tick. Door animation and monitor glow added. The monitor glows whenever powered. No Ender SSD. Screen style and motion for all three tabs (D300 to D303). Clone stats on the info card, with a failed-egg count on the drive (D304). The Isolated view shows the animals each gene needs. Screen cost rules for every machine screen, with an fps check (D309, D311). The screen task makes its GUI sprites (D310). Model fills most of the info card, light flows along the helix, narrow-window layout for every tab (D315 to D317). Proposals: Material 3 Expressive motion, reduced motion and contrast options, bold type roles (D312, D313, D318).
 ### F1.5: Sequencer: gene editing
 
 F1.5 is the Edit tab of the Sequencer: the player mixes donor DNA, edits isolated genes and colours, and sees the risk before synthesis.
@@ -1503,8 +1507,9 @@ Matches video 4:50-7:00, with the section 11.6 changes.
 
 - [ ] "Basic" and "Advanced" labels at the top left, with the Edit page's trapezoid under the chosen one. The trapezoid slides on a click.
 - [ ] A base row and donor rows. Each row has the animal's colour swatch, name, percent and a slider with a thin handle.
-  - To pick a donor, the player clicks an empty donor row, then clicks an animal in the DNA list on the right.
-  - The open donor row is a "+ Add donor" button with a soft amber glow. While the player picks, the animal list glows instead.
+  - To pick a donor, the player clicks an empty donor row, then clicks an animal in the animal picker on the right.
+  - The open donor row is a "+ Add donor" button with a soft amber glow. While the player picks, the picker glows instead.
+  - A click on a filled donor row opens the picker to swap that donor.
   - The pick fills the row, the DNA mix, the effects and the risk in the same frame.
   - The next unopened donor row shows "Locked" and the DNA percent that opens it.
   - The player drags the slider of the row to set its share. The total stays 100 %.
@@ -1517,7 +1522,9 @@ Matches video 4:50-7:00, with the section 11.6 changes.
   - The preview turns slowly on its own. The player drags it to turn it.
   - The player model beside it looks toward the mouse, like the player model in the vanilla inventory.
 - [ ] Below 30 % DNA the animal draws solid black with no texture, under a light censor static. From 30 % the preview shows the real animal.
-- [ ] A list of sequenced animals that scrolls. Animals that are not in the mix are dim.
+- [ ] An animal picker: a raised list of sequenced animals that scrolls. Animals that are not in the mix are dim (D314).
+  - It shows only after a click on a donor row. A pick or a click outside closes it at once.
+  - While it is open, the preview moves left to stay in view. At other times the preview uses its space.
 - [ ] An effect panel in two columns. Each effect has a title ("Speed +3%") in green, red or white and a colour bar.
   - The bar shows each donor's part of the effect, in that donor's colours.
   - A large edit names the paddock effect, for example "Size +40 %: needs the high fence".
@@ -1530,6 +1537,7 @@ Matches video 6:35-10:25, with the section 11.6 changes.
 
 - [ ] A grid of gene bars. Dull bars cannot be edited. Purple bars are isolated and editable. The selected bar is red. Hover shows the gene name, and "locked" on a locked gene.
   - A locked bar is dim, in the colour of its gene group. A colour strip at the left marks each group.
+- [ ] The gene control is a raised panel at the right. It shows only after a click on a purple gene, and a click outside closes it at once. With no gene picked, the preview uses the whole right side (D314).
 - [ ] Over the gene control: the gene name and one mark for each edit slot. The mark of a used slot is filled.
   - Under the name: a chip for each animal that gives the gene.
 - [ ] Number genes: a box with the percent, a "Reset" button and a slider limited to the gene's range ("Immunity +40%").
@@ -1639,7 +1647,7 @@ See Art list → Screens (GUI): Edit tab, colour wheel background and blip, valu
 - Each screen allocates a new 400 × 400 colour-wheel texture (640 KB) in `ColorWheelWidget.java:45,110`.
 - The preview cuts off large animals and does not turn. The player model beside it looks up in one fixed pose (lead playtest 2026-10-24).
 
-**Changed since last review:** Gene sliders unlock at 70 %, donor sliders at 50 %. Attack and defense edits need 90 %. Clone count unlocks edit slots. Jump can clear the low post. Risk curve and slider range set. Donor pick by click. Risk panel position set. Preview fits, turns by itself and by drag, and shows black under censor static below 30 % DNA. Player model looks toward the mouse. Triceratops horn set and horn colour lists. Basic and Advanced switch, donor rows with colour sets, "+ Add donor" and locked rows, DNA mix bar, gene control layout (D300 to D303).
+**Changed since last review:** Gene sliders unlock at 70 %, donor sliders at 50 %. Attack and defense edits need 90 %. Clone count unlocks edit slots. Jump can clear the low post. Risk curve and slider range set. Donor pick by click. Risk panel position set. Preview fits, turns by itself and by drag, and shows black under censor static below 30 % DNA. Player model looks toward the mouse. Triceratops horn set and horn colour lists. Basic and Advanced switch, donor rows with colour sets, "+ Add donor" and locked rows, DNA mix bar, gene control layout (D300 to D303). The animal picker and the gene control show only on demand (D314).
 
 ### F1.6: Sequencer: synthesis
 
@@ -1778,7 +1786,7 @@ See Art list → Sequencer (synthesis tab, chip and tank looks, synthesis sounds
 - The diamond chip has a synthesis time of −1 in `ItemInit`, so `SequencerBlock` refuses it. The plan sets 2 minutes ("function and numbers").
 - The 1.20.1 build has no netherite tank upgrade. "Function and numbers" and F1.10 list it.
 
-**Changed since last review:** Diamond chip added (2 minutes). Bone block counts as 9 bone meal. Plant matter is an item tag. Cancel returns unused ingredients and keeps the DNA. Power values set. Sound events set. Creative dinosaur-embryo syringes use the new dinosaur-embryo syringe sprite. Tank amounts and run ticks, status chip, tab-shaped Begin button with its states, countdown (D300 to D303).
+**Changed since last review:** Diamond chip added (2 minutes). Bone block counts as 9 bone meal. Plant matter is an item tag. Cancel returns unused ingredients and keeps the DNA. Power values set. Sound events set. Creative dinosaur-embryo syringes use the new dinosaur-embryo syringe sprite. Tank amounts and run ticks, status chip, tab-shaped Begin button with its states, countdown (D300 to D303). The arrow keeps a plain fill (D319).
 
 ### F1.7: Egg Printer
 
@@ -6964,15 +6972,23 @@ These rows come from the lead's review of the Fossil Processor screen mock-up. T
 | D307 | F1.3 | The status chip ("Processing 0%") and the arrow tooltip ("4m 0s (0%)") showed the same progress. How do they split? | Answered 2026-10-29 (lead): "this seems kind of redundant when you already have this arrow with the tooltip". The lead picked "B: time, no tooltip": the chip shows the time left ("Processing · 3m 53s"), and the arrow has no tooltip. Its fill shows the progress. The Sequencer keeps its chip and helix tooltip ("No, Processor only") | Answered |
 | D308 | F1.3, F1.6, F1.7, F1.8, F1.10 | `processor.png` draws a tank slot and a chip slot, but upgrades went on by right-click only. What are the two slots? | Answered 2026-10-29 (lead): "Real slots too", on "Every machine". An upgrade goes in by a right-click on the machine or through its slot on the machine screen. Every machine screen gets one slot for each upgrade that the machine takes. The Sequencer, Egg Printer and Incubator screen mock-ups set where the slots go | Answered |
 
-### D309 and later: screen cost and GUI sprites, 2026-10-30
+### D309 and later: Material 3 Expressive mock-ups, 2026-10-30
 
-These rows come from the review of the Material 3 Expressive mock-ups on 2026-10-30.
+These rows come from the review of the Material 3 Expressive mock-ups of the Sequencer on 2026-10-30. The last mock-up is `docs/mockups/2026-10-30-sequencer-m3e-mockup.html`.
 
 | Id | Work package | Question | Answer or default | Status |
 | --- | --- | --- | --- | --- |
-| D309 | F1.3 to F1.8, F1.10 | What may the screen effects cost on the PCs that players use? | Answered 2026-10-30 (user): "okay incorporate that into the plan". F1.4 gets screen cost rules for every machine screen. No shader passes. Effects draw as slices of 5 to 10 px or as one strip. Panel tiles are 16 px or more. At most two 3D models show. Layout runs only on open and on resize. Colours stay fixed | Answered |
-| D310 | F1.3 to F1.8, F1.10 | Who makes the GUI sprites: frames, glows, widgets and slot icons? | Answered 2026-10-30 (user): "have the agent do it themself wherever possible". The agent that builds a screen makes the simple GUI sprites. These are flat shapes, frames, glows, small icons, and crops, slices or recolours of art in the mod. The artist makes new pictures. The Art list marks 25 rows "Agent makes it" | Answered |
+| D309 | F1.3 to F1.8, F1.10 | What may the screen effects cost on the PCs that players use? | Answered 2026-10-30 (lead): "okay incorporate that into the plan". F1.4 gets screen cost rules for every machine screen. No shader passes. Effects draw as slices of 5 to 10 px or as one strip. Panel tiles are 16 px or more. At most two 3D models show. Layout runs only on open and on resize. Colours stay fixed | Answered |
+| D310 | F1.3 to F1.8, F1.10 | Who makes the GUI sprites: frames, glows, widgets and slot icons? | Answered 2026-10-30 (lead): "have the agent do it themself wherever possible". The agent that builds a screen makes the simple GUI sprites. These are flat shapes, frames, glows, small icons, and crops, slices or recolours of art in the mod. The artist makes new pictures. The Art list marks 25 rows "Agent makes it" | Answered |
 | D311 | F1.4 | Which fps check shows that a machine screen is cheap? | Proposal: the fps with the screen open stays at 90 % or more of the fps with a chest screen open. Use the minimum PC with Fast graphics. The value follows the client part of the machine gate (D282) | Lead decision pending |
+| D312 | F1.4, F1.5, F1.6 | Which Material 3 Expressive motion does the Sequencer screen use? | Proposal: the lead asked "Is there anyway to incorporate Material 3 Expressive elements into the GUIs?" and for the M3 transition patterns. A tab change slides the new page 14 px in 0.25 s. A view change slides it 8 px in 0.2 s. Neither fades. Markers move on a spring (stiffness 380, damping 0.8). The selected row gets its cut corners on a fast spring (800, 0.6). A pop-up grows an outline out of its slot. Messages open up from their bottom edge. The run icon changes shape, and the bar of the row that runs waves | Lead decision pending |
+| D313 | F1.4, F1.5, F1.6 | How does a player get less motion or more contrast on the screen? | Proposal: two client config options. Reduced motion stops slides, shape changes, waves, ripples and pulses, and each change still shows at once. Contrast has three levels: standard, medium and high. Medium and high make dim text, borders, tracks and lines brighter. Each level uses fixed colour values (D309) | Lead decision pending |
+| D314 | F1.5 | Must the Edit-tab animal list and gene control show at all times? | Answered 2026-10-30 (lead): "does this need to be persistent in the basic edit tab? Can it not be collapsible or context dependent and appear on selecting the donor slots?", then "same with this in the advanced edit tab". The animal list is a raised picker that shows only after a click on a donor row. The gene control shows only after a click on a purple gene. A click outside closes each one at once. At other times the preview uses their space | Answered |
+| D315 | F1.4 | How much of the info card goes to the 3D model? | Answered 2026-10-30 (lead): "this takes up far too much of the screen with the cloning stats than it the render window". The model fills about two thirds of the card's height, with the name in a chip on the model area. The clone stats are one short row of small values at the bottom | Answered |
+| D316 | F1.4 | How does the DNA helix show progress? | Answered 2026-10-30 (lead): "is there anyway to make the sequence progress bar more dynamic and expressive?" After the turning strands and end collars, the lead said "go back to v7". The strands stay fixed. Light flows along the lit part toward a read head at the fill edge, and new rungs flash. One sweep of light marks the end. The light draws in 5 px slices (D309) | Answered |
+| D317 | F1.4, F1.5, F1.6 | How does the screen fit a window narrower than the 351 px frame? | Answered 2026-10-30 (lead): "window: narrow for the following screen(s) does not adjust properly, the screen just gets cut off". Every tab has a 320 px layout. The frame draws as its two outer 160 px halves. Sequence and Isolated show the list, then the card in its place with a Back link. Edit puts Basic and Advanced under the tabs. Synthesis makes its tanks narrower around the embryo picture | Answered |
+| D318 | F1.4, F1.5, F1.6 | Does the screen use a type scale? | Proposal: the lead asked about "type scales". The Minecraft font has one size, so the screen uses bold type roles. Titles, the chosen tab, names, stats and values are bold. Labels and hints stay regular | Lead decision pending |
+| D319 | F1.6 | Does the Synthesis arrow get an expressive fill? | Answered 2026-10-30 (lead): "plain fill is fine", after a wavy track that "seems too much". The arrow keeps its plain cyan fill, with no wave and no moving head | Answered |
 
 ---
 
@@ -7065,3 +7081,4 @@ These rows come from the review of the Material 3 Expressive mock-ups on 2026-10
 - **2026-10-29 (lead: Sequencer screen mock-ups):** D300 to D305. F1.4 gets the screen style and the screen motion for all three Sequencer tabs. It also gets scroll bars, clone stats on the info card and a gene-by-animal Isolated view. F1.5 gets the Basic and Advanced switch, donor rows with colour sets, the DNA mix bar and the gene control layout. F1.6 gets tank amounts and run ticks, the status chip and the Begin button states. F1.10 widgets add scroll bars and the tab shape. The Art list adds 4 rows.
 - **2026-10-29 (lead: Processor screen mock-up):** D306 to D308. F1.3 gets the F1.4 screen style. Its status chip shows the time left, and its arrow has no tooltip. It also gets one glow in input order, a one-run notch on the gauge, and tank and chip slots. F1.10: upgrades also go in through a slot on every machine screen. F1.6, F1.7 and F1.8 list their upgrade slots. The Art list adds 4 rows.
 - **2026-10-30 (screen cost and GUI sprites):** D309 to D311. F1.4 gets the screen cost rules for every machine screen, and F1.3, F1.5 and F1.6 use them. The screen tasks make their own GUI sprites, and the Art list marks 25 rows "Agent makes it". The F1.4 acceptance gets an fps check (proposal). `docs/performance-baseline.md` lists the new gate.
+- **2026-10-30 (Sequencer Material 3 Expressive mock-ups):** D312 to D319. F1.4: the model fills most of the info card, light flows along the helix, and every tab has a narrow-window layout. F1.5: the animal picker and the gene control show only on demand. F1.6: the arrow keeps a plain fill. Proposals: Material 3 Expressive motion, reduced motion and contrast options, bold type roles. The Art list adds a motion sprites row.
