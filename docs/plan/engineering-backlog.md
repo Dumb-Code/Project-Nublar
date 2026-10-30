@@ -1057,13 +1057,19 @@ F1.3 delivers the whole Fossil Processor: the machine that turns one fossil or a
   - the bucket slot (empty: a grey bucket)
   - the water gauge: a slim tube with tick marks and animated water that rises on fill and falls while the machine runs.
 - The fossil input slot sits at the top centre.
-  - A down-arrow under it fills as progress runs.
-  - Hover shows time left and percent, for example "3m 53s (3%)".
+  - A down-arrow under it fills as progress runs, with a soft glow. It has no tooltip.
 - The 3×3 output grid sits under the arrow. The empty test tube slot sits in the right column.
+- The tank and chip upgrade slots sit at the bottom of the right column (F1.10 upgrade slots).
 - The gauge tooltip shows "500mB / 2000mB" style text.
 - A worn filter shows a durability bar.
 - A status bar runs down the left outside edge, as on every machine screen.
-- Screen art: the current `textures/gui/processor.png`.
+- Screen art: the current `textures/gui/processor.png`. The screen draws no title.
+- The screen style and screen motion of the F1.4 spec, in the slate colours of the texture:
+  - A status chip at the top right: the next input, "Processing · 3m 53s" with the time left, or "Done". The time changes in place.
+  - One soft glow on the first missing input, in the order filter, water, test tube, fossil. A label only on that slot. The upgrade slots never glow.
+  - A faint fossil icon in the empty fossil slot. The texture already draws the other empty-slot outlines.
+  - A one-run notch on the left edge of the gauge, amber while the tank holds less than one run.
+  - When a run ends, the DNA tube in the grid glows green and the message "Tube ready: T. rex 9.2%" shows. Messages show at the bottom edge of the machine panel.
 - The finished tube tooltip names the species and the DNA percent with decimals.
 - The Processor tab icon for the F1.10 tab host: a bone, in an active and an inactive look.
 
@@ -1100,6 +1106,7 @@ F1.3 delivers the whole Fossil Processor: the machine that turns one fossil or a
   - No new part.
   - The artist proposes the bone, and the lead approves it.
 - Filters sit in a slot. They are not model upgrades.
+- The player installs a tank or a chip by right-click or through its screen slot (F1.10).
 
 #### Power draw
 
@@ -1157,7 +1164,11 @@ F1.3 delivers the whole Fossil Processor: the machine that turns one fossil or a
 - `machine_chain_smoke` passes on both loaders after this machine moves onto the F1.10 framework.
 - A survival player builds the Processor from its four parts in the video's order, on both loaders. A part out of order is refused.
 - Breaking any part of a full Processor drops every slot once and returns the other parts as items (GameTest).
-- The screen has every content item of the video at 1:07-2:05, with the current GUI texture (screenshots in the PR).
+- The screen has every content item of the video at 1:07-2:05, with the current GUI texture. Only the F1.4 screen style differs (screenshots in the PR).
+- Only the input needed next glows: the filter slot, then the bucket slot, then the test tube slot, then the fossil slot. With an empty tank the gauge notch is amber.
+- The click that puts in the last input starts the run. The chip shows "Processing · 4m 0s" in the same frame. The time changes in place and never fades or flickers (screen recording in the PR).
+- The arrow shows no tooltip.
+- A tank or a chip put in its screen slot gives the same tier, look and run time as a right-click on the machine.
 - A hopper chain feeds fossils and pulls tubes for 10 runs with no player, on both loaders.
 - Unit test on the rounding modes. The by-product weights add up to the expected sum.
 - A base-tier run takes 4 minutes. With each chip, 3, 2 and 1 minute.
@@ -1180,7 +1191,7 @@ F1.3 delivers the whole Fossil Processor: the machine that turns one fossil or a
 - All three filters have a durability of 100.
 - `1.20.1-ai` applies the filter as a cut, not a boost: tube DNA = yield × filter factor (iron 0.25, gold 0.5, diamond 1.0) × wear (1.0 new to 0.25 worn), floored to a whole percent. The lead's playtest of 2026-10-24 found the low tubes that this gives. The boost in "Numbers" (D257) replaces it.
 
-**Changed since last review:** Filter durability 150, 250, 500 runs. About 1 diamond in 100 runs. Power draw 20, 28, 44, 92 FE per tick. No netherite tank. No animation. Water per run is a config value. Own sound per event with generic fallback.
+**Changed since last review:** Filter durability 150, 250, 500 runs. About 1 diamond in 100 runs. Power draw 20, 28, 44, 92 FE per tick. No netherite tank. No animation. Water per run is a config value. Own sound per event with generic fallback. Screen style of F1.4 (D306 to D308). The chip shows the time left, and the arrow has no tooltip. One glow in input order, a one-run gauge notch, tank and chip slots.
 
 ### F1.4: Sequencer: sequencing and drives
 
@@ -2409,7 +2420,7 @@ F1.10 is the code that every lab machine shares: parts, the master block, upgrad
 #### Shared upgrade items and the upgrade hook
 
 - [ ] Chips (iron, gold, diamond) and tank upgrades (iron, gold, diamond, netherite) are shared items.
-  - The player installs them by right-click.
+  - The player installs them by right-click, or through the upgrade slot on the machine screen. Both ways call the same upgrade hook.
   - Each machine package sets what a tier does on its machine and how it looks.
   - The 3 chips fit the Processor, the Sequencer and the Egg Printer.
 - [ ] Replacing an upgrade gives the old one back to the player. Example: a gold chip over an iron chip returns the iron chip.
@@ -2417,6 +2428,10 @@ F1.10 is the code that every lab machine shares: parts, the master block, upgrad
   - It uses bones of the current models only, with no new part.
   - The Processor tanks and the Sequencer chips use parts. Every other upgrade swaps the texture of an existing bone.
   - Each machine package fills it.
+- [ ] Upgrade slots: every machine screen has one slot for each upgrade that the machine takes.
+  - Processor tank and chip (F1.3). Sequencer chip and tank on the Synthesis tab (F1.6). Egg Printer chip and Leveling Sensor (F1.7). Incubator bulb, container and plant tank (F1.8).
+  - A slot takes only its own upgrade item. Taking the item out returns the machine to its base tier.
+  - Each machine package places its slots. F1.6, F1.7 and F1.8 place them with their screen mock-ups.
 - [ ] At most 3 upgrades per machine.
   - No machine has more than 3 upgrade slots today, so the cap limits nothing.
   - No upgrade blocks another.
@@ -2575,6 +2590,7 @@ See Art list → Lab items (chip and tank upgrade sprites), Screens (GUI) (tab f
 - Each creative item places its machine with all parts and full stored energy. The max-upgraded item also holds every upgrade the machine takes, at its best tier, and the Processor holds a full water tank.
 - Tabs switch between two test machines that share a network id from a test network provider, and keep the screen open. A machine with another id shows no tab. The real conduit network test is in F1.11.
 - A gold chip over an iron chip gives the iron chip back.
+- On the test machine, an upgrade in its screen slot gives the same tier and look as the same upgrade right-clicked onto the machine. Its slot refuses any other item.
 - A fault bit set on the test machine shows its reason in the warning tab. A power loss puffs smoke and shows the dark model.
 - The test machine draws power only while it works.
 - An idle machine sends no block-entity packets and draws through the static model.
@@ -2591,7 +2607,7 @@ See Art list → Lab items (chip and tank upgrade sprites), Screens (GUI) (tab f
 - Every machine uses `ENTITYBLOCK_ANIMATED`.
 - In the lead's playtest of 2026-10-24 the machines caused visible lag.
 
-**Changed since last review:** At most 3 upgrades per machine. A replaced upgrade returns to the player. Only chips and bulbs cost extra power, by the run-cost factor. Part names follow the video. Upgrade looks use existing bones only. No NO_BULB fault. No comparator output. Two creative items per machine, with full energy. Status panel: 8 blocks, per-player key and switch. Glow regions and one glow mask per machine. Machine gate set. Nublar widget look for sliders, dropdown arrows, buttons and text boxes.
+**Changed since last review:** At most 3 upgrades per machine. A replaced upgrade returns to the player. Only chips and bulbs cost extra power, by the run-cost factor. Part names follow the video. Upgrade looks use existing bones only. No NO_BULB fault. No comparator output. Two creative items per machine, with full energy. Status panel: 8 blocks, per-player key and switch. Glow regions and one glow mask per machine. Machine gate set. Nublar widget look for sliders, dropdown arrows, buttons and text boxes. Upgrade slots on every machine screen, as well as right-click (D308).
 
 ### F1.11: Lab power
 
@@ -6935,6 +6951,16 @@ These rows come from the lead's review of the Sequencer screen mock-ups. The lea
 | D304 | F1.4 | Which clone stats does the info card show, and how does the drive count them? | The lead asked for "total individuals cloned successfully and clones that failed and variants unlocked" (2026-10-26). The card shows Hatched, Failed and Skins. Default: a failed egg counts on its drive the same way as a hatch (F1.5 clone count). What unlocks a skin variant: value open, lead decides | Lead decision pending |
 | D305 | F1.4, F1.10 | How does the screen draw the soft glow? | A glow sprite for each shape (slot, button, panel), and code pulses its opacity. No shader, so both loaders draw it the same way | Lead decision pending |
 
+### D306 and later: Fossil Processor screen mock-up of 2026-10-29
+
+These rows come from the lead's review of the Fossil Processor screen mock-up. The lead approved the third version on 2026-10-29 ("Approved, write it").
+
+| Id | Work package | Question | Answer or default | Status |
+| --- | --- | --- | --- | --- |
+| D306 | F1.3 | How does the Processor screen take the Sequencer screen style? | Answered 2026-10-29 (lead): "Approved, write it". The screen keeps `processor.png` and its slate colours. It adds the F1.4 style. A status chip names the state. One glow marks the first missing input (filter, water, test tube, fossil), and only that slot has a label. The fossil slot has a faint icon, and the water gauge has a one-run notch. The arrow glows while it fills. The finished tube glows green, and a message names it | Answered |
+| D307 | F1.3 | The status chip ("Processing 0%") and the arrow tooltip ("4m 0s (0%)") showed the same progress. How do they split? | Answered 2026-10-29 (lead): "this seems kind of redundant when you already have this arrow with the tooltip". The lead picked "B: time, no tooltip": the chip shows the time left ("Processing · 3m 53s"), and the arrow has no tooltip. Its fill shows the progress. The Sequencer keeps its chip and helix tooltip ("No, Processor only") | Answered |
+| D308 | F1.3, F1.6, F1.7, F1.8, F1.10 | `processor.png` draws a tank slot and a chip slot, but upgrades went on by right-click only. What are the two slots? | Answered 2026-10-29 (lead): "Real slots too", on "Every machine". An upgrade goes in by a right-click on the machine or through its slot on the machine screen. Every machine screen gets one slot for each upgrade that the machine takes. The Sequencer, Egg Printer and Incubator screen mock-ups set where the slots go | Answered |
+
 ---
 
 ## Change log
@@ -7024,3 +7050,4 @@ These rows come from the lead's review of the Sequencer screen mock-ups. The lea
 - **2026-10-29 (engine-library review):** D297 to D299, all proposals. F2.4 gets a path budget charged by search cost, and path repair. F2.2 gets a small-cube cut for far animals. BH.1 measures them first.
 - **2026-10-29 (Java best practices):** Global constraints and the Reviewer checklist add `docs/java-best-practices.md`, one Java checklist for all new and changed code.
 - **2026-10-29 (lead: Sequencer screen mock-ups):** D300 to D305. F1.4 gets the screen style and the screen motion for all three Sequencer tabs. It also gets scroll bars, clone stats on the info card and a gene-by-animal Isolated view. F1.5 gets the Basic and Advanced switch, donor rows with colour sets, the DNA mix bar and the gene control layout. F1.6 gets tank amounts and run ticks, the status chip and the Begin button states. F1.10 widgets add scroll bars and the tab shape. The Art list adds 4 rows.
+- **2026-10-29 (lead: Processor screen mock-up):** D306 to D308. F1.3 gets the F1.4 screen style. Its status chip shows the time left, and its arrow has no tooltip. It also gets one glow in input order, a one-run notch on the gauge, and tank and chip slots. F1.10: upgrades also go in through a slot on every machine screen. F1.6, F1.7 and F1.8 list their upgrade slots. The Art list adds 4 rows.

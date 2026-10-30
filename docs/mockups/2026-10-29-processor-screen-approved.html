@@ -1,0 +1,118 @@
+<h2 class="sr-only">Approved Fossil Processor screen mock-up (2026-10-29, v3) in the Sequencer style, drawn on the real processor.png texture. The status chip shows the next input, the time left or Done; the arrow has no tooltip; the tank and chip slots are real upgrade slots. It steps through an empty machine, the filter, water, test tube and fossil going in, the run, and the finished DNA tube.</h2>
+<div style="display:flex;flex-wrap:wrap;gap:6px;margin:4px 0 8px;align-items:center">
+<button data-t="0">Empty</button><button data-t="3.2">Filter in</button><button data-t="5.6">Water in</button><button data-t="8">Tube in</button><button data-t="10">Running</button><button data-t="18">Done</button><button id="pp">Pause</button>
+</div>
+<canvas id="cv" width="552" height="690" style="display:block;width:100%;max-width:552px;image-rendering:pixelated;border-radius:4px"></canvas>
+<p id="st" style="font-size:13px;color:var(--text-secondary);margin:8px 0 2px"></p>
+<p style="font-size:12px;color:var(--text-muted);margin:0 0 1rem">Hover the water gauge and the tank and chip slots for their tooltips.</p>
+<script>
+const BU='https://cdn.jsdelivr.net/gh/Dumb-Code/Project-Nublar@0838bd4a9ed4b5b95929a4c2b747b11c3523dea4/common/src/main/resources/assets/projectnublar/textures/';
+const SRC={proc:'gui/processor.png',ovl:'gui/fluid_overlay.png',fil:'item/iron_filter.png',tube:'item/test_tube.png',dna:'item/test_tube_full.png',fos:'block/fossil_overlay/common/ribcage.png',tank:'item/iron_tank_upgrade.png'};
+const I={};for(const k in SRC){const im=new Image();im.src=BU+SRC[k];I[k]=im}
+function ok(k){return I[k]&&I[k].complete&&I[k].naturalWidth>0}
+const W=184,H=230,SC=3,OX=4,OY=4,TL=22;
+const cv=document.getElementById('cv'),M=cv.getContext('2d');M.scale(SC,SC);M.imageSmoothingEnabled=false;let c=M;
+const P={bd:'#5A5C74',dark:'rgba(22,23,29,0.94)',hi:'#5FD3F3',tx:'#FFFFFF',dim:'#A9ABBE',ok:'#6EE36E',warn:'#F0B43C',bad:'#E08080',off:'#2B2C35',ghost:'#55576E'};
+const GR={water:['#9FC4FF','#3F76E4','#2A4FB0'],ok:['#B4F5B4','#6EE36E','#3FB84F'],run:['#9FF0FF','#5FD3F3','#2E8FD0']};
+const FG={A:'.###.|#...#|#...#|#####|#...#|#...#|#...#',B:'####.|#...#|####.|#...#|#...#|#...#|####.',C:'.###.|#...#|#....|#....|#....|#...#|.###.',D:'####.|#...#|#...#|#...#|#...#|#...#|####.',E:'#####|#....|###..|#....|#....|#....|#####',F:'#####|#....|###..|#....|#....|#....|#....',G:'.####|#....|#..##|#...#|#...#|#...#|.###.',H:'#...#|#...#|#####|#...#|#...#|#...#|#...#',I:'###|.#.|.#.|.#.|.#.|.#.|###',J:'....#|....#|....#|....#|....#|#...#|.###.',K:'#...#|#..#.|###..|#..#.|#...#|#...#|#...#',L:'#....|#....|#....|#....|#....|#....|#####',M:'#...#|##.##|#.#.#|#...#|#...#|#...#|#...#',N:'#...#|##..#|#.#.#|#..##|#...#|#...#|#...#',O:'.###.|#...#|#...#|#...#|#...#|#...#|.###.',P:'####.|#...#|####.|#....|#....|#....|#....',Q:'.###.|#...#|#...#|#...#|#...#|#..#.|.##.#',R:'####.|#...#|####.|#...#|#...#|#...#|#...#',S:'.####|#....|.###.|....#|....#|#...#|.###.',T:'#####|..#..|..#..|..#..|..#..|..#..|..#..',U:'#...#|#...#|#...#|#...#|#...#|#...#|.###.',V:'#...#|#...#|#...#|#...#|#...#|.#.#.|..#..',W:'#...#|#...#|#...#|#...#|#.#.#|##.##|#...#',X:'#...#|.#.#.|..#..|.#.#.|#...#|#...#|#...#',Y:'#...#|.#.#.|..#..|..#..|..#..|..#..|..#..',Z:'#####|....#|...#.|..#..|.#...|#....|#####',
+a:'.....|.....|.###.|....#|.####|#...#|.####',b:'#....|#....|#.##.|##..#|#...#|#...#|####.',c:'.....|.....|.###.|#...#|#....|#...#|.###.',d:'....#|....#|.##.#|#..##|#...#|#...#|.####',e:'.....|.....|.###.|#...#|#####|#....|.####',f:'..##|.#..|####|.#..|.#..|.#..|.#..',g:'.....|.....|.####|#...#|#...#|.####|....#|####.',h:'#....|#....|#.##.|##..#|#...#|#...#|#...#',i:'#|.|#|#|#|#|#',j:'....#|.....|....#|....#|....#|#...#|#...#|.###.',k:'#...|#...|#..#|#.#.|##..|#.#.|#..#',l:'#.|#.|#.|#.|#.|#.|.#',m:'.....|.....|##.#.|#.#.#|#.#.#|#...#|#...#',n:'.....|.....|####.|#...#|#...#|#...#|#...#',o:'.....|.....|.###.|#...#|#...#|#...#|.###.',p:'.....|.....|#.##.|##..#|#...#|#...#|####.|#....',q:'.....|.....|.##.#|#..##|#...#|#...#|.####|....#',r:'.....|.....|#.##.|##..#|#....|#....|#....',s:'.....|.....|.####|#....|.###.|....#|####.',t:'.#.|.#.|###|.#.|.#.|.#.|..#',u:'.....|.....|#...#|#...#|#...#|#...#|.####',v:'.....|.....|#...#|#...#|#...#|.#.#.|..#..',w:'.....|.....|#...#|#...#|#.#.#|#.#.#|.####',x:'.....|.....|#...#|.#.#.|..#..|.#.#.|#...#',y:'.....|.....|#...#|#...#|#...#|.####|....#|####.',z:'.....|.....|#####|...#.|..#..|.#...|#####',
+'0':'.###.|#...#|#..##|#.#.#|##..#|#...#|.###.','1':'..#..|.##..|..#..|..#..|..#..|..#..|#####','2':'.###.|#...#|....#|..##.|.#...|#...#|#####','3':'.###.|#...#|....#|..##.|....#|#...#|.###.','4':'...##|..#.#|.#..#|#...#|#####|....#|....#','5':'#####|#....|####.|....#|....#|#...#|.###.','6':'..##.|.#...|#....|####.|#...#|#...#|.###.','7':'#####|#...#|....#|...#.|..#..|..#..|..#..','8':'.###.|#...#|#...#|.###.|#...#|#...#|.###.','9':'.###.|#...#|#...#|.####|....#|...#.|.##..',
+' ':'...','.':'.|.|.|.|.|.|#',',':'.|.|.|.|.|.|#|#',':':'.|.|#|.|.|.|#','!':'#|#|#|#|#|.|#','?':'.###.|#...#|....#|...#.|..#..|.....|..#..',"'":'#|#','%':'##..#|##.#.|...#.|..#..|.#...|.#.##|#..##','/':'....#|...#.|...#.|..#..|.#...|.#...|#....','+':'.....|..#..|..#..|#####|..#..|..#..','-':'.....|.....|.....|#####','=':'.....|.....|#####|.....|#####','(':'..##|.#..|#...|#...|#...|.#..|..##',')':'##..|..#.|...#|...#|...#|..#.|##..',
+'\u00b7':'.|.|.|.|#','\u2713':'.....|.....|....#|...#.|#.#..|.#...','\u2192':'.....|.....|...#.|#####|...#.'};
+const GL={};for(const ch in FG){const r=FG[ch].split('|');GL[ch]={w:r[0].length,r}}
+const IC={warn:'..###..|.#...#.|#..#..#|#..#..#|#.....#|.#.#.#.|..###..',ok:'.......|......#|.....#.|#...#..|.#.#...|..#....|.......',bad:'#.....#|.#...#.|..#.#..|...#...|..#.#..|.#...#.|#.....#'};
+const SPIN=[[2,0],[3,0],[4,0],[5,1],[6,2],[6,3],[6,4],[5,5],[4,6],[3,6],[2,6],[1,5],[0,4],[0,3],[0,2],[1,1]];
+let paused=false,pt=0,base=performance.now(),mx=-99,my=-99,FRAME=0,dt=.016,last=performance.now(),NOW=0;const SP={},HS={};
+function bez(x1,y1,x2,y2){return x=>{if(x<=0)return 0;if(x>=1)return 1;let t=x;for(let i=0;i<8;i++){const u=1-t,fx=3*x1*t*u*u+3*x2*t*t*u+t*t*t-x,d=3*x1*u*u+6*(x2-x1)*t*u+3*(1-x2)*t*t;if(Math.abs(d)<1e-6)break;t=Math.max(0,Math.min(1,t-fx/d))}const u=1-t;return 3*y1*t*u*u+3*y2*t*t*u+t*t*t}}
+const EMPH=bez(.2,0,0,1),DEC=bez(.05,.7,.1,1),ACC=bez(.3,0,.8,.15);
+function cl01(v){return Math.max(0,Math.min(1,v))}
+function spr(key,target,stiff,zeta,init){let s=SP[key];if(!s)s=SP[key]={x:init===undefined?target:init,v:0,f:-1};if(s.f!==FRAME){s.f=FRAME;const K=stiff||380,Z=zeta===undefined?.8:zeta,C=2*Z*Math.sqrt(K),n=4,h=dt/n;for(let i=0;i<n;i++){s.v+=(-K*(s.x-target)-C*s.v)*h;s.x+=s.v*h}}return s.x}
+function hx(h){const n=parseInt(h.slice(1),16);return[n>>16&255,n>>8&255,n&255]}
+function ctw(key,hex){const a=hx(hex);return 'rgb('+a.map((v,i)=>Math.round(spr(key+'c'+i,v,500,1))).join(',')+')'}
+function A(a,fn){const g=c.globalAlpha;c.globalAlpha=g*a;fn();c.globalAlpha=g}
+function fr(x,y,w,h,col){if(w<=0||h<=0)return;c.fillStyle=col;c.fillRect(x,y,w,h)}
+function chp(x,y,w,h,k){k=Math.max(0,Math.min(k,w/2,h/2));c.beginPath();c.moveTo(x+k,y);c.lineTo(x+w-k,y);c.lineTo(x+w,y+k);c.lineTo(x+w,y+h-k);c.lineTo(x+w-k,y+h);c.lineTo(x+k,y+h);c.lineTo(x,y+h-k);c.lineTo(x,y+k);c.closePath()}
+function cham(x,y,w,h,k,col){if(w<=0||h<=0)return;chp(x,y,w,h,k);c.fillStyle=col;c.fill()}
+function chs(x,y,w,h,k,col){chp(x+.5,y+.5,w-1,h-1,Math.max(0,k-.3));c.strokeStyle=col;c.lineWidth=1;c.stroke()}
+function rf(x,y,w,h,r,col){if(w<=0||h<=0)return;c.beginPath();c.roundRect(x,y,w,h,Math.max(0,Math.min(r,w/2,h/2)));c.fillStyle=col;c.fill()}
+function grd(x,w,k){const a=GR[k],g=c.createLinearGradient(x,0,x+w,0);g.addColorStop(0,a[0]);g.addColorStop(.5,a[1]);g.addColorStop(1,a[2]);return g}
+function gf(x,y,w,h,r,k){if(w<=0)return;rf(x,y,w,h,r,GR[k]?grd(x,w,k):k)}
+function pulse(t){return .5+.5*Math.sin(t*3)}
+function glowP(path,col,t){const a=pulse(t);c.save();c.globalAlpha*=(.3+.35*a);c.shadowColor=col;c.shadowBlur=5+7*a;path();c.strokeStyle=col;c.lineWidth=1;c.stroke();c.restore()}
+function glowK(x,y,w,h,k,col,t){glowP(()=>chp(x+.5,y+.5,w-1,h-1,k),col,t)}
+function glow(col,b){c.shadowColor=col;c.shadowBlur=b}
+function noglow(){c.shadowBlur=0}
+function sh(h){if(h[0]!='#')return 'rgba(0,0,0,0.5)';const n=parseInt(h.slice(1),16);return 'rgb('+((n>>16&255)>>2)+','+((n>>8&255)>>2)+','+((n&255)>>2)+')'}
+function tw(s){let w=0;for(const ch of s){const g=GL[ch]||GL['?'];w+=g.w+1}return Math.max(0,w-1)}
+function draw(s,x,y,col){c.fillStyle=col;let cx=x;for(const ch of s){const g=GL[ch]||GL['?'];for(let j=0;j<g.r.length;j++){const row=g.r[j];let i=0;while(i<row.length){if(row[i]=='#'){let k=i;while(k<row.length&&row[k]=='#')k++;c.fillRect(cx+i,y+j,k-i,1);i=k}else i++}}cx+=g.w+1}}
+function tx(s,x,y,col,al){const w=tw(s);if(al=='center')x=Math.round(x-w/2);else if(al=='right')x=x-w;draw(s,x+1,y+1,col[0]=='#'?sh(col):'rgba(0,0,0,0.6)');draw(s,x,y,col);return w}
+function ic(n,x,y,col){c.fillStyle=col;IC[n].split('|').forEach((r,j)=>{for(let i=0;i<r.length;i++)if(r[i]=='#')c.fillRect(x+i,y+j,1,1)})}
+function spin(x,y,t,col){const o=Math.floor(t*14);SPIN.forEach((p,i)=>{c.fillStyle=((i-o)%16+16)%16<6?col:'rgba(255,255,255,0.15)';c.fillRect(x+p[0],y+p[1],1,1)})}
+function inside(x,y,w,h){return mx>=x&&mx<x+w&&my>=y&&my<y+h}
+function hov(x,y,w,h,key,a0){const a=spr('hv'+key,inside(x,y,w,h)?1:0,900,1);if(a<.01)return;A((a0||.09)*a,()=>fr(x,y,w,h,'#fff'))}
+function cursor(x,y,down){for(let r=0;r<8;r++)fr(x,y+r,Math.min(r+1,5),1,'#fff');fr(x+2,y+6,2,4,'#fff');if(down)A(.5,()=>chs(x-3,y-3,7,7,2,'#fff'))}
+function chip(key,x,y,s,kind,t,right){const col={warn:P.warn,run:P.hi,ok:P.ok,bad:P.bad}[kind],tc=ctw(key+'t',col),w=spr(key+'w',tw(s)+18,900,1),h=11;if(right)x-=w;cham(x,y,w,h,2,P.dark);A(.2,()=>cham(x,y,w,h,2,tc));c.save();chp(x,y,w,h,2);c.clip();if(kind=='run')spin(x+3,y+2,t,col);else ic(kind,x+3,y+2,col);tx(s,x+13,y+2,P.tx);c.restore()}
+function toast(s,k,d,cx,y0){if(d<0||d>=2.4)return;const e=d<.3?DEC(d/.3):1,o=d>2.2?ACC((d-2.2)/.2):0,a=e*(1-o),w=tw(s)+16,h=14,x=Math.round(cx-w/2),y=y0+Math.round(((1-e)*8+o*4)*2)/2;A(a,()=>{c.save();c.shadowColor='rgba(0,0,0,0.6)';c.shadowBlur=6;c.shadowOffsetY=2;cham(x,y,w,h,3,'rgba(16,17,22,0.96)');c.restore();chs(x,y,w,h,3,P.bd);gf(x+4,y+3,2,8,1,k);tx(s,x+10,y+4,P.tx)})}
+function tip(a,b,cx,cy,d){const e=DEC(cl01(d/.15)),w=Math.max(tw(a),b?tw(b):0)+8,h=b?22:12;let x=cx+9,y=cy-13;if(x+w>W-2)x=cx-9-w;y=Math.max(2,Math.min(H-h-2,y));A(e,()=>{const yy=y+(1-e)*3;cham(x,yy,w,h,2,'rgba(16,17,22,0.96)');chs(x,yy,w,h,2,P.bd);tx(a,x+4,yy+3,P.tx);if(b)tx(b,x+4,yy+13,P.dim)})}
+/* Items, drawn at GUI slot coordinates (the item's top-left, as in the menu). */
+function item(k,x,y,a){if(!ok(k))return;A(a===undefined?1:a,()=>c.drawImage(I[k],OX+x,OY+y,16,16))}
+function wear(x,y,v){fr(OX+x+2,OY+y+13,13,2,'#000');fr(OX+x+2,OY+y+13,Math.round(13*v),1,'#55FF55')}
+function bucketI(x,y,water){x+=OX;y+=OY;fr(x+3,y+2,10,1,'#D8D8D8');fr(x+2,y+3,12,2,'#A8A8A8');fr(x+3,y+3,10,2,water?'#3F76E4':'#3B3B3B');fr(x+3,y+5,10,8,'#B8B8B8');fr(x+3,y+5,1,8,'#DADADA');fr(x+12,y+5,1,8,'#8A8A8A');fr(x+4,y+13,8,1,'#8A8A8A')}
+function cube(x,y,t,l,r){x+=OX;y+=OY;const f=(pts,col)=>{c.beginPath();c.moveTo(x+pts[0],y+pts[1]);for(let i=2;i<pts.length;i+=2)c.lineTo(x+pts[i],y+pts[i+1]);c.closePath();c.fillStyle=col;c.fill()};f([8,1,15,4.5,8,8,1,4.5],t);f([1,4.5,8,8,8,15,1,11.5],l);f([8,8,15,4.5,15,11.5,8,15],r)}
+function sand(x,y){cube(x,y,'#E3D7A8','#C9BA88','#AE9F70')}
+/* Ghost of the fossil slot: a faint fossil icon, as the Sequencer slots draw it (the texture has no ghost here). */
+function ghost(x,y){item('fos',x,y,.28)}
+/* Water gauge: 18 x 46 at (21, 60). One run uses 250 mB; the notch on the left marks one run. */
+const RUN=250,CAP=3000;
+function gauge(v,t){const x=OX+21,y=OY+60,w=18,h=46,vv=spr('water',v,900,1),fh=Math.round(h*vv/CAP*2)/2,low=v<RUN;
+if(fh>.5){fr(x,y+h-fh,w,fh,'#3F76E4');c.save();c.beginPath();c.rect(x,y+h-fh,w,fh);c.clip();A(.35,()=>{for(let i=0;i<6;i++){const yy=y+h-((t*5+i*9)%46);fr(x+((i*7+Math.floor(t*3))%15),yy,3,1,'#A8C8FF')}});c.restore();fr(x,y+h-fh,w,1,'#7FA8F4')}
+if(ok('ovl'))c.drawImage(I.ovl,x,y,w,h);
+const ry=y+h-Math.round(h*RUN/CAP);fr(x+1,ry,4,1,ctw('runtick',low?P.warn:'#C8CADB'))}
+/* Demo cursor: [time, x, y] key points in GUI coordinates; picks and drops change the slots in the same frame. */
+const KP=[[0,150,170],[1.2,34,148],[1.5,34,148],[2.8,30,27],[3.4,30,27],[4.2,52,148],[4.5,52,148],[5.3,30,48],[5.8,30,48],[6.4,70,148],[6.6,70,148],[7.6,144,48],[8.2,144,48],[8.7,88,148],[8.9,88,148],[9.7,88,26],[10.2,88,26],[11.0,30,84],[13.0,30,84],[13.6,144,95],[15.6,144,95],[16.4,118,32],[17.6,118,32],[18.6,67,74],[22,67,74]];
+const CLK=[1.5,3.2,4.5,5.6,6.6,8.0,8.9,10.0];
+const CARRY=[[1.5,3.2,'fil'],[4.5,5.6,'wb'],[6.6,8.0,'tube'],[8.9,10.0,'fos']];
+function curAt(T){for(let i=0;i<KP.length-1;i++){const a=KP[i],b=KP[i+1];if(T>=a[0]&&T<b[0]){const e=EMPH((T-a[0])/(b[0]-a[0]));return[a[1]+(b[1]-a[1])*e,a[2]+(b[2]-a[2])*e]}}const z=KP[KP.length-1];return[z[1],z[2]]}
+function phase(T){return T<3.2?0:T<5.6?1:T<8?2:T<10?3:T<18?4:5}
+function fmt(s){s=Math.max(0,Math.round(s));return Math.floor(s/60)+'m '+(s%60)+'s'}
+const SLOTS=[[22,19],[22,40],[80,18],[136,40],[136,87],[136,108]];for(let i=0;i<3;i++)for(let j=0;j<3;j++)SLOTS.push([59+j*21,66+i*21]);for(let l=0;l<3;l++)for(let j=0;j<9;j++)SLOTS.push([8+j*18,140+l*18]);for(let j=0;j<9;j++)SLOTS.push([8+j*18,198]);
+function tipFor(k,ph,p,wv){if(k=='gauge')return[Math.round(wv)+'mB / '+CAP+'mB'];if(k=='tank')return['Iron tank upgrade','3 buckets of water'];if(k=='chip')return['Chip slot','Faster runs'];return null}
+const TIPS=[[21,60,18,46,'gauge'],[136,87,16,16,'tank'],[136,108,16,16,'chip']];
+function drawProc(T,t){const ph=phase(T),p=ph==4?(T-10)/8:ph==5?1:0,wv=T<5.6?0:T<10?1000:1000-RUN;
+item('tank',136,87);
+if(!(T>=10&&T<18))ghost(80,18);
+gauge(wv,t);
+if(p>0&&ok('proc')){const h=Math.ceil(19*p);if(ph==4)glow(P.hi,4+3*pulse(t));c.drawImage(I.proc,176,49,11,h,OX+82,OY+40,11,h);noglow()}
+if(T>=3.2){item('fil',22,19);wear(22,19,T<18?.86:.85)}
+if(T>=5.6)bucketI(22,40,false);
+if(T>=8&&T<18)item('tube',136,40);
+if(T>=10&&T<18)item('fos',80,18);
+if(T>=18){item('dna',59,66);sand(80,66)}
+if(T<1.5){item('fil',26,140);wear(26,140,.86)}
+if(T<4.5)bucketI(44,140,true);
+if(T<6.6)item('tube',62,140);
+if(T<8.9)item('fos',80,140);
+item('dna',8,198);tx('2',OX+8+17,OY+198+9,'#FFFFFF','right');
+SLOTS.forEach((s,i)=>hov(OX+s[0],OY+s[1],16,16,'s'+i,.18));
+const G=[[22,19],[22,40],[136,40],[80,18]];if(ph<4)glowK(OX+G[ph][0]-2,OY+G[ph][1]-2,20,20,0,P.warn,t);if(ph==5)glowK(OX+57,OY+64,20,20,0,P.ok,t);
+if(ph==0)tx('Filter',OX+43,OY+23,P.warn);else if(ph==1)tx('Water',OX+43,OY+44,P.warn);else if(ph==2)tx('Test tube',OX+145,OY+62,P.warn,'center');else if(ph==3)tx('Fossil',OX+101,OY+23,P.warn);
+chip('st',OX+171,OY+3,['Insert a filter','Add water','Insert a test tube','Insert a fossil','Processing \u00b7 '+fmt(240*(1-p)),'Done'][ph],['warn','warn','warn','warn','run','ok'][ph],t,1);
+toast('+1000 mB water','water',T-5.6,OX+88,OY+126);toast('Tube ready: T. rex 9.2%','ok',T-18,OX+88,OY+126);
+let shown=false;TIPS.forEach(r=>{const k=r[4];if(inside(OX+r[0],OY+r[1],r[2],r[3])){if(HS[k]===undefined)HS[k]=NOW;const s=tipFor(k,ph,p,wv);if(s){tip(s[0],s[1],mx,my,(NOW-HS[k])/1000);shown=true}}else delete HS[k]});
+const cp=curAt(T),cx=OX+cp[0],cy=OY+cp[1];
+if(!shown){if(T>=11.2&&T<13.0){const s=tipFor('gauge',ph,p,wv);tip(s[0],null,cx,cy,T-11.2)}else if(T>=13.8&&T<15.6){const s=tipFor('tank');tip(s[0],s[1],cx,cy,T-13.8)}}
+const cr=CARRY.find(q=>T>=q[0]&&T<q[1]);if(cr){if(cr[2]=='wb')bucketI(cp[0]-8,cp[1]-8,true);else item(cr[2],cp[0]-8,cp[1]-8)}
+cursor(cx,cy,CLK.some(k=>T>=k-.08&&T<k+.12));
+return ['Step 1 of 6: empty machine. The filter slot glows: it is needed first.','Step 2 of 6: filter in. The tank is below one run (amber notch), so the bucket slot glows.','Step 3 of 6: water in, and the empty bucket comes back. The test tube slot glows.','Step 4 of 6: test tube in. The fossil slot glows.','Step 5 of 6: processing. The chip shows the time left. The arrow fills and glows, with no tooltip.','Step 6 of 6: done. The DNA tube and a by-product are in the grid. The tube glows green.'][ph]}
+const st=document.getElementById('st'),tb=document.querySelectorAll('button[data-t]');
+function mark(){const ph=phase(pt%TL),ts=[0,3.2,5.6,8,10,18];tb.forEach(b=>{const on=Math.abs(+b.dataset.t-ts[ph])<.01;b.style.background=on?'var(--surface-1)':'';b.setAttribute('aria-pressed',on)})}
+function loop(now){NOW=now;dt=Math.min(.05,Math.max(.001,(now-last)/1000));last=now;FRAME++;if(!paused)pt=(now-base)/1000;const T=pt%TL;
+c.clearRect(0,0,W,H);fr(0,0,W,H,'#17181d');if(ok('proc'))c.drawImage(I.proc,0,0,176,222,OX,OY,176,222);else fr(OX,OY,176,222,'#303138');
+let s='';try{s=drawProc(T,now/1000)}catch(e){s='Error: '+e.message}
+const miss=Object.keys(SRC).filter(k=>!ok(k));st.textContent=(miss.length?'Loading textures: '+miss.join(', ')+'. ':'Real textures loaded. ')+s;if(FRAME%10==0)mark();requestAnimationFrame(loop)}
+function pos(e){const r=cv.getBoundingClientRect();mx=(e.clientX-r.left)/r.width*W;my=(e.clientY-r.top)/r.height*H}
+cv.addEventListener('pointermove',pos);cv.addEventListener('pointerleave',()=>{mx=-99;my=-99});
+tb.forEach(b=>b.onclick=()=>{pt=+b.dataset.t;base=performance.now()-pt*1000;mark()});
+document.getElementById('pp').onclick=e=>{paused=!paused;if(!paused)base=performance.now()-pt*1000;e.target.textContent=paused?'Play':'Pause'};
+mark();requestAnimationFrame(loop);
+</script>

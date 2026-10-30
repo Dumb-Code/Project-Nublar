@@ -264,12 +264,31 @@ The Fossil Processor is the first machine. It turns a fossil or an amber into on
 #### Screen
 
 - Art: the current `gui/processor.png`. A standard 9 × 4 player inventory.
+- Same screen style and screen motion as F1.4. The screen keeps the slate colours of its texture: chips and messages are dark slate, not the Sequencer navy. The accent colours stay.
 - A status bar runs down the left outside edge (F1.10).
+- The screen draws no title.
 - **Left column, top to bottom:** filter slot (grey mesh-disc outline when empty), bucket slot (grey bucket outline), tall slim water gauge with tick marks and animated blue water.
-- **Top centre:** fossil slot. Under it, a down arrow that fills white with progress.
+- **Top centre:** fossil slot. Under it, a down arrow that fills white with progress. It glows softly while it fills.
 - **Under the arrow, left of centre:** 3 × 3 output grid.
 - **Right column, level with the filter:** empty test tube slot (grey tube outline).
-- **Tooltips:** arrow "3m 53s (3%)". Gauge "500mB / 2000mB". The filter icon shows a green wear bar.
+- **Right column, bottom:** tank slot and chip slot (grey outlines). They take the upgrades (F1.10).
+- **Tooltips:** gauge "500mB / 2000mB". The filter icon shows a green wear bar. The arrow has no tooltip.
+
+##### What the Processor screen adds to the F1.4 style
+
+- **Status chip** at the top right. It shows one of these:
+  - the next input: "Insert a filter", "Add water", "Insert a test tube" or "Insert a fossil"
+  - the run with its time left: "Processing · 3m 53s"
+  - "Done".
+  - The chip shows the time left, and the arrow fill shows the progress. So the screen shows the time only once.
+  - The time changes in place.
+- **Next input.** The inputs come in this order: filter, water, test tube, fossil. Only the first missing input glows.
+  - Only that slot shows a label: "Filter" or "Water" at its right, "Test tube" under it, "Fossil" at its right.
+  - The upgrade slots never glow. Upgrades are optional.
+- **Empty-slot icons.** The texture draws the outlines of the filter, bucket, test tube, tank and chip. The fossil slot shows a faint fossil icon.
+- **Water gauge.** A short notch on the left edge marks the water for one run. It is amber while the tank holds less than one run.
+- **Done.** The DNA tube in the grid glows green, and the message "Tube ready: T. rex 9.2%" shows.
+- **Messages** show at the bottom edge of the machine panel, above the inventory. Example: "+1000 mB water" after a water bucket.
 
 #### Inputs and outputs
 
@@ -344,7 +363,7 @@ See Art list → Fossil Processor (models, tank looks, chip texture swap, sounds
 
 **Engineering:** backlog F1.3.
 
-**Changed since last review:** No Processor animation. Power per chip tier set. Water per run is a config value.
+**Changed since last review:** No Processor animation. Power per chip tier set. Water per run is a config value. Screen style of F1.4. The status chip shows the time left, and the arrow has no tooltip. One glow in input order, a one-run notch on the gauge, tank and chip slots.
 
 ---
 
@@ -704,6 +723,7 @@ The Sequencer joins the designed genome with a bird embryo and makes a dinosaur-
 - **Bottom:** input slot, a right arrow that fills cyan, output slot. Under the arrow the run time counts down ("9m 12s"). Tooltip "9m 59s (0%)".
 - When the run ends, the output slot glows green and the message "Embryo syringe ready" shows.
 - **Pop-ups** when a slot is clicked: "Insert Water", "Insert Bone Matter", and "Insert Syringe" in place of "Insert Test Tube".
+- **Upgrade slots:** chip and tank (F1.10). A new mock-up of this tab sets where they go.
 
 #### Inputs
 
@@ -771,7 +791,7 @@ See Art list → Sequencer (Synthesis tab, sounds, computer pieces per chip tier
 
 **Engineering:** backlog F1.6.
 
-**Changed since last review:** A Diamond Chip cuts synthesis to 2 minutes. Bone blocks count as 9 bone meal. Cancel returns unused ingredients and uses no DNA. Power per chip tier set. The dinosaur-embryo syringe gets a new sprite. Tank amounts and a tick for one run. A low tank turns amber and its slot glows. Status chip and risk summary at the top. Tab-shaped Begin button that glows green when ready. Countdown under the arrow.
+**Changed since last review:** A Diamond Chip cuts synthesis to 2 minutes. Bone blocks count as 9 bone meal. Cancel returns unused ingredients and uses no DNA. Power per chip tier set. The dinosaur-embryo syringe gets a new sprite. Tank amounts and a tick for one run. A low tank turns amber and its slot glows. Status chip and risk summary at the top. Tab-shaped Begin button that glows green when ready. Countdown under the arrow. Chip and tank slots on the tab.
 
 ---
 ### F1.7 Egg Printer
@@ -809,6 +829,7 @@ Match the screen of video 11:35-12:18.
 - **Left column, top to bottom.** Bone meal gauge, bone meal slot, syringe slot.
 - **Centre.** A large egg picture. Thin progress lines along its top and bottom edges grow with the print (low confidence).
 - **Right column.** Egg output slot on top, empty-syringe slot below. Tooltip "10m 0s (0%)".
+- **Upgrade slots:** chip and Leveling Sensor (F1.10). The screen mock-up sets where they go.
 
 #### Inputs, outputs and numbers
 
@@ -874,7 +895,7 @@ See Art list → Egg Printer (models, texture swaps, ghost egg, animations, soun
 
 **Engineering:** backlog F1.7.
 
-**Changed since last review:** Output is the unincubated egg. A failed print gives a cracked artificial egg. Platform lowers 0.5 px. Chips and sensor get texture swaps, no new part. 16 bone meal per egg. Power draw per tier set. Lamps glow whenever powered and animate while printing.
+**Changed since last review:** Output is the unincubated egg. A failed print gives a cracked artificial egg. Platform lowers 0.5 px. Chips and sensor get texture swaps, no new part. 16 bone meal per egg. Power draw per tier set. Lamps glow whenever powered and animate while printing. Chip and Leveling Sensor slots on the screen.
 
 ---
 
@@ -921,6 +942,7 @@ Match the screen of video 12:50-13:32.
 - **Bed fill.** The bed in the pane fills with plants as plant matter goes in, as in 1.12: bare wood when empty, then dark green, then leaves when full. It empties as the plant matter drains.
 - **Placing.** Holding an egg over the pane turns it bright green where the egg can go and red where it cannot. A placed egg can be dragged to a new spot.
 - **Egg tooltip.** Name, progress %, time left, "Press shift for DNA breakdown". Time left stops at 0.
+- **Upgrade slots:** bulb, container and plant tank (F1.10). The screen mock-up sets where they go.
 
 #### Inputs and outputs
 
@@ -1014,7 +1036,7 @@ See Art list → Incubator (models, texture swaps, animations, sounds, screen), 
 
 **Engineering:** backlog F1.8.
 
-**Changed since last review:** 5 parts, no lift. Empty nest bed. Built-in lamp is the base bulb. Each egg turns every 5 minutes. Claw fingers move. Power and light per bulb tier set. Stalled eggs die. Lamp glows and gives light whenever powered, also with no egg. Lamp colour per bulb tier set.
+**Changed since last review:** 5 parts, no lift. Empty nest bed. Built-in lamp is the base bulb. Each egg turns every 5 minutes. Claw fingers move. Power and light per bulb tier set. Stalled eggs die. Lamp glows and gives light whenever powered, also with no egg. Lamp colour per bulb tier set. Bulb, container and plant tank slots on the screen.
 
 ---
 
@@ -1130,7 +1152,7 @@ F1.10 sets the shared rules for every lab machine: it is built from parts, upgra
 #### At a glance
 
 - **Build.** The player crafts each part and right-clicks it onto the base in order. The model grows piece by piece.
-- **Upgrade.** The player right-clicks upgrades onto a machine, and the machine looks different.
+- **Upgrade.** The player right-clicks upgrades onto a machine, or puts them in its upgrade slots, and the machine looks different.
 - **Tabs.** With machines linked, the player moves between their screens with tabs and never closes the window.
 - **Faults.** A stopped machine puffs smoke, goes dark and names the problem.
 
@@ -1155,7 +1177,14 @@ F1.10 sets the shared rules for every lab machine: it is built from parts, upgra
 
 #### Upgrades
 
-- **Install.** Right-click with the upgrade item. Replacing an upgrade gives the old one back. Example: a gold chip over an iron chip returns the iron chip.
+- **Install.** Right-click the machine with the upgrade item, or put the item in its upgrade slot on the machine screen. Both ways do the same. Replacing an upgrade gives the old one back. Example: a gold chip over an iron chip returns the iron chip.
+- **Upgrade slots.** Every machine screen has one slot for each upgrade that the machine takes.
+  - Processor: tank and chip (F1.3).
+  - Sequencer: chip and tank, on the Synthesis tab (F1.6).
+  - Egg Printer: chip and Leveling Sensor (F1.7).
+  - Incubator: bulb, container and plant tank (F1.8).
+  - A slot takes only its own upgrade. With the slot empty, the machine works at its base tier.
+  - The screen design of each machine sets where its slots go.
 - **Look.** Every upgrade changes the look, with no new part. The Processor tanks and the Sequencer chips use parts of the current models. Every other upgrade gets a texture swap on an existing bone.
 - **Chips.** 3 shared chip items (iron, gold, diamond). Each fits the Processor, the Sequencer and the Egg Printer.
 - **Cap.** At most 3 upgrades per machine. No machine has more than 3 upgrade slots today, so the cap limits nothing. No upgrade blocks another.
@@ -1229,7 +1258,7 @@ See Art list → Screens (GUI) (linked-machine tabs, pop-up slot dialog, status 
 
 **Engineering:** backlog F1.10.
 
-**Changed since last review:** Part names follow the video. 3 shared chips. Upgrades change the look with no new part. Extra power only for chips and bulbs. No "No bulb" fault. Two creative items per machine: assembled and max-upgraded, both with full energy. Status panel above each machine, 8 blocks, per-player toggle. Glow regions set for all four machines. Machine performance gate set. Nublar widget look for sliders, dropdown arrows, buttons, text boxes and scroll bars. Buttons take the tab shape or cut corners, with no round ends.
+**Changed since last review:** Part names follow the video. 3 shared chips. Upgrades change the look with no new part. Extra power only for chips and bulbs. No "No bulb" fault. Two creative items per machine: assembled and max-upgraded, both with full energy. Status panel above each machine, 8 blocks, per-player toggle. Glow regions set for all four machines. Machine performance gate set. Nublar widget look for sliders, dropdown arrows, buttons, text boxes and scroll bars. Buttons take the tab shape or cut corners, with no round ends. Upgrades also go in through upgrade slots on every machine screen.
 
 ---
 

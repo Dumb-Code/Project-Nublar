@@ -87,10 +87,10 @@ Status words:
 | Dinosaur effects | 0 | 0 | 0 | 0 | 32 | 0 | 0 |
 | Dinosaur hover box | 0 | 0 | 0 | 0 | 2 | 0 | 0 |
 | Eggs and hatching | 1 | 0 | 4 | 5 | 18 | 0 | 0 |
-| Fossil Processor | 9 | 1 | 0 | 0 | 8 | 3 | 0 |
-| Sequencer | 8 | 4 | 1 | 0 | 20 | 1 | 0 |
-| Egg Printer | 8 | 1 | 0 | 0 | 13 | 2 | 0 |
-| Incubator | 8 | 6 | 1 | 0 | 13 | 2 | 0 |
+| Fossil Processor | 9 | 1 | 0 | 0 | 9 | 3 | 0 |
+| Sequencer | 8 | 4 | 1 | 0 | 21 | 1 | 0 |
+| Egg Printer | 8 | 1 | 0 | 0 | 14 | 2 | 0 |
+| Incubator | 8 | 6 | 1 | 0 | 14 | 2 | 0 |
 | Machine shared parts | 0 | 1 | 1 | 0 | 10 | 0 | 0 |
 | Lab items | 11 | 0 | 3 | 0 | 6 | 0 | 0 |
 | Fossils and amber | 1 | 0 | 15 | 0 | 18 | 0 | 0 |
@@ -100,17 +100,17 @@ Status words:
 | Feeders | 3 | 0 | 0 | 10 | 20 | 0 | 0 |
 | Digsites and villagers | 0 | 0 | 1 | 0 | 7 | 0 | 0 |
 | Vehicles | 1 | 0 | 2 | 5 | 26 | 0 | 0 |
-| **Total (without guns)** | **251** | **24** | **179** | **69** | **453** | **42** | **1** |
+| **Total (without guns)** | **251** | **24** | **179** | **69** | **457** | **42** | **1** |
 | Guns (blocked) | 0 | 0 | 2 | 11 | 3 | 0 | 0 |
 
-- **Counted rows:** 1018 (guns not included).
-- **Work left:** 725 rows (453 to make, 69 to export or convert, 179 to import, 24 to check in game), plus 42 shared files for the artist to confirm.
+- **Counted rows:** 1022 (guns not included).
+- **Work left:** 729 rows (457 to make, 69 to export or convert, 179 to import, 24 to check in game), plus 42 shared files for the artist to confirm.
 - **Done:** 251.
 - **Not counted:** 1 row that waits on the lead, 32 rows with no art needed, 38 rows not in Beta (6 of them Release 1 groups).
 - **Guns:** blocked on D08. They are not in the total.
 - **Per-milestone counts:** the roadmap's milestone table. They come from the Feature column of each row (F1.x is M1, F2.x is M2, F3.x is M3, F4.x is M4), with guns left out.
 
-**Changed since last review:** Vehicle assembly uses existing groups, so the chassis and engine rows are gone and the wheel split is a Done developer row. Large Generator gets its own ignite, fuel-out and loop rows. Release 1 asset groups listed, not counted. Question 21 settled. One glow mask row per lab machine. Incubator lamp colours set as placeholders. The bird Embryo Syringe takes the 1.12 texture. The dinosaur-embryo syringe needs a new sprite. Edit-tab censor static row added. Generic pelvis, foot and spine are Missing: no shared sprite exists. Nublar widget kit for machine screens (sliders, dropdown arrows, buttons, text boxes), Sequencer style. Triceratops horn sets named: one file per set, one set and one colour per animal. Question 22 on the horn `v2` files and the Black/Yellow overlays. Triceratops rest idle holds the last pose of its lie-down, and it needs a get-up clip. Feeder 2 needs one bone per meat piece. Triceratops species icon imported. Amber ore needs an amber layer cut from the REPO ore texture. Creative Generator textures from 1.12.2 are ready to import. Sequencer screen rows for empty-slot icons, the soft glow and the status chip and event message. Shared scroll bar row.
+**Changed since last review:** Vehicle assembly uses existing groups, so the chassis and engine rows are gone and the wheel split is a Done developer row. Large Generator gets its own ignite, fuel-out and loop rows. Release 1 asset groups listed, not counted. Question 21 settled. One glow mask row per lab machine. Incubator lamp colours set as placeholders. The bird Embryo Syringe takes the 1.12 texture. The dinosaur-embryo syringe needs a new sprite. Edit-tab censor static row added. Generic pelvis, foot and spine are Missing: no shared sprite exists. Nublar widget kit for machine screens (sliders, dropdown arrows, buttons, text boxes), Sequencer style. Triceratops horn sets named: one file per set, one set and one colour per animal. Question 22 on the horn `v2` files and the Black/Yellow overlays. Triceratops rest idle holds the last pose of its lie-down, and it needs a get-up clip. Feeder 2 needs one bone per meat piece. Triceratops species icon imported. Amber ore needs an amber layer cut from the REPO ore texture. Creative Generator textures from 1.12.2 are ready to import. Sequencer screen rows for empty-slot icons, the soft glow and the status chip and event message. Shared scroll bar row. Processor fossil-slot icon row. Upgrade slot rows for the Sequencer, Egg Printer and Incubator screens.
 
 ## Questions for the artist and lead
 
@@ -1576,11 +1576,12 @@ Milestone: Fossil to egg.
 - **No moving parts:** no part moves, and none will. The video and the original show no Processor animation.
 - **Older state:** REPO machines/fossil_processor/models/Fossil_Processor.bbmodel has one group of 36 cubes and no tank bones.
 
-**To make (8)**
+**To make (9)**
 
 - Skins (2): Chip texture swap per chip tier; Glow mask: screens and readouts, indicator lights, lamps and bulbs, tanks and fluid.
 - Sounds (2): Start; Fault: no water or worn filter.
 - Sprites (4): Processor base; Processor body; Processor lid; Processor tanks.
+- GUI (1): Empty-slot icon: fossil.
 
 **To import (0)**
 
@@ -1647,10 +1648,11 @@ Screen contents follow the video. Screen art is the current GUI texture in the m
 | --- | --- | --- | --- | --- |
 | Processor screen | See the list below | To check in game | F1.3 | MOD/textures/gui/processor.png holds every slot, the gauge and the arrow. Check in game that each one works as in the video |
 | Water gauge fill | Animated water that rises and falls | Done | F1.3 | MOD/textures/gui/fluid_overlay.png |
+| Empty-slot icon: fossil | A faint fossil icon in the empty fossil slot | Missing | F1.3 | None. processor.png already draws the outlines of the other empty slots (filter, bucket, test tube, tank, chip). Style reference: the Sequencer's empty-slot icons |
 
-Processor screen parts: filter slot, bucket slot, water gauge, fossil slot, progress arrow, 3x3 output, test tube slot.
+Processor screen parts: filter slot, bucket slot, water gauge, fossil slot, progress arrow, 3x3 output, test tube slot, tank slot, chip slot.
 
-**Changed since last review:** The art target is the current mod model and texture, not the 2022 video look. The Processor has no animation. Glow mask regions set.
+**Changed since last review:** The art target is the current mod model and texture, not the 2022 video look. The Processor has no animation. Glow mask regions set. Empty fossil-slot icon row added. The tank and chip slots of the screen texture are real upgrade slots.
 
 ---
 
@@ -1672,11 +1674,11 @@ Milestone: Fossil to egg.
 - **REPO model:** machines/sequencer/Sequencer.bbmodel has the same groups, with the monitor still inside `computer`.
 - **Behind the door:** inside `mainBody`, the model already has a tube tray with 16 tubes, 3 system racks and 4 chip cubes. REPO cube names: `system_rack1` to `3`, `computer_chip01` to `04`.
 
-**To make (20)**
+**To make (21)**
 
 - Skins (4): Tank texture swap per tank tier; Dye mask (black parts take the dye colour); Lit monitor while powered; Glow mask: screens and readouts, indicator lights, lamps and bulbs, tanks and fluid.
 - Sounds (3): Start; Done; Door open and close.
-- GUI (13): Edit tab: donor rows with sliders, effect panel, chromosome grid, gender and reset buttons, colour wheel with brightness strip, layer controls, number slider box, risk panel, Basic and Advanced switch; Edit-tab censor static overlay; Empty-slot icons; Soft glow on the next input; Status chip and event message.
+- GUI (14): Edit tab: donor rows with sliders, effect panel, chromosome grid, gender and reset buttons, colour wheel with brightness strip, layer controls, number slider box, risk panel, Basic and Advanced switch; Edit-tab censor static overlay; Empty-slot icons; Soft glow on the next input; Status chip and event message; Upgrade slots: chip and tank.
 
 **To import (1)**
 
@@ -1754,8 +1756,9 @@ Screen contents follow the video. Screen art is the current GUI texture in the m
 | Edit tab: Basic and Advanced switch | Two labels with the Edit page's trapezoid under the chosen one. The trapezoid slides on a click | Missing | F1.5 | edit_page.png has the trapezoid at a fixed place (x 14 to 82). The slide needs the trapezoid as a sprite of its own, and the page texture without it |
 | Edit-tab censor static overlay (preview below 30 % DNA) | A light static over the solid black animal in the preview while the DNA is below 30 % | Missing | F1.5 | None |
 | Empty-slot icons | A faint icon in each empty slot: drive, sample, leftover, water, sugar, bone matter, plant matter, bird-embryo syringe, dinosaur-embryo syringe | Missing | F1.4, F1.6 | None. Vanilla draws its empty armour slots the same way (style reference) |
-| Soft glow on the next input | A soft pulsing glow around the slot, button or list that the player must use next | Missing | F1.4 | None. A glow sprite for each shape: slot, button, panel (proposal, lead decides, D305) |
-| Status chip and event message | The machine state chip and the short message after an event: cut-corner frames, and the icons alert, tick, turning ring and dot | Missing | F1.4, F1.6 | None |
+| Soft glow on the next input | A soft pulsing glow around the slot, button or list that the player must use next | Missing | F1.3, F1.4 | None. A glow sprite for each shape: slot, button, panel (proposal, lead decides, D305) |
+| Status chip and event message | The machine state chip and the short message after an event: cut-corner frames, and the icons alert, tick, turning ring and dot | Missing | F1.3, F1.4, F1.6 | None |
+| Upgrade slots: chip and tank | Slot frames with empty-slot icons for the chip and the tank, on the Synthesis tab | Missing | F1.6 | None. synth_page.png has no upgrade slots. A Synthesis-tab mock-up sets where they go (D308) |
 | Screen frame with turning ring logo | All tabs: frame, three tab shapes, "PN" logo with ring arcs that turn | To check in game | F1.4 | MOD/textures/gui/sequencer.png (frame, tabs) and center_pieces.png (5 ring arcs, PN logo). REPO guis/sequencer is another set. Check in game that the rings turn |
 | Sequence tab | See the list below | To check in game | F1.4 | MOD/textures/gui/sequencer.png, sequencer_page.png. Check in game that each item from the video is there |
 | Synthesis tab | Four ingredient bars, embryo picture that fills, Begin and Cancel button, arrow | To check in game | F1.6 | MOD/textures/gui/synth_page.png, center_pieces.png. Check in game that each item from the video is there |
@@ -1764,7 +1767,7 @@ Screen contents follow the video. Screen art is the current GUI texture in the m
 
 Sequence tab parts: drive slot, Regular and Isolated toggle, species list, Isolated gene and animal lists, input and leftover slots, DNA track.
 
-**Changed since last review:** The monitor glows whenever the Sequencer has power and animates while it works. Each upgrade changes the look with a texture swap, except the chip cubes. Glow mask row added. Edit-tab censor static row added. Rows added for empty-slot icons, the soft glow on the next input, and the status chip and event message. The Basic and Advanced button is now a switch with a sliding trapezoid.
+**Changed since last review:** The monitor glows whenever the Sequencer has power and animates while it works. Each upgrade changes the look with a texture swap, except the chip cubes. Glow mask row added. Edit-tab censor static row added. Rows added for empty-slot icons, the soft glow on the next input, and the status chip and event message. The Basic and Advanced button is now a switch with a sliding trapezoid. Upgrade slot row added for the chip and the tank.
 
 ---
 
@@ -1801,11 +1804,12 @@ Milestone: Fossil to egg.
 - **Bone split:** a developer moves the needle and the cross-rail into bones of their own, with no art change.
 - **Platform room:** `Panel` has only 0.5 px of room below it, so it can lower 0.5 px at most.
 
-**To make (13)**
+**To make (14)**
 
 - Skins (5): Chip texture swap per chip tier; Leveling Sensor texture swap; Ghost egg outline (idle printer); Emissive texture for the red and green lamps and the 2 by 3 panel; Glow mask: screens and readouts, indicator lights, lamps and bulbs, tanks and fluid.
 - Sounds (4): Start; Done; Fault: broken egg; Lid open and close.
 - Sprites (4): Egg Printer base; Egg Printer needle; Egg Printer platform; Egg Printer body.
+- GUI (1): Upgrade slots: chip and Leveling Sensor.
 
 **To import (0)**
 
@@ -1883,8 +1887,9 @@ Screen contents follow the video. Screen art is the current GUI texture in the m
 | Asset | Used for | Status | Feature | Where / reference |
 | --- | --- | --- | --- | --- |
 | Egg Printer screen | Bone meal gauge and slot, syringe slot, egg picture with progress lines, two output slots | Done | F1.7 | MOD/textures/gui/egg_printer.png, bonemeal_bar.png, egg.png |
+| Upgrade slots: chip and Leveling Sensor | Slot frames with empty-slot icons for the chip and the Leveling Sensor | Missing | F1.7 | None. egg_printer.png has no upgrade slots. The Egg Printer screen mock-up sets where they go (D308) |
 
-**Changed since last review:** The printer lamps glow whenever it has power and animate while it prints. An idle printer shows a ghost egg. The printed egg is the species' egg model with the printed texture. Glow mask row added.
+**Changed since last review:** The printer lamps glow whenever it has power and animate while it prints. An idle printer shows a ghost egg. The printed egg is the species' egg model with the printed texture. Glow mask row added. Upgrade slot row added for the chip and the Leveling Sensor.
 
 ---
 
@@ -1915,11 +1920,11 @@ Milestone: Fossil to egg.
 - **REPO models:** incubator_02.bbmodel has the same arm groups, with the nest and the arm base still inside `body`. incubator_01.bbmodel and incubator_01.png are an older variant.
 - **No lift post:** the current model has no lift post and no separate lamp part. Code moves `cover` straight up.
 
-**To make (13)**
+**To make (14)**
 
 - Skins (7): Container upgrade texture swap (6 and 9 eggs); Plant tank upgrade texture swap; Emissive lamp texture: base lamp, warm bulb, warmer bulb, hot bulb; Glow mask: screens and readouts, indicator lights, lamps and bulbs, tanks and fluid.
 - Sounds (5): Start; Lid up and down; Egg placed; Done; Fault: egg dies.
-- GUI (1): Bed tint: green and red.
+- GUI (2): Bed tint: green and red; Upgrade slots: bulb, container and plant tank.
 
 **To import (1)**
 
@@ -2012,11 +2017,12 @@ Screen contents follow the video. Screen art is the current GUI texture in the m
 | Asset | Used for | Status | Feature | Where / reference |
 | --- | --- | --- | --- | --- |
 | Bed tint: green and red | Green where an egg can go, red where it cannot | Missing | F1.8 | None found |
+| Upgrade slots: bulb, container and plant tank | Slot frames with empty-slot icons for the bulb, the container and the plant tank | Missing | F1.8 | None. incubator.png has no upgrade slots. The Incubator screen mock-up sets where they go (D308) |
 | Bed fills with plants | The bed in the pane fills with plants as plant matter goes in, as in 1.12: bare wood, then dark green, then leaves | To check in game | F1.8 | MOD/shaders/core/incubator_bed.* draws this fill, but no code uses it: `IncubatorScreen` draws a plain texture. Check that it matches the 1.12 effect |
 | Empty plant slot sprout icon | Plant slot when empty | To check in game | F1.8 | In MOD/textures/gui/incubator.png, bottom left of the bed pane beside the plant bar |
 | Incubator screen | Leaf bed pane, egg markers, plant matter icon and bar | To check in game | F1.8 | MOD/textures/gui/incubator.png. Check in game that each item from the video is there |
 
-**Changed since last review:** The lid lifts straight up with no lift post, and the build has no lift step. The lamp cap shows the bulb tier with 4 emissive textures. The claw opens and closes on each egg. The lamp glows whenever powered, in a placeholder colour per tier. Glow mask row added.
+**Changed since last review:** The lid lifts straight up with no lift post, and the build has no lift step. The lamp cap shows the bulb tier with 4 emissive textures. The claw opens and closes on each egg. The lamp glows whenever powered, in a placeholder colour per tier. Glow mask row added. Upgrade slot row added for the bulb, the container and the plant tank.
 
 ---
 ## Machine shared parts
