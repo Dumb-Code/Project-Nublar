@@ -3779,6 +3779,18 @@ What needs each added clip:
   - In a development run, a species list of required bones fails the model build.
   - A validate-on-load switch checks every clip against its model.
 
+##### Export tooling
+
+- The Art list has 55 "Needs export" rows. Each clip or model is in a REPO Blockbench file and only has to go into the mod.
+- Before the clip work starts, try a Blockbench MCP server on one row (proposal, lead decides, D320). The trial row is the Velociraptor `swim` clip from the jptlw file.
+  - Keep the server only if it runs the GeckoLib export, and the clip plays in game as in Blockbench.
+  - The server runs code inside Blockbench. Use it on a copy of the REPO file.
+- The agent moves only clips that exist. Artists still make every new clip.
+- The Sparkle add-on for Blender is optional for artists (proposal, lead decides, D321).
+  - It opens a `.bbmodel` in Blender and writes an edit back as a new clip. The old clip stays.
+  - The new clip has a linear key on every frame. The easing of the artist is lost, and the clip is hard to edit in Blockbench.
+  - Use it only for a clip that needs Blender tools, for example IK. It also renders mod scenes for trailers.
+
 #### Scope: sounds
 
 - Each species registers its own sound events from its own folder.
@@ -3865,7 +3877,7 @@ See Art list → each species (every clip and sound row), and Dinosaur effects. 
 - Every species walks and runs at the same body speeds. Each species' walk and run clips show its own pace, so the feet slide.
 - The Triceratops `restidle` and `getup` clips are empty. A resting Triceratops lies down with `rest`, then stands again while it rests.
 
-**Changed since last review:** Every species gets own clips and sounds, placeholders count as missing. Per-species warning sounds. Only T. rex and Velociraptor have nesting clips. Limp in Beta below 30 % health. Get-up idle fallback is development only. Gallimimus gets blood effects. Screen shake for three large species. Per-species walk and run speeds are open. Triceratops rest idle holds the last pose of its lie-down.
+**Changed since last review:** Every species gets own clips and sounds, placeholders count as missing. Per-species warning sounds. Only T. rex and Velociraptor have nesting clips. Limp in Beta below 30 % health. Get-up idle fallback is development only. Gallimimus gets blood effects. Screen shake for three large species. Per-species walk and run speeds are open. Triceratops rest idle holds the last pose of its lie-down. Two art-tool proposals wait for the lead (D320, D321).
 ### F2.4: Needs
 
 F2.4 gives each dinosaur hunger, thirst, stamina, sleep and stress, makes each need have results, and keeps a 100-dinosaur park at 20 ticks per second.
@@ -6990,6 +7002,15 @@ These rows come from the review of the Material 3 Expressive mock-ups of the Seq
 | D318 | F1.4, F1.5, F1.6 | Does the screen use a type scale? | Proposal: the lead asked about "type scales". The Minecraft font has one size, so the screen uses bold type roles. Titles, the chosen tab, names, stats and values are bold. Labels and hints stay regular | Lead decision pending |
 | D319 | F1.6 | Does the Synthesis arrow get an expressive fill? | Answered 2026-10-30 (lead): "plain fill is fine", after a wavy track that "seems too much". The arrow keeps its plain cyan fill, with no wave and no moving head | Answered |
 
+### D320 and later: art-tool review of 2026-10-30
+
+These rows come from a review of five art and agent tools on 2026-10-30. The tools are Blockbench MCP servers, the Sparkle add-on for Blender, Scenario, Claude Code Game Studios and a Blender MCP workflow. Only the first two fit a GeckoLib mod made in Blockbench. The mod adds no tool yet.
+
+| Id | Work package | Question | Default if unanswered | Status |
+| --- | --- | --- | --- | --- |
+| D320 | F2.3 | The Art list has 55 "Needs export" rows. Should an agent export them with a Blockbench MCP server? A trial on one row, the Velociraptor `swim` clip from the jptlw file, comes first | A person exports each row by hand in Blockbench | Lead decision pending |
+| D321 | F2.3 | Can artists make clips in Blender with the Sparkle add-on? It writes a linear key on every frame, so the easing of the artist is lost and the clip is hard to edit in Blockbench | Blockbench only for mod clips. Sparkle stays an option for trailer renders | Lead decision pending |
+
 ---
 
 ## Change log
@@ -7082,3 +7103,4 @@ These rows come from the review of the Material 3 Expressive mock-ups of the Seq
 - **2026-10-29 (lead: Processor screen mock-up):** D306 to D308. F1.3 gets the F1.4 screen style. Its status chip shows the time left, and its arrow has no tooltip. It also gets one glow in input order, a one-run notch on the gauge, and tank and chip slots. F1.10: upgrades also go in through a slot on every machine screen. F1.6, F1.7 and F1.8 list their upgrade slots. The Art list adds 4 rows.
 - **2026-10-30 (screen cost and GUI sprites):** D309 to D311. F1.4 gets the screen cost rules for every machine screen, and F1.3, F1.5 and F1.6 use them. The screen tasks make their own GUI sprites, and the Art list marks 25 rows "Agent makes it". The F1.4 acceptance gets an fps check (proposal). `docs/performance-baseline.md` lists the new gate.
 - **2026-10-30 (Sequencer Material 3 Expressive mock-ups):** D312 to D319. F1.4: the model fills most of the info card, light flows along the helix, and every tab has a narrow-window layout. F1.5: the animal picker and the gene control show only on demand. F1.6: the arrow keeps a plain fill. Proposals: Material 3 Expressive motion, reduced motion and contrast options, bold type roles. The Art list adds a motion sprites row.
+- **2026-10-30 (art-tool review):** D320 and D321, both proposals. F2.3 gets a Blockbench MCP trial for the "Needs export" rows and an optional Blender route (Sparkle) for clips.
