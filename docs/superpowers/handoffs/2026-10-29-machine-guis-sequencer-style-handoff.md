@@ -4,6 +4,15 @@ Suggested session title: **Machine GUIs: mock up the Processor, Egg Printer, Inc
 
 The lead approved a new look for the three Sequencer tabs on 2026-10-29 ("Feels right"). This handoff carries that look to the other lab machine screens. The work is design only: mock-ups, the lead's review, then plan text. No Java code changes.
 
+## Progress
+
+- **Fossil Processor: done.** The lead approved v3 on 2026-10-29. Plan commit `b16cd22` (D306 to D308), shared plan tabs synced. Mock-up: `docs/mockups/2026-10-29-processor-screen-approved.html`.
+- **New rules from that review:**
+  - D307: on the Processor the status chip shows the time left ("Processing · 3m 53s") and the arrow has no tooltip. The lead kept the Sequencer as it is ("No, Processor only"). Ask again on each machine whose chip and progress tooltip show the same thing.
+  - D308: upgrades also go in through a slot on every machine screen. Each mock-up must place them: Egg Printer chip and Leveling Sensor, Incubator bulb, container and plant tank, Sequencer chip and tank on the Synthesis tab (a new Synthesis-tab mock-up).
+  - A screen on a non-blue texture keeps its own palette for chips and messages (the Processor uses its slate greys). The accent colours stay.
+- **Next:** Egg Printer (order 2).
+
 ## Where things are
 
 - **Branch:** `m0.p2/port-26.2`. The Sequencer design is in commit `b558595` (local, not pushed). The shared plan page is synced to `b558595`.
