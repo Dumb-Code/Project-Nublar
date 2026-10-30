@@ -431,7 +431,7 @@ The player reads DNA samples onto a hard drive and watches each species fill tow
   - A thin bar at the right edge shows the position.
   - The mouse wheel or a drag on the bar scrolls the list.
 - **Hover.** Hover lights a button, a tab or a row. Gene bars and donor rows show a small tooltip.
-- **Type roles.** Titles, the chosen tab, names, stats and values are bold. Labels and hints stay regular (proposal, lead decides). The font has one size, so bold takes the place of a type scale.
+- **Type roles.** Titles, the chosen tab, names, stats and values are bold. Labels and hints stay regular. The font has one size, so bold takes the place of a type scale.
 
 ##### Screen motion (all three tabs)
 
@@ -439,19 +439,19 @@ The screen uses the Material Design 3 motion rules (https://m3.material.io/style
 
 - A click shows its result in the same frame. The motion plays on top of the new state.
 - Text never fades. A label that changes, for example "Sequencing 42%", changes in place.
-- **Tab change:** the new page shows from the first frame and slides 14 px in 0.25 s, from the side of the new tab. No fade and no bounce (proposal, lead decides).
-- **View change** (Regular and Isolated, Basic and Advanced): the same slide, 8 px in 0.2 s (proposal, lead decides).
-- **Markers:** the tab line, the view line and the Basic and Advanced trapezoid slide to the new choice. They move on a spring: stiffness 380, damping 0.8 (proposal, lead decides).
+- **Tab change:** the page slides about 10 px and cross-fades in 0.24 s. The new page shows from the first frame.
+- **View change** (Regular and Isolated, Basic and Advanced): a cross-fade in 0.18 s.
+- **Markers:** the tab line, the view line and the Basic and Advanced trapezoid slide to the new choice. They move on a spring: stiffness 380, damping 0.8.
 - **Values:** percentages, bars, sliders, tanks, the DNA mix and the risk bar move to a new value in about 0.15 s.
-- **Selected row:** its fill grows to full width and gets its 45° cut corners. It moves on a fast spring: stiffness 800, damping 0.6 (proposal, lead decides).
-- **Work that runs:** the run icon of the status chip steps through a square, a circle and a diamond. The bar of the row that runs waves, and the wave goes flat when the run ends (proposal, lead decides).
-- **Pop-ups:** the pop-up shows from the first frame. An outline grows out of the clicked slot to the pop-up in 0.3 s, and the screen dims. On close the pop-up goes at once, and the outline goes back into the slot in 0.2 s (proposal, lead decides).
+- **Selected row:** its fill grows to full width and gets its 45° cut corners. It moves on a fast spring: stiffness 800, damping 0.6.
+- **Work that runs:** the run icon of the status chip steps through a square, a circle and a diamond. The bar of the row that runs waves, and the wave goes flat when the run ends.
+- **Pop-ups:** the pop-up shows from the first frame. An outline grows out of the clicked slot to the pop-up in 0.3 s, and the screen dims. On close the pop-up goes at once, and the outline goes back into the slot in 0.2 s.
 - **Panels that open on demand:** the animal picker, the gene control and the narrow-window card. Each one shows from the first frame and slides 8 to 12 px in about 0.2 s. A click outside closes it at once.
 - **Feedback:** hover fades in a light highlight. A click sends a ripple out from the cursor, inside the control.
 - **Scrolling** eases to its new position.
-- **Messages** open up from their bottom edge in 0.25 s and close the same way (proposal, lead decides). **Tooltips** ease in and out on the M3 emphasized curves.
-- **Settings** (proposal, lead decides): two client config options.
-  - Reduced motion: no slides, shape changes, waves, ripples or pulses. Each change still shows at once.
+- **Messages and tooltips** ease in and out on the M3 emphasized curves.
+- **Settings:** two client config options.
+  - Reduced motion: no slides, fades, shape changes, waves, ripples or pulses. Each change still shows at once.
   - Contrast: standard, medium or high. Medium and high make dim text, borders, tracks and lines brighter. Each level uses fixed colour values.
 - Screen motion is client-only. It uses the frame time and changes nothing in the world.
 
@@ -476,7 +476,7 @@ Every machine screen draws on the client only. It must stay cheap on the minimum
 - **Layout.** The screen places its parts when it opens and when the window size changes. It never places them again in each frame.
 - **Colours.** Each machine has fixed colour values in code. The screen computes no colours in each frame.
 - **Motion.** Springs, slides and fades need no limit. They are small calculations in each frame.
-- **Check.** The fps with the screen open stays at 90 % or more of the fps with a chest screen open (proposal, lead decides, D311). The method is in `docs/performance-baseline.md`.
+- **Check.** The fps with the screen open stays at 95 % or more of the fps with a chest screen open. Playtests on the minimum PC tune this start value. The method is in `docs/performance-baseline.md`.
 
 ##### Sequence tab
 
@@ -553,7 +553,7 @@ See Art list → Sequencer (models, dye mask, lit monitor, door animation, sound
 
 **Engineering:** backlog F1.4.
 
-**Changed since last review:** The monitor stays as a fourth build part. Amber is identified only by sequencing. Vanilla animals show "Modern" and their real diet. Power per drive set. The monitor glows whenever powered and animates while working. Screen style and motion for all three tabs: tab-shaped buttons, one soft glow on the next input, status chip, empty-slot icons, event messages, scroll bars, M3 motion that never delays content. Clone stats on the info card. The Isolated view shows the animals each gene needs. Screen cost rules for every machine screen (D309, D311). The model fills most of the info card. Light flows along the helix. Every tab has a narrow-window layout. Proposals: Material 3 Expressive motion, reduced motion, contrast levels and bold type roles.
+**Changed since last review:** The monitor stays as a fourth build part. Amber is identified only by sequencing. Vanilla animals show "Modern" and their real diet. Power per drive set. The monitor glows whenever powered and animates while working. Screen style and motion for all three tabs: tab-shaped buttons, one soft glow on the next input, status chip, empty-slot icons, event messages, scroll bars, M3 motion that never delays content. Clone stats on the info card. The Isolated view shows the animals each gene needs. Screen cost rules for every machine screen (D309, D311). The model fills most of the info card. Light flows along the helix. Every tab has a narrow-window layout. Pop-ups grow an outline out of their slot. The run icon changes shape, and the running bar waves. Rows and markers move on springs. Reduced-motion and contrast options. Bold type roles. The fps check is 95 % of a chest screen.
 
 ---
 
