@@ -29,6 +29,11 @@ Status words:
 
 ## Rules for all art
 
+**Who makes GUI sprites** (D310)
+- The agent that builds a machine screen makes each GUI sprite that is a flat shape, a frame, a glow, a small icon, or a crop, slice or recolour of art in the mod.
+- The artist makes new pictures: models, item textures and new screen art.
+- These rows say "Agent makes it" in the last column. They keep their status word and count as work for the screen task.
+
 **No stand-ins**
 - A copied file is a Placeholder.
 - An empty clip (0 bones) is a Placeholder.
@@ -1648,7 +1653,7 @@ Screen contents follow the video. Screen art is the current GUI texture in the m
 | --- | --- | --- | --- | --- |
 | Processor screen | See the list below | To check in game | F1.3 | MOD/textures/gui/processor.png holds every slot, the gauge and the arrow. Check in game that each one works as in the video |
 | Water gauge fill | Animated water that rises and falls | Done | F1.3 | MOD/textures/gui/fluid_overlay.png |
-| Empty-slot icon: fossil | A faint fossil icon in the empty fossil slot | Missing | F1.3 | None. processor.png already draws the outlines of the other empty slots (filter, bucket, test tube, tank, chip). Style reference: the Sequencer's empty-slot icons |
+| Empty-slot icon: fossil | A faint fossil icon in the empty fossil slot | Missing | F1.3 | None. processor.png already draws the outlines of the other empty slots (filter, bucket, test tube, tank, chip). Style reference: the Sequencer's empty-slot icons. Agent makes it from the fossil item texture (D310). |
 
 Processor screen parts: filter slot, bucket slot, water gauge, fossil slot, progress arrow, 3x3 output, test tube slot, tank slot, chip slot.
 
@@ -1745,20 +1750,20 @@ Screen contents follow the video. Screen art is the current GUI texture in the m
 
 | Asset | Used for | Status | Feature | Where / reference |
 | --- | --- | --- | --- | --- |
-| Edit tab: donor rows with sliders | Preview with a player for scale, donor rows (colour swatch, name, %, slider), "+ Add donor" and locked rows, DNA mix bar, animal list | Missing | F1.5 | The page uses the current frame (sequencer.png) and tab (edit_page.png). The rows and sliders have no art. Each animal's three-colour set is data, not art |
-| Edit tab: effect panel | Effect rows with colour bars and two colour swatches | Missing | F1.5 | None |
-| Edit tab: chromosome grid | Gene bars: dim gene-group colours when locked, purple for isolated, red for selected, a colour strip for each group | Missing | F1.5 | None |
-| Edit tab: gender and reset buttons | Gender cycles male, female, random | Missing | F1.5 | None |
-| Edit tab: colour wheel with brightness strip | Colour genes | Missing | F1.5 | None |
-| Edit tab: layer controls | Per-layer mode with saturation, opacity and tint strength | Missing | F1.5 | None. Not in the video |
-| Edit tab: number slider box | Number genes such as Immunity | Missing | F1.5 | None |
-| Edit tab: risk panel | Incubation failure chance and stat drops | Missing | F1.5 | None. Not in the video |
-| Edit tab: Basic and Advanced switch | Two labels with the Edit page's trapezoid under the chosen one. The trapezoid slides on a click | Missing | F1.5 | edit_page.png has the trapezoid at a fixed place (x 14 to 82). The slide needs the trapezoid as a sprite of its own, and the page texture without it |
-| Edit-tab censor static overlay (preview below 30 % DNA) | A light static over the solid black animal in the preview while the DNA is below 30 % | Missing | F1.5 | None |
-| Empty-slot icons | A faint icon in each empty slot: drive, sample, leftover, water, sugar, bone matter, plant matter, bird-embryo syringe, dinosaur-embryo syringe | Missing | F1.4, F1.6 | None. Vanilla draws its empty armour slots the same way (style reference) |
-| Soft glow on the next input | A soft pulsing glow around the slot, button or list that the player must use next | Missing | F1.3, F1.4 | None. A glow sprite for each shape: slot, button, panel (proposal, lead decides, D305) |
-| Status chip and event message | The machine state chip and the short message after an event: cut-corner frames, and the icons alert, tick, turning ring and dot | Missing | F1.3, F1.4, F1.6 | None |
-| Upgrade slots: chip and tank | Slot frames with empty-slot icons for the chip and the tank, on the Synthesis tab | Missing | F1.6 | None. synth_page.png has no upgrade slots. A Synthesis-tab mock-up sets where they go (D308) |
+| Edit tab: donor rows with sliders | Preview with a player for scale, donor rows (colour swatch, name, %, slider), "+ Add donor" and locked rows, DNA mix bar, animal list | Missing | F1.5 | The page uses the current frame (sequencer.png) and tab (edit_page.png). The rows and sliders have no art. Each animal's three-colour set is data, not art. Agent makes it (D310). |
+| Edit tab: effect panel | Effect rows with colour bars and two colour swatches | Missing | F1.5 | None. Agent makes it (D310). |
+| Edit tab: chromosome grid | Gene bars: dim gene-group colours when locked, purple for isolated, red for selected, a colour strip for each group | Missing | F1.5 | None. Agent makes it (D310). |
+| Edit tab: gender and reset buttons | Gender cycles male, female, random | Missing | F1.5 | None. Agent makes it in the tab shape (D310). |
+| Edit tab: colour wheel with brightness strip | Colour genes | Missing | F1.5 | None. Agent makes it with a script (D310). |
+| Edit tab: layer controls | Per-layer mode with saturation, opacity and tint strength | Missing | F1.5 | None. Not in the video. Agent makes it (D310). |
+| Edit tab: number slider box | Number genes such as Immunity | Missing | F1.5 | None. Agent makes it (D310). |
+| Edit tab: risk panel | Incubation failure chance and stat drops | Missing | F1.5 | None. Not in the video. Agent makes it (D310). |
+| Edit tab: Basic and Advanced switch | Two labels with the Edit page's trapezoid under the chosen one. The trapezoid slides on a click | Missing | F1.5 | edit_page.png has the trapezoid at a fixed place (x 14 to 82). The slide needs the trapezoid as a sprite of its own, and the page texture without it. Agent makes it: a crop of the trapezoid, and edit_page.png without it (D310). |
+| Edit-tab censor static overlay (preview below 30 % DNA) | A light static over the solid black animal in the preview while the DNA is below 30 % | Missing | F1.5 | None. Agent makes it: a few noise frames from a script (D310). |
+| Empty-slot icons | A faint icon in each empty slot: drive, sample, leftover, water, sugar, bone matter, plant matter, bird-embryo syringe, dinosaur-embryo syringe | Missing | F1.4, F1.6 | None. Vanilla draws its empty armour slots the same way (style reference). Agent makes each icon from its item texture. The dinosaur-embryo syringe icon waits for that item sprite (D310). |
+| Soft glow on the next input | A soft pulsing glow around the slot, button or list that the player must use next | Missing | F1.3, F1.4 | None. A glow sprite for each shape: slot, button, panel (proposal, lead decides, D305). Agent makes it (D310). |
+| Status chip and event message | The machine state chip and the short message after an event: cut-corner frames, and the icons alert, tick, turning ring and dot | Missing | F1.3, F1.4, F1.6 | None. Agent makes it (D310). |
+| Upgrade slots: chip and tank | Slot frames with empty-slot icons for the chip and the tank, on the Synthesis tab | Missing | F1.6 | None. synth_page.png has no upgrade slots. A Synthesis-tab mock-up sets where they go (D308). Agent makes it, with icons from the item textures (D310). |
 | Screen frame with turning ring logo | All tabs: frame, three tab shapes, "PN" logo with ring arcs that turn | To check in game | F1.4 | MOD/textures/gui/sequencer.png (frame, tabs) and center_pieces.png (5 ring arcs, PN logo). REPO guis/sequencer is another set. Check in game that the rings turn |
 | Sequence tab | See the list below | To check in game | F1.4 | MOD/textures/gui/sequencer.png, sequencer_page.png. Check in game that each item from the video is there |
 | Synthesis tab | Four ingredient bars, embryo picture that fills, Begin and Cancel button, arrow | To check in game | F1.6 | MOD/textures/gui/synth_page.png, center_pieces.png. Check in game that each item from the video is there |
@@ -1887,7 +1892,7 @@ Screen contents follow the video. Screen art is the current GUI texture in the m
 | Asset | Used for | Status | Feature | Where / reference |
 | --- | --- | --- | --- | --- |
 | Egg Printer screen | Bone meal gauge and slot, syringe slot, egg picture with progress lines, two output slots | Done | F1.7 | MOD/textures/gui/egg_printer.png, bonemeal_bar.png, egg.png |
-| Upgrade slots: chip and Leveling Sensor | Slot frames with empty-slot icons for the chip and the Leveling Sensor | Missing | F1.7 | None. egg_printer.png has no upgrade slots. The Egg Printer screen mock-up sets where they go (D308) |
+| Upgrade slots: chip and Leveling Sensor | Slot frames with empty-slot icons for the chip and the Leveling Sensor | Missing | F1.7 | None. egg_printer.png has no upgrade slots. The Egg Printer screen mock-up sets where they go (D308). Agent makes it, with icons from the item textures (D310). |
 
 **Changed since last review:** The printer lamps glow whenever it has power and animate while it prints. An idle printer shows a ghost egg. The printed egg is the species' egg model with the printed texture. Glow mask row added. Upgrade slot row added for the chip and the Leveling Sensor.
 
@@ -2016,8 +2021,8 @@ Screen contents follow the video. Screen art is the current GUI texture in the m
 
 | Asset | Used for | Status | Feature | Where / reference |
 | --- | --- | --- | --- | --- |
-| Bed tint: green and red | Green where an egg can go, red where it cannot | Missing | F1.8 | None found |
-| Upgrade slots: bulb, container and plant tank | Slot frames with empty-slot icons for the bulb, the container and the plant tank | Missing | F1.8 | None. incubator.png has no upgrade slots. The Incubator screen mock-up sets where they go (D308) |
+| Bed tint: green and red | Green where an egg can go, red where it cannot | Missing | F1.8 | None found. Agent makes it (D310). |
+| Upgrade slots: bulb, container and plant tank | Slot frames with empty-slot icons for the bulb, the container and the plant tank | Missing | F1.8 | None. incubator.png has no upgrade slots. The Incubator screen mock-up sets where they go (D308). Agent makes it, with icons from the item textures (D310). |
 | Bed fills with plants | The bed in the pane fills with plants as plant matter goes in, as in 1.12: bare wood, then dark green, then leaves | To check in game | F1.8 | MOD/shaders/core/incubator_bed.* draws this fill, but no code uses it: `IncubatorScreen` draws a plain texture. Check that it matches the 1.12 effect |
 | Empty plant slot sprout icon | Plant slot when empty | To check in game | F1.8 | In MOD/textures/gui/incubator.png, bottom left of the bed pane beside the plant bar |
 | Incubator screen | Leaf bed pane, egg markers, plant matter icon and bar | To check in game | F1.8 | MOD/textures/gui/incubator.png. Check in game that each item from the video is there |
@@ -2047,16 +2052,16 @@ Milestone: Fossil to egg.
 
 | Asset | Used for | Status | Feature | Where / reference |
 | --- | --- | --- | --- | --- |
-| Pop-up slot dialog | "Insert Hard Drive", "Insert Genetic Material", "Collect Leftover Item" | Missing | F1.10 | None found in MOD/textures/gui |
-| Warning tab | A stopped machine shows why: no power, no input, output full and more | Missing | F1.10 | None |
+| Pop-up slot dialog | "Insert Hard Drive", "Insert Genetic Material", "Collect Leftover Item" | Missing | F1.10 | None found in MOD/textures/gui. Agent makes it (D310). |
+| Warning tab | A stopped machine shows why: no power, no input, output full and more | Missing | F1.10 | None. Agent makes it (D310). |
 | Power symbol: powered and unpowered | Shows whether a machine has power, on the machine itself and as the dot at the left of the status panel above it | Missing | F1.10 | None |
 | Status bar on the left of each machine screen | Green bar, red tick while running | To check in game | F1.10 | Not a separate file. Check whether each screen texture holds it |
 | Linked-machine tabs (4 machines, active and inactive) | Change machines without leaving the screen | Ready to import | F1.10 | REPO guis/tabs/ (8 PNG). Not in the mod |
-| Slider: track and handle, normal and highlighted | Every slider on a machine screen, for example the Edit-tab donor and gene sliders | Missing | F1.10 | None. Since the 26.2 port the sliders draw vanilla's `widget/slider` sprites. REPO guis/sequencer/buttons_loading_bars.png (slanted cyan and dark-blue bars) is the style reference |
-| Dropdown arrows: up and down | The open and close arrows of the species and animal dropdowns | Missing | F1.10 | None. Since the 26.2 port they draw vanilla's `transferable_list` arrows. REPO guis/sequencer/buttons_loading_bars.png (slanted cyan and dark-blue bars) is the style reference |
-| Button frame: normal, highlighted and inactive | Machine screen buttons, for example Begin and Cancel (with a green ready state) and the gene buttons | Missing | F1.10 | None. Code draws a plain border today. Shape: the 45° tab trapezoid of MOD/textures/gui/sequencer.png, or 45° cut corners, with no round ends. REPO guis/sequencer/buttons_loading_bars.png (slanted cyan and dark-blue bars) is the style reference |
-| Scroll bar: track and thumb, normal and highlighted | Lists that grow, for example the Sequencer species, gene and animal lists | Missing | F1.10 | None. A thin bar at the right edge of the list. REPO guis/sequencer/buttons_loading_bars.png is the style reference |
-| Text box frame: normal and focused | Search and number boxes on machine screens | Missing | F1.10 | None. Code draws a vanilla-like box today. REPO guis/sequencer/buttons_loading_bars.png (slanted cyan and dark-blue bars) is the style reference |
+| Slider: track and handle, normal and highlighted | Every slider on a machine screen, for example the Edit-tab donor and gene sliders | Missing | F1.10 | None. Since the 26.2 port the sliders draw vanilla's `widget/slider` sprites. REPO guis/sequencer/buttons_loading_bars.png (slanted cyan and dark-blue bars) is the style reference. Agent makes it (D310). |
+| Dropdown arrows: up and down | The open and close arrows of the species and animal dropdowns | Missing | F1.10 | None. Since the 26.2 port they draw vanilla's `transferable_list` arrows. REPO guis/sequencer/buttons_loading_bars.png (slanted cyan and dark-blue bars) is the style reference. Agent makes it (D310). |
+| Button frame: normal, highlighted and inactive | Machine screen buttons, for example Begin and Cancel (with a green ready state) and the gene buttons | Missing | F1.10 | None. Code draws a plain border today. Shape: the 45° tab trapezoid of MOD/textures/gui/sequencer.png, or 45° cut corners, with no round ends. REPO guis/sequencer/buttons_loading_bars.png (slanted cyan and dark-blue bars) is the style reference. Agent makes it (D310). |
+| Scroll bar: track and thumb, normal and highlighted | Lists that grow, for example the Sequencer species, gene and animal lists | Missing | F1.10 | None. A thin bar at the right edge of the list. REPO guis/sequencer/buttons_loading_bars.png is the style reference. Agent makes it (D310). |
+| Text box frame: normal and focused | Search and number boxes on machine screens | Missing | F1.10 | None. Code draws a vanilla-like box today. REPO guis/sequencer/buttons_loading_bars.png (slanted cyan and dark-blue bars) is the style reference. Agent makes it (D310). |
 
 ### Sounds
 

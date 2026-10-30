@@ -1064,7 +1064,7 @@ F1.3 delivers the whole Fossil Processor: the machine that turns one fossil or a
 - A worn filter shows a durability bar.
 - A status bar runs down the left outside edge, as on every machine screen.
 - Screen art: the current `textures/gui/processor.png`. The screen draws no title.
-- The screen style and screen motion of the F1.4 spec, in the slate colours of the texture:
+- The screen style, screen motion and screen cost of the F1.4 spec, in the slate colours of the texture:
   - A status chip at the top right: the next input, "Processing · 3m 53s" with the time left, or "Done". The time changes in place.
   - One soft glow on the first missing input, in the order filter, water, test tube, fossil. A label only on that slot. The upgrade slots never glow.
   - A faint fossil icon in the empty fossil slot. The texture already draws the other empty-slot outlines.
@@ -1247,9 +1247,11 @@ F1.4 delivers the Sequencer block, its frame screen and the Sequence tab. F1.5 a
   - A status chip, event messages (one at a time) and hover tooltips.
   - Scroll bars on the lists that grow. The mouse wheel and a bar drag scroll them.
   - Material Design 3 motion that only decorates. A click shows its result in the same frame, and text never fades.
+  - The screen cost rules: no shader passes, effects in slices, panel tiles of 16 px or more, at most two 3D models, layout only on open and on resize.
 - Clicking a slot opens a small popup with a title and one slot. The main screen dims behind it.
   - "Insert Hard Drive", "Insert Genetic Material", "Collect Leftover Item".
 - The Sequencer tab icon for the F1.10 tab host: DNA, in an active and an inactive look.
+- This task makes the GUI sprites that the Art list marks "Agent makes it" (D310).
 
 #### Sequence tab
 
@@ -1373,8 +1375,9 @@ F1.4 delivers the Sequencer block, its frame screen and the Sequence tab. F1.5 a
 - Each state plays its own sound event.
 - Each recipe row crafts in survival.
 - The machine gate of F1.10 holds for this machine.
+- The fps with the Sequencer screen open stays at 90 % or more of the fps with a chest screen open (proposal, lead decides, D311).
 
-**Changed since last review:** Sequencing is the only step that identifies amber DNA. Empty tubes and syringes come back. Vanilla cards show "Modern" and real diet. Power draw 20 (HDD) and 42 (SSD) FE per tick. Door animation and monitor glow added. The monitor glows whenever powered. No Ender SSD. Screen style and motion for all three tabs (D300 to D303). Clone stats on the info card, with a failed-egg count on the drive (D304). The Isolated view shows the animals each gene needs.
+**Changed since last review:** Sequencing is the only step that identifies amber DNA. Empty tubes and syringes come back. Vanilla cards show "Modern" and real diet. Power draw 20 (HDD) and 42 (SSD) FE per tick. Door animation and monitor glow added. The monitor glows whenever powered. No Ender SSD. Screen style and motion for all three tabs (D300 to D303). Clone stats on the info card, with a failed-egg count on the drive (D304). The Isolated view shows the animals each gene needs. Screen cost rules for every machine screen, with an fps check (D309, D311). The screen task makes its GUI sprites (D310).
 ### F1.5: Sequencer: gene editing
 
 F1.5 is the Edit tab of the Sequencer: the player mixes donor DNA, edits isolated genes and colours, and sees the risk before synthesis.
@@ -1666,7 +1669,7 @@ F1.6 is the Synthesis tab of the Sequencer: it turns a bird-embryo syringe and f
 
 Matches video 7:00-7:45, with the section 11.7 changes.
 
-- [ ] The F1.4 frame, screen style and screen motion. Four corner groups, each with a slot, a label with the amount, and a bar in the ingredient's colours:
+- [ ] The F1.4 frame, screen style, screen motion and screen cost. Four corner groups, each with a slot, a label with the amount, and a bar in the ingredient's colours:
   - Water top left, Sugar bottom left, Bone Matter top right, Plant Matter bottom right.
   - A white tick marks what one run uses. Below the tick, the label and the tick turn amber, and the slot glows.
 - [ ] A status chip at the top left: the missing input, "Ready", "Synthesizing N%" or "Done".
@@ -2459,7 +2462,7 @@ F1.10 is the code that every lab machine shares: parts, the master block, upgrad
   - Its meaning is not stated. Stored energy, with the red tick showing "running" (proposal, lead decides).
 - [ ] Every machine screen darkens the world behind it, as vanilla screens do, and survives a window resize.
 - [ ] Shift-click works in every machine screen. A removed tube leaves the screen.
-- [ ] Nublar widget look (D289): sliders, dropdown arrows, buttons and text boxes on machine screens draw the mod's own sprites in the Sequencer style.
+- [ ] Nublar widget look (D289): sliders, dropdown arrows, buttons and text boxes on machine screens draw the mod's own sprites in the Sequencer style. This task makes the sprites (D310).
   - The sprites are nine-sliced in the mod's GUI sprites, like vanilla's widget sprites, so resource packs can restyle them.
   - The `nublar-gui` slider and dropdown widgets take a sprite set; until the art exists they keep the vanilla 26.2 sprites.
 - [ ] One layout record per machine drives the menu, the screen, the item handler and any recipe viewer.
@@ -6961,6 +6964,16 @@ These rows come from the lead's review of the Fossil Processor screen mock-up. T
 | D307 | F1.3 | The status chip ("Processing 0%") and the arrow tooltip ("4m 0s (0%)") showed the same progress. How do they split? | Answered 2026-10-29 (lead): "this seems kind of redundant when you already have this arrow with the tooltip". The lead picked "B: time, no tooltip": the chip shows the time left ("Processing · 3m 53s"), and the arrow has no tooltip. Its fill shows the progress. The Sequencer keeps its chip and helix tooltip ("No, Processor only") | Answered |
 | D308 | F1.3, F1.6, F1.7, F1.8, F1.10 | `processor.png` draws a tank slot and a chip slot, but upgrades went on by right-click only. What are the two slots? | Answered 2026-10-29 (lead): "Real slots too", on "Every machine". An upgrade goes in by a right-click on the machine or through its slot on the machine screen. Every machine screen gets one slot for each upgrade that the machine takes. The Sequencer, Egg Printer and Incubator screen mock-ups set where the slots go | Answered |
 
+### D309 and later: screen cost and GUI sprites, 2026-10-30
+
+These rows come from the review of the Material 3 Expressive mock-ups on 2026-10-30.
+
+| Id | Work package | Question | Answer or default | Status |
+| --- | --- | --- | --- | --- |
+| D309 | F1.3 to F1.8, F1.10 | What may the screen effects cost on the PCs that players use? | Answered 2026-10-30 (user): "okay incorporate that into the plan". F1.4 gets screen cost rules for every machine screen. No shader passes. Effects draw as slices of 5 to 10 px or as one strip. Panel tiles are 16 px or more. At most two 3D models show. Layout runs only on open and on resize. Colours stay fixed | Answered |
+| D310 | F1.3 to F1.8, F1.10 | Who makes the GUI sprites: frames, glows, widgets and slot icons? | Answered 2026-10-30 (user): "have the agent do it themself wherever possible". The agent that builds a screen makes the simple GUI sprites. These are flat shapes, frames, glows, small icons, and crops, slices or recolours of art in the mod. The artist makes new pictures. The Art list marks 25 rows "Agent makes it" | Answered |
+| D311 | F1.4 | Which fps check shows that a machine screen is cheap? | Proposal: the fps with the screen open stays at 90 % or more of the fps with a chest screen open. Use the minimum PC with Fast graphics. The value follows the client part of the machine gate (D282) | Lead decision pending |
+
 ---
 
 ## Change log
@@ -7051,3 +7064,4 @@ These rows come from the lead's review of the Fossil Processor screen mock-up. T
 - **2026-10-29 (Java best practices):** Global constraints and the Reviewer checklist add `docs/java-best-practices.md`, one Java checklist for all new and changed code.
 - **2026-10-29 (lead: Sequencer screen mock-ups):** D300 to D305. F1.4 gets the screen style and the screen motion for all three Sequencer tabs. It also gets scroll bars, clone stats on the info card and a gene-by-animal Isolated view. F1.5 gets the Basic and Advanced switch, donor rows with colour sets, the DNA mix bar and the gene control layout. F1.6 gets tank amounts and run ticks, the status chip and the Begin button states. F1.10 widgets add scroll bars and the tab shape. The Art list adds 4 rows.
 - **2026-10-29 (lead: Processor screen mock-up):** D306 to D308. F1.3 gets the F1.4 screen style. Its status chip shows the time left, and its arrow has no tooltip. It also gets one glow in input order, a one-run notch on the gauge, and tank and chip slots. F1.10: upgrades also go in through a slot on every machine screen. F1.6, F1.7 and F1.8 list their upgrade slots. The Art list adds 4 rows.
+- **2026-10-30 (screen cost and GUI sprites):** D309 to D311. F1.4 gets the screen cost rules for every machine screen, and F1.3, F1.5 and F1.6 use them. The screen tasks make their own GUI sprites, and the Art list marks 25 rows "Agent makes it". The F1.4 acceptance gets an fps check (proposal). `docs/performance-baseline.md` lists the new gate.

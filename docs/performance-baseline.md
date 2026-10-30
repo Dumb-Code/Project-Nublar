@@ -107,3 +107,4 @@ The line numbers are for `docs/plan/engineering-backlog.md` on 2026-10-25. Edits
 | 5931 | BH.1 | Load B "Target: 9 to 15 ms plus repath spikes." |
 | 6012 | BH.1 | "The four lab machines at work meet the machine gate of F1.10" |
 | 6801 | D282 | The lab machines grow the server tick by "less than 2 ms", and the client keeps "at least 90 % of its frame rate" |
+| 1378 | F1.4 (D311, proposal) | "The fps with the Sequencer screen open stays at 90 % or more of the fps with a chest screen open." Measure the same view twice: once with the machine screen open, once with a chest screen open. This line number is from 2026-10-30. |

@@ -264,7 +264,7 @@ The Fossil Processor is the first machine. It turns a fossil or an amber into on
 #### Screen
 
 - Art: the current `gui/processor.png`. A standard 9 × 4 player inventory.
-- Same screen style and screen motion as F1.4. The screen keeps the slate colours of its texture: chips and messages are dark slate, not the Sequencer navy. The accent colours stay.
+- Same screen style, screen motion and screen cost as F1.4. The screen keeps the slate colours of its texture: chips and messages are dark slate, not the Sequencer navy. The accent colours stay.
 - A status bar runs down the left outside edge (F1.10).
 - The screen draws no title.
 - **Left column, top to bottom:** filter slot (grey mesh-disc outline when empty), bucket slot (grey bucket outline), tall slim water gauge with tick marks and animated blue water.
@@ -447,6 +447,19 @@ The screen uses the Material Design 3 motion rules (https://m3.material.io/style
 - **Messages and tooltips** ease in and out on the M3 emphasized curves.
 - Screen motion is client-only. It uses the frame time and changes nothing in the world.
 
+##### Screen cost (all machine screens)
+
+Every machine screen draws on the client only. It must stay cheap on the minimum PC of `docs/performance-baseline.md`. That PC can use integrated graphics (D309).
+
+- **No shader passes.** Glow, blur and light effects are sprites with an alpha value. No screen uses a post-process pass or a custom shader.
+- **Effects in slices.** A light or wave effect on a bar draws as slices of 5 to 10 px or as one scrolling strip. It never draws one quad for each pixel column.
+- **Panel tiles.** A nine-slice panel that repeats a tile uses a tile of 16 px or more. Otherwise the panel stretches.
+- **3D models.** A screen draws at most two 3D models at a time: the animal and the Steve model. List rows show no 3D models.
+- **Layout.** The screen places its parts when it opens and when the window size changes. It never places them again in each frame.
+- **Colours.** Each machine has fixed colour values in code. The screen computes no colours in each frame.
+- **Motion.** Springs, slides and fades need no limit. They are small calculations in each frame.
+- **Check.** The fps with the screen open stays at 90 % or more of the fps with a chest screen open (proposal, lead decides, D311). The method is in `docs/performance-baseline.md`.
+
 ##### Sequence tab
 
 - "Regular" and "Isolated" labels under the tabs. A cyan line marks the chosen view.
@@ -519,7 +532,7 @@ See Art list → Sequencer (models, dye mask, lit monitor, door animation, sound
 
 **Engineering:** backlog F1.4.
 
-**Changed since last review:** The monitor stays as a fourth build part. Amber is identified only by sequencing. Vanilla animals show "Modern" and their real diet. Power per drive set. The monitor glows whenever powered and animates while working. Screen style and motion for all three tabs: tab-shaped buttons, one soft glow on the next input, status chip, empty-slot icons, event messages, scroll bars, M3 motion that never delays content. Clone stats on the info card. The Isolated view shows the animals each gene needs.
+**Changed since last review:** The monitor stays as a fourth build part. Amber is identified only by sequencing. Vanilla animals show "Modern" and their real diet. Power per drive set. The monitor glows whenever powered and animates while working. Screen style and motion for all three tabs: tab-shaped buttons, one soft glow on the next input, status chip, empty-slot icons, event messages, scroll bars, M3 motion that never delays content. Clone stats on the info card. The Isolated view shows the animals each gene needs. Screen cost rules for every machine screen (D309, D311).
 
 ---
 
@@ -551,7 +564,7 @@ The player designs the dinosaur: base species, donor animals, gender, colours an
 
 #### Screen
 
-Same frame, screen style and screen motion as F1.4.
+Same frame, screen style, screen motion and screen cost as F1.4.
 
 - **View switch:** "Basic" and "Advanced" labels at the top left. The Edit page's trapezoid sits under the chosen label and slides to the other label on a click.
 
@@ -708,7 +721,7 @@ The Sequencer joins the designed genome with a bird embryo and makes a dinosaur-
 
 #### Screen
 
-- Same frame, screen style and screen motion as F1.4.
+- Same frame, screen style, screen motion and screen cost as F1.4.
 - **Four corner groups:** Water top left, Sugar bottom left, Bone Matter top right, Plant Matter bottom right.
   - Each has a slot above its label and a long bar below it. The amount shows at the right of the label ("75%", "12/16").
   - The bar fills with the ingredient's colours. An empty bar is a dark track. A dot marks the end of the track.
