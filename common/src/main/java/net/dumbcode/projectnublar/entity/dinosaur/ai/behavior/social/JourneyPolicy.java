@@ -108,7 +108,7 @@ final class JourneyPolicy {
     static final int GRAZE_MOVE_SPREAD_TICKS = 400;
     static final double GRAZE_MOVE_MIN = 3.0D;
     static final double GRAZE_MOVE_MAX = 8.0D;
-    /** The old build's leader wander modifier: 0.086 blocks per tick (speed is quadratic in the modifier, {@link GroundSpeed}). */
+    /** The old build's leader wander modifier: 0.088 blocks per tick (speed is quadratic in the modifier, {@link GroundSpeed}). */
     static final float GRAZE_MOVE_SPEED = 0.8F;
     static final int JOURNEY_MIN_TICKS = 2400;
     static final int JOURNEY_SPREAD_TICKS = 3600;
@@ -124,7 +124,7 @@ final class JourneyPolicy {
      * A roaming journey is walked in legs of at most this many blocks toward its target (playtest fix P11): the
      * target is 156-314 blocks away, mostly in chunks the leader cannot read. 24 is well inside the 35-block
      * reach of a vanilla path (the follow range), so the path can bend round obstacles, and longer than one walk
-     * (at most 249 ticks at {@link #JOURNEY_SPEED}: 21.4 blocks), so a walk usually times out before its leg
+     * (at most 249 ticks at {@link #JOURNEY_SPEED}: 21.9 blocks), so a walk usually times out before its leg
      * point and the leader takes the next leg on the usual re-issue.
      */
     static final double LEG_LENGTH = 24.0D;
@@ -134,7 +134,7 @@ final class JourneyPolicy {
     static final int LEG_OFFSET_PAIRS = 2;
     /** Leg points tried per leg: straight ahead, then each offset ({@link #chooseLeg}). */
     static final int LEG_TRIES = 1 + 2 * LEG_OFFSET_PAIRS;
-    /** The old build's leader journey modifier: 0.086 blocks per tick (1.7 per second). */
+    /** The old build's leader journey modifier: 0.088 blocks per tick (1.76 per second). */
     static final float JOURNEY_SPEED = 0.8F;
     /**
      * Lead ruling 14 (fix P12c): a roaming journey's leg point, and so the journey target its last leg resolves,
@@ -171,8 +171,8 @@ final class JourneyPolicy {
      */
     static final double GATHER_MARGIN = 5.0D;
     /**
-     * Slowed for stragglers, for the whole wait (P13a ruling 3a; 0.6 is a lead ruling): 0.135 x 0.6^2 = about
-     * 0.049 blocks per tick, 56% of the journey ground speed (0.086). Not below
+     * Slowed for stragglers, for the whole wait (P13a ruling 3a; 0.6 is a lead ruling): 0.138 x 0.6^2 = about
+     * 0.050 blocks per tick, 56% of the journey ground speed (0.088). Not below
      * {@link GroundSpeed#MIN_WALK_MODIFIER}, or the leader would glide in the idle pose ({@code JourneyPolicyTest}).
      * The walk target and path stay; only the navigation speed changes.
      */
@@ -192,7 +192,7 @@ final class JourneyPolicy {
      * {@link HerdBodies#WALKING_SPEED} (0.01, the herd's own threshold for a moving body), so a body that only
      * sways does not count. Well below the slowest drag: within 6 blocks of the holder the lead moves the mob by
      * its own navigation at {@code followLeashSpeed} (vanilla 1.0), so the slowest drag is the leader's own
-     * walk on a lead (0.135 blocks per tick at the base attribute); farther out the lead pulls by velocity,
+     * walk on a lead (0.138 blocks per tick at the base attribute); farther out the lead pulls by velocity,
      * faster still. A push that passes it is harmless: a short journey, then the usual recentre.
      */
     static final double DRAG_MIN_STEP = 0.03D;
@@ -205,7 +205,7 @@ final class JourneyPolicy {
     /**
      * A drag starts only this far beyond the herd radius R (P8c fix round 1). The brain erases the walk target
      * when the leader's own graze move ends, before the leader's herd tick, while the leader still moves a
-     * stride (0.086 blocks per tick) plus some momentum (about 0.05, then 0.03); graze spots have no edge
+     * stride (0.088 blocks per tick) plus some momentum (about 0.05, then 0.03); graze spots have no edge
      * margin, so a normal graze move to the edge can leave the leader just outside R with no walk target and a
      * step above {@link #DRAG_MIN_STEP}. 2 blocks is far more than that coast, and small next to R (27.4 for
      * 20 Gallimimus), so a real drag is still caught within about 10 ticks of a walking drag. A leader that

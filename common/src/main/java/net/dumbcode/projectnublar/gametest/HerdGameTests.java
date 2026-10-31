@@ -56,26 +56,26 @@ import java.util.List;
  * <p>
  * <b>Travel time limits</b> (playtest 1, fix P4; they replace lead decision 18's 1200, 1500 and 2400 and the
  * plan's 2000, which were sized for speeds 3 to 8 times too high). Each travel test's limit is the realistic
- * time from the journey start, times 1.3 or more, rounded up to 100 ticks. The real ground speed is 0.135 x
- * modifier^2 blocks per tick ({@code GroundSpeed}): leader journey 0.8 = 0.086 b/t, catch-up and walk-back 1.2
- * = 0.194 b/t, graze 0.6 = 0.049 b/t. The realistic time adds up, for the leader spawned in the farthest grid
+ * time from the journey start, times 1.3 or more, rounded up to 100 ticks. The real ground speed is 0.138 x
+ * modifier^2 blocks per tick ({@code GroundSpeed}): leader journey 0.8 = 0.088 b/t, catch-up and walk-back 1.2
+ * = 0.198 b/t, graze 0.6 = 0.0496 b/t. The realistic time adds up, for the leader spawned in the farthest grid
  * cell:
  * <ul>
  * <li>start 90: the first path, and members in the leader's line stepping aside (up to 40 ticks each);</li>
- * <li>walk: the leader's route length / 0.086, stopping 3 short of the goal (arrival distance);</li>
+ * <li>walk: the leader's route length / 0.088, stopping 3 short of the goal (arrival distance);</li>
  * <li>re-issues: a vanilla walk runs 150-249 ticks and each restart costs up to 40 ticks: 40 x (walk / 150,
  * rounded down);</li>
  * <li>wait: only followers whose slot is on the trail count (JourneyPolicy.Tally), so a correct herd still
  * waits at the start for front-row followers from the spawn grid (up to 22 blocks from their slots) to catch
- * up at 0.194 b/t: assumed 100 ticks in open ground, with the limit at 1.3 x or more even for the full 200. Where the herd files through a narrowing
+ * up at 0.198 b/t: assumed 100 ticks in open ground, with the limit at 1.3 x or more even for the full 200. Where the herd files through a narrowing
  * (shore, forest, corridor), laggards in the file are assumed to use the whole cap: 200, the most a roaming
  * journey waits;</li>
  * <li>settle 100: TRAVEL after the arrival;</li>
  * <li>walk-in: the tail stands at the wedge depth plus 1.1 blocks of lag behind the leader (open spacing 4.2,
  * tight 3.2; 19 followers fill 7 open rows, 29.4 deep, or 60.8 in single file) and walks back inside R = 11.2
- * (20 Gallimimus: 4.2 x sqrt(20 / pi) + 0.6, at the tests' area scale 1, {@link #herdOf}) at 0.194 b/t.
+ * (20 Gallimimus: 4.2 x sqrt(20 / pi) + 0.6, at the tests' area scale 1, {@link #herdOf}) at 0.198 b/t.
  * Outside R a member walks at that speed with or without a graze spot (FollowFormation.spotWalkSpeed); only
- * the last part to its spot, inside R, is at 0.049 b/t, and the pass conditions need it inside R (or past a
+ * the last part to its spot, inside R, is at 0.0496 b/t, and the pass conditions need it inside R (or past a
  * line), not on its spot;</li>
  * <li>stagger 60: the first spot decision comes 0-60 ticks into GRAZE (GrazeSchedule.ENTER_STAGGER_TICKS) and
  * can switch the walk target and restart a path.</li>
@@ -106,15 +106,15 @@ public final class HerdGameTests {
     public static final String LOWGAP = "herd_lowgap";
     /**
      * Pinned grazing ticks before counting: spots are picked within 60 ticks (GrazeSchedule.ENTER_STAGGER_TICKS).
-     * At the graze speed (0.049 b/t) a member walks only up to 11.8 blocks toward its spot in the other 240,
+     * At the graze speed (0.0496 b/t) a member walks only up to 11.9 blocks toward its spot in the other 240,
      * so the tests that use this do not need the walks finished; grazingMembersStayPut waits
      * {@link #STAND_SETTLE_TICKS}.
      */
     private static final int GRAZE_SETTLE_TICKS = 300;
     /**
      * grazingMembersStayPut: pinned grazing ticks before counting standing members, so the first walks to the
-     * spots are over. The longest crosses the herd area, 2R = 22.4 blocks at 0.049 b/t: 60 + 457 = 517 ticks,
-     * x 1.3 = 672, so 700 ({@link #GRAZE_SETTLE_TICKS} was sized for 0.275 b/t).
+     * spots are over. The longest crosses the herd area, 2R = 22.4 blocks at 0.0496 b/t: 60 + 452 = 512 ticks,
+     * x 1.3 = 666, so 700 ({@link #GRAZE_SETTLE_TICKS} was sized for 0.275 b/t).
      */
     private static final int STAND_SETTLE_TICKS = 700;
     private static final int COUNTED_TICKS = 1200;
@@ -123,7 +123,7 @@ public final class HerdGameTests {
     /**
      * Spec T1: a member moving slower than this (blocks per tick) stands: the herd's own walking threshold
      * ({@code HerdBodies.WALKING_SPEED}). It must lie under every walking speed: the walk floor (modifier 0.45)
-     * moves 0.027 b/t and the graze walk (0.6) 0.049 b/t. The old 0.05 counted every graze walk as standing.
+     * moves 0.0279 b/t and the graze walk (0.6) 0.0496 b/t. The old 0.05 counted every graze walk as standing.
      */
     private static final double STILL_SPEED = 0.01D;
     private static final double STILL_FRACTION = 0.7D;
@@ -136,9 +136,9 @@ public final class HerdGameTests {
     private static final int LEADER_MOVE_INTERVAL = 100;
     private static final double LEADER_MOVE_DISTANCE = 5D;
     /**
-     * The leader's own graze-move modifier ({@code JourneyPolicy.GRAZE_MOVE_SPEED}): 0.086 b/t, so the 3 blocks
-     * {@link #LEADER_MOVE_MIN_FRACTION} asks for take 35 ticks of the 100. The old 0.5 moves 0.034 b/t and
-     * needs 88 ticks for them, too close to the interval.
+     * The leader's own graze-move modifier ({@code JourneyPolicy.GRAZE_MOVE_SPEED}): 0.088 b/t, so the 3 blocks
+     * {@link #LEADER_MOVE_MIN_FRACTION} asks for take 34 ticks of the 100. The old 0.5 moves 0.0344 b/t and
+     * needs 87 ticks for them, too close to the interval.
      */
     private static final float LEADER_MOVE_SPEED = 0.8F;
     /** The leader must get at least this fraction of {@link #LEADER_MOVE_DISTANCE} away from its start before the next order. */
@@ -517,9 +517,9 @@ public final class HerdGameTests {
      * stays under the hard minimum for more than 20 ticks; no member presses into a wall for over 40 ticks.
      * <p>
      * Limit (class Javadoc): route 51 blocks (cell 3.5, 18.5 to 3 short of the goal); start 90 + walk
-     * 51 / 0.086 = 593 + re-issues 3 x 40 = 120 + wait 100 + settle 100 + walk-in (open wedge, tail 30.5
-     * behind) (30.5 - 11.2) / 0.194 = 100 + stagger 60; total 1163, x 1.3 = 1512. A full 200-tick wait makes
-     * 1263, x 1.3 = 1642, so 1700 (1.46 x the realistic total, 1.35 x with the full wait). The timeout leaves
+     * 51 / 0.088 = 580 + re-issues 3 x 40 = 120 + wait 100 + settle 100 + walk-in (open wedge, tail 30.5
+     * behind) (30.5 - 11.2) / 0.198 = 97 + stagger 60; total 1147, x 1.3 = 1491. A full 200-tick wait makes
+     * 1247, x 1.3 = 1621, so 1700 (1.48 x the realistic total, 1.36 x with the full wait). The timeout leaves
      * 1500 ticks to form the herd.
      */
     public static void herdTravelsAlongTrail(GameTestHelper helper) {
@@ -543,9 +543,9 @@ public final class HerdGameTests {
      * ticks.
      * <p>
      * Limit (class Javadoc): route 51 blocks straight (cell 3.5, 18.5 to 3 short of the goal), x 1.3 for the
-     * turns between trunks = 66; start 90 + walk 66 / 0.086 = 767 + re-issues 5 x 40 = 200 + wait 200 + settle
+     * turns between trunks = 66; start 90 + walk 66 / 0.088 = 750 + re-issues 5 x 40 = 200 + wait 200 + settle
      * 100 + walk-in (single file through the trees, tail 62 behind, x 1.3 for the turns) (62 - 11.2) x 1.3 /
-     * 0.194 = 340 + stagger 60; total 1757, x 1.3 = 2284, so 2400 (1.37 x; the forest is the least certain
+     * 0.198 = 334 + stagger 60; total 1734, x 1.3 = 2254, so 2400 (1.38 x; the forest is the least certain
      * estimate, and the limit is not cut below lead decision 18's 2400). The timeout leaves 1600 ticks to form
      * the herd.
      */
@@ -579,11 +579,11 @@ public final class HerdGameTests {
      * followers share a target point; no wall press over 40 ticks.
      * <p>
      * Limit (class Javadoc): route 55 blocks (cell 3.5, 3.5 to the corridor mouth: 21.5; corridor: 20; exit to x 57.5:
-     * 13.5); start 90 + walk 55 / 0.086 = 640 + re-issues 4 x 40 = 160 + wait 200 + settle 100. At the arrival
+     * 13.5); start 90 + walk 55 / 0.088 = 625 + re-issues 4 x 40 = 160 + wait 200 + settle 100. At the arrival
      * the tail is 43.5 behind the leader (5 followers in 2 open rows east of the exit, 8 in single file at 3.2
      * through the corridor and 2 blocks either side of it, 6 in 2 open rows west of it, + 1.1 lag), 30 blocks
-     * short of x 44: 30 / 0.194 = 155, so 160 with the file ahead of it, + stagger 60; total 1410, x 1.3 =
-     * 1833, so 1900 (1.35 x). The timeout leaves 1500 ticks to form the herd.
+     * short of x 44: 30 / 0.198 = 152, so 160 with the file ahead of it, + stagger 60; total 1395, x 1.3 =
+     * 1814, so 1900 (1.36 x). The timeout leaves 1500 ticks to form the herd.
      */
     public static void herdPassesCorridor(GameTestHelper helper) {
         List<Dinosaur> animals = hatchTwenty(helper, 3);
@@ -617,11 +617,11 @@ public final class HerdGameTests {
      * journey cannot start in the meantime); no wall press over 40 ticks.
      * <p>
      * Limit (class Javadoc): route 45 blocks (cell 3.5, 3.5 to the passage 30.5, 19: 31.1; on to 3 short of
-     * the goal: 13.8); start 90 + walk 45 / 0.086 = 523 + re-issues 3 x 40 = 120 + wait 100 (open ground; the
+     * the goal: 13.8); start 90 + walk 45 / 0.088 = 511 + re-issues 3 x 40 = 120 + wait 100 (open ground; the
      * passage is 2 blocks long) + settle 100 + walk-in (wedge about 32 deep, tail 33 behind along the trail,
-     * back through the passage) (33 - 11.2) / 0.194 = 112, + 60 to find it stuck at the wall and get a fallback
-     * path = 175 + stagger 60; total 1168, x 1.3 = 1518. A full 200-tick wait makes 1268, x 1.3 = 1648, so
-     * 1700 (1.46 x the realistic total, 1.34 x with the full wait). The timeout leaves 1500 ticks to form the
+     * back through the passage) (33 - 11.2) / 0.198 = 110, + 60 to find it stuck at the wall and get a fallback
+     * path = 170 + stagger 60; total 1151, x 1.3 = 1496. A full 200-tick wait makes 1251, x 1.3 = 1626, so
+     * 1700 (1.48 x the realistic total, 1.36 x with the full wait). The timeout leaves 1500 ticks to form the
      * herd (after the limit and the 300 ticks of grazing).
      */
     public static void memberNeverEntersLowGap(GameTestHelper helper) {
@@ -670,10 +670,10 @@ public final class HerdGameTests {
      * no wall press over 40 ticks.
      * <p>
      * Limit (class Javadoc): route 52 blocks (cell 3.5, 18.5 round the channel's west end at 23.5, 11: 21.4;
-     * on to 3 short of the goal: 30.3); start 90 + walk 52 / 0.086 = 605 + re-issues 4 x 40 = 160 + wait 200 +
+     * on to 3 short of the goal: 30.3); start 90 + walk 52 / 0.088 = 591 + re-issues 3 x 40 = 120 + wait 200 +
      * settle 100 + walk-in (the deepest wedge, single file beside the channel, tail 62 behind) (62 - 11.2) /
-     * 0.194 = 262 + stagger 60; total 1477, x 1.3 = 1920, so 2000 (1.35 x). The timeout leaves 1400 ticks to
-     * form the herd.
+     * 0.198 = 257 + stagger 60; total 1418, x 1.3 = 1843. The limit is 2000 (1.41 x): it was sized on the 1.20.1
+     * law, 2 % slower, where the walk took one re-issue more. The timeout leaves 1400 ticks to form the herd.
      */
     public static void herdSkirtsWater(GameTestHelper helper) {
         List<Dinosaur> animals = hatchTwenty(helper, 3);

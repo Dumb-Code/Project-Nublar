@@ -253,7 +253,7 @@ class JourneyPolicyTest {
 
     @Test
     void theSlowWalkIsTheLeadsSpeed() {
-        // Lead ruling (P13a, mid-task): 0.6, so 0.135 x 0.6^2 = about 0.049 blocks per tick.
+        // Lead ruling (P13a, mid-task): 0.6, so 0.138 x 0.6^2 = about 0.050 blocks per tick.
         assertEquals(0.6F, JourneyPolicy.WAIT_SLOW_SPEED, 1.0E-6F);
     }
 
@@ -407,18 +407,18 @@ class JourneyPolicyTest {
     @Test
     void aGrazeMoveThatEndsJustOutsideTheAreaIsNoDrag() {
         // P8c fix round 1: the brain erases the walk target when a graze move ends, while the leader still has
-        // a stride of momentum (0.086 blocks per tick); spots have no edge margin, so it can stop just outside R.
+        // a stride of momentum (0.088 blocks per tick); spots have no edge margin, so it can stop just outside R.
         double radius = 27.4D; // 20 Gallimimus at the herd area scale (P11)
-        assertFalse(JourneyPolicy.dragStarts(radius + 0.5D, radius, false, 0.086D), "momentum after a graze move");
-        assertFalse(JourneyPolicy.dragStarts(radius + JourneyPolicy.DRAG_EDGE_MARGIN, radius, false, 0.086D), "at the margin");
-        assertTrue(JourneyPolicy.dragStarts(radius + JourneyPolicy.DRAG_EDGE_MARGIN + 0.01D, radius, false, 0.086D));
-        assertTrue(JourneyPolicy.DRAG_EDGE_MARGIN > 0.086D + 0.05D + 0.03D, "more than a stride plus the momentum after it");
+        assertFalse(JourneyPolicy.dragStarts(radius + 0.5D, radius, false, 0.088D), "momentum after a graze move");
+        assertFalse(JourneyPolicy.dragStarts(radius + JourneyPolicy.DRAG_EDGE_MARGIN, radius, false, 0.088D), "at the margin");
+        assertTrue(JourneyPolicy.dragStarts(radius + JourneyPolicy.DRAG_EDGE_MARGIN + 0.01D, radius, false, 0.088D));
+        assertTrue(JourneyPolicy.DRAG_EDGE_MARGIN > 0.088D + 0.05D + 0.03D, "more than a stride plus the momentum after it");
     }
 
     @Test
     void dragStepIsAboveTheWalkingThresholdAndBelowTheSlowestDrag() {
         // Within 6 blocks the lead moves the mob by its own navigation at followLeashSpeed (vanilla 1.0), so the
-        // slowest drag is the leader's own walk on a lead: 0.135 blocks per tick at the base attribute. Farther
+        // slowest drag is the leader's own walk on a lead: 0.138 blocks per tick at the base attribute. Farther
         // out the lead pulls by velocity, faster still.
         double attribute = net.dumbcode.projectnublar.entity.dinosaur.Dinosaur.BASE_MOVEMENT_SPEED;
         double leashWalk = GroundSpeed.groundSpeed(1D, attribute);

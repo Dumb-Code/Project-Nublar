@@ -1,6 +1,7 @@
 package net.dumbcode.projectnublar.entity.dinosaur.ai.behavior.social;
 
 import net.dumbcode.projectnublar.entity.dinosaur.Dinosaur;
+import net.dumbcode.projectnublar.entity.dinosaur.animation.MovementGait;
 import org.junit.jupiter.api.Test;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -35,6 +36,20 @@ class RunGaitTest {
         assertTrue(RunGait.running(true, middle, ATTRIBUTE), "a runner at 1.0 keeps running");
         assertTrue(RunGait.running(false, at(RunGait.ENTER_MODIFIER) * 1.01D, ATTRIBUTE));
         assertFalse(RunGait.running(true, at(RunGait.EXIT_MODIFIER) * 0.99D, ATTRIBUTE));
+    }
+
+    @Test
+    void aBurstTickDoesNotMakeAWalkAtModifierOneRun() {
+        // Task 54: a walk at modifier 1.0 (to water, a feeder, food) at its real 26.2 speed, worked out from vanilla's
+        // numbers and not from GroundSpeed: push s^2 per tick, 0.546 of the velocity kept. Two close position packets
+        // show one tick at 4/3 of it, and the client's average (MovementGait.SMOOTHING) reads 1.1 x the walk. The
+        // enter speed is 1.05^2 = 1.1025 x the walk, so the average stays under it by only 0.227 %. With GroundSpeed
+        // on the 1.20.1 law (0.98) the enter speed was 2 % lower, and this walk ran.
+        double speed = 1D * ATTRIBUTE;
+        double walk = speed * speed / (1D - 0.6D * 0.91D);
+        double smoothed = walk + MovementGait.SMOOTHING * (walk * 4D / 3D - walk);
+        assertFalse(RunGait.running(false, smoothed, ATTRIBUTE),
+                "average " + smoothed + " against the enter speed " + at(RunGait.ENTER_MODIFIER));
     }
 
     @Test

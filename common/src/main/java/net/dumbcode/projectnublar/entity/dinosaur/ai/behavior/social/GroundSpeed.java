@@ -7,9 +7,10 @@ package net.dumbcode.projectnublar.entity.dinosaur.ai.behavior.social;
  * (26.2, Mojang names): {@code MoveControl.tick} calls {@code Mob.setSpeed(s)}, which also sets the
  * forward input {@code zza = s}. 26.2 {@code LivingEntity.aiStep} damps the input ({@code applyInput},
  * times 0.98) before {@code serverAiStep} runs the move control, and builds the travel input after it
- * (26.2 sources, {@code LivingEntity.java} lines 3182, 3189 and 3234), so {@code travel} gets the full
- * {@code s} ({@link #INPUT_DAMPING} 1.0). {@code moveRelative(getFrictionInfluencedSpeed(0.6), input)}
- * scales the input (length s, under 1 so not normalised) by {@code s x 0.216 / 0.6^3 = s}. So the push per
+ * (vanilla 26.2 sources, which {@code common} compiles against: {@code LivingEntity.java} lines 3057, 3064
+ * and 3103), so {@code travel} gets the full {@code s} ({@link #INPUT_DAMPING} 1.0).
+ * {@code moveRelative(getFrictionInfluencedSpeed(0.6), input)} scales the input (length s, under 1 so not
+ * normalised) by {@code s x 0.216 / 0.6^3 = s}. So the push per
  * tick is {@code s^2}, and after the move the horizontal velocity keeps {@link #VELOCITY_KEPT}. At steady
  * state the move per tick is {@code d = s^2 / (1 - 0.546) = 2.20 s^2}: {@code 0.138 x modifier^2} blocks
  * for a dinosaur (attribute 0.25). (1.20.1 damped the input after the AI step: {@code 0.98 s^2} per tick,
@@ -32,9 +33,9 @@ final class GroundSpeed {
     static final double VELOCITY_KEPT = BLOCK_FRICTION * AIR_DRAG;
     /**
      * The share of the move control's forward input that reaches {@code travel}: all of it. 26.2
-     * {@code LivingEntity.aiStep} damps the input by 0.98 ({@code applyInput}, line 3182) before
-     * {@code serverAiStep} (line 3189) sets it, and builds the travel input after that (line 3234). 1.20.1
-     * damped it after the AI step, which is where the old 0.98 here came from (Task 54).
+     * {@code LivingEntity.aiStep} damps the input by 0.98 ({@code applyInput}, line 3057 of the vanilla 26.2
+     * sources) before {@code serverAiStep} (line 3064) sets it, and builds the travel input after that (line
+     * 3103). 1.20.1 damped it after the AI step, which is where the old 0.98 here came from (Task 54).
      */
     static final double INPUT_DAMPING = 1D;
     /** Blocks per tick per unit of the effective speed squared, at steady state on ordinary ground: 2.20. */

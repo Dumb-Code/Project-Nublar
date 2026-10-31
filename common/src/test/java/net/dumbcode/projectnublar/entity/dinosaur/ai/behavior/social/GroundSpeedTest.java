@@ -48,8 +48,9 @@ class GroundSpeedTest {
     void minWalkModifierKeepsTheWalkAnimationOnEveryHeading() {
         // The client plays the walk animation while (|vx| + |vz|) / 2 of the synced velocity is at least
         // 0.005. An axis heading is the tightest case (|vx| + |vz| = v); a diagonal gives sqrt(2) more.
+        // 0.3647 on the 26.2 law; the tolerance rejects the 1.20.1 law's 0.3685.
         double threshold = GroundSpeed.modifierFor(GroundSpeed.WALK_ANIMATION_BLOCKS_PER_TICK, ATTRIBUTE);
-        assertEquals(0.365D, threshold, 0.005D, "sqrt(0.0183 / 2.2026) / 0.25 on the 26.2 law");
+        assertEquals(0.365D, threshold, 0.001D, "sqrt(0.0183 / 2.2026) / 0.25 on the 26.2 law");
         assertTrue(GroundSpeed.MIN_WALK_MODIFIER > threshold);
         double perTick = GroundSpeed.groundSpeed(GroundSpeed.MIN_WALK_MODIFIER, ATTRIBUTE);
         double axis = GroundSpeed.storedVelocity(perTick) / 2D;
@@ -61,7 +62,7 @@ class GroundSpeedTest {
     @Test
     void movingIsAStoredVelocityAboveTheWalkingThreshold() {
         // Playtest 2 fix P8a: a body held by the guard (velocity cut to a fifth each tick) stops counting as
-        // moving within a tick; the slowest herd walk (graze, 0.049 blocks per tick, 0.027 stored) is well above.
+        // moving within a tick; the slowest herd walk (graze, 0.050 blocks per tick, 0.027 stored) is well above.
         assertEquals(GroundSpeed.storedVelocity(HerdBodies.WALKING_SPEED), GroundSpeed.MOVING_STORED_SPEED, EPSILON);
         double graze = GroundSpeed.storedVelocity(GroundSpeed.groundSpeed(FollowFormation.GRAZE_SPEED, ATTRIBUTE));
         assertTrue(GroundSpeed.moving(graze, 0D));

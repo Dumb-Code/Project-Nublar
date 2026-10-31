@@ -42,10 +42,10 @@ class MovementGaitTest {
     private static final MovementGait.LegClip BRACHIOSAURUS_RUN =
             MovementGait.LegClip.of(BRACHIOSAURUS.run(), 2.5D, 56);
 
-    /** Steady ground speed of a speed setting: the law in {@code GroundSpeed}, 2.16 x (modifier x attribute)^2. */
+    /** Steady ground speed of a speed setting: the law in {@code GroundSpeed}, 2.20 x (modifier x attribute)^2. */
     private static double at(double modifier) {
         double speed = modifier * ATTRIBUTE;
-        return 0.98D / (1D - 0.6D * 0.91D) * speed * speed;
+        return 1D / (1D - 0.6D * 0.91D) * speed * speed;
     }
 
     private static MovementGait settled(double groundSpeed) {
@@ -78,8 +78,8 @@ class MovementGaitTest {
 
     @Test
     void slowestHerdWalkStillWalks() {
-        // The steering floor (modifier 0.45) moves 0.027 blocks per tick.
-        assertSame(MovementGait.Gait.WALK, settled(0.027D).gait());
+        // The steering floor (modifier 0.45) moves 0.028 blocks per tick.
+        assertSame(MovementGait.Gait.WALK, settled(at(0.45D)).gait());
     }
 
     @Test
@@ -141,7 +141,7 @@ class MovementGaitTest {
         assertEquals(1D, settled(RUN).animationSpeed(), 1.0E-6D);
         assertEquals(1.5D, settled(WALK * 1.5D).animationSpeed(), 1.0E-6D, "a fast walk");
         // A Velociraptor at the steering floor would play its long-stride walk at 0.14.
-        assertEquals(MovementGait.MIN_ANIMATION_SPEED, settled(0.027D, RAPTOR_WALK_CLIP, RUN_CLIP).animationSpeed(),
+        assertEquals(MovementGait.MIN_ANIMATION_SPEED, settled(at(0.45D), RAPTOR_WALK_CLIP, RUN_CLIP).animationSpeed(),
                 1.0E-6D, "clamped low");
         // An adult Dilophosaurus run (6.0 blocks x scale 0.5 per 20 ticks) at the per-tick cap would play at 2.8.
         MovementGait.LegClip dilophosaurusRun = new MovementGait.LegClip(MovementGait.authoredSpeed(6D, 0.5D, 20), 20);
@@ -153,7 +153,7 @@ class MovementGaitTest {
     @Test
     void theRaptorWalkPlaysSlowerThanTheOldFloorOnItsUsualWalks() {
         // The Velociraptor's walk clip covers 3.9 blocks per cycle at its adult size, so its graze (0.6) and its
-        // journey (0.8) play it at about 0.25 and 0.44. A floor of 0.5 made its feet faster than the ground on both.
+        // journey (0.8) play it at about 0.25 and 0.45. A floor of 0.5 made its feet faster than the ground on both.
         double graze = at(0.6D) / RAPTOR_WALK;
         double journey = at(0.8D) / RAPTOR_WALK;
         assertTrue(graze > MovementGait.MIN_ANIMATION_SPEED && graze < 0.5D, "graze rate " + graze);
@@ -183,7 +183,7 @@ class MovementGaitTest {
     @Test
     void theStepRateDoesNotDropAtTheSwitchToTheRun() {
         // Task 52, the Brachiosaurus of the round 6 playtest: at the run switch its walk plays near the cap (2.0, 81
-        // ticks a cycle) and its run's target is about 1.2 (56 ticks a cycle), 14 % fewer steps per tick. On the switch
+        // ticks a cycle) and its run's target is about 1.2 (56 ticks a cycle), 12 % fewer steps per tick. On the switch
         // tick the run keeps the walk's steps per tick: rate x 56 / 81.
         MovementGait gait = settled(0.14D, BRACHIOSAURUS_WALK, BRACHIOSAURUS_RUN);
         assertSame(MovementGait.Gait.WALK, gait.gait());
@@ -309,7 +309,7 @@ class MovementGaitTest {
 
     @Test
     void capIsAboveEveryRealStep() {
-        // The fastest setting the AI uses is a chase, modifier 1.5 (0.30 blocks per tick); a burst tick moves 4/3 of it.
+        // The fastest setting the AI uses is a chase, modifier 1.5 (0.31 blocks per tick); a burst tick moves 4/3 of it.
         assertTrue(MovementGait.MAX_GROUND_SPEED > at(1.5D) * 4D / 3D, "a chase step, also a burst tick, is not cut");
         assertFalse(RunGait.running(false, MovementGait.MAX_GROUND_SPEED * MovementGait.SMOOTHING, ATTRIBUTE),
                 "one capped tick from a stand stays under the run threshold");

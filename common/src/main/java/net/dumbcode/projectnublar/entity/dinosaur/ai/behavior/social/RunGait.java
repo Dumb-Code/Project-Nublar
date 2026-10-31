@@ -20,7 +20,7 @@ public final class RunGait {
     static final double EXIT_MODIFIER = 0.95D;
     /**
      * A walk drains this fraction of the species' stamina drain (P13b, ruling Q3: 25 % less than before, so a
-     * Gallimimus on a roaming journey walks about 80 blocks from the start minimum of 150 to tired, 80; 60 before).
+     * Gallimimus on a roaming journey walks about 82 blocks from the start minimum of 150 to tired, 80; 62 before).
      */
     static final double WALK_DRAIN_FACTOR = 0.75D;
     /** A run drains this multiple of the species' stamina drain (as before P13b). */

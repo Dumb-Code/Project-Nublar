@@ -231,7 +231,7 @@ public abstract class Dinosaur extends TamableAnimal implements FossilRevived, G
     public static final float MAX_TURN_PER_TICK = 10F;
     /**
      * The {@code MOVEMENT_SPEED} attribute every dinosaur spawns with. Herd steering derives its walk floor
-     * from it ({@code GroundSpeed}): the ground speed is 0.135 x modifier^2 blocks per tick at this value.
+     * from it ({@code GroundSpeed}): the ground speed is 0.138 x modifier^2 blocks per tick at this value.
      */
     public static final double BASE_MOVEMENT_SPEED = 0.25D;
 
