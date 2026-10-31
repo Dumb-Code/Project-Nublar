@@ -7,7 +7,6 @@ import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.entity.ai.attributes.Attributes;
 import org.jetbrains.annotations.Nullable;
-import com.geckolib.animation.AnimationController;
 import com.geckolib.animation.RawAnimation;
 import com.geckolib.animation.object.PlayState;
 import com.geckolib.animation.state.AnimationTest;
@@ -41,9 +40,19 @@ import com.geckolib.animation.state.AnimationTest;
  * overwrites the walk, because the main controller runs after {@code movement}. So every stop here ends the
  * animation. The movement controller first blends the legs back to rest over its transition ticks
  * ({@link #blendToRest}, Task 53), as GeckoLib 4 did, then ends it. The main controller ends at once
- * ({@link #stopController}: {@code reset()}), and its bones snap to rest: it stops mostly when a walk starts, and a
- * blend to rest there would pull the bones it shares with the walk toward rest instead of into the walk, because it
- * runs after {@code movement}. The next start blends in from rest ({@link RestartableAnimationController}).
+ * ({@link #stopController}): it is written over the walk, so a blend to rest would hold the bones it shares with the
+ * walk on a fading pose and hide the walk. It stops mostly when a walk starts, and the walk has then taken its pose
+ * over (hand-over).
+ * <p>
+ * Hand-over (Task 58): a start with nothing playing blends from the other controller's pose instead of from rest
+ * ({@link RestartableAnimationController}), so the shared bones do not snap to rest when one controller stops as the
+ * other starts. A walk or run takes the main controller's whole pose ({@link #playGait}), so a bone only the main
+ * clip moves fades to rest in the walk's ease-in. A main clip blends from the movement controller's pose (the stop
+ * pose while it blends to rest) on the bones the main clip moves ({@link #playMain}); the movement controller keeps
+ * the others. The receiving clock starts at the giving one, so no bone that {@code query.anim_time} moves jumps. A
+ * controller still in its own ease-in would hand over its clip's first frame, not the pose shown; at the usual walk
+ * start the idle began when the gait stopped, at least {@link MovementGait#HOLD_TICKS} earlier, and main clips play
+ * at GeckoLib's default speed 1 (nothing here sets another), so their ease-in is over, as the walk's is (Task 56).
  */
 public final class DinoAnimator {
     /**
@@ -60,6 +69,9 @@ public final class DinoAnimator {
     private static final int CYCLE_NOT_READ = Integer.MIN_VALUE;
 
     private final Dinosaur dinosaur;
+    /** The two controllers, kept from their handlers, so each can hand its pose to the other (hand-over). */
+    private @Nullable RestartableAnimationController<?> movementController;
+    private @Nullable RestartableAnimationController<?> mainController;
 
     // State from the client tick.
     private final MovementGait gait = new MovementGait();
@@ -152,6 +164,7 @@ public final class DinoAnimator {
      * legs to rest.
      */
     public PlayState movement(AnimationTest<Dinosaur> state) {
+        this.movementController = (RestartableAnimationController<?>) state.controller();
         if (this.dinosaur.isDeadOrDying() || !this.gait.moving()) {
             return blendToRest(state);
         }
@@ -164,12 +177,13 @@ public final class DinoAnimator {
         if (animation == null) {
             return blendToRest(state);
         }
-        return playGait(state, animation, this.gait.animationSpeed());
+        return playGait(state, animation, this.gait.animationSpeed(), this.mainController);
     }
 
     /**
      * Plays the walk or run clip {@code animation} at the gait's leg rate {@code gaitRate}, but its ease-in at a speed
-     * of at least 1 (Task 56). Package-private for the test.
+     * of at least 1 (Task 56). A start with nothing playing blends from the whole pose of the main controller
+     * {@code main} (class comment, hand-over), which stops on the same frame. Package-private for the test.
      * <p>
      * Why: GeckoLib plays the ease-in at the controller's speed, so at a slow walk's rate (0.25 when a Velociraptor
      * grazes) it lasted 5 / 0.25 = 20 ticks, longer than a gait's shortest hold ({@link MovementGait#HOLD_TICKS}).
@@ -182,10 +196,12 @@ public final class DinoAnimator {
      * in its ease-in: the first frame of an ease-in still plays at the gait rate, so it lasts up to one render frame
      * longer than the transition ticks.
      */
-    static PlayState playGait(AnimationTest<?> state, RawAnimation animation, double gaitRate) {
-        AnimationController<?> controller = state.controller();
+    static PlayState playGait(AnimationTest<?> state, RawAnimation animation, double gaitRate,
+            @Nullable RestartableAnimationController<?> main) {
+        RestartableAnimationController<?> controller = (RestartableAnimationController<?>) state.controller();
         controller.setAnimationSpeed(controller.isTransitioning() ? Math.max(1D, gaitRate) : gaitRate);
-        return state.setAndContinue(animation);
+        controller.setAnimation(animation, main, RestartableAnimationController.HandOver.WHOLE_POSE);
+        return PlayState.CONTINUE;
     }
 
     /**
@@ -193,6 +209,7 @@ public final class DinoAnimator {
      * {@link RestartableAnimationController}, so a state can start its animation again.
      */
     public PlayState main(AnimationTest<Dinosaur> state) {
+        this.mainController = (RestartableAnimationController<?>) state.controller();
         Dinosaur dino = this.dinosaur;
         boolean reaction = !dino.isDeadOrDying() && (dino.isFlinching() || dino.isAttacking());
         state.controller().setTransitionTicks(reaction ? REACTION_TRANSITION_TICKS : MAIN_TRANSITION_TICKS);
@@ -320,7 +337,19 @@ public final class DinoAnimator {
         }
         this.playing = animation;
         this.restartTarget = null;
-        return state.setAndContinue(animation);
+        return playMain(state, animation, this.movementController);
+    }
+
+    /**
+     * Plays the main clip {@code animation}. A start with nothing playing blends from the pose of the movement
+     * controller {@code movement} on the bones the clip moves (class comment, hand-over): the movement controller
+     * keeps playing or blending its other bones. Package-private for the test.
+     */
+    static PlayState playMain(AnimationTest<?> state, RawAnimation animation,
+            @Nullable RestartableAnimationController<?> movement) {
+        ((RestartableAnimationController<?>) state.controller())
+                .setAnimation(animation, movement, RestartableAnimationController.HandOver.SHARED_BONES);
+        return PlayState.CONTINUE;
     }
 
     /** Stops the main controller. */

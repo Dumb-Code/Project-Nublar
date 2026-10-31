@@ -141,7 +141,7 @@ class RestartableAnimationControllerTest {
             test.controller().setAnimationSpeed(this.gaitRate);
             return test.setAndContinue(this.walkClip);
         }
-        return DinoAnimator.playGait(test, this.walkClip, this.gaitRate);
+        return DinoAnimator.playGait(test, this.walkClip, this.gaitRate, null);
     }
 
     /** One render frame: what the renderer asks the controller; {@code null} when it animates no bone. */

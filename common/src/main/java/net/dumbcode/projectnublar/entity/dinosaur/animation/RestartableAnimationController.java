@@ -1,16 +1,27 @@
 package net.dumbcode.projectnublar.entity.dinosaur.animation;
 
 import com.geckolib.animatable.GeoAnimatable;
+import com.geckolib.animatable.manager.AnimatableManager;
 import com.geckolib.animation.AnimationController;
 import com.geckolib.animation.RawAnimation;
+import com.geckolib.animation.object.EasingType;
 import com.geckolib.animation.object.LoopType;
 import com.geckolib.animation.object.PlayState;
 import com.geckolib.animation.state.AnimationPoint;
 import com.geckolib.cache.animation.Animation;
+import com.geckolib.cache.animation.BoneAnimation;
+import com.geckolib.cache.animation.Keyframe;
+import com.geckolib.cache.animation.KeyframeStack;
+import com.geckolib.loading.math.value.Constant;
+import com.geckolib.model.GeoModel;
+import com.geckolib.renderer.base.GeoRenderState;
+import org.jetbrains.annotations.Nullable;
+
+import java.util.Arrays;
 
 /**
  * An {@link AnimationController} that can play its current animation again from the first frame, that blends
- * a start from rest, and that can blend its bones back to rest when it stops.
+ * a start from rest or from another controller's pose, and that can blend its bones back to rest when it stops.
  * <p>
  * Why it exists: GeckoLib 4 had {@code AnimationController.forceAnimationReset()}. After that call, the next
  * {@code setAndContinue} started its animation from the first frame even when it was the animation already
@@ -25,6 +36,20 @@ import com.geckolib.cache.animation.Animation;
  * from. It then fades from the clip's first frame toward rest and jumps back to the first frame when the blend ends
  * (75 degrees on a Velociraptor foot). {@link #setAnimation} gives such a start {@link #REST} to blend from instead,
  * so the bones blend from rest into the first frame, as in GeckoLib 4.
+ * <p>
+ * Hand-over (Task 58): a dinosaur's two controllers animate one model, the later one written over every bone they
+ * share ({@code AnimationProcessor.createBoneSnapshots}, javap of 5.5.6), so a start from rest as the other one stops
+ * snaps the shared bones to rest. {@link #setAnimation(RawAnimation, RestartableAnimationController, HandOver)} lets
+ * a start with nothing playing blend from a copy of the other controller's clip point instead. GeckoLib writes all
+ * three transforms of each bone a clip animates and, in a blend, puts a transform the new clip has no keyframes for
+ * at rest at once ({@code findTransitionPointValue}), so a hand-over's ease-in plays a copy of the clip with a rest
+ * key there; then the clip plays unchanged. GeckoLib blends from one clip point: a controller still in its own
+ * ease-in hands over its next clip's first frame, not the pose shown.
+ * <p>
+ * One clock: a controller has one Molang clock ({@link #getCurrentAnimationTime}, {@code query.anim_time}), and
+ * GeckoLib works out the pose it blends from with it too (the Brachiosaurus idle and walk move the tail with it). So
+ * a hand-over's clock starts at the other controller's clock, holds through the ease-in, then drifts into step with
+ * the clip's own time (the same time within a whole number of cycles) over one cycle, by at most half a cycle.
  * <p>
  * Stop with a blend (Task 53): GeckoLib 5 has no fade for a stopped loop (GeckoLib 4 faded the bones back over the
  * transition ticks), and {@code reset()} alone snaps the bones to rest. {@link #blendToRest} plays an empty clip
@@ -47,6 +72,27 @@ public class RestartableAnimationController<T extends GeoAnimatable> extends Ani
      */
     private static final RawAnimation REST_BLEND = RawAnimation.begin().thenWait(1);
 
+    /** Which bones of the other controller's pose a hand-over blends from. */
+    public enum HandOver {
+        /** Every bone: the other controller stops, so a bone only its clip moves fades to rest here. */
+        WHOLE_POSE,
+        /** Only the bones the new clip moves: the other controller keeps playing or blending the others. */
+        SHARED_BONES
+    }
+
+    /** The clock start of the current clip (class comment, one clock); 0 for GeckoLib's own clock. */
+    private double clockStart;
+    /** Whether the current clip has played one full cycle, so its clock drift is over. */
+    private boolean clockInStep;
+    /** The clip time on the last frame, to see the first loop wrap. */
+    private double lastClipTime;
+    /** A hand-over that started this frame, until GeckoLib loaded the new clip; {@code null} otherwise. */
+    private @Nullable HandOver handOverBones;
+    /** The new clip's first frame with rest keys, shown through a hand-over's ease-in; {@code null} otherwise. */
+    private @Nullable AnimationPoint easeInPoint;
+    /** GeckoLib's own point during that ease-in, given back to GeckoLib before each frame step. */
+    private @Nullable AnimationPoint clipPoint;
+
     /** Same as {@link AnimationController#AnimationController(String, int, AnimationStateHandler)}. */
     public RestartableAnimationController(String name, int transitionTicks, AnimationStateHandler<T> handler) {
         super(name, transitionTicks, handler);
@@ -63,14 +109,45 @@ public class RestartableAnimationController<T extends GeoAnimatable> extends Ani
     /** GeckoLib's {@code setAnimation}; a new animation with no pose to blend from blends from {@link #REST}. */
     @Override
     public void setAnimation(RawAnimation animation) {
+        setAnimation(animation, null, HandOver.WHOLE_POSE);
+    }
+
+    /**
+     * GeckoLib's {@code setAnimation} with a hand-over (class comment): a new animation with no pose to blend from
+     * blends from {@code giver}'s pose and starts at its clock, or blends from {@link #REST} when {@code giver}
+     * animates no bone. The handler calls it on every frame the clip should play; it acts on the frame the clip starts.
+     *
+     * @param giver the animatable's other controller, or {@code null} for none
+     * @param bones which bones of {@code giver}'s pose to blend from
+     */
+    public void setAnimation(RawAnimation animation, @Nullable RestartableAnimationController<?> giver,
+            HandOver bones) {
         RawAnimation previous = this.currentRawAnimation;
         super.setAnimation(animation);
         // Only when super took a new animation: GeckoLib also clears the from-point while a clip plays (at each loop
-        // wrap), and setAndContinue calls this every frame, so without the check REST would be set on every frame of
-        // a playing clip.
-        if (this.currentRawAnimation != previous && this.transitionFromPoint == null) {
-            this.transitionFromPoint = REST;
+        // wrap), and the handler calls this every frame, so without the check REST would be set on every frame of a
+        // playing clip.
+        if (this.currentRawAnimation == previous) {
+            return;
         }
+        this.clockStart = 0D;
+        this.clockInStep = false;
+        this.lastClipTime = 0D;
+        this.handOverBones = null;
+        this.easeInPoint = null;
+        if (this.transitionFromPoint != null) {
+            // GeckoLib blends from the clip that played here, with its own clock.
+            return;
+        }
+        AnimationPoint pose = giver == null ? null : giver.handOverPose();
+        if (pose == null) {
+            this.transitionFromPoint = REST;
+            return;
+        }
+        // Copied in checkControllerState, once GeckoLib loaded the new clip, before the giver moves on.
+        this.transitionFromPoint = pose;
+        this.clockStart = giver.getCurrentAnimationTime();
+        this.handOverBones = bones;
     }
 
     /**
@@ -80,8 +157,10 @@ public class RestartableAnimationController<T extends GeoAnimatable> extends Ani
      * <p>
      * The blend plays at speed 1, so it lasts the transition ticks whatever the speed of the clip that stopped.
      * GeckoLib blends from one clip's pose, never from a pose between two: a clip that starts during the blend blends
-     * in from the empty clip's pose (rest), and a stop while the clip itself still blends in (a slow walk that stops
-     * less than 5 / speed ticks after it started) blends from the clip's own pose, not from the pose shown.
+     * in from the empty clip's pose (rest), and a stop while the clip itself still blends in blends from the clip's
+     * own point (its first frame), not from the pose shown. {@link DinoAnimator} never stops a walk there: its
+     * ease-in plays at a speed of at least 1 ({@link DinoAnimator#playGait}, Task 56), so it is over before the
+     * gait's shortest hold ends.
      *
      * @return {@code CONTINUE} while the blend plays, else {@code STOP}
      */
@@ -91,8 +170,10 @@ public class RestartableAnimationController<T extends GeoAnimatable> extends Ani
                 reset();
                 return PlayState.STOP;
             }
+            double stopClock = getCurrentAnimationTime();
             // GeckoLib keeps the current point as the point to blend from (setAnimation).
             setAnimation(REST_BLEND);
+            this.clockStart = stopClock;
             setAnimationSpeed(1D);
             return PlayState.CONTINUE;
         }
@@ -104,18 +185,116 @@ public class RestartableAnimationController<T extends GeoAnimatable> extends Ani
     }
 
     /**
-     * GeckoLib's clip time, which Molang reads as {@code query.anim_time} (and a keyframe event as its tick). During
-     * {@link #blendToRest} it is the time of the pose the blend starts from, not the empty clip's time: GeckoLib works
-     * out that pose again on every frame of the blend, so a bone that a Molang expression of the time moves (the
-     * Brachiosaurus tail, {@code math.sin(query.anim_time ...)}) would else jump to its pose at time 0 when the blend
-     * starts (21 degrees in the replay).
+     * GeckoLib's clip time, which Molang reads as {@code query.anim_time} (and a keyframe event as its tick), from a
+     * carried start (class comment, one clock). The clip time is 0 through an ease-in and a {@link #blendToRest}, so
+     * the clock holds its start there: GeckoLib works out the pose it blends from on every frame, and a bone that a
+     * Molang expression of the time moves would else jump (21 degrees of Brachiosaurus tail at a stop).
      */
     @Override
     public double getCurrentAnimationTime() {
-        if (this.currentRawAnimation == REST_BLEND && this.transitionFromPoint != null) {
-            return this.transitionFromPoint.animTime();
+        double clipTime = super.getCurrentAnimationTime();
+        if (this.clockStart == 0D || this.animationPoint == null) {
+            return clipTime;
         }
-        return super.getCurrentAnimationTime();
+        double cycle = this.animationPoint.animation().length();
+        if (cycle <= 0D) {
+            return clipTime + this.clockStart;
+        }
+        // The part of the start that is not a whole number of cycles: at most half a cycle.
+        double drift = this.clockStart - cycle * Math.rint(this.clockStart / cycle);
+        double share = this.clockInStep ? 1D : Math.min(1D, clipTime / cycle);
+        return clipTime + this.clockStart - drift * share;
+    }
+
+    /**
+     * GeckoLib's frame step, then the hand-over steps that need the new clip. On the frame a hand-over starts, the
+     * from-point becomes a copy (GeckoLib moves a point's keyframe indices on in place, {@code createNext}), with only
+     * the new clip's bones for {@link HandOver#SHARED_BONES}. Through the ease-in the clip point is the one with rest
+     * keys; GeckoLib gets its own point back before each step, so it makes no new point per frame. The first loop
+     * wrap ends the clock drift.
+     */
+    @Override
+    protected boolean checkControllerState(T animatable, GeoRenderState renderState, AnimatableManager<T> manager,
+            GeoModel<T> model) {
+        if (this.easeInPoint != null && this.animationPoint == this.easeInPoint) {
+            this.animationPoint = this.clipPoint;
+        }
+        boolean animating = super.checkControllerState(animatable, renderState, manager, model);
+        if (this.handOverBones != null && this.animationPoint != null && this.transitionFromPoint != null) {
+            Animation clip = this.animationPoint.animation();
+            AnimationPoint pose = this.transitionFromPoint;
+            Animation from = this.handOverBones == HandOver.SHARED_BONES
+                    ? sharedBones(pose.animation(), clip)
+                    : pose.animation();
+            this.transitionFromPoint = AnimationPoint.createFor(from, pose.easingOverride(), pose.loopType(),
+                    pose.animTime());
+            this.easeInPoint = AnimationPoint.createFor(withRestKeys(clip), this.animationPoint.easingOverride(),
+                    this.animationPoint.loopType(), 0D);
+            this.handOverBones = null;
+        }
+        if (this.easeInPoint != null) {
+            if (isTransitioning()) {
+                this.clipPoint = this.animationPoint;
+                this.animationPoint = this.easeInPoint;
+            } else {
+                this.easeInPoint = null;
+                this.clipPoint = null;
+            }
+        }
+        double clipTime = super.getCurrentAnimationTime();
+        if (clipTime < this.lastClipTime) {
+            this.clockInStep = true;
+        }
+        this.lastClipTime = clipTime;
+        return animating;
+    }
+
+    /**
+     * The pose this controller hands over: during {@link #blendToRest} the pose the blend starts from, else its clip
+     * point; {@code null} when it animates no bone.
+     */
+    private @Nullable AnimationPoint handOverPose() {
+        if (!isAnimatingBones()) {
+            return null;
+        }
+        return this.currentRawAnimation == REST_BLEND ? this.transitionFromPoint : this.animationPoint;
+    }
+
+    /** A copy of {@code from} with only the bones {@code clip} also animates. */
+    private static Animation sharedBones(Animation from, Animation clip) {
+        BoneAnimation[] kept = new BoneAnimation[from.boneAnimations().length];
+        int count = 0;
+        for (BoneAnimation bone : from.boneAnimations()) {
+            for (BoneAnimation clipBone : clip.boneAnimations()) {
+                if (clipBone.boneName().equals(bone.boneName())) {
+                    kept[count++] = bone;
+                    break;
+                }
+            }
+        }
+        return Animation.create(from.name(), from.length(), from.loopType(), Arrays.copyOf(kept, count),
+                Animation.KeyframeMarkers.EMPTY);
+    }
+
+    /** A copy of {@code clip} with a rest key on every axis of every transform it has no keyframes for. */
+    private static Animation withRestKeys(Animation clip) {
+        BoneAnimation[] bones = new BoneAnimation[clip.boneAnimations().length];
+        for (int i = 0; i < bones.length; i++) {
+            BoneAnimation bone = clip.boneAnimations()[i];
+            bones[i] = new BoneAnimation(bone.boneName(), withRestKeys(bone.rotationKeyFrames(), 0D),
+                    withRestKeys(bone.positionKeyFrames(), 0D), withRestKeys(bone.scaleKeyFrames(), 1D));
+        }
+        return new Animation(clip.name(), clip.length(), clip.loopType(), bones, clip.usedVariables(),
+                clip.keyframeMarkers());
+    }
+
+    /** {@code stack} with a key at {@code rest} (0, or 1 for scale) on each axis that has none. */
+    private static KeyframeStack withRestKeys(KeyframeStack stack, double rest) {
+        Keyframe[] restKey = {new Keyframe(0D, 0D, new Constant(rest), new Constant(rest), EasingType.LINEAR)};
+        return new KeyframeStack(
+                stack.xKeyframes().length == 0 ? restKey : stack.xKeyframes(),
+                stack.yKeyframes().length == 0 ? restKey : stack.yKeyframes(),
+                stack.zKeyframes().length == 0 ? restKey : stack.zKeyframes());
     }
 
     /**
