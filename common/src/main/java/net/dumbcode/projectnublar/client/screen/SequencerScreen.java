@@ -55,6 +55,7 @@ import org.joml.Vector3f;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 
 /**
  * Screen for the sequencer. Behaves as a three-tab state machine ({@code currentTab}):
@@ -420,6 +421,21 @@ public class SequencerScreen extends AbstractContainerScreen<SequencerMenu> {
                     getMenu().containerId, SequencerMenu.MenuButton.SYNTH_TAB.getId());
         }
         return super.mouseClicked(event, doubleClick);
+    }
+
+    /**
+     * Returns no child while a slot is under the pointer, so the slot takes the click, as on
+     * 1.20.1. 26.2 {@code ContainerEventHandler.mouseClicked} ends the click at the first child
+     * under the pointer even when that child ignores it, and the slot is then never clicked:
+     * {@code entityList} covers the Synthesis tab's Bone Matter and Plant Matter squares, and
+     * {@code progressWidget} covers the top rows of its two tube squares. Only active slots count
+     * as hovered, and the Edit tab has none, so its sliders and dinosaur list keep their clicks.
+     * The scroll wheel uses the same lookup, so a scroll over a slot does not reach a widget.
+     */
+    @Override
+    public Optional<GuiEventListener> getChildAt(double mouseX, double mouseY) {
+        // Vanilla field behind NeoForge's getHoveredSlot(); common compiles against vanilla.
+        return hoveredSlot != null ? Optional.empty() : super.getChildAt(mouseX, mouseY);
     }
 
     private void enableAdvanced() {
