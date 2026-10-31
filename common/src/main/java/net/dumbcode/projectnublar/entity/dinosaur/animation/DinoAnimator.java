@@ -37,10 +37,12 @@ import com.geckolib.animation.state.AnimationTest;
  * <p>
  * Stop: in GeckoLib 5 a handler that returns {@code STOP} does not end a looping or holding clip; the controller
  * loops or holds it for ever (GeckoLib 4 ended it at once). A walk would then never end, and an idle that never ends
- * overwrites the walk, because the main controller runs after {@code movement}. So every stop here first calls the
- * controller's {@code reset()} ({@link #stopController}), which ends the animation at once. The bones snap to rest:
- * GeckoLib 4 faded them back over 5 ticks, and GeckoLib 5 has no fade for a stopped loop. The next start blends in
- * from rest ({@link RestartableAnimationController}).
+ * overwrites the walk, because the main controller runs after {@code movement}. So every stop here ends the
+ * animation. The movement controller first blends the legs back to rest over its transition ticks
+ * ({@link #blendToRest}, Task 53), as GeckoLib 4 did, then ends it. The main controller ends at once
+ * ({@link #stopController}: {@code reset()}), and its bones snap to rest: it stops mostly when a walk starts, and a
+ * blend to rest there would pull the bones it shares with the walk toward rest instead of into the walk, because it
+ * runs after {@code movement}. The next start blends in from rest ({@link RestartableAnimationController}).
  */
 public final class DinoAnimator {
     /**
@@ -144,11 +146,12 @@ public final class DinoAnimator {
 
     /**
      * The movement controller: walk or run while the gait moves, never for a dead animal (replaces GeckoLib's generic
-     * walk controller). The leg cycle plays at {@link MovementGait#animationSpeed}.
+     * walk controller). The leg cycle plays at {@link MovementGait#animationSpeed}. The controller must be a
+     * {@link RestartableAnimationController}, so a stop can blend the legs to rest.
      */
     public PlayState movement(AnimationTest<Dinosaur> state) {
         if (this.dinosaur.isDeadOrDying() || !this.gait.moving()) {
-            return stopController(state);
+            return blendToRest(state);
         }
         AnimationChoice choice = this.gait.gait() == MovementGait.Gait.RUN ? AnimationChoice.RUN : AnimationChoice.WALK;
         RawAnimation animation = first(choice);
@@ -157,7 +160,7 @@ public final class DinoAnimator {
             animation = fallback == null ? null : first(fallback);
         }
         if (animation == null) {
-            return stopController(state);
+            return blendToRest(state);
         }
         state.controller().setAnimationSpeed(this.gait.animationSpeed());
         return state.setAndContinue(animation);
@@ -311,6 +314,14 @@ public final class DinoAnimator {
     static PlayState stopController(AnimationTest<?> state) {
         state.controller().reset();
         return PlayState.STOP;
+    }
+
+    /**
+     * Stops the movement controller with a blend of the legs to rest, then ends its animation
+     * ({@link RestartableAnimationController#blendToRest}). Package-private for the test.
+     */
+    static PlayState blendToRest(AnimationTest<?> state) {
+        return ((RestartableAnimationController<?>) state.controller()).blendToRest();
     }
 
     private @Nullable RawAnimation first(AnimationChoice choice) {

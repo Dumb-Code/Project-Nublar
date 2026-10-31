@@ -3,41 +3,68 @@ package net.dumbcode.projectnublar.entity.dinosaur.animation;
 import com.geckolib.animatable.GeoAnimatable;
 import com.geckolib.animatable.instance.AnimatableInstanceCache;
 import com.geckolib.animatable.manager.AnimatableManager;
+import com.geckolib.animation.AnimationProcessor;
 import com.geckolib.animation.RawAnimation;
+import com.geckolib.animation.object.EasingType;
+import com.geckolib.animation.object.LoopType;
+import com.geckolib.animation.state.BoneSnapshot;
 import com.geckolib.animation.state.ControllerState;
 import com.geckolib.cache.animation.Animation;
+import com.geckolib.cache.animation.BoneAnimation;
+import com.geckolib.cache.animation.Keyframe;
+import com.geckolib.cache.animation.KeyframeStack;
+import com.geckolib.cache.model.GeoBone;
+import com.geckolib.cache.model.GeoLocator;
+import com.geckolib.loading.math.value.Constant;
 import com.geckolib.model.GeoModel;
 import com.geckolib.renderer.base.GeoRenderState;
+import com.geckolib.renderer.base.RenderPassInfo;
+import com.mojang.blaze3d.vertex.PoseStack;
+import com.mojang.blaze3d.vertex.VertexConsumer;
 import net.minecraft.resources.Identifier;
 import org.jetbrains.annotations.Nullable;
 import org.junit.jupiter.api.Test;
 
+import java.util.Optional;
+
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertNotEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 /**
  * Drives a real GeckoLib 5 controller the way {@link DinoAnimator#movement} does: a looping walk while
- * {@link #moving}, else {@link DinoAnimator#stopController}. Which {@link DinoAnimator} handlers end with
- * {@code stopController} (both stops of {@code movement}, every stop of the main controller) is checked in game,
- * not here: {@code DinoAnimator} needs a live {@code Dinosaur}.
+ * {@link #moving}, else {@link DinoAnimator#blendToRest}. The walk is a one-second clip that turns one bone,
+ * {@code leg}, from 0 to {@link #RAMP} radians, so a frame's pose is the leg's angle ({@link #legAngle}). Which
+ * {@link DinoAnimator} handlers end with {@code blendToRest} or {@code stopController} is checked in game, not here:
+ * {@code DinoAnimator} needs a live {@code Dinosaur}.
  */
 class RestartableAnimationControllerTest {
 
     private static final RawAnimation WALK = RawAnimation.begin().thenLoop("move.walk");
-    /** The test model's clip for every name: one second, no bones. */
-    private static final Animation CLIP = Animation.generateWaitAnimation(1);
+    /** The leg's angle at the end of the walk clip, in radians. */
+    private static final double RAMP = 0.7D;
+    /** The walk: one second, the leg turns linearly from 0 to {@link #RAMP} (keyframes as GeckoLib 5.5.6 bakes). */
+    private static final Animation CLIP = Animation.create("move.walk", 1D, LoopType.LOOP, new BoneAnimation[] {
+            new BoneAnimation("leg", new KeyframeStack(ramp(RAMP), ramp(0D), ramp(0D)), KeyframeStack.EMPTY,
+                    KeyframeStack.EMPTY)},
+            Animation.KeyframeMarkers.EMPTY);
     /** Frames of walk that pass the first loop wrap: the blend (15 frames) plus the one-second clip (60 frames). */
     private static final int PAST_A_LOOP_WRAP = 90;
+    /** Render frames per tick (60 fps). */
+    private static final int FRAMES_PER_TICK = 3;
+    /** Frames the blend to rest takes: the movement controller's transition ticks at speed 1. */
+    private static final int BLEND_FRAMES = DinoAnimator.MOVEMENT_TRANSITION_TICKS * FRAMES_PER_TICK;
 
     private boolean moving;
     /** Animatable age in ticks; each frame is a third of a tick (60 fps). */
     private double age;
     private final Animatable animatable = new Animatable();
-    private final RestartableAnimationController<Animatable> controller = new RestartableAnimationController<>("movement",
-            DinoAnimator.MOVEMENT_TRANSITION_TICKS, test -> this.moving ? test.setAndContinue(WALK) : DinoAnimator.stopController(test));
+    private final RestartableAnimationController<Animatable> controller = new RestartableAnimationController<>(
+            "movement", DinoAnimator.MOVEMENT_TRANSITION_TICKS,
+            test -> this.moving ? test.setAndContinue(WALK) : DinoAnimator.blendToRest(test));
     private final GeoModel<Animatable> model = new GeoModel<>() {
         @Override
         public Identifier getModelResource(GeoRenderState renderState) {
@@ -71,31 +98,136 @@ class RestartableAnimationControllerTest {
             return RestartableAnimationControllerTest.this.age;
         }
     };
+    private final GeoBone leg = new GeoBone(null, "leg", new GeoBone[0], new GeoLocator[0], 0, 0, 0, 0, 0, 0) {
+        @Override
+        public <R extends GeoRenderState> void render(RenderPassInfo<R> renderPassInfo, PoseStack poseStack,
+                VertexConsumer buffer, int packedLight, int packedOverlay, int renderColor) {
+        }
+    };
+
+    /** The clip's keyframes for one axis: 0 at the start, {@code end} after one second, linear. */
+    private static Keyframe[] ramp(double end) {
+        return new Keyframe[] {
+                new Keyframe(0D, 0D, new Constant(0D), new Constant(0D), EasingType.LINEAR),
+                new Keyframe(1D, 1D, new Constant(0D), new Constant(end), EasingType.LINEAR)};
+    }
 
     /** One render frame: what the renderer asks the controller; {@code null} when it animates no bone. */
     private @Nullable ControllerState frame() {
-        this.age += 1 / 3D;
+        this.age += 1D / FRAMES_PER_TICK;
         return this.controller.extractControllerState(this.animatable, this.renderState, null, null, this.model);
     }
 
-    private void walk(int frames) {
-        this.moving = true;
-        for (int i = 0; i < frames; i++) {
-            frame();
+    /** The leg's angle that a frame's state gives, as the renderer works it out; 0 (rest) when nothing animates. */
+    private double legAngle(@Nullable ControllerState state) {
+        BoneSnapshot snapshot = BoneSnapshot.create(this.leg);
+        if (state != null) {
+            AnimationProcessor.createBoneSnapshots(state,
+                    name -> name.equals("leg") ? Optional.of(snapshot) : Optional.empty());
         }
+        return snapshot.getRotX();
     }
 
-    /** After a bare STOP, GeckoLib 5 plays a loop on; with the reset, no bone moves from the stop frame on. */
+    /** Walks {@code frames} frames; returns the leg's angle on the last one. */
+    private double walk(int frames) {
+        this.moving = true;
+        double angle = 0D;
+        for (int i = 0; i < frames; i++) {
+            angle = legAngle(frame());
+        }
+        return angle;
+    }
+
+    /**
+     * Task 53: the leg moves from the pose it had when the walk stopped to rest over the transition ticks, in a
+     * straight line, with no jump at the start (the stop frame repeats the last walk frame) or at the end; then the
+     * controller animates nothing, also later, when GeckoLib would fade the empty clip's end a second time.
+     */
     @Test
-    void stopEndsTheLoopAtOnce() {
-        walk(PAST_A_LOOP_WRAP);
-        assertTrue(this.controller.isAnimatingBones());
+    void aStopBlendsTheBonesFromTheirStopPoseToRestOnce() {
+        double stopPose = walk(PAST_A_LOOP_WRAP + 10);
+        assertTrue(Math.abs(stopPose) > 0.1D, "the leg is away from rest when the walk stops: " + stopPose);
+        this.moving = false;
+        for (int i = 0; i < BLEND_FRAMES; i++) {
+            ControllerState state = frame();
+            assertNotNull(state, "still blending on frame " + i);
+            assertEquals(stopPose * (1D - i / (double) BLEND_FRAMES), legAngle(state), 1.0E-5D, "frame " + i);
+        }
+        // This frame either ends the blend or is its last one, at 1 of the way (the frame times add up in floating
+        // point); both show rest.
+        assertEquals(0D, legAngle(frame()), 1.0E-5D, "at rest when the transition ticks are over");
+        for (int i = 0; i < PAST_A_LOOP_WRAP; i++) {
+            assertNull(frame(), "frame " + i + " after the blend");
+        }
+        assertFalse(this.controller.isAnimatingBones());
+    }
+
+    /** The blend's pose at its first, middle and last tick (5 ticks of 3 frames): 1, 0.6 and 0.2 of the stop pose. */
+    @Test
+    void theBlendPassesThroughTheStopPoseShareOfEachTick() {
+        double stopPose = walk(PAST_A_LOOP_WRAP + 10);
+        this.moving = false;
+        double[] perTick = new double[DinoAnimator.MOVEMENT_TRANSITION_TICKS];
+        for (int i = 0; i < BLEND_FRAMES; i++) {
+            double angle = legAngle(frame());
+            if (i % FRAMES_PER_TICK == 0) {
+                perTick[i / FRAMES_PER_TICK] = angle;
+            }
+        }
+        assertEquals(stopPose, perTick[0], 1.0E-5D, "first tick: the stop pose");
+        assertEquals(stopPose * 0.6D, perTick[2], 1.0E-5D, "middle tick");
+        assertEquals(stopPose * 0.2D, perTick[4], 1.0E-5D, "last tick");
+    }
+
+    /**
+     * Molang reads {@code query.anim_time} from the controller's clip time. During the blend it stays the time of the
+     * stop pose, so a bone moved by a Molang expression of the time holds its pose too; after it, nothing plays.
+     */
+    @Test
+    void theBlendKeepsTheStopTimeForMolang() {
+        walk(PAST_A_LOOP_WRAP + 10);
+        double stopTime = this.controller.getCurrentAnimationTime();
+        assertNotEquals(0D, stopTime);
+        this.moving = false;
+        for (int i = 0; i < BLEND_FRAMES; i++) {
+            frame();
+            assertEquals(stopTime, this.controller.getCurrentAnimationTime(), 1.0E-9D, "frame " + i);
+        }
+        // The blend ends on the next frame or the one after (the frame times add up in floating point).
+        frame();
+        frame();
+        assertEquals(0D, this.controller.getCurrentAnimationTime(), "nothing plays after the blend");
+    }
+
+    /** A stop when nothing plays has nothing to blend: it ends at once. */
+    @Test
+    void aStopWithNothingPlayingEndsAtOnce() {
         this.moving = false;
         assertNull(frame());
         assertFalse(this.controller.isAnimatingBones());
-        for (int i = 0; i < PAST_A_LOOP_WRAP; i++) {
-            assertNull(frame(), "frame " + i + " after the stop");
+    }
+
+    /**
+     * GeckoLib 5 blends a new clip in from one clip's pose. During the blend to rest that is the empty clip, so a walk
+     * that starts then blends in from rest (on the movement controller the gait's 8-tick hold keeps a walk from
+     * starting during the 5-tick blend).
+     */
+    @Test
+    void aWalkThatStartsDuringTheBlendBlendsIn() {
+        walk(PAST_A_LOOP_WRAP + 10);
+        this.moving = false;
+        for (int i = 0; i < BLEND_FRAMES / 2; i++) {
+            frame();
         }
+        this.moving = true;
+        ControllerState start = frame();
+        assertNotNull(start);
+        assertEquals(0D, start.transitionTime(), "a new blend-in");
+        assertNotNull(start.prevAnimationPoint());
+        assertEquals(0D, legAngle(start), 1.0E-5D, "from the empty clip's pose: rest");
+        double played = walk(PAST_A_LOOP_WRAP);
+        assertTrue(this.controller.isAnimatingBones());
+        assertNotEquals(0D, played, "the walk plays");
     }
 
     /** With no from-point, GeckoLib 5 fades from the first frame toward rest and jumps back (the start pop). */
@@ -108,12 +240,15 @@ class RestartableAnimationControllerTest {
         assertNotNull(start.prevAnimationPoint());
     }
 
-    /** After the reset nothing plays, so a restart needs the rest point as much as a first start does. */
+    /** After the blend nothing plays, so a restart needs the rest point as much as a first start does. */
     @Test
     void startAfterAStopBlendsFromRest() {
         walk(PAST_A_LOOP_WRAP);
         this.moving = false;
-        frame();
+        for (int i = 0; i <= BLEND_FRAMES + 1; i++) {
+            frame();
+        }
+        assertFalse(this.controller.isAnimatingBones());
         this.moving = true;
         ControllerState start = frame();
         assertNotNull(start);
