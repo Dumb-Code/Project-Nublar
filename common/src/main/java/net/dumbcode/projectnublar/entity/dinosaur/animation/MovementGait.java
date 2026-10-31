@@ -40,7 +40,14 @@ public final class MovementGait {
      * 0.027 blocks per tick) and above GeckoLib's old walk threshold for a body on an axis heading (0.018).
      */
     public static final double MOVING_SPEED = 0.015D;
-    /** A gait plays at least this many ticks before it changes. */
+    /**
+     * A gait plays at least this many ticks before it changes. It must stay longer than the movement controller's
+     * transition ticks ({@link DinoAnimator#MOVEMENT_TRANSITION_TICKS}, 5), for two reasons. A walk or run eases in
+     * over those ticks ({@link DinoAnimator#playGait}, Task 56), and during the ease-in GeckoLib blends a stop or a
+     * switch from the clip's first frame, not from the pose shown: a change inside the ease-in jumps. And a stop blends
+     * the legs to rest over the same ticks (Task 53); a walk that starts during that blend blends in from rest, not
+     * from the pose shown.
+     */
     public static final int HOLD_TICKS = 8;
     /**
      * Clamp of the leg cycle rate, as a multiple of the rate the animation was made for. The floor is low because a

@@ -7,6 +7,8 @@ import com.geckolib.animation.AnimationProcessor;
 import com.geckolib.animation.RawAnimation;
 import com.geckolib.animation.object.EasingType;
 import com.geckolib.animation.object.LoopType;
+import com.geckolib.animation.object.PlayState;
+import com.geckolib.animation.state.AnimationTest;
 import com.geckolib.animation.state.BoneSnapshot;
 import com.geckolib.animation.state.ControllerState;
 import com.geckolib.cache.animation.Animation;
@@ -36,10 +38,10 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 
 /**
  * Drives a real GeckoLib 5 controller the way {@link DinoAnimator#movement} does: a looping walk while
- * {@link #moving}, else {@link DinoAnimator#blendToRest}. The walk is a one-second clip that turns one bone,
- * {@code leg}, from 0 to {@link #RAMP} radians, so a frame's pose is the leg's angle ({@link #legAngle}). Which
- * {@link DinoAnimator} handlers end with {@code blendToRest} or {@code stopController} is checked in game, not here:
- * {@code DinoAnimator} needs a live {@code Dinosaur}.
+ * {@link #moving} ({@link DinoAnimator#playGait}), else {@link DinoAnimator#blendToRest}. The walk is a one-second
+ * clip that turns one bone, {@code leg}, from 0 to {@link #RAMP} radians, so a frame's pose is the leg's angle
+ * ({@link #legAngle}). Which {@link DinoAnimator} handlers end with {@code blendToRest} or {@code stopController} is
+ * checked in game, not here: {@code DinoAnimator} needs a live {@code Dinosaur}.
  */
 class RestartableAnimationControllerTest {
 
@@ -48,9 +50,20 @@ class RestartableAnimationControllerTest {
     private static final double RAMP = 0.7D;
     /** The walk: one second, the leg turns linearly from 0 to {@link #RAMP} (keyframes as GeckoLib 5.5.6 bakes). */
     private static final Animation CLIP = Animation.create("move.walk", 1D, LoopType.LOOP, new BoneAnimation[] {
-            new BoneAnimation("leg", new KeyframeStack(ramp(RAMP), ramp(0D), ramp(0D)), KeyframeStack.EMPTY,
-                    KeyframeStack.EMPTY)},
+            new BoneAnimation("leg", new KeyframeStack(ramp(0D, RAMP), ramp(0D, 0D), ramp(0D, 0D)),
+                    KeyframeStack.EMPTY, KeyframeStack.EMPTY)},
             Animation.KeyframeMarkers.EMPTY);
+    private static final RawAnimation STRIDE = RawAnimation.begin().thenLoop("move.stride");
+    /** The leg's angle on the first frame of {@link #STRIDE_CLIP}, in radians: away from rest, as in a real walk. */
+    private static final double STRIDE_START = 0.7D;
+    /** A walk that starts away from rest: one second, the leg turns linearly from {@link #STRIDE_START} to 0. */
+    private static final Animation STRIDE_CLIP = Animation.create("move.stride", 1D, LoopType.LOOP,
+            new BoneAnimation[] {
+                    new BoneAnimation("leg", new KeyframeStack(ramp(STRIDE_START, 0D), ramp(0D, 0D), ramp(0D, 0D)),
+                            KeyframeStack.EMPTY, KeyframeStack.EMPTY)},
+            Animation.KeyframeMarkers.EMPTY);
+    /** The leg rate of a grazing Velociraptor's walk ({@link MovementGait#MIN_ANIMATION_SPEED}): about 0.25. */
+    private static final double GRAZE_RATE = 0.25D;
     /** Frames of walk that pass the first loop wrap: the blend (15 frames) plus the one-second clip (60 frames). */
     private static final int PAST_A_LOOP_WRAP = 90;
     /** Render frames per tick (60 fps). */
@@ -59,12 +72,16 @@ class RestartableAnimationControllerTest {
     private static final int BLEND_FRAMES = DinoAnimator.MOVEMENT_TRANSITION_TICKS * FRAMES_PER_TICK;
 
     private boolean moving;
+    /** The clip {@link #moving} plays, and its gait rate (1 plays the clip as made). */
+    private RawAnimation walkClip = WALK;
+    private double gaitRate = 1D;
+    /** Plays the ease-in at the gait rate too: the speed rule before Task 56, to show the jump it gave. */
+    private boolean easeInAtGaitRate;
     /** Animatable age in ticks; each frame is a third of a tick (60 fps). */
     private double age;
     private final Animatable animatable = new Animatable();
     private final RestartableAnimationController<Animatable> controller = new RestartableAnimationController<>(
-            "movement", DinoAnimator.MOVEMENT_TRANSITION_TICKS,
-            test -> this.moving ? test.setAndContinue(WALK) : DinoAnimator.blendToRest(test));
+            "movement", DinoAnimator.MOVEMENT_TRANSITION_TICKS, this::handle);
     private final GeoModel<Animatable> model = new GeoModel<>() {
         @Override
         public Identifier getModelResource(GeoRenderState renderState) {
@@ -83,7 +100,7 @@ class RestartableAnimationControllerTest {
 
         @Override
         public Animation getBakedAnimation(Animatable animatable, String name) {
-            return CLIP;
+            return name.equals(STRIDE_CLIP.name()) ? STRIDE_CLIP : CLIP;
         }
     };
     /** Partial tick 0.5: at 1.0 GeckoLib asks the Minecraft client for its delta tracker. */
@@ -105,11 +122,26 @@ class RestartableAnimationControllerTest {
         }
     };
 
-    /** The clip's keyframes for one axis: 0 at the start, {@code end} after one second, linear. */
-    private static Keyframe[] ramp(double end) {
+    /** The clip's keyframes for one axis: {@code start} at the start, {@code end} after one second, linear. */
+    private static Keyframe[] ramp(double start, double end) {
         return new Keyframe[] {
-                new Keyframe(0D, 0D, new Constant(0D), new Constant(0D), EasingType.LINEAR),
-                new Keyframe(1D, 1D, new Constant(0D), new Constant(end), EasingType.LINEAR)};
+                new Keyframe(0D, 0D, new Constant(start), new Constant(start), EasingType.LINEAR),
+                new Keyframe(1D, 1D, new Constant(start), new Constant(end), EasingType.LINEAR)};
+    }
+
+    /**
+     * The controller's handler, as {@link DinoAnimator#movement}: while {@link #moving}, the walk by the Task 56
+     * speed rule (or, with {@link #easeInAtGaitRate}, the rule before it), else the blend to rest.
+     */
+    private PlayState handle(AnimationTest<Animatable> test) {
+        if (!this.moving) {
+            return DinoAnimator.blendToRest(test);
+        }
+        if (this.easeInAtGaitRate) {
+            test.controller().setAnimationSpeed(this.gaitRate);
+            return test.setAndContinue(this.walkClip);
+        }
+        return DinoAnimator.playGait(test, this.walkClip, this.gaitRate);
     }
 
     /** One render frame: what the renderer asks the controller; {@code null} when it animates no bone. */
@@ -228,6 +260,47 @@ class RestartableAnimationControllerTest {
         double played = walk(PAST_A_LOOP_WRAP);
         assertTrue(this.controller.isAnimatingBones());
         assertNotEquals(0D, played, "the walk plays");
+    }
+
+    /**
+     * Task 56: a slow walk (a grazing Velociraptor, rate 0.25) that stops at the end of the gait's shortest hold
+     * ({@link MovementGait#HOLD_TICKS}) blends to rest from the pose on screen. Its ease-in played at a speed of at
+     * least 1, so it was over after the transition ticks (5, and one frame: {@link DinoAnimator#playGait}), before
+     * the stop.
+     */
+    @Test
+    void aSlowWalkThatStopsAfterItsHoldBlendsToRestWithoutAJump() {
+        double lastWalkFrame = walkASlowStrideForTheHold();
+        assertFalse(this.controller.isTransitioning(), "the ease-in is over before the hold ends");
+        this.moving = false;
+        assertEquals(lastWalkFrame, legAngle(frame()), 1.0E-5D, "the first blend frame repeats the last walk frame");
+    }
+
+    /**
+     * The rule before Task 56 played the ease-in at the gait rate too: 5 / 0.25 = 20 ticks, so the same stop lands
+     * inside it. There GeckoLib's point is the clip's first frame, not the pose shown (rest eased about 40 % of the
+     * way to that frame), and the blend to rest starts from that first frame: a jump of about 60 % of its pose.
+     */
+    @Test
+    void anEaseInAtTheGaitRateJumpsWhenTheWalkStopsInsideIt() {
+        this.easeInAtGaitRate = true;
+        double lastWalkFrame = walkASlowStrideForTheHold();
+        assertTrue(this.controller.isTransitioning(), "the stop lands inside the ease-in");
+        this.moving = false;
+        double firstBlendFrame = legAngle(frame());
+        assertEquals(STRIDE_START, Math.abs(firstBlendFrame), 1.0E-5D, "the blend starts from the clip's first frame");
+        assertTrue(Math.abs(firstBlendFrame - lastWalkFrame) > STRIDE_START / 2D,
+                "a jump at the stop: " + lastWalkFrame + " to " + firstBlendFrame);
+    }
+
+    /**
+     * Starts {@link #STRIDE} from rest at {@link #GRAZE_RATE} and walks it {@link MovementGait#HOLD_TICKS}, the
+     * earliest tick the gait can stop; returns the leg's angle on the last walk frame.
+     */
+    private double walkASlowStrideForTheHold() {
+        this.walkClip = STRIDE;
+        this.gaitRate = GRAZE_RATE;
+        return walk(MovementGait.HOLD_TICKS * FRAMES_PER_TICK);
     }
 
     /** With no from-point, GeckoLib 5 fades from the first frame toward rest and jumps back (the start pop). */

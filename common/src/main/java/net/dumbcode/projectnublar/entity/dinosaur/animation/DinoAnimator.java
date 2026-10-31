@@ -7,6 +7,7 @@ import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.entity.ai.attributes.Attributes;
 import org.jetbrains.annotations.Nullable;
+import com.geckolib.animation.AnimationController;
 import com.geckolib.animation.RawAnimation;
 import com.geckolib.animation.object.PlayState;
 import com.geckolib.animation.state.AnimationTest;
@@ -146,8 +147,9 @@ public final class DinoAnimator {
 
     /**
      * The movement controller: walk or run while the gait moves, never for a dead animal (replaces GeckoLib's generic
-     * walk controller). The leg cycle plays at {@link MovementGait#animationSpeed}. The controller must be a
-     * {@link RestartableAnimationController}, so a stop can blend the legs to rest.
+     * walk controller). The leg cycle plays at {@link MovementGait#animationSpeed}, its ease-in at a speed of at least
+     * 1 ({@link #playGait}). The controller must be a {@link RestartableAnimationController}, so a stop can blend the
+     * legs to rest.
      */
     public PlayState movement(AnimationTest<Dinosaur> state) {
         if (this.dinosaur.isDeadOrDying() || !this.gait.moving()) {
@@ -162,7 +164,27 @@ public final class DinoAnimator {
         if (animation == null) {
             return blendToRest(state);
         }
-        state.controller().setAnimationSpeed(this.gait.animationSpeed());
+        return playGait(state, animation, this.gait.animationSpeed());
+    }
+
+    /**
+     * Plays the walk or run clip {@code animation} at the gait's leg rate {@code gaitRate}, but its ease-in at a speed
+     * of at least 1 (Task 56). Package-private for the test.
+     * <p>
+     * Why: GeckoLib plays the ease-in at the controller's speed, so at a slow walk's rate (0.25 when a Velociraptor
+     * grazes) it lasted 5 / 0.25 = 20 ticks, longer than a gait's shortest hold ({@link MovementGait#HOLD_TICKS}).
+     * During an ease-in GeckoLib's point is the clip's first frame, not the pose shown, and a stop
+     * ({@link #blendToRest}) or a walk to run switch blends from that point: a jump of up to the whole first-frame
+     * pose. At a speed of at least 1 the ease-in lasts at most {@link #MOVEMENT_TRANSITION_TICKS}, so every stop and
+     * every switch starts from the pose on screen.
+     * <p>
+     * GeckoLib reads the speed before it calls the handler, and on the frame a clip starts the controller is not yet
+     * in its ease-in: the first frame of an ease-in still plays at the gait rate, so it lasts up to one render frame
+     * longer than the transition ticks.
+     */
+    static PlayState playGait(AnimationTest<?> state, RawAnimation animation, double gaitRate) {
+        AnimationController<?> controller = state.controller();
+        controller.setAnimationSpeed(controller.isTransitioning() ? Math.max(1D, gaitRate) : gaitRate);
         return state.setAndContinue(animation);
     }
 
