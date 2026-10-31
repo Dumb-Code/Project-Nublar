@@ -146,6 +146,19 @@ public class SequencerScreen extends AbstractContainerScreen<SequencerMenu> {
             public boolean mouseClicked(MouseButtonEvent event, boolean doubleClick) {
                 return false;
             }
+
+            /**
+             * Takes the pointer only on the Sequence tab, the one tab that draws the bar, so a
+             * widget under it on another tab gets the click. 26.2
+             * {@code ContainerEventHandler.mouseClicked} ends a click at the first child under the
+             * pointer, and this bar is the first child: on the Edit tab it would end every click
+             * on the right part of the 8th and 9th DNA sliders. The tooltip does not use this
+             * test; it follows {@code isHovered}, which the Sequence tab's draw sets.
+             */
+            @Override
+            public boolean isMouseOver(double mouseX, double mouseY) {
+                return currentTab == TAB_SEQUENCE && super.isMouseOver(mouseX, mouseY);
+            }
         };
         this.addWidget(progressWidget);
         listWidget = new ScrollingButtonListWidget<>(this, leftPos + 36, topPos + 42, 150, 102, Component.empty()) {
@@ -427,10 +440,10 @@ public class SequencerScreen extends AbstractContainerScreen<SequencerMenu> {
      * Returns no child while a slot is under the pointer, so the slot takes the click, as on
      * 1.20.1. 26.2 {@code ContainerEventHandler.mouseClicked} ends the click at the first child
      * under the pointer even when that child ignores it, and the slot is then never clicked:
-     * {@code entityList} covers the Synthesis tab's Bone Matter and Plant Matter squares, and
-     * {@code progressWidget} covers the top rows of its two tube squares. Only active slots count
-     * as hovered, and the Edit tab has none, so its sliders and dinosaur list keep their clicks.
-     * The scroll wheel uses the same lookup, so a scroll over a slot does not reach a widget.
+     * {@code entityList} covers the Synthesis tab's Bone Matter and Plant Matter squares. Only
+     * active slots count as hovered, and the Edit tab has none, so its sliders and dinosaur list
+     * keep their clicks. The scroll wheel uses the same lookup, so a scroll over a slot does not
+     * reach a widget.
      */
     @Override
     public Optional<GuiEventListener> getChildAt(double mouseX, double mouseY) {
