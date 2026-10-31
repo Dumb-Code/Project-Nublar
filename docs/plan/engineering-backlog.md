@@ -7024,6 +7024,11 @@ These rows come from a review of five art and agent tools on 2026-10-30. The too
 | --- | --- | --- | --- | --- |
 | D320 | F2.3 | The Art list has 55 "Needs export" rows. Should an agent export them with a Blockbench MCP server? A trial on one row, the Velociraptor `swim` clip from the jptlw file, comes first | A person exports each row by hand in Blockbench | Lead decision pending |
 | D321 | F2.3 | Can artists make clips in Blender with the Sparkle add-on? It writes a linear key on every frame, so the easing of the artist is lost and the clip is hard to edit in Blockbench | Blockbench only for mod clips. Sparkle stays an option for trailer renders | Lead decision pending |
+
+### D322 and later: M0.P2 playtest round 6 of 2026-10-30
+
+| Id | Work package | Question | Default if unanswered | Status |
+| --- | --- | --- | --- | --- |
 | D322 | F2.4, F2.5 | In the M0.P2 playtest of 2026-10-30 (round 6), Gallimimus do not avoid fire. One died in fire that spread to the block it stood on, and it never moved. Testers: "They should avoid it, and in a radius, not just when they're next to it." No dinosaur reacts to fire or to damage, as on 1.20.1. Water avoidance works. Does the plan add fire avoidance? | Answered 2026-10-30. Fire avoidance in a radius goes in M2 (lead, 2026-10-30). F2.4 owns it: a dinosaur notices fire within a radius around its body and moves away before it reaches the fire. A dinosaur whose body box catches fire moves out of the fire. The radius: value open, lead decides. The fire check keeps to the block-scan budget, under 1,000 block reads per animal per second. Running away once burning stays with F2.5 in M2: the lead chose not to pull it into M0.P2 | Answered |
 
 ---
