@@ -36,7 +36,7 @@ final class TravelOrder {
     /** At this arc gap and beyond a follower walks at {@link #CATCH_UP_SPEED}. */
     static final double BEHIND_GAP = 3.0D;
     /**
-     * The old build's catch-up and regroup modifier: 0.194 blocks per tick ({@link GroundSpeed}), 2.25 times
+     * The old build's catch-up and regroup modifier: 0.198 blocks per tick ({@link GroundSpeed}), 2.25 times
      * the leader's journey ground speed at {@link JourneyPolicy#JOURNEY_SPEED}.
      */
     static final double CATCH_UP_SPEED = 1.2D;

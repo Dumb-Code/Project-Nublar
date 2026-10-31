@@ -45,7 +45,7 @@ public class FollowFormation<E extends Dinosaur> extends ExtendedBehaviour<E> {
             .noMemory(MemoryModuleType.WALK_TARGET);
 
     /**
-     * The old build's graze modifier: 0.049 blocks per tick (speed is quadratic in the modifier, {@link GroundSpeed}).
+     * The old build's graze modifier: 0.050 blocks per tick (speed is quadratic in the modifier, {@link GroundSpeed}).
      * A member walks to its graze spot at this speed only inside the herd area ({@link #spotWalkSpeed}).
      */
     static final double GRAZE_SPEED = 0.6D;
@@ -454,7 +454,7 @@ public class FollowFormation<E extends Dinosaur> extends ExtendedBehaviour<E> {
             // it (Review Focus 1). The centre is where the leader stood, so a fallback path can go there, at
             // the centre's own ground height (playtest 2 fix P8a: the leader's height is elsewhere while it
             // is dragged on a lead). At the catch-up speed, as the old build regrouped: a straggler after a
-            // journey has 20 or more blocks to cover, 0.19 blocks per tick against 0.05 at the graze speed.
+            // journey has 20 or more blocks to cover, 0.20 blocks per tick against 0.05 at the graze speed.
             if (!HerdArea.inside(centreX, centreZ, radius - EDGE_MARGIN, entity.getX(), entity.getZ())) {
                 this.standHere = false;
                 walkTo(level, entity, group, control, centreX, group.centreY(), centreZ, TravelOrder.CATCH_UP_SPEED, now);
@@ -522,8 +522,8 @@ public class FollowFormation<E extends Dinosaur> extends ExtendedBehaviour<E> {
 
     /**
      * Speed of the walk to the graze spot (lead decision, playtest 1 fix P4): {@link TravelOrder#CATCH_UP_SPEED}
-     * (0.194 blocks per tick) while the member is outside the herd area (radius R), so a straggler after a
-     * journey regroups as fast as one without a spot; {@link #GRAZE_SPEED} (0.049) once inside. A fallback path
+     * (0.198 blocks per tick) while the member is outside the herd area (radius R), so a straggler after a
+     * journey regroups as fast as one without a spot; {@link #GRAZE_SPEED} (0.050) once inside. A fallback path
      * keeps the speed it was granted with to its end.
      */
     private static double spotWalkSpeed(Dinosaur entity, double centreX, double centreZ, double radius) {

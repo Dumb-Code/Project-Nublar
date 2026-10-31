@@ -57,9 +57,9 @@ import java.util.UUID;
  * not while the body walks a vanilla path facing its next node, {@link GroundSupport#guardChecksGround}), or it
  * enters a member's hard minimum, the forward input is 0 for this tick and
  * the horizontal velocity is cut to {@link #GUARD_VELOCITY_FACTOR} of itself (vanilla friction alone would
- * let the body coast on 1.2 times its last move: 0.23 blocks at the catch-up speed, {@link GroundSpeed}).
- * Speeds: the ground speed is quadratic in the modifier ({@link GroundSpeed}: 0.049 blocks per tick at the
- * graze speed 0.6, 0.086 at the journey speed 0.8, 0.19 at the catch-up speed 1.2); the slow-down factors
+ * let the body coast on 1.2 times its last move: 0.24 blocks at the catch-up speed, {@link GroundSpeed}).
+ * Speeds: the ground speed is quadratic in the modifier ({@link GroundSpeed}: 0.050 blocks per tick at the
+ * graze speed 0.6, 0.088 at the journey speed 0.8, 0.20 at the catch-up speed 1.2); the slow-down factors
  * act on the ground speed, and a steering member never walks below {@link GroundSpeed#MIN_WALK_MODIFIER}
  * (the walk animation's floor). So spacing (T4) and fitting (T8) hold between evaluations and on
  * vanilla paths too. While steering, a guard stop at blocks counts as a blocked tick (lead decision 14:
@@ -169,7 +169,7 @@ public class HerdMoveControl extends MoveControl {
      * Tight ground ({@link #tightGround}) is re-measured once the body has moved this far since the measure
      * (a standing member keeps its measure): at most two {@code BodyFit.sideRoom} calls (7-8 stand probes each
      * in the open, 1-2 in a passage) per member per refresh, never per steering probe. 2 blocks: a walker at
-     * the catch-up speed (0.19 blocks per tick) refreshes about every 10 ticks, at the graze speed every 40.
+     * the catch-up speed (0.20 blocks per tick) refreshes about every 10 ticks, at the graze speed every 40.
      */
     static final double TIGHT_REFRESH_DISTANCE = 2.0D;
     /**
@@ -1026,7 +1026,7 @@ public class HerdMoveControl extends MoveControl {
      * {@link #GUARD_PATH_TRUST_DEGREES} ({@link GroundSupport#guardChecksGround}): the nodes passed the rim rules,
      * so a leader on a rim node or a ridge is never held; a held body keeps turning toward its node and walks on
      * once it faces it. The horizontal velocity is cut too: with friction alone a body coasts on 1.2
-     * times its last move (0.23 blocks at the catch-up speed), a good part of the 0.6 the probe looked
+     * times its last move (0.24 blocks at the catch-up speed), a good part of the 0.6 the probe looked
      * ahead. A stop at blocks (a wall or a drop) while steering remembers the heading, so the next evaluation
      * masks it and picks another.
      *

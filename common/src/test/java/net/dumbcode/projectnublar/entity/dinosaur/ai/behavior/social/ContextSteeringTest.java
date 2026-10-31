@@ -216,7 +216,7 @@ class ContextSteeringTest {
     void maxWaitOutlastsAGrazingHerdMateCrossingTheWalkersPath() {
         // The longest legitimate yield, from the constants: a Gallimimus (width 1.2) crossing at the graze
         // speed must carry its body through the walker's hard minimum zone (2 x personal space) and clear it
-        // (plus its own width): 5.6 blocks at 0.049 blocks per tick, about 115 ticks. The time-out must leave
+        // (plus its own width): 5.6 blocks at 0.050 blocks per tick, about 113 ticks. The time-out must leave
         // a margin above that (a crosser must never time the walker out just as it clears), yet not sit on a
         // deadlock for more than twice as long.
         double width = 1.2D;
@@ -344,7 +344,7 @@ class ContextSteeringTest {
     @Test
     void catchUpMatchingStartsEarlierAndSlowsGentler() {
         // P13b item 4 (ruling 8): behind a mate at the journey pace, a catch-up follower starts to slow 4.3 blocks
-        // of free distance out (P12b: 3.2) and loses at most 0.0036 blocks per tick per tick (P12b: 0.0054).
+        // of free distance out (P12b: 3.2) and loses at most 0.0036 blocks per tick per tick (P12b: 0.0055).
         double catchUp = GroundSpeed.groundSpeed(TravelOrder.CATCH_UP_SPEED, ATTRIBUTE);
         double ahead = GroundSpeed.groundSpeed(JourneyPolicy.JOURNEY_SPEED, ATTRIBUTE);
         assertTrue(ContextSteering.matchedSpeed(catchUp, ahead, 4.2D, FLOOR) < catchUp, "slows from 4.2 blocks out");

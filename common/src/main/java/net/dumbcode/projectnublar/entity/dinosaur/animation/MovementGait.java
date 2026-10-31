@@ -19,7 +19,7 @@ import net.dumbcode.projectnublar.entity.dinosaur.ai.behavior.social.RunGait;
  * The leg cycle's target rate is the smoothed speed over the speed the clip was made for ({@link #authoredSpeed}:
  * the species' measured stride, Task 45), clamped, so the planted feet keep pace with the ground. The walk and the
  * run each have their own stride, so the walk and the run target different step rates at the same ground speed (a
- * Brachiosaurus at the run switch: 14 % fewer steps per tick in the run).
+ * Brachiosaurus at the run switch: 12 % fewer steps per tick in the run).
  * <p>
  * The rate does not jump to that target (Task 52). At a switch between walk and run it keeps the step rate (cycles
  * per tick) of the gait before: rate times the new cycle over the old cycle, as on 1.20.1. On the following ticks,
@@ -37,7 +37,7 @@ public final class MovementGait {
     public static final double SMOOTHING = 0.3D;
     /**
      * A smoothed ground speed (blocks per tick) at or above this is a walk: under the steering floor (modifier 0.45,
-     * 0.027 blocks per tick) and above GeckoLib's old walk threshold for a body on an axis heading (0.018).
+     * 0.028 blocks per tick) and above GeckoLib's old walk threshold for a body on an axis heading (0.018).
      */
     public static final double MOVING_SPEED = 0.015D;
     /**
@@ -63,7 +63,7 @@ public final class MovementGait {
     public static final double MAX_RATE_STEP = 0.05D;
     /**
      * Most blocks one tick counts in the average (P12a fix round 1). The fastest setting the AI uses is a chase
-     * (modifier 1.5: 0.30 blocks per tick at {@code MOVEMENT_SPEED} 0.25), and a burst tick moves 4/3 of that (0.40).
+     * (modifier 1.5: 0.31 blocks per tick at {@code MOVEMENT_SPEED} 0.25), and a burst tick moves 4/3 of that (0.41).
      * A longer move in one tick is a teleport or a position correction, not a step: it counts as one fast step, so a
      * standing animal walks for the hold and does not run, and the average is back down within a few ticks.
      */
