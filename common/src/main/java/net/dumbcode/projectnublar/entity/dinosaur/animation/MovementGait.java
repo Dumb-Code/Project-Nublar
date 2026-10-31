@@ -16,14 +16,21 @@ import net.dumbcode.projectnublar.entity.dinosaur.ai.behavior.social.RunGait;
  *       free);</li>
  *   <li>walk or run uses the {@link RunGait} hysteresis on the smoothed speed.</li>
  * </ul>
- * The leg cycle plays at the smoothed speed over the speed the clip was made for ({@link #authoredSpeed}: the
- * species' measured stride, Task 45), clamped, so the planted feet keep pace with the ground. The walk and the run
- * each have their own stride, so at the run switch the step rate changes with the stride while the feet keep pace.
+ * The leg cycle's target rate is the smoothed speed over the speed the clip was made for ({@link #authoredSpeed}:
+ * the species' measured stride, Task 45), clamped, so the planted feet keep pace with the ground. The walk and the
+ * run each have their own stride, so the walk and the run target different step rates at the same ground speed (a
+ * Brachiosaurus at the run switch: 14 % fewer steps per tick in the run).
  * <p>
- * The speed takes its target on every tick. GeckoLib 5 adds each frame's time times the speed to the clip's time
- * ({@code AnimationController.checkControllerState}, javap of 5.5.6), so a change of the speed changes the rate and
- * never moves the leg phase. (GeckoLib 4 played a cycle at the speed times the ticks since its start, so a change also
- * moved the phase, and a limit on the change per tick kept the legs from jumping. GeckoLib 5 does not need it.)
+ * The rate does not jump to that target (Task 52). At a switch between walk and run it keeps the step rate (cycles
+ * per tick) of the gait before: rate times the new cycle over the old cycle, as on 1.20.1. On the following ticks,
+ * and on every tick with no switch, it moves toward the target by at most {@link #MAX_RATE_STEP}. So the step rate
+ * changes smoothly over a few ticks instead of at the switch. A walk from a stand takes its target at once. A carried
+ * rate can lie outside the clamp for those few ticks; the target never does.
+ * <p>
+ * The limit only softens the rate; it does not protect the leg phase. GeckoLib 5 adds each frame's time times the
+ * speed to the clip's time ({@code AnimationController.checkControllerState}, javap of 5.5.6), so a change of the
+ * speed never moves the leg phase. (GeckoLib 4 played a cycle at the speed times the ticks since its start, so there a
+ * change also moved the phase, and 1.20.1 limited the change for that reason.)
  */
 public final class MovementGait {
     /** Weight of the newest tick in the exponential average of the ground speed (time constant about 3 ticks). */
@@ -42,6 +49,11 @@ public final class MovementGait {
      */
     public static final double MIN_ANIMATION_SPEED = 0.2D;
     public static final double MAX_ANIMATION_SPEED = 2.0D;
+    /**
+     * Most the leg cycle rate moves toward its target in one tick (Task 52). A starting value: the lead tunes it by
+     * eye in game. Larger is a faster change of the step rate after a speed change or a walk to run switch.
+     */
+    public static final double MAX_RATE_STEP = 0.05D;
     /**
      * Most blocks one tick counts in the average (P12a fix round 1). The fastest setting the AI uses is a chase
      * (modifier 1.5: 0.30 blocks per tick at {@code MOVEMENT_SPEED} 0.25), and a burst tick moves 4/3 of that (0.40).
@@ -64,6 +76,22 @@ public final class MovementGait {
     public record Strides(double walk, double run) {
         /** A species with no measurement: its leg clips play at rate 1. */
         public static final Strides NOT_MEASURED = new Strides(0D, 0D);
+    }
+
+    /**
+     * A leg clip as the gait reads it on one tick.
+     *
+     * @param authoredSpeed {@link #authoredSpeed} of the clip; 0 when not known (the clip then plays at rate 1)
+     * @param cycleTicks    the clip's length in ticks; 0 or less when not known (a switch then takes the target rate)
+     */
+    public record LegClip(double authoredSpeed, int cycleTicks) {
+        /** A clip with no known speed or length: it plays at rate 1. */
+        public static final LegClip NOT_MEASURED = new LegClip(0D, 0);
+
+        /** The clip of a stride and length at a render scale ({@link MovementGait#authoredSpeed} gives its speed). */
+        public static LegClip of(double strideBlocks, double scale, int cycleTicks) {
+            return new LegClip(MovementGait.authoredSpeed(strideBlocks, scale, cycleTicks), cycleTicks);
+        }
     }
 
     private double groundSpeed;
@@ -115,10 +143,10 @@ public final class MovementGait {
      *
      * @param groundSpeed horizontal blocks moved on this tick
      * @param attribute   the animal's {@code MOVEMENT_SPEED} attribute
-     * @param walkSpeed   {@link #authoredSpeed} of the walk; 0 when not known (the walk then plays at rate 1)
-     * @param runSpeed    {@link #authoredSpeed} of the run; 0 when not known (the run then plays at rate 1)
+     * @param walk        the walk clip
+     * @param run         the run clip (the walk clip for a species that plays its walk for a run)
      */
-    public void tick(double groundSpeed, double attribute, double walkSpeed, double runSpeed) {
+    public void tick(double groundSpeed, double attribute, LegClip walk, LegClip run) {
         this.groundSpeed += SMOOTHING * (Math.min(groundSpeed, MAX_GROUND_SPEED) - this.groundSpeed);
         Gait wanted;
         if (this.groundSpeed < MOVING_SPEED) {
@@ -129,16 +157,35 @@ public final class MovementGait {
         if (this.heldTicks < HOLD_TICKS) {
             this.heldTicks++;
         }
+        Gait previous = this.gait;
         if (wanted != this.gait && this.heldTicks >= HOLD_TICKS) {
             this.gait = wanted;
             this.heldTicks = 0;
         }
-        double authored = this.gait == Gait.RUN ? runSpeed : walkSpeed;
-        if (this.gait == Gait.IDLE || authored <= 0D) {
+        LegClip clip = this.gait == Gait.RUN ? run : walk;
+        if (this.gait == Gait.IDLE || clip.authoredSpeed() <= 0D) {
             this.animationSpeed = 1D;
             return;
         }
-        this.animationSpeed = Math.max(MIN_ANIMATION_SPEED, Math.min(MAX_ANIMATION_SPEED, this.groundSpeed / authored));
+        double target = Math.max(MIN_ANIMATION_SPEED,
+                Math.min(MAX_ANIMATION_SPEED, this.groundSpeed / clip.authoredSpeed()));
+        this.animationSpeed = nextRate(previous, previous == Gait.RUN ? run : walk, clip, target);
+    }
+
+    /**
+     * The leg cycle rate on a moving tick (class comment): the target from a stand, the step rate of the gait before
+     * at a walk to run or run to walk switch, else one limited step toward the target.
+     */
+    private double nextRate(Gait previous, LegClip from, LegClip to, double target) {
+        if (previous == Gait.IDLE) {
+            return target;
+        }
+        if (previous != this.gait) {
+            boolean lengthsKnown = from.cycleTicks() > 0 && to.cycleTicks() > 0;
+            return lengthsKnown ? this.animationSpeed * to.cycleTicks() / from.cycleTicks() : target;
+        }
+        double change = target - this.animationSpeed;
+        return this.animationSpeed + Math.max(-MAX_RATE_STEP, Math.min(MAX_RATE_STEP, change));
     }
 
     public Gait gait() {

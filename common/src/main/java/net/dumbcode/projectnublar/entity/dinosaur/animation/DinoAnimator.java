@@ -65,6 +65,11 @@ public final class DinoAnimator {
     private int runCycleTicks;
     /** The species' leg strides, read with the lengths ({@link MovementGait#strides}). */
     private MovementGait.Strides strides = MovementGait.Strides.NOT_MEASURED;
+    /** The walk and run clips for the gait at {@link #clipScale}; rebuilt when the render scale changes. */
+    private MovementGait.LegClip walkClip = MovementGait.LegClip.NOT_MEASURED;
+    private MovementGait.LegClip runClip = MovementGait.LegClip.NOT_MEASURED;
+    /** The render scale the clips were built for; NaN before the first build. */
+    private float clipScale = Float.NaN;
     private boolean wasAttacking;
     private boolean wasEating;
     private boolean wasDrinking;
@@ -97,17 +102,21 @@ public final class DinoAnimator {
             this.runCycleTicks = DinoAnimationLengths.lengthTicks(type, AnimationChoice.RUN);
             this.strides = MovementGait.strides(BuiltInRegistries.ENTITY_TYPE.getKey(type).getPath());
         }
-        // The render scale grows with the animal, so the speeds its leg clips are made for are read on every tick.
+        // The render scale grows with the animal (growth stage, SIZE gene), and the speeds its leg clips are made
+        // for grow with it.
         float scale = this.dinosaur.scaleFactor();
-        double walkSpeed = MovementGait.authoredSpeed(this.strides.walk(), scale, this.walkCycleTicks);
-        // A species with no run clip plays its walk for a run (movement()), so its run is made for the walk's speed.
-        double runSpeed = this.runCycleTicks == AnimationChoice.LENGTH_NOT_DEFINED
-                ? walkSpeed
-                : MovementGait.authoredSpeed(this.strides.run(), scale, this.runCycleTicks);
+        if (scale != this.clipScale) {
+            this.clipScale = scale;
+            this.walkClip = MovementGait.LegClip.of(this.strides.walk(), scale, this.walkCycleTicks);
+            // A species with no run clip plays its walk for a run (movement()), so its run is the walk clip.
+            this.runClip = this.runCycleTicks == AnimationChoice.LENGTH_NOT_DEFINED
+                    ? this.walkClip
+                    : MovementGait.LegClip.of(this.strides.run(), scale, this.runCycleTicks);
+        }
         double dx = this.dinosaur.getX() - this.dinosaur.xo;
         double dz = this.dinosaur.getZ() - this.dinosaur.zo;
         this.gait.tick(Math.sqrt(dx * dx + dz * dz), this.dinosaur.getAttributeBaseValue(Attributes.MOVEMENT_SPEED),
-                walkSpeed, runSpeed);
+                this.walkClip, this.runClip);
 
         boolean attacking = this.dinosaur.isAttacking();
         if (attacking && !this.wasAttacking) {

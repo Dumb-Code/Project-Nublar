@@ -32,6 +32,15 @@ class MovementGaitTest {
     private static final double RUN = MovementGait.authoredSpeed(GALLIMIMUS.run(), 1D, RUN_CYCLE);
     /** Ground speed the adult Velociraptor walk is made for (render scale 0.6): 6.5 x 0.6 blocks per 20 ticks, 0.195. */
     private static final double RAPTOR_WALK = MovementGait.authoredSpeed(MovementGait.strides("velociraptor").walk(), 0.6D, 20);
+    private static final MovementGait.LegClip WALK_CLIP = new MovementGait.LegClip(WALK, WALK_CYCLE);
+    private static final MovementGait.LegClip RUN_CLIP = new MovementGait.LegClip(RUN, RUN_CYCLE);
+    private static final MovementGait.LegClip RAPTOR_WALK_CLIP = new MovementGait.LegClip(RAPTOR_WALK, 20);
+    /** Adult Brachiosaurus clips (render scale 2.5): move.walk 4.04 s (81 ticks), run 2.79 s (56 ticks). */
+    private static final MovementGait.Strides BRACHIOSAURUS = MovementGait.strides("brachiosaurus");
+    private static final MovementGait.LegClip BRACHIOSAURUS_WALK =
+            MovementGait.LegClip.of(BRACHIOSAURUS.walk(), 2.5D, 81);
+    private static final MovementGait.LegClip BRACHIOSAURUS_RUN =
+            MovementGait.LegClip.of(BRACHIOSAURUS.run(), 2.5D, 56);
 
     /** Steady ground speed of a speed setting: the law in {@code GroundSpeed}, 2.16 x (modifier x attribute)^2. */
     private static double at(double modifier) {
@@ -40,15 +49,22 @@ class MovementGaitTest {
     }
 
     private static MovementGait settled(double groundSpeed) {
-        return settled(groundSpeed, WALK, RUN);
+        return settled(groundSpeed, WALK_CLIP, RUN_CLIP);
     }
 
-    private static MovementGait settled(double groundSpeed, double walkSpeed, double runSpeed) {
+    private static MovementGait settled(double groundSpeed, MovementGait.LegClip walk, MovementGait.LegClip run) {
         MovementGait gait = new MovementGait();
         for (int i = 0; i < 200; i++) {
-            gait.tick(groundSpeed, ATTRIBUTE, walkSpeed, runSpeed);
+            gait.tick(groundSpeed, ATTRIBUTE, walk, run);
         }
         return gait;
+    }
+
+    /** The rate the gait moves toward in its current gait: the smoothed speed over the clip's speed, clamped. */
+    private static double target(MovementGait gait, MovementGait.LegClip walk, MovementGait.LegClip run) {
+        double authored = gait.gait() == MovementGait.Gait.RUN ? run.authoredSpeed() : walk.authoredSpeed();
+        return Math.max(MovementGait.MIN_ANIMATION_SPEED,
+                Math.min(MovementGait.MAX_ANIMATION_SPEED, gait.groundSpeed() / authored));
     }
 
     @Test
@@ -69,7 +85,7 @@ class MovementGaitTest {
     @Test
     void startsToWalkOnTheFirstTickFromALongStand() {
         MovementGait gait = settled(0D);
-        gait.tick(WALK, ATTRIBUTE, WALK, RUN);
+        gait.tick(WALK, ATTRIBUTE, WALK_CLIP, RUN_CLIP);
         assertSame(MovementGait.Gait.WALK, gait.gait());
     }
 
@@ -77,10 +93,10 @@ class MovementGaitTest {
     void oneStillTickDoesNotChangeTheGait() {
         // A late position packet or one guard tick gives one tick with no movement.
         MovementGait runner = settled(RUN);
-        runner.tick(0D, ATTRIBUTE, WALK, RUN);
+        runner.tick(0D, ATTRIBUTE, WALK_CLIP, RUN_CLIP);
         assertSame(MovementGait.Gait.RUN, runner.gait(), "a runner keeps running");
         MovementGait walker = settled(WALK);
-        walker.tick(0D, ATTRIBUTE, WALK, RUN);
+        walker.tick(0D, ATTRIBUTE, WALK_CLIP, RUN_CLIP);
         assertSame(MovementGait.Gait.WALK, walker.gait(), "a walker keeps walking");
     }
 
@@ -90,20 +106,20 @@ class MovementGaitTest {
         double inBand = 0.13D;
         MovementGait walker = settled(inBand);
         assertSame(MovementGait.Gait.WALK, walker.gait());
-        walker.tick(inBand * 4D / 3D, ATTRIBUTE, WALK, RUN);
+        walker.tick(inBand * 4D / 3D, ATTRIBUTE, WALK_CLIP, RUN_CLIP);
         assertSame(MovementGait.Gait.WALK, walker.gait());
     }
 
     @Test
     void aGaitIsHeldForTheMinimumTimeAfterASwitch() {
         MovementGait gait = new MovementGait();
-        gait.tick(WALK, ATTRIBUTE, WALK, RUN);
+        gait.tick(WALK, ATTRIBUTE, WALK_CLIP, RUN_CLIP);
         assertSame(MovementGait.Gait.WALK, gait.gait(), "the first switch is free");
         for (int i = 1; i < MovementGait.HOLD_TICKS; i++) {
-            gait.tick(0D, ATTRIBUTE, WALK, RUN);
+            gait.tick(0D, ATTRIBUTE, WALK_CLIP, RUN_CLIP);
             assertSame(MovementGait.Gait.WALK, gait.gait(), "held at tick " + i);
         }
-        gait.tick(0D, ATTRIBUTE, WALK, RUN);
+        gait.tick(0D, ATTRIBUTE, WALK_CLIP, RUN_CLIP);
         assertSame(MovementGait.Gait.IDLE, gait.gait(), "the hold is over");
     }
 
@@ -112,7 +128,7 @@ class MovementGaitTest {
         MovementGait gait = settled(RUN);
         int ticks = 0;
         while (gait.moving() && ticks < 100) {
-            gait.tick(0D, ATTRIBUTE, WALK, RUN);
+            gait.tick(0D, ATTRIBUTE, WALK_CLIP, RUN_CLIP);
             ticks++;
         }
         assertTrue(ticks > 1, "not on the first still tick");
@@ -125,12 +141,13 @@ class MovementGaitTest {
         assertEquals(1D, settled(RUN).animationSpeed(), 1.0E-6D);
         assertEquals(1.5D, settled(WALK * 1.5D).animationSpeed(), 1.0E-6D, "a fast walk");
         // A Velociraptor at the steering floor would play its long-stride walk at 0.14.
-        assertEquals(MovementGait.MIN_ANIMATION_SPEED, settled(0.027D, RAPTOR_WALK, RUN).animationSpeed(), 1.0E-6D,
-                "clamped low");
+        assertEquals(MovementGait.MIN_ANIMATION_SPEED, settled(0.027D, RAPTOR_WALK_CLIP, RUN_CLIP).animationSpeed(),
+                1.0E-6D, "clamped low");
         // An adult Dilophosaurus run (6.0 blocks x scale 0.5 per 20 ticks) at the per-tick cap would play at 2.8.
-        double dilophosaurusRun = MovementGait.authoredSpeed(6D, 0.5D, 20);
-        assertEquals(MovementGait.MAX_ANIMATION_SPEED, settled(dilophosaurusRun * 3D, WALK, dilophosaurusRun).animationSpeed(),
-                1.0E-6D, "clamped high");
+        MovementGait.LegClip dilophosaurusRun = new MovementGait.LegClip(MovementGait.authoredSpeed(6D, 0.5D, 20), 20);
+        assertEquals(MovementGait.MAX_ANIMATION_SPEED,
+                settled(dilophosaurusRun.authoredSpeed() * 3D, WALK_CLIP, dilophosaurusRun).animationSpeed(), 1.0E-6D,
+                "clamped high");
     }
 
     @Test
@@ -141,23 +158,89 @@ class MovementGaitTest {
         double journey = at(0.8D) / RAPTOR_WALK;
         assertTrue(graze > MovementGait.MIN_ANIMATION_SPEED && graze < 0.5D, "graze rate " + graze);
         assertTrue(journey > MovementGait.MIN_ANIMATION_SPEED && journey < 0.5D, "journey rate " + journey);
-        assertEquals(graze, settled(at(0.6D), RAPTOR_WALK, RUN).animationSpeed(), 1.0E-6D, "not clamped");
+        assertEquals(graze, settled(at(0.6D), RAPTOR_WALK_CLIP, RUN_CLIP).animationSpeed(), 1.0E-6D, "not clamped");
     }
 
     @Test
-    void theLegRateFollowsTheGroundSpeedOnEveryTick() {
-        // GeckoLib 5 adds each frame's time x the speed to the clip, so a change of the speed moves no leg phase and
-        // needs no limit: the rate is the smoothed ground speed over the authored speed on the very next tick.
+    void theLegRateMovesToItsTargetByAtMostTheStepPerTick() {
+        // Task 52: a walk that speeds up by half moves its target rate by 0.15 on the first tick (the smoothing). The
+        // rate follows by MAX_RATE_STEP per tick, so the step rate eases up, and it reaches the target in the end.
         MovementGait gait = settled(WALK);
-        gait.tick(WALK * 1.5D, ATTRIBUTE, WALK, RUN);
-        assertEquals(gait.groundSpeed() / WALK, gait.animationSpeed(), 1.0E-9D, "one tick after the change");
-        assertEquals(1D + MovementGait.SMOOTHING * 0.5D, gait.animationSpeed(), 1.0E-9D, "the smoothing alone lags");
+        gait.tick(WALK * 1.5D, ATTRIBUTE, WALK_CLIP, RUN_CLIP);
+        assertEquals(1D + MovementGait.SMOOTHING * 0.5D, gait.groundSpeed() / WALK, 1.0E-9D, "the target is 1.15");
+        assertEquals(1D + MovementGait.MAX_RATE_STEP, gait.animationSpeed(), 1.0E-9D, "the rate moved by one step");
+        for (int i = 0; i < 100; i++) {
+            double before = gait.animationSpeed();
+            gait.tick(WALK * 1.5D, ATTRIBUTE, WALK_CLIP, RUN_CLIP);
+            assertTrue(gait.animationSpeed() - before <= MovementGait.MAX_RATE_STEP + 1.0E-9D, "limited on tick " + i);
+        }
+        assertEquals(1.5D, gait.animationSpeed(), 1.0E-6D, "at the target in the end");
+        // Slowing down is limited the same way.
+        gait.tick(WALK, ATTRIBUTE, WALK_CLIP, RUN_CLIP);
+        assertEquals(1.5D - MovementGait.MAX_RATE_STEP, gait.animationSpeed(), 1.0E-9D, "the rate fell by one step");
+    }
+
+    @Test
+    void theStepRateDoesNotDropAtTheSwitchToTheRun() {
+        // Task 52, the Brachiosaurus of the round 6 playtest: at the run switch its walk plays near the cap (2.0, 81
+        // ticks a cycle) and its run's target is about 1.2 (56 ticks a cycle), 14 % fewer steps per tick. On the switch
+        // tick the run keeps the walk's steps per tick: rate x 56 / 81.
+        MovementGait gait = settled(0.14D, BRACHIOSAURUS_WALK, BRACHIOSAURUS_RUN);
+        assertSame(MovementGait.Gait.WALK, gait.gait());
+        double walkRate = gait.animationSpeed();
+        int ticks = 0;
+        while (gait.gait() == MovementGait.Gait.WALK && ticks < 20) {
+            walkRate = gait.animationSpeed();
+            gait.tick(0.16D, ATTRIBUTE, BRACHIOSAURUS_WALK, BRACHIOSAURUS_RUN);
+            ticks++;
+        }
+        assertSame(MovementGait.Gait.RUN, gait.gait(), "it runs");
+        assertEquals(walkRate / 81D, gait.animationSpeed() / 56D, 1.0E-9D, "the same steps per tick");
+        assertTrue(Math.abs(gait.animationSpeed() - target(gait, BRACHIOSAURUS_WALK, BRACHIOSAURUS_RUN)) > 0.1D,
+                "not the run's target, which would change the step rate");
+    }
+
+    @Test
+    void theStepRateDoesNotRiseAtTheSwitchBackToTheWalk() {
+        // The other way: a run that slows below the exit speed. The Brachiosaurus walk's target is about 22 % more
+        // steps per tick than the run; on the switch tick the walk keeps the run's: rate x 81 / 56.
+        MovementGait gait = settled(0.2D, BRACHIOSAURUS_WALK, BRACHIOSAURUS_RUN);
+        assertSame(MovementGait.Gait.RUN, gait.gait());
+        double runRate = gait.animationSpeed();
+        int ticks = 0;
+        while (gait.gait() == MovementGait.Gait.RUN && ticks < 40) {
+            runRate = gait.animationSpeed();
+            gait.tick(0.1D, ATTRIBUTE, BRACHIOSAURUS_WALK, BRACHIOSAURUS_RUN);
+            ticks++;
+        }
+        assertSame(MovementGait.Gait.WALK, gait.gait(), "it walks");
+        assertEquals(runRate / 56D, gait.animationSpeed() / 81D, 1.0E-9D, "the same steps per tick");
+        assertTrue(Math.abs(gait.animationSpeed() - target(gait, BRACHIOSAURUS_WALK, BRACHIOSAURUS_RUN)) > 0.1D,
+                "not the walk's target, which would change the step rate");
+    }
+
+    @Test
+    void afterTheSwitchTheRateEasesToTheNewTarget() {
+        // The carried rate is not the run's target; from the next tick on it moves there by the step per tick.
+        MovementGait gait = settled(0.14D, BRACHIOSAURUS_WALK, BRACHIOSAURUS_RUN);
+        gait.tick(0.25D, ATTRIBUTE, BRACHIOSAURUS_WALK, BRACHIOSAURUS_RUN);
+        assertSame(MovementGait.Gait.RUN, gait.gait(), "a fast tick switches at once");
+        for (int i = 0; i < 100; i++) {
+            double before = gait.animationSpeed();
+            gait.tick(0.25D, ATTRIBUTE, BRACHIOSAURUS_WALK, BRACHIOSAURUS_RUN);
+            double wanted = target(gait, BRACHIOSAURUS_WALK, BRACHIOSAURUS_RUN);
+            double step = Math.max(-MovementGait.MAX_RATE_STEP, Math.min(MovementGait.MAX_RATE_STEP, wanted - before));
+            assertEquals(before + step, gait.animationSpeed(), 1.0E-9D, "tick " + i);
+        }
+        assertSame(MovementGait.Gait.RUN, gait.gait());
+        assertEquals(target(gait, BRACHIOSAURUS_WALK, BRACHIOSAURUS_RUN), gait.animationSpeed(), 1.0E-9D,
+                "at the run's target in the end");
     }
 
     @Test
     void aWalkFromAStandTakesItsAnimationSpeedAtOnce() {
         MovementGait gait = settled(0D);
-        gait.tick(WALK * 4D, ATTRIBUTE, WALK, RUN);
+        gait.tick(WALK * 4D, ATTRIBUTE, WALK_CLIP, RUN_CLIP);
         assertSame(MovementGait.Gait.WALK, gait.gait());
         assertEquals(gait.groundSpeed() / WALK, gait.animationSpeed(), 1.0E-9D);
     }
@@ -168,7 +251,8 @@ class MovementGaitTest {
         assertEquals(MovementGait.Strides.NOT_MEASURED, MovementGait.strides("not_a_species"));
         assertEquals(0D, MovementGait.authoredSpeed(0D, 1D, WALK_CYCLE), "no stride");
         assertEquals(0D, MovementGait.authoredSpeed(GALLIMIMUS.walk(), 1D, AnimationChoice.LENGTH_UNKNOWN), "no length");
-        assertEquals(1D, settled(WALK * 1.5D, 0D, 0D).animationSpeed(), 1.0E-9D);
+        MovementGait.LegClip unknown = MovementGait.LegClip.NOT_MEASURED;
+        assertEquals(1D, settled(WALK * 1.5D, unknown, unknown).animationSpeed(), 1.0E-9D);
     }
 
     @Test
@@ -187,7 +271,8 @@ class MovementGaitTest {
         // ground speed, for the walk and for the run.
         int cycle = 20;
         double ground = at(1.5D);
-        MovementGait gait = settled(ground, RAPTOR_WALK, MovementGait.authoredSpeed(10.4D, 0.6D, cycle));
+        MovementGait gait = settled(ground, RAPTOR_WALK_CLIP,
+                new MovementGait.LegClip(MovementGait.authoredSpeed(10.4D, 0.6D, cycle), cycle));
         assertSame(MovementGait.Gait.RUN, gait.gait(), "a chase runs");
         double feet = 10.4D * 0.6D / (cycle / gait.animationSpeed());
         assertEquals(ground, feet, 1.0E-9D);
@@ -210,13 +295,13 @@ class MovementGaitTest {
     void aTeleportCountsAsOneFastStep() {
         // A /tp or a position correction moves the body far in one tick. It must not spike the smoothed speed.
         MovementGait teleported = settled(0D);
-        teleported.tick(40D, ATTRIBUTE, WALK, RUN);
+        teleported.tick(40D, ATTRIBUTE, WALK_CLIP, RUN_CLIP);
         assertEquals(MovementGait.SMOOTHING * MovementGait.MAX_GROUND_SPEED, teleported.groundSpeed(), 1.0E-9D,
                 "the tick counts as a move of the cap");
         assertSame(MovementGait.Gait.WALK, teleported.gait(), "a standing animal walks for the hold, it does not run");
         int ticks = 0;
         while (teleported.moving() && ticks < 100) {
-            teleported.tick(0D, ATTRIBUTE, WALK, RUN);
+            teleported.tick(0D, ATTRIBUTE, WALK_CLIP, RUN_CLIP);
             ticks++;
         }
         assertEquals(MovementGait.HOLD_TICKS, ticks, "it stands again when the hold ends");
@@ -231,11 +316,12 @@ class MovementGaitTest {
     }
 
     @Test
-    void aRampThroughTheRunSwitchChangesTheGaitHoldsItAndKeepsPace() {
+    void aRampThroughTheRunSwitchChangesTheGaitHoldsItAndCarriesTheStepRate() {
         // An urgent trip starts: over RAMP ticks the body speeds up from the walk to the trip's speed (modifier 1.2; the
-        // client sees the acceleration), then it drops back to the walk at once. The run starts on the first tick over the threshold
-        // and lasts the hold although the speed falls back; on every tick the legs play at the smoothed ground speed
-        // over the authored speed of the gait they are in.
+        // client sees the acceleration), then it drops back to the walk at once. The run starts on the first tick over
+        // the threshold and lasts the hold although the speed falls back. On each switch tick the legs keep the steps
+        // per tick of the gait before; on every other tick the rate moves toward the smoothed ground speed over the
+        // authored speed of the gait they are in, by at most the step.
         int ramp = 10;
         double trip = at(1.2D);
         MovementGait gait = settled(WALK);
@@ -245,7 +331,8 @@ class MovementGaitTest {
         int runTicks = 0;
         for (int i = 0; i < ramp + 40; i++) {
             double speed = i < ramp ? WALK + (trip - WALK) * (i + 1) / ramp : WALK;
-            gait.tick(speed, ATTRIBUTE, WALK, RUN);
+            double before = gait.animationSpeed();
+            gait.tick(speed, ATTRIBUTE, WALK_CLIP, RUN_CLIP);
             if (gait.gait() != previous) {
                 changes++;
                 if (changes == 1) {
@@ -259,10 +346,16 @@ class MovementGaitTest {
             } else if (gait.gait() == MovementGait.Gait.WALK && changes == 0) {
                 overThreshold = RunGait.running(false, gait.groundSpeed(), ATTRIBUTE);
             }
-            double authored = gait.gait() == MovementGait.Gait.RUN ? RUN : WALK;
-            double wanted = Math.max(MovementGait.MIN_ANIMATION_SPEED,
-                    Math.min(MovementGait.MAX_ANIMATION_SPEED, gait.groundSpeed() / authored));
-            assertEquals(wanted, gait.animationSpeed(), 1.0E-9D, "pace on tick " + i);
+            double wanted;
+            if (gait.gait() == previous) {
+                double change = target(gait, WALK_CLIP, RUN_CLIP) - before;
+                wanted = before + Math.max(-MovementGait.MAX_RATE_STEP, Math.min(MovementGait.MAX_RATE_STEP, change));
+            } else {
+                wanted = gait.gait() == MovementGait.Gait.RUN
+                        ? before * RUN_CYCLE / WALK_CYCLE
+                        : before * WALK_CYCLE / RUN_CYCLE;
+            }
+            assertEquals(wanted, gait.animationSpeed(), 1.0E-9D, "rate on tick " + i);
             if (gait.gait() == MovementGait.Gait.RUN) {
                 runTicks++;
             }
