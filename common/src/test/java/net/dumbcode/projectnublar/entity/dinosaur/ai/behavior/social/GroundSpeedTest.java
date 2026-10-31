@@ -17,9 +17,10 @@ class GroundSpeedTest {
 
     @Test
     void groundSpeedIsQuadraticInTheModifier() {
-        // Vanilla: push 0.98 s^2 per tick, 0.546 of the velocity kept: d = 0.98 s^2 / 0.454 = 2.1586 s^2.
-        assertEquals(0.98D / (1D - 0.6D * 0.91D), GroundSpeed.BLOCKS_PER_SPEED_SQUARED, EPSILON);
-        assertEquals(0.1349D, GroundSpeed.groundSpeed(1D, ATTRIBUTE), 0.0005D);
+        // 26.2 vanilla: push s^2 per tick (aiStep damps the input before the move control sets it, Task 54), 0.546 of
+        // the velocity kept: d = s^2 / 0.454 = 2.2026 s^2 (1.20.1: 0.98 s^2 / 0.454 = 2.1586 s^2).
+        assertEquals(1D / (1D - 0.6D * 0.91D), GroundSpeed.BLOCKS_PER_SPEED_SQUARED, EPSILON);
+        assertEquals(0.1377D, GroundSpeed.groundSpeed(1D, ATTRIBUTE), 0.0005D);
         assertEquals(GroundSpeed.groundSpeed(1D, ATTRIBUTE) / 4D, GroundSpeed.groundSpeed(0.5D, ATTRIBUTE), EPSILON);
         assertEquals(0D, GroundSpeed.groundSpeed(0D, ATTRIBUTE), EPSILON);
     }
@@ -48,7 +49,7 @@ class GroundSpeedTest {
         // The client plays the walk animation while (|vx| + |vz|) / 2 of the synced velocity is at least
         // 0.005. An axis heading is the tightest case (|vx| + |vz| = v); a diagonal gives sqrt(2) more.
         double threshold = GroundSpeed.modifierFor(GroundSpeed.WALK_ANIMATION_BLOCKS_PER_TICK, ATTRIBUTE);
-        assertEquals(0.37D, threshold, 0.005D);
+        assertEquals(0.365D, threshold, 0.005D, "sqrt(0.0183 / 2.2026) / 0.25 on the 26.2 law");
         assertTrue(GroundSpeed.MIN_WALK_MODIFIER > threshold);
         double perTick = GroundSpeed.groundSpeed(GroundSpeed.MIN_WALK_MODIFIER, ATTRIBUTE);
         double axis = GroundSpeed.storedVelocity(perTick) / 2D;

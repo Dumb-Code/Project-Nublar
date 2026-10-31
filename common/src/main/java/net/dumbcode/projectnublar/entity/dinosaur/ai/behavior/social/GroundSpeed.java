@@ -4,14 +4,17 @@ package net.dumbcode.projectnublar.entity.dinosaur.ai.behavior.social;
  * The vanilla ground speed law and the walk-animation floor, in one place (playtest 1 fix P1). Pure.
  * <p>
  * A mob's ground speed is <b>quadratic</b> in its effective speed {@code s = modifier x MOVEMENT_SPEED}
- * (1.20.1, Mojang names): {@code MoveControl.tick} calls {@code Mob.setSpeed(s)}, which also sets the
- * forward input {@code zza = s}; {@code LivingEntity.aiStep} damps the input by {@link #INPUT_DAMPING}
- * and calls {@code travel}, whose {@code moveRelative(getFrictionInfluencedSpeed(0.6), input)} scales the
- * input (length 0.98 s, under 1 so not normalised) by {@code s x 0.216 / 0.6^3 = s}. So the push per tick
- * is {@code 0.98 s^2}, and after the move the horizontal velocity keeps {@link #VELOCITY_KEPT}. At steady
- * state the move per tick is {@code d = 0.98 s^2 / (1 - 0.546) = 2.16 s^2}: {@code 0.135 x modifier^2}
- * blocks for a dinosaur (attribute 0.25). Vanilla's {@code PathNavigation.doStuckDetection} squares the
- * speed for the same reason.
+ * (26.2, Mojang names): {@code MoveControl.tick} calls {@code Mob.setSpeed(s)}, which also sets the
+ * forward input {@code zza = s}. 26.2 {@code LivingEntity.aiStep} damps the input ({@code applyInput},
+ * times 0.98) before {@code serverAiStep} runs the move control, and builds the travel input after it
+ * (26.2 sources, {@code LivingEntity.java} lines 3182, 3189 and 3234), so {@code travel} gets the full
+ * {@code s} ({@link #INPUT_DAMPING} 1.0). {@code moveRelative(getFrictionInfluencedSpeed(0.6), input)}
+ * scales the input (length s, under 1 so not normalised) by {@code s x 0.216 / 0.6^3 = s}. So the push per
+ * tick is {@code s^2}, and after the move the horizontal velocity keeps {@link #VELOCITY_KEPT}. At steady
+ * state the move per tick is {@code d = s^2 / (1 - 0.546) = 2.20 s^2}: {@code 0.138 x modifier^2} blocks
+ * for a dinosaur (attribute 0.25). (1.20.1 damped the input after the AI step: {@code 0.98 s^2} per tick,
+ * {@code 2.16 s^2}, 2 % slower for the same modifier.) Vanilla's {@code PathNavigation.doStuckDetection}
+ * squares the speed for the same reason.
  * <p>
  * Every slow-down factor is meant for the ground speed, so the modifier takes its square root
  * ({@link #modifierFactor}). The client plays the walk animation only while the synced velocity (the stored
@@ -27,9 +30,14 @@ final class GroundSpeed {
     static final double AIR_DRAG = 0.91D;
     /** The fraction of the horizontal velocity kept after each tick on ordinary ground: 0.546. */
     static final double VELOCITY_KEPT = BLOCK_FRICTION * AIR_DRAG;
-    /** {@code LivingEntity.aiStep} damps the forward input by this before {@code travel}. */
-    static final double INPUT_DAMPING = 0.98D;
-    /** Blocks per tick per unit of the effective speed squared, at steady state on ordinary ground: 2.16. */
+    /**
+     * The share of the move control's forward input that reaches {@code travel}: all of it. 26.2
+     * {@code LivingEntity.aiStep} damps the input by 0.98 ({@code applyInput}, line 3182) before
+     * {@code serverAiStep} (line 3189) sets it, and builds the travel input after that (line 3234). 1.20.1
+     * damped it after the AI step, which is where the old 0.98 here came from (Task 54).
+     */
+    static final double INPUT_DAMPING = 1D;
+    /** Blocks per tick per unit of the effective speed squared, at steady state on ordinary ground: 2.20. */
     static final double BLOCKS_PER_SPEED_SQUARED = INPUT_DAMPING / (1D - VELOCITY_KEPT);
     /** The client's walk-animation threshold on (|vx| + |vz|) / 2 of the synced velocity ({@code DinosaurRenderer.getMotionAnimThreshold}). */
     static final double WALK_ANIMATION_VELOCITY = 0.005D;
@@ -40,8 +48,8 @@ final class GroundSpeed {
     static final double WALK_ANIMATION_BLOCKS_PER_TICK = 2D * WALK_ANIMATION_VELOCITY / VELOCITY_KEPT;
     /**
      * The least modifier a steering member walks at. The threshold modifier is
-     * {@code sqrt(0.0183 / 2.16) / 0.25 = 0.37}; 0.45 moves 0.0273 blocks per tick, which is 1.49 times the
-     * threshold on an axis heading and 2.1 times on a diagonal ({@code GroundSpeedTest}): room for the
+     * {@code sqrt(0.0183 / 2.20) / 0.25 = 0.36}; 0.45 moves 0.0279 blocks per tick, which is 1.52 times the
+     * threshold on an axis heading and 2.15 times on a diagonal ({@code GroundSpeedTest}): room for the
      * velocity sync, a step up or a turn.
      */
     static final double MIN_WALK_MODIFIER = 0.45D;
@@ -50,7 +58,7 @@ final class GroundSpeed {
     /**
      * A stored horizontal velocity (what is left after friction, {@link #storedVelocity}) above this counts as
      * moving: the walking threshold {@link HerdBodies#WALKING_SPEED} after friction, 0.0055. The slowest herd
-     * walk (graze at 0.6: 0.049 blocks per tick, 0.027 stored) is well above it; a body the guard holds (its
+     * walk (graze at 0.6: 0.050 blocks per tick, 0.027 stored) is well above it; a body the guard holds (its
      * velocity cut to a fifth each tick) is under it within a tick.
      */
     static final double MOVING_STORED_SPEED = storedVelocity(HerdBodies.WALKING_SPEED);

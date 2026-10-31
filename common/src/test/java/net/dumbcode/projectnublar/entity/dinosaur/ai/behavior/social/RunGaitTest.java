@@ -57,7 +57,8 @@ class RunGaitTest {
         double perBlock = RunGait.staminaDrain(2D, false) / (at(JourneyPolicy.JOURNEY_SPEED) * 20D);
         double fromStart = (150D - 80D) / perBlock;
         double fromFull = (200D - 80D) / perBlock;
-        assertTrue(fromStart > 79D && fromStart < 82D, "from the start minimum: " + fromStart + " blocks (60 before)");
-        assertTrue(fromFull > 136D && fromFull < 140D, "from full: " + fromFull + " blocks (103 before)");
+        // 26.2 ground law (GroundSpeed, Task 54): the journey walk covers 1.76 blocks per second.
+        assertTrue(fromStart > 81D && fromStart < 84D, "from the start minimum: " + fromStart + " blocks (62 before)");
+        assertTrue(fromFull > 139D && fromFull < 143D, "from full: " + fromFull + " blocks (106 before)");
     }
 }
