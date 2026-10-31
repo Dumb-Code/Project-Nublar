@@ -4069,6 +4069,14 @@ Stress start values for playtest (proposal, lead decides):
 | Premium | 10 |
 | Bale | 45 |
 
+#### In scope: fire
+
+- A dinosaur notices fire within a radius around its body and moves away before it reaches the fire (D322).
+- A dinosaur whose body box catches fire moves out of the fire.
+- The radius: value open, lead decides.
+- Running away once it burns stays with F2.5 (D322).
+- The cost rule is under "Block scans and registries", Fire check.
+
 #### In scope: cost
 
 ##### Block scans and registries
@@ -4093,6 +4101,9 @@ Stress start values for playtest (proposal, lead decides):
   - A full path to the target runs only if the short path fails.
   - Herd followers do not need it. Their fallback path already goes to a near trail point or graze spot.
 - **Danger memory:** a spot where the animal took damage or a group mate died is a soft path cost within 6 blocks. It lasts 24,000 ticks, 1 in-game day.
+- **Fire check:** it keeps to the block-scan budget, under 1,000 block reads per animal per second (Acceptance, "Search and cost").
+  - A plain block scan is over the budget. At radius 5 it reads 1,331 blocks per animal per second, at one scan a second.
+  - The fire check uses a cheap test, for example a section-palette pre-check or a per-level registry of fire blocks. The task plan picks the design.
 
 ##### Timers and logs
 
@@ -4216,8 +4227,11 @@ GameTests on both loaders.
 - Each hungry carnivore makes about 1,200 lookups and 800 allocations per tick.
 - The block scans make about 735,000 reads per tick at 100 dinosaurs: about 22 ms, with spikes near 440 ms (estimates).
 - Timers count `tickCount` (`Dinosaur.java:581,723,760-765`, `DinoOneShots.java:70`).
+- No dinosaur reacts to fire or to damage. `Dinosaur.getSensors` has no hurt sensor, no panic or flee behaviour runs, and the mod does not change the path cost of fire.
+  - The SmartBrainLib `Panic` behaviour was switched off on 1.20.1 too (a `TODO(DEAD)` note in the idle behaviours).
+  - Vanilla path costs keep paths away from water and fire, but an animal that stands still never moves when fire spreads under it.
 
-**Changed since last review:** Loneliness is part of stress, with no bar. Need cooldown is 5 minutes. Lost sleep halves stamina regeneration and adds no stress. Danger memory lasts one in-game day. Five food tiers replace clade chunks. Herds graze together and idle-graze. Feeders are shared. Two path-cost proposals wait for the lead (D297, D298).
+**Changed since last review:** Loneliness is part of stress, with no bar. Need cooldown is 5 minutes. Lost sleep halves stamina regeneration and adds no stress. Danger memory lasts one in-game day. Five food tiers replace clade chunks. Herds graze together and idle-graze. Feeders are shared. Two path-cost proposals wait for the lead (D297, D298). A dinosaur moves away from fire within a radius (D322). The fire check keeps to the block-scan budget.
 
 ### F2.5: Groups: herds, packs, leaders, breeding, nests
 
@@ -7010,6 +7024,7 @@ These rows come from a review of five art and agent tools on 2026-10-30. The too
 | --- | --- | --- | --- | --- |
 | D320 | F2.3 | The Art list has 55 "Needs export" rows. Should an agent export them with a Blockbench MCP server? A trial on one row, the Velociraptor `swim` clip from the jptlw file, comes first | A person exports each row by hand in Blockbench | Lead decision pending |
 | D321 | F2.3 | Can artists make clips in Blender with the Sparkle add-on? It writes a linear key on every frame, so the easing of the artist is lost and the clip is hard to edit in Blockbench | Blockbench only for mod clips. Sparkle stays an option for trailer renders | Lead decision pending |
+| D322 | F2.4, F2.5 | In the M0.P2 playtest of 2026-10-30 (round 6), Gallimimus do not avoid fire. One died in fire that spread to the block it stood on, and it never moved. Testers: "They should avoid it, and in a radius, not just when they're next to it." No dinosaur reacts to fire or to damage, as on 1.20.1. Water avoidance works. Does the plan add fire avoidance? | Answered 2026-10-30. Fire avoidance in a radius goes in M2 (lead, 2026-10-30). F2.4 owns it: a dinosaur notices fire within a radius around its body and moves away before it reaches the fire. A dinosaur whose body box catches fire moves out of the fire. The radius: value open, lead decides. The fire check keeps to the block-scan budget, under 1,000 block reads per animal per second. Running away once burning stays with F2.5 in M2: the lead chose not to pull it into M0.P2 | Answered |
 
 ---
 
@@ -7104,3 +7119,4 @@ These rows come from a review of five art and agent tools on 2026-10-30. The too
 - **2026-10-30 (screen cost and GUI sprites):** D309 to D311. F1.4 gets the screen cost rules for every machine screen, and F1.3, F1.5 and F1.6 use them. The screen tasks make their own GUI sprites, and the Art list marks 25 rows "Agent makes it". The F1.4 acceptance gets an fps check (proposal). `docs/performance-baseline.md` lists the new gate.
 - **2026-10-30 (Sequencer Material 3 Expressive mock-ups):** D311 to D319. F1.4: the model fills most of the info card, light flows along the helix, and every tab has a narrow-window layout. Pop-ups grow an outline out of their slot, the run icon changes shape, the running bar waves, and rows and markers move on springs. Page changes keep the slide and cross-fade, and messages keep their ease. Reduced-motion and contrast options, bold type roles. The fps check is 95 % of a chest screen, tuned in playtest. F1.5: the animal picker and the gene control show only on demand. F1.6: the arrow keeps a plain fill. The Art list adds a motion sprites row.
 - **2026-10-30 (art-tool review):** D320 and D321, both proposals. F2.3 gets a Blockbench MCP trial for the "Needs export" rows and an optional Blender route (Sparkle) for clips.
+- **2026-10-30 (lead: M0.P2 playtest, round 6):** D322. F2.4 gets fire avoidance in a radius: a dinosaur moves away from fire near its body before it reaches the fire, and moves out of fire in its body box. The radius is open. The fire check keeps to the block-scan budget. Running away once burning stays with F2.5.

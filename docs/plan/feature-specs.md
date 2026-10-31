@@ -2789,6 +2789,12 @@ Stress and company bands: see F2.0, When needs fail, Stress and Company (part of
 - Below the group minimum, stress rises over time. "Alone" becomes urgent after 3 in-game days (72,000 ticks). The hover box shows the "lonely" icon when loneliness is the main cause. The company part of contentment reads the group size.
 - Stress threshold: one value per species in the species data, default 50, no gender split. Higher stress is worse. The Stress Tolerance gene raises it.
 
+#### Fire
+
+- A dinosaur notices fire within a radius around its body. It moves away before it reaches the fire.
+- A dinosaur whose body box catches fire moves out of the fire.
+- The radius: value open, lead decides.
+
 #### Numbers
 
 Hunger and thirst maximums per species. Playtests tune them. The drain, regen and bite rates had no source, so the lead set them on 2026-10-19 (register D258 to D261): hunger full to empty in 2 in-game days, thirst in 1 in-game day, stamina empty after 60 s of running and full again after 120 s at rest, one bite per 3 s. All are config values.
@@ -2819,10 +2825,11 @@ See Art list → each species (eat, drink, rest and sleep clips and sounds), Din
 - Hunger never clears.
 - An animal that drinks still dies of thirst on day 3.
 - Stress and social do nothing.
+- No dinosaur reacts to fire or to damage. Nothing senses a hurt, no panic or flee behaviour runs, and the mod does not change the path cost of fire. The panic was switched off on 1.20.1 too. Path costs keep paths away from water and fire, but an animal that stands still never moves when fire spreads under it.
 
 **Engineering:** backlog F2.4.
 
-**Changed since last review:** Stress has no drift: +2 per cause and −5 relief per step. Only a lone adult gets the alone cause. Need rates are set (D258 to D261). The sleep cooldown follows damage only, and a full sleep is 5 minutes. Loneliness is part of stress, with no bar. Lost sleep gives no stress. Stress at 100 does no damage. Need cooldown is 5 minutes. A herd shares one tree or feeder. Idle grazing keeps the block. Gallimimus is an omnivore. Food tiers by item tag.
+**Changed since last review:** Stress has no drift: +2 per cause and −5 relief per step. Only a lone adult gets the alone cause. Need rates are set (D258 to D261). The sleep cooldown follows damage only, and a full sleep is 5 minutes. Loneliness is part of stress, with no bar. Lost sleep gives no stress. Stress at 100 does no damage. Need cooldown is 5 minutes. A herd shares one tree or feeder. Idle grazing keeps the block. Gallimimus is an omnivore. Food tiers by item tag. A dinosaur moves away from fire within a radius (value open), and out of fire in its body box.
 
 ### F2.5 Groups: herds, packs, leaders, breeding, nests
 
