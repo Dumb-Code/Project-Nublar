@@ -18,6 +18,7 @@ import com.geckolib.renderer.base.GeoRenderState;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.Arrays;
+import java.util.Objects;
 
 /**
  * An {@link AnimationController} that can play its current animation again from the first frame, that blends
@@ -73,7 +74,7 @@ public class RestartableAnimationController<T extends GeoAnimatable> extends Ani
     private static final RawAnimation REST_BLEND = RawAnimation.begin().thenWait(1);
 
     /** Which bones of the other controller's pose a hand-over blends from. */
-    public enum HandOver {
+    enum HandOver {
         /** Every bone: the other controller stops, so a bone only its clip moves fades to rest here. */
         WHOLE_POSE,
         /** Only the bones the new clip moves: the other controller keeps playing or blending the others. */
@@ -119,9 +120,12 @@ public class RestartableAnimationController<T extends GeoAnimatable> extends Ani
      *
      * @param giver the animatable's other controller, or {@code null} for none
      * @param bones which bones of {@code giver}'s pose to blend from
+     * @throws NullPointerException when {@code bones} is {@code null}
      */
-    public void setAnimation(RawAnimation animation, @Nullable RestartableAnimationController<?> giver,
+    void setAnimation(RawAnimation animation, @Nullable RestartableAnimationController<?> giver,
             HandOver bones) {
+        // A null in handOverBones means no hand-over: the from-point would stay the giver's own point.
+        Objects.requireNonNull(bones, "bones");
         RawAnimation previous = this.currentRawAnimation;
         super.setAnimation(animation);
         // Only when super took a new animation: GeckoLib also clears the from-point while a clip plays (at each loop
@@ -207,11 +211,10 @@ public class RestartableAnimationController<T extends GeoAnimatable> extends Ani
     }
 
     /**
-     * GeckoLib's frame step, then the hand-over steps that need the new clip. On the frame a hand-over starts, the
-     * from-point becomes a copy (GeckoLib moves a point's keyframe indices on in place, {@code createNext}), with only
-     * the new clip's bones for {@link HandOver#SHARED_BONES}. Through the ease-in the clip point is the one with rest
-     * keys; GeckoLib gets its own point back before each step, so it makes no new point per frame. The first loop
-     * wrap ends the clock drift.
+     * GeckoLib's frame step, wrapped for the hand-over and the one clock (class comment). Through a hand-over's
+     * ease-in GeckoLib gets its own clip point back before each step, so it makes no new point per frame; after the
+     * step come the hand-over points ({@link #copyHandOverPoints}) and the ease-in point ({@link #showEaseInPoint}).
+     * The first loop wrap ends the clock drift.
      */
     @Override
     protected boolean checkControllerState(T animatable, GeoRenderState renderState, AnimatableManager<T> manager,
@@ -220,33 +223,53 @@ public class RestartableAnimationController<T extends GeoAnimatable> extends Ani
             this.animationPoint = this.clipPoint;
         }
         boolean animating = super.checkControllerState(animatable, renderState, manager, model);
-        if (this.handOverBones != null && this.animationPoint != null && this.transitionFromPoint != null) {
-            Animation clip = this.animationPoint.animation();
-            AnimationPoint pose = this.transitionFromPoint;
-            Animation from = this.handOverBones == HandOver.SHARED_BONES
-                    ? sharedBones(pose.animation(), clip)
-                    : pose.animation();
-            this.transitionFromPoint = AnimationPoint.createFor(from, pose.easingOverride(), pose.loopType(),
-                    pose.animTime());
-            this.easeInPoint = AnimationPoint.createFor(withRestKeys(clip), this.animationPoint.easingOverride(),
-                    this.animationPoint.loopType(), 0D);
-            this.handOverBones = null;
-        }
-        if (this.easeInPoint != null) {
-            if (isTransitioning()) {
-                this.clipPoint = this.animationPoint;
-                this.animationPoint = this.easeInPoint;
-            } else {
-                this.easeInPoint = null;
-                this.clipPoint = null;
-            }
-        }
+        copyHandOverPoints();
+        showEaseInPoint();
         double clipTime = super.getCurrentAnimationTime();
         if (clipTime < this.lastClipTime) {
             this.clockInStep = true;
         }
         this.lastClipTime = clipTime;
         return animating;
+    }
+
+    /**
+     * On the frame a hand-over starts, once GeckoLib loaded the new clip: makes the from-point a copy of the giver's
+     * point, with only the new clip's bones for {@link HandOver#SHARED_BONES}, and builds the ease-in point, the new
+     * clip's first frame with rest keys. The copy is needed because GeckoLib moves a point's keyframe indices on in
+     * place ({@code createNext}), so a giver that plays on would move the from-point with it.
+     */
+    private void copyHandOverPoints() {
+        if (this.handOverBones == null || this.animationPoint == null || this.transitionFromPoint == null) {
+            return;
+        }
+        Animation clip = this.animationPoint.animation();
+        AnimationPoint pose = this.transitionFromPoint;
+        Animation from = this.handOverBones == HandOver.SHARED_BONES
+                ? sharedBones(pose.animation(), clip)
+                : pose.animation();
+        this.transitionFromPoint = AnimationPoint.createFor(from, pose.easingOverride(), pose.loopType(),
+                pose.animTime());
+        this.easeInPoint = AnimationPoint.createFor(withRestKeys(clip), this.animationPoint.easingOverride(),
+                this.animationPoint.loopType(), 0D);
+        this.handOverBones = null;
+    }
+
+    /**
+     * Through a hand-over's ease-in, shows the ease-in point and keeps GeckoLib's own clip point to give back; when
+     * the ease-in ends, drops both, so the clip itself plays.
+     */
+    private void showEaseInPoint() {
+        if (this.easeInPoint == null) {
+            return;
+        }
+        if (isTransitioning()) {
+            this.clipPoint = this.animationPoint;
+            this.animationPoint = this.easeInPoint;
+        } else {
+            this.easeInPoint = null;
+            this.clipPoint = null;
+        }
     }
 
     /**
@@ -276,20 +299,33 @@ public class RestartableAnimationController<T extends GeoAnimatable> extends Ani
                 Animation.KeyframeMarkers.EMPTY);
     }
 
-    /** A copy of {@code clip} with a rest key on every axis of every transform it has no keyframes for. */
+    /**
+     * A copy of {@code clip} with a rest key on every axis of every transform it has no keyframes for. A bone with
+     * keys on every axis is kept as it is, so a hand-over makes new objects only where a key is missing.
+     */
     private static Animation withRestKeys(Animation clip) {
         BoneAnimation[] bones = new BoneAnimation[clip.boneAnimations().length];
         for (int i = 0; i < bones.length; i++) {
             BoneAnimation bone = clip.boneAnimations()[i];
-            bones[i] = new BoneAnimation(bone.boneName(), withRestKeys(bone.rotationKeyFrames(), 0D),
-                    withRestKeys(bone.positionKeyFrames(), 0D), withRestKeys(bone.scaleKeyFrames(), 1D));
+            KeyframeStack rotation = withRestKeys(bone.rotationKeyFrames(), 0D);
+            KeyframeStack position = withRestKeys(bone.positionKeyFrames(), 0D);
+            KeyframeStack scale = withRestKeys(bone.scaleKeyFrames(), 1D);
+            boolean unchanged = rotation == bone.rotationKeyFrames() && position == bone.positionKeyFrames()
+                    && scale == bone.scaleKeyFrames();
+            bones[i] = unchanged ? bone : new BoneAnimation(bone.boneName(), rotation, position, scale);
         }
         return new Animation(clip.name(), clip.length(), clip.loopType(), bones, clip.usedVariables(),
                 clip.keyframeMarkers());
     }
 
-    /** {@code stack} with a key at {@code rest} (0, or 1 for scale) on each axis that has none. */
+    /**
+     * {@code stack} with a key at {@code rest} (0, or 1 for scale) on each axis that has none; {@code stack} itself
+     * when every axis has keys.
+     */
     private static KeyframeStack withRestKeys(KeyframeStack stack, double rest) {
+        if (stack.xKeyframes().length > 0 && stack.yKeyframes().length > 0 && stack.zKeyframes().length > 0) {
+            return stack;
+        }
         Keyframe[] restKey = {new Keyframe(0D, 0D, new Constant(rest), new Constant(rest), EasingType.LINEAR)};
         return new KeyframeStack(
                 stack.xKeyframes().length == 0 ? restKey : stack.xKeyframes(),

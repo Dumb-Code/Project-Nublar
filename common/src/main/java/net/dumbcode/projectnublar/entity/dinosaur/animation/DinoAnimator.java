@@ -53,6 +53,9 @@ import com.geckolib.animation.state.AnimationTest;
  * controller still in its own ease-in would hand over its clip's first frame, not the pose shown; at the usual walk
  * start the idle began when the gait stopped, at least {@link MovementGait#HOLD_TICKS} earlier, and main clips play
  * at GeckoLib's default speed 1 (nothing here sets another), so their ease-in is over, as the walk's is (Task 56).
+ * The hold does not cover the other way: a main clip (an attack, a flinch, a roar) that starts within
+ * {@link #MOVEMENT_TRANSITION_TICKS} of a gait start takes the walk's ease-in point, its first frame, not the pose
+ * shown. That is no worse than before the hand-over, when every such start blended from rest.
  */
 public final class DinoAnimator {
     /**
@@ -63,7 +66,11 @@ public final class DinoAnimator {
     public static final int MOVEMENT_TRANSITION_TICKS = 5;
     /** Blend of the main controller into a new state or idle pick, in ticks. */
     public static final int MAIN_TRANSITION_TICKS = 5;
-    /** Blend into flinch and attack, in ticks: shorter, so the reaction does not lag the hit. */
+    /**
+     * Blend into flinch and attack, in ticks: shorter, so the reaction does not lag the hit. GeckoLib 5.5.6 counts
+     * these 2 ticks as 3 (the float seconds of {@link #MOVEMENT_TRANSITION_TICKS}), so the blend ends two thirds of
+     * the way and the clip steps the last third, also in a hand-over.
+     */
     public static final int REACTION_TRANSITION_TICKS = 2;
     /** {@link #walkCycleTicks} before the first look-up. */
     private static final int CYCLE_NOT_READ = Integer.MIN_VALUE;
@@ -183,7 +190,8 @@ public final class DinoAnimator {
     /**
      * Plays the walk or run clip {@code animation} at the gait's leg rate {@code gaitRate}, but its ease-in at a speed
      * of at least 1 (Task 56). A start with nothing playing blends from the whole pose of the main controller
-     * {@code main} (class comment, hand-over), which stops on the same frame. Package-private for the test.
+     * {@code main} (class comment, hand-over), which usually stops on the same frame; an attack, eat or drink plays
+     * on. Package-private for the test.
      * <p>
      * Why: GeckoLib plays the ease-in at the controller's speed, so at a slow walk's rate (0.25 when a Velociraptor
      * grazes) it lasted 5 / 0.25 = 20 ticks, longer than a gait's shortest hold ({@link MovementGait#HOLD_TICKS}).

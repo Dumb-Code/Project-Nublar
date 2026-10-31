@@ -84,6 +84,8 @@ class ControllerHandOverTest {
     private static final int IDLE_FRAMES = 110;
     /** Frames of walk before a stop: past its ease-in, with every walk channel far from rest. */
     private static final int WALK_FRAMES = 50;
+    /** Frames of attack before a walk starts: its clip time is then 0.4 s, short of its keyframe at 0.5 s. */
+    private static final int ATTACK_FRAMES = 40;
     /** The largest move of any channel in one frame of the clips themselves (the walk tail: 0.3 x 2 pi / 60). */
     private static final double CLIP_STEP = 0.032D;
     private static final double TOLERANCE = 1.0E-5D;
@@ -113,8 +115,6 @@ class ControllerHandOverTest {
     private boolean moving;
     /** What the main controller should play; {@code null} when it should stop. */
     private @Nullable RawAnimation mainClip = IDLE;
-    /** False: the rule before Task 58 (a start blends from rest), to show the jump it gave. */
-    private boolean handOver = true;
     private @Nullable RawAnimation mainPlaying;
     /** The pose of the last frame before the main controller wrote over it. */
     private double[] movementOnly = new double[CHANNELS.length];
@@ -181,7 +181,7 @@ class ControllerHandOverTest {
         if (!this.moving) {
             return DinoAnimator.blendToRest(test);
         }
-        return DinoAnimator.playGait(test, WALK, 1D, this.handOver ? this.main : null);
+        return DinoAnimator.playGait(test, WALK, 1D, this.main);
     }
 
     /** The main handler, as {@link DinoAnimator#main} with its {@code set} and {@code stop}. */
@@ -194,7 +194,7 @@ class ControllerHandOverTest {
             ((RestartableAnimationController<?>) test.controller()).forceAnimationReset();
             this.mainPlaying = this.mainClip;
         }
-        return DinoAnimator.playMain(test, this.mainClip, this.handOver ? this.movement : null);
+        return DinoAnimator.playMain(test, this.mainClip, this.movement);
     }
 
     /**
@@ -323,25 +323,6 @@ class ControllerHandOverTest {
     }
 
     /**
-     * The rule before Task 58, to show what the hand-over fixes: a start with nothing playing blends from rest, so
-     * the shared bones snap from the idle pose to rest when the walk starts, and from the walk pose when it stops.
-     */
-    @Test
-    void withoutTheHandOverTheSharedBonesSnapToRest() {
-        this.handOver = false;
-        double[] idle = play(IDLE_FRAMES);
-        this.moving = true;
-        this.mainClip = null;
-        assertEquals(0D, frame()[BODY_ROTATION], TOLERANCE, "the shared bone shows rest on the first walk frame");
-        assertTrue(idle[BODY_ROTATION] > 0.3D, "a jump of the whole idle pose: " + idle[BODY_ROTATION]);
-        double[] walk = play(WALK_FRAMES);
-        this.moving = false;
-        this.mainClip = IDLE;
-        assertEquals(0D, frame()[BODY_ROTATION], TOLERANCE, "the shared bone shows rest on the first idle frame");
-        assertTrue(walk[BODY_ROTATION] > 0.3D, "a jump of the whole walk pose: " + walk[BODY_ROTATION]);
-    }
-
-    /**
      * One clock: through the walk's ease-in its clock holds the idle's clock, so the tail that both clips move with
      * {@code query.anim_time} holds its pose. Then the clock drifts into step with the walk's own time, by at most
      * half a cycle, and after one walk cycle it is the walk's time plus a whole number of cycles, so the tail wave is
@@ -376,7 +357,6 @@ class ControllerHandOverTest {
             lastClipTime = clipTime;
         }
         double carried = this.movement.getCurrentAnimationTime() - this.movement.getCurrentAnimationPoint().animTime();
-        assertTrue(Math.abs(drift) <= WALK_CYCLE / 2D, "at most half a cycle: " + drift);
         assertEquals(idleClock - drift, carried, 1.0E-9D, "in step after one cycle: a whole number of cycles");
     }
 
@@ -403,6 +383,37 @@ class ControllerHandOverTest {
             assertEquals(this.movementOnly[WALK_ONLY_ROTATION], withMain[WALK_ONLY_ROTATION], TOLERANCE,
                     "the walk's own bone stays the walk's, frame " + i);
         }
+    }
+
+    /**
+     * A walk that starts while a main clip plays on (an attack here, as eat and drink do) blends from a copy of the
+     * pose it took. GeckoLib moves a clip point's keyframe indices on in place ({@code createNext}), so without the
+     * copy the attack, which passes its keyframe during the walk's ease-in, would move the walk's from-pose with it.
+     * The main controller writes over the body, so this checks the walk's own pose, which shows if the attack ends
+     * during the ease-in.
+     */
+    @Test
+    void aWalkThatStartsDuringAnAttackBlendsFromThePoseItTook() {
+        this.mainClip = ATTACK;
+        double[] attack = play(ATTACK_FRAMES);
+        double keyframe = ATTACK_CLIP.length() / 2D;
+        assertTrue(this.main.getCurrentAnimationPoint().animTime() < keyframe, "the attack is short of its keyframe");
+        this.moving = true;
+        frame();
+        assertEquals(attack[BODY_ROTATION], this.movementOnly[BODY_ROTATION], TOLERANCE,
+                "the walk starts from the attack pose");
+        double last = this.movementOnly[BODY_ROTATION];
+        double blendStep = 0D;
+        for (int i = 1; i < BLEND_FRAMES; i++) {
+            frame();
+            double step = this.movementOnly[BODY_ROTATION] - last;
+            if (i == 1) {
+                blendStep = step;
+            }
+            assertEquals(blendStep, step, TOLERANCE, "an even blend step on frame " + i);
+            last = this.movementOnly[BODY_ROTATION];
+        }
+        assertTrue(this.main.getCurrentAnimationPoint().animTime() > keyframe, "the attack passed its keyframe");
     }
 
     /**

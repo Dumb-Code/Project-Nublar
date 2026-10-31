@@ -64,15 +64,15 @@ final class ContextSteering {
      * free distance beyond {@link #MATCH_SETTLE_FREE}, so the gap closes smoothly (about 30 ticks per e-fold).
      * P13b (ruling 8): 1.5 x gentler than P12b's 0.05. A catch-up follower behind a mate at the journey pace
      * starts to slow 4.3 blocks of free distance out (P12b: 3.2) and loses at most 0.0036 blocks per tick per
-     * tick (P12b: 0.0054). Under 1 / {@link HerdBodies#PREDICT_TICKS} (0.1), so the closing over the member
+     * tick (P12b: 0.0055). Under 1 / {@link HerdBodies#PREDICT_TICKS} (0.1), so the closing over the member
      * mask's 10-tick prediction is always less than the free distance: a matched follow never masks its own
      * heading.
      */
     static final double MATCH_CLOSE_RATE = 0.033D;
     /**
      * Speed matching looks this far ahead (free distance) for the mate to match. At this range the allowed
-     * closing speed (0.21 blocks per tick) is above the catch-up speed (0.19), so matching starts without a jump,
-     * even behind a mate that hardly moves (it starts 6.9 blocks out). P13b: 7.5 (P12b: 5), 1.5 x farther, so the
+     * closing speed (0.21 blocks per tick) is above the catch-up speed (0.20), so matching starts without a jump,
+     * even behind a mate that hardly moves (it starts 7.0 blocks out). P13b: 7.5 (P12b: 5), 1.5 x farther, so the
      * gentler rate still starts without a jump.
      */
     static final double MATCH_RANGE = 7.5D;
@@ -81,8 +81,8 @@ final class ContextSteering {
      * row; a longer stop counts as blocked, so the stuck rule asks for a fallback path (playtest 1 fix P2:
      * before, a yield never ended). 160 ticks (8 s) is four stuck windows ({@link ProgressMonitor#WINDOW_TICKS}),
      * safely above the longest legitimate yield: a herd mate crossing the walker's path at the graze speed
-     * clears the hard minimum zone plus its own body (2 x 2.2 + 1.2 = 5.6 blocks for Gallimimus at 0.049
-     * blocks per tick, {@link GroundSpeed}) in about 115 ticks; at the journey speed in about 65, an unstack
+     * clears the hard minimum zone plus its own body (2 x 2.2 + 1.2 = 5.6 blocks for Gallimimus at 0.050
+     * blocks per tick, {@link GroundSpeed}) in about 113 ticks; at the journey speed in about 64, an unstack
      * or side step in at most 40. The margin keeps a crosser from timing the walker out just as it clears
      * ({@code ContextSteeringTest} checks the bound from the constants). A stop that lasts longer is a
      * deadlock (members masking each other, a standing member ahead in a corridor) that only a path breaks.

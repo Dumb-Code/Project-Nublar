@@ -316,6 +316,14 @@ class MovementGaitTest {
     }
 
     @Test
+    void ownCopyOfTheLawAgreesWithTheRunSwitch() {
+        // at() copies GroundSpeed's law, which this package cannot reach. RunGait starts a run above the real law's
+        // speed of modifier 1.05, so a law change that misses the copy fails here.
+        assertTrue(RunGait.running(false, at(1.05D) * 1.001D, ATTRIBUTE), "runs just above the switch");
+        assertFalse(RunGait.running(false, at(1.05D) * 0.999D, ATTRIBUTE), "walks just below the switch");
+    }
+
+    @Test
     void aRampThroughTheRunSwitchChangesTheGaitHoldsItAndCarriesTheStepRate() {
         // An urgent trip starts: over RAMP ticks the body speeds up from the walk to the trip's speed (modifier 1.2; the
         // client sees the acceleration), then it drops back to the walk at once. The run starts on the first tick over

@@ -152,8 +152,9 @@ public class SequencerScreen extends AbstractContainerScreen<SequencerMenu> {
              * widget under it on another tab gets the click. 26.2
              * {@code ContainerEventHandler.mouseClicked} ends a click at the first child under the
              * pointer, and this bar is the first child: on the Edit tab it would end every click
-             * on the right part of the 8th and 9th DNA sliders. The tooltip does not use this
-             * test; it follows {@code isHovered}, which the Sequence tab's draw sets.
+             * on the right part of the lowest DNA sliders whenever 6 or more show. The tooltip
+             * does not use this test; it follows {@code isHovered}, which the Sequence tab's draw
+             * sets.
              */
             @Override
             public boolean isMouseOver(double mouseX, double mouseY) {

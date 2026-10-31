@@ -331,15 +331,15 @@ class ContextSteeringTest {
     void mateSlowerThanTheWalkFloorMakesTheWalkerStandAtTheSettleDistance() {
         // The floor lifts a slow matched speed; at the settle distance the walker stands instead of creeping into the guard.
         double slow = 0.015D;
-        assertEquals(0D, ContextSteering.matchedSpeed(0.194D, slow, ContextSteering.MATCH_SETTLE_FREE - 0.05D, FLOOR), EPSILON);
-        double beyond = ContextSteering.matchedSpeed(0.194D, slow, ContextSteering.MATCH_SETTLE_FREE + 0.2D, FLOOR);
+        assertEquals(0D, ContextSteering.matchedSpeed(0.198D, slow, ContextSteering.MATCH_SETTLE_FREE - 0.05D, FLOOR), EPSILON);
+        double beyond = ContextSteering.matchedSpeed(0.198D, slow, ContextSteering.MATCH_SETTLE_FREE + 0.2D, FLOOR);
         assertEquals(slow + ContextSteering.MATCH_CLOSE_RATE * 0.2D, beyond, EPSILON);
         // A mate faster than the floor: inside the settle distance the walker falls back a little, it does not stop.
         assertEquals(0.05D - ContextSteering.MATCH_CLOSE_RATE * 0.05D,
-                ContextSteering.matchedSpeed(0.194D, 0.05D, ContextSteering.MATCH_SETTLE_FREE - 0.05D, FLOOR), EPSILON);
+                ContextSteering.matchedSpeed(0.198D, 0.05D, ContextSteering.MATCH_SETTLE_FREE - 0.05D, FLOOR), EPSILON);
         // Never negative, never above the wanted speed.
-        assertEquals(0D, ContextSteering.matchedSpeed(0.194D, 0D, 0D, FLOOR), EPSILON);
-        assertEquals(0.05D, ContextSteering.matchedSpeed(0.05D, 0.086D, 2D, FLOOR), EPSILON);
+        assertEquals(0D, ContextSteering.matchedSpeed(0.198D, 0D, 0D, FLOOR), EPSILON);
+        assertEquals(0.05D, ContextSteering.matchedSpeed(0.05D, 0.088D, 2D, FLOOR), EPSILON);
     }
     @Test
     void catchUpMatchingStartsEarlierAndSlowsGentler() {
