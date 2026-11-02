@@ -93,7 +93,7 @@ Status words:
 | Dilophosaurus | 34 | 0 | 22 | 5 | 73 | 3 | 0 |
 | Triceratops | 35 | 4 | 33 | 6 | 29 | 2 | 0 |
 | Brachiosaurus | 25 | 2 | 27 | 2 | 37 | 15 | 0 |
-| Gallimimus | 30 | 1 | 23 | 1 | 35 | 11 | 0 |
+| Gallimimus | 30 | 0 | 23 | 1 | 36 | 11 | 0 |
 | Dinosaur effects | 0 | 0 | 0 | 0 | 32 | 0 | 0 |
 | Dinosaur hover box | 0 | 0 | 0 | 0 | 2 | 0 | 0 |
 | Eggs and hatching | 1 | 0 | 4 | 5 | 18 | 0 | 0 |
@@ -110,11 +110,11 @@ Status words:
 | Feeders | 3 | 0 | 0 | 10 | 20 | 0 | 0 |
 | Digsites and villagers | 0 | 0 | 1 | 0 | 7 | 0 | 0 |
 | Vehicles | 1 | 0 | 2 | 5 | 26 | 0 | 0 |
-| **Total (without guns)** | **251** | **25** | **180** | **69** | **456** | **42** | **1** |
+| **Total (without guns)** | **251** | **24** | **180** | **69** | **457** | **42** | **1** |
 | Guns (blocked) | 0 | 0 | 2 | 11 | 3 | 0 | 0 |
 
 - **Counted rows:** 1023 (guns not included).
-- **Work left:** 730 rows (456 to make, 69 to export or convert, 180 to import, 25 to check in game), plus 42 shared files for the artist to confirm.
+- **Work left:** 730 rows (457 to make, 69 to export or convert, 180 to import, 24 to check in game), plus 42 shared files for the artist to confirm.
 - **Done:** 251.
 - **Not counted:** 1 row that waits on the lead, 32 rows with no art needed, 38 rows not in Beta (6 of them Release 1 groups).
 - **Guns:** blocked on D08. They are not in the total.
@@ -1182,11 +1182,11 @@ None is in the mod. REPO folder: dinosaurs/brachiosaurus/sounds/ (30 files).
 The fast herd omnivore. It watches for danger and runs from threats.
 Milestone: Dinosaurs.
 
-**To make (35)**
+**To make (36)**
 
 - Skins, JP set (1): Bioluminescence glow mask.
 - Skins, JW set (1): Male: belly.
-- Animations (23): Eat; Ground peck (graze low); Call 2; Sleep; Get up; Jump; Idle 2; Limp; Death; Sniff ground; Head shake; Turn left and right; Guard nest; Hatch; Yawn; Sneeze; Shake body (extra); Scratch (extra); Speak (extra); Sit (rest) (placeholder); Rest idle (placeholder); Idle 1 (placeholder); Startled (placeholder).
+- Animations (24): Drink; Eat; Ground peck (graze low); Call 2; Sleep; Get up; Jump; Idle 2; Limp; Death; Sniff ground; Head shake; Turn left and right; Guard nest; Hatch; Yawn; Sneeze; Shake body (extra); Scratch (extra); Speak (extra); Sit (rest) (placeholder); Rest idle (placeholder); Idle 1 (placeholder); Startled (placeholder).
 - Sounds (9): Eat (peck); Footsteps (light); Sleep breath; Yawn; Sneeze; Snort; Nest call; Mating call; Hatchling sounds.
 - Sprites (1): Species icon (egg and DNA).
 
@@ -1196,13 +1196,11 @@ Milestone: Dinosaurs.
 - Sounds (8): Broadcast (3), bellow (5), chirp (2); Screech (4); Growl (4); Bite; Burp (3); Hurt (3); Death (3); Drink (2).
 - Sprites (2): Raw meat; Cooked meat.
 
-**To fix (13)**
+**To fix (12)**
 
 - Skins, JP set (4): Male: claws (confirm shared), mouth (confirm shared), nostrils (confirm shared), eyes (confirm shared).
 - Skins, JW set (7): Female: mouth (confirm shared), nostrils (confirm shared), eyes (confirm shared); Male: claws (confirm shared), nostrils (confirm shared), mouth (confirm shared), eyes (confirm shared).
-- Animations (2):
-  - Check in game: Drink.
-  - Convert: Flinch.
+- Animations (1): Flinch (convert).
 
 Elsewhere for this species: Bloody mouth overlay: Gallimimus (Missing, Dinosaur effects); Snow cover overlay: Gallimimus (Missing, Dinosaur effects); Printed egg: `normal` model (Missing, Eggs and hatching); Natural egg: Gallimimus (Missing, Eggs and hatching); Skull: Gallimimus (Ready to import, Fossils and amber); Tranquilised clip: Velociraptor, Dilophosaurus, Triceratops, Brachiosaurus, Gallimimus (Missing, Guns (blocked, list only)).
 
@@ -1277,11 +1275,11 @@ The JW skin is in Beta. REPO folders: textures/_skins/JW female/, JW male/. None
 
 - Clip file: MOD/animations/entity/gallimimus.animation.json.
 - The REPO model holds only 8 clips.
-- Neck reach waits on the Drink and Eat clips. Drink is in the mod. Eat is first in the art queue.
+- Neck reach waits on the Drink and Eat clips, so they come first in the art queue.
 
 | Asset | Used for | Status | Feature | Where / reference |
 | --- | --- | --- | --- | --- |
-| Drink | Thirst. A 5 s loop: a glance, the head goes down to the water, two sips with a swallow, a head shake | To check in game | F2.3 | `drink`. The snout meets the water 2.1 blocks ahead of the animal's origin, 0.13 blocks below the ground it stands on |
+| Drink | Thirst. First in the art queue | Missing | F2.3 | None in the mod or REPO |
 | Eat | Hunger. First in the art queue | Missing | F2.3 | None |
 | Ground peck (graze low) | Omnivore feeding (GroundPeck) | Missing | F2.3 | None |
 | Call 2 | Second call | Missing | F2.3 | None |
@@ -1348,8 +1346,6 @@ None is in the mod. REPO folder: dinosaurs/gallimimus/sounds/ (30 files).
 | Species icon (egg and DNA) | Egg and tube show the species | Missing | F1.1 | None in the mod or REPO dna_icons |
 | Raw meat | Drop | Ready to import | F2.1 | REPO sprites/meat/gallimimus/ |
 | Cooked meat | Cooked drop | Ready to import | F2.1 | REPO sprites/meat/gallimimus/ |
-
-**Changed since last review:** The Drink clip is in the mod, to check in game.
 
 ---
 
