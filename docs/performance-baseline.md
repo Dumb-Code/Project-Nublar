@@ -70,6 +70,8 @@ The single-player F3 reading cannot test these gates:
 
 The package that owns one of these gates sets its method in its task plan. The same rule applies to a gate on a dedicated server.
 
+Proposal, lead decides (D323): one method for the peak gates. Vanilla `/tick query` gives the P50, P95 and P99 tick times. Check the command on 26.2 first.
+
 ## Gates that cite this file
 
 The line numbers are for `docs/plan/engineering-backlog.md` on 2026-10-25. Edits to the backlog can move them.

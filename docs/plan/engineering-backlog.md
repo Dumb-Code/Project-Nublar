@@ -1248,6 +1248,7 @@ F1.4 delivers the Sequencer block, its frame screen and the Sequence tab. F1.5 a
   - Scroll bars on the lists that grow. The mouse wheel and a bar drag scroll them.
   - Material Design 3 motion that only decorates. A click shows its result in the same frame, and text never fades.
   - The Material 3 Expressive motion of the F1.4 spec, the reduced-motion and contrast options, and bold type roles (D312, D313, D318).
+  - A long frame does not break a spring (proposal, lead decides, D327). Cap the frame time at 50 ms and step springs in equal 8 ms steps, or use the exact spring formula.
   - The narrow-window layout of every tab, below 351 px of scaled width (D317).
   - The screen cost rules: no shader passes, effects in slices, panel tiles of 16 px or more, at most two 3D models, layout only on open and on resize.
 - Clicking a slot opens a small popup with a title and one slot. The main screen dims behind it.
@@ -1381,7 +1382,7 @@ F1.4 delivers the Sequencer block, its frame screen and the Sequence tab. F1.5 a
 - The machine gate of F1.10 holds for this machine.
 - The fps with the Sequencer screen open stays at 95 % or more of the fps with a chest screen open. Playtests tune this start value (D311).
 
-**Changed since last review:** Sequencing is the only step that identifies amber DNA. Empty tubes and syringes come back. Vanilla cards show "Modern" and real diet. Power draw 20 (HDD) and 42 (SSD) FE per tick. Door animation and monitor glow added. The monitor glows whenever powered. No Ender SSD. Screen style and motion for all three tabs (D300 to D303). Clone stats on the info card, with a failed-egg count on the drive (D304). The Isolated view shows the animals each gene needs. Screen cost rules for every machine screen, with an fps check (D309, D311). The screen task makes its GUI sprites (D310). Model fills most of the info card, light flows along the helix, narrow-window layout for every tab (D315 to D317). Material 3 Expressive motion, reduced-motion and contrast options, bold type roles (D312, D313, D318). Fps check at 95 % of a chest screen (D311).
+**Changed since last review:** Sequencing is the only step that identifies amber DNA. Empty tubes and syringes come back. Vanilla cards show "Modern" and real diet. Power draw 20 (HDD) and 42 (SSD) FE per tick. Door animation and monitor glow added. The monitor glows whenever powered. No Ender SSD. Screen style and motion for all three tabs (D300 to D303). Clone stats on the info card, with a failed-egg count on the drive (D304). The Isolated view shows the animals each gene needs. Screen cost rules for every machine screen, with an fps check (D309, D311). The screen task makes its GUI sprites (D310). Model fills most of the info card, light flows along the helix, narrow-window layout for every tab (D315 to D317). Material 3 Expressive motion, reduced-motion and contrast options, bold type roles (D312, D313, D318). Fps check at 95 % of a chest screen (D311). A spring step rule for long frames waits for the lead (D327).
 ### F1.5: Sequencer: gene editing
 
 F1.5 is the Edit tab of the Sequencer: the player mixes donor DNA, edits isolated genes and colours, and sees the risk before synthesis.
@@ -3421,6 +3422,7 @@ F2.1 gives each species its own stats, smooth growth, a carcass at death, baby b
   - Add the typed-query hook on both loaders.
 - [ ] Chunk-section part buckets on both loaders, with a NeoForge `Level.getEntities` mixin.
   - Fewer parts for far animals.
+  - The part-count switch at 64 blocks has a gap of a few blocks (proposal, lead decides, D326). An animal near the line then does not change its layout at each check.
 - [ ] A Gradle task bakes animation files into tables in the jar.
   - Hash check on join.
   - A golden test against recorded bone positions.
@@ -3429,6 +3431,7 @@ F2.1 gives each species its own stats, smooth growth, a carcass at death, baby b
   - A GeckoLib 5 updater adds the bend delta, lerped by partial tick.
   - A playtest checks for double sway and 20 Hz steps.
 - [ ] Client leg and foot IK: once per tick, lerped per frame, full within 16 blocks and none past 32.
+  - Skip the solve for an animal that did not draw in the last frame (proposal, lead decides, D328). When it draws again, it solves before that frame, so the feet do not jump.
   - Use the CHAOS branch IK code with its sources, credited as the Mowzie's Mobs terms require.
   - The 2024 board's open IK items (angle constraints, model and entity integration, movement and idle cycles) are context.
 - [ ] A missed part add or remove heals on the next query.
@@ -3523,7 +3526,7 @@ See Art list → each species, and Fossils and amber. Not done until those rows 
 - The debug status goes out as a broadcast to all players.
 - No animal swims. An animal in deep water sinks to the bottom and drowns if it cannot climb out.
 
-**Changed since last review:** A carcass lasts one in-game day. Only three species drop a special item, and only the T. rex drops teeth. Hatchlings use their own sounds. Mates share a carcass by feeding spots. Animals wade, then swim, by water depth against body height, with no vanilla bobbing.
+**Changed since last review:** A carcass lasts one in-game day. Only three species drop a special item, and only the T. rex drops teeth. Hatchlings use their own sounds. Mates share a carcass by feeding spots. Animals wade, then swim, by water depth against body height, with no vanilla bobbing. A leg IK skip for animals out of view and a part-count gap wait for the lead (D326, D328).
 
 ### F2.2: Appearance
 
@@ -3650,6 +3653,7 @@ Each set is complete with every layer for both genders. A layer shared by both g
 - Far animals skip small cubes, for example cubes with no side over 2 px beyond 48 blocks (proposal, lead decides, D299).
   - The gain is small today. Gallimimus has 19 such cubes of 66. The other five species have 0 to 6 of 61 to 111.
   - Do it only if the BH.1 client profile shows that cube drawing is a large part of the frame time.
+  - The cut has a gap of a few blocks, so cubes do not pop in and out at 48 blocks (proposal, lead decides, D326).
 - Render types stay batchable and shader-safe: one `RenderType` per texture, cached. No core shader. No `sortOnUpload` on an opaque type.
 - The culling box is F2.1's. F2.2 renders inside it.
 
@@ -3690,7 +3694,7 @@ See Art list → each species: skin layers per set and gender, glow masks. Not d
 - The Velociraptor registry draws `base` only.
 - Each Triceratops draws one horn set in one horn colour, picked at random and fixed for that animal. No gene holds them yet.
 
-**Changed since last review:** Triceratops and Brachiosaurus height targets set. Morphs are tints, with no morph textures. One glow mask per species. JW looks only for Brachiosaurus, Gallimimus and Dilophosaurus. Quill card set in Beta. DNA share picks the skin set. Velociraptor crest, quill and breeding rules. CPU bake, no core shader. Triceratops horn set and horn colour are look genes, one of each per animal. A small-cube cut for far animals waits for the lead (D299).
+**Changed since last review:** Triceratops and Brachiosaurus height targets set. Morphs are tints, with no morph textures. One glow mask per species. JW looks only for Brachiosaurus, Gallimimus and Dilophosaurus. Quill card set in Beta. DNA share picks the skin set. Velociraptor crest, quill and breeding rules. CPU bake, no core shader. Triceratops horn set and horn colour are look genes, one of each per animal. A small-cube cut for far animals and its distance gap wait for the lead (D299, D326).
 
 ### F2.3: Animations, sounds and visual effects per species
 
@@ -3838,6 +3842,12 @@ What needs each added clip:
   - Blood drips and the bloody mouth: T. rex, Velociraptor, Dilophosaurus and Gallimimus (an omnivore).
   - Bloody claw: T. rex, Velociraptor and Dilophosaurus.
   - Screen shake: T. rex, Triceratops and Brachiosaurus. A client switch turns it off.
+- Screen shake rule (proposal, lead decides, D324):
+  - Each client has one shake level from 0 to 1. Each footstep or roar in range adds to it, and a roar adds more.
+  - The level falls to 0 in about 1 second. It never goes above 1.
+  - The camera moves by the level squared times smooth noise, so small shakes stay small.
+  - The shake moves only the camera view. It never turns the player's yaw or pitch, so the aim does not move.
+  - The task plan tunes the amounts in a playtest.
 - Effects run on the client from synced state and clip events. No server packet per effect.
 - Overlays (blood, snow) are render layers with F2.2 bone masks. They clear after a time.
 - Footprints are client particles or decals. They never change blocks.
@@ -3877,7 +3887,7 @@ See Art list → each species (every clip and sound row), and Dinosaur effects. 
 - Every species walks and runs at the same body speeds. Each species' walk and run clips show its own pace, so the feet slide.
 - The Triceratops `restidle` and `getup` clips are empty. A resting Triceratops lies down with `rest`, then stands again while it rests.
 
-**Changed since last review:** Every species gets own clips and sounds, placeholders count as missing. Per-species warning sounds. Only T. rex and Velociraptor have nesting clips. Limp in Beta below 30 % health. Get-up idle fallback is development only. Gallimimus gets blood effects. Screen shake for three large species. Per-species walk and run speeds are open. Triceratops rest idle holds the last pose of its lie-down. Two art-tool proposals wait for the lead (D320, D321).
+**Changed since last review:** Every species gets own clips and sounds, placeholders count as missing. Per-species warning sounds. Only T. rex and Velociraptor have nesting clips. Limp in Beta below 30 % health. Get-up idle fallback is development only. Gallimimus gets blood effects. Screen shake for three large species. Per-species walk and run speeds are open. Triceratops rest idle holds the last pose of its lie-down. Two art-tool proposals wait for the lead (D320, D321). A screen shake rule waits for the lead (D324).
 ### F2.4: Needs
 
 F2.4 gives each dinosaur hunger, thirst, stamina, sleep and stress, makes each need have results, and keeps a 100-dinosaur park at 20 ticks per second.
@@ -5891,6 +5901,7 @@ F4.2 adds the Jeep Wrangler and the Ford Explorer, built part by part, and drive
   - Multiply velocity and yaw rate by the drag (start 0.8). Gravity in the air.
   - Push along the facing by top speed × (1 − drag), a third in reverse, and a small push while only steering.
   - Steering changes yaw rate by a factor times the push, clamped to 3° per tick, inverted in reverse.
+  - Back held while the vehicle moves forward brakes at a set rate, stronger than the reverse push (proposal, lead decides, D325). The rate: value open.
   - The server clamp stays.
 - [ ] The body pitches and rolls on the client from four edge probes in 0.25-block steps.
   - Each probe takes the highest collision top within 32 blocks below.
@@ -5913,6 +5924,7 @@ F4.2 adds the Jeep Wrangler and the Ford Explorer, built part by part, and drive
 - [ ] **Trick:** jump in the air starts a 10-tick trick that code plays on the whole model. Steering held left or right gives a roll, no steering a spin.
   - A finished trick and a good landing fire the trick boost.
   - A landing before the trick ends counts as a bad landing.
+  - A jump press counts for a few ticks (proposal, lead decides, D325). If the vehicle becomes airborne in that time, the trick starts. One press starts one trick at most.
 - [ ] **Boost:** one timed multiplier on top speed and push. A new boost replaces a weaker or shorter one. Boosts do not stack.
   - The server speed clamp uses the boosted top speed only while the server sees an active boost.
 - [ ] **Network:** drift, trick and boost states travel in the existing on-change state: one byte of flags plus the boost ticks. Smoke, wind lines and model turns stay on the client.
@@ -6005,7 +6017,7 @@ F4.2 adds the Jeep Wrangler and the Ford Explorer, built part by part, and drive
 - At a named stop, riders hear the chime and see "Stop 2 of 4" and the name. The lamp of the stop marker lights while the Explorer stands there, and goes off when it leaves.
 - A player boards a moving Explorer.
 
-**Changed since last review:** The player builds vehicles from parts, not as one Jeep item and one Explorer item. No vehicle health, damage, wrecks or repair. Stop markers light a lamp. No Tour Station.
+**Changed since last review:** The player builds vehicles from parts, not as one Jeep item and one Explorer item. No vehicle health, damage, wrecks or repair. Stop markers light a lamp. No Tour Station. A jump buffer and a brake rate wait for the lead (D325).
 
 ### F4.3: Guns (blocked)
 
@@ -6070,6 +6082,7 @@ BH.1 removes dead code and makes a large park run at full speed on a server.
   - Load B: 100 dinosaurs in 5 herds, 10 large, 3 players, 600 other entities.
 - Today's load B estimate: about 28 ms plus spikes near 440 ms. Target: 9 to 15 ms plus repath spikes. Nobody has profiled 26.2.
 - Use SmartBrainLib profiler sections and the herd timings.
+- Record the worst ticks too (proposal, lead decides, D323). Vanilla `/tick query` gives the P50, P95 and P99 tick times. Check the command on 26.2 first.
 - Measure what D297 to D299 need:
   - the search time and the nodes per search, for each species,
   - the re-path spikes,
@@ -6095,6 +6108,7 @@ One class holds every slow-work interval. Work is due when game time plus entity
 Far dinosaurs think less often. They still walk at full speed, and their needs change at the normal rate.
 
 - A 20-tick sensor sets a band from the nearest player: 0 within 64 blocks, 1 within 128, 2 beyond.
+  - An animal leaves a band only a few blocks past its line (proposal, lead decides, D326). An animal near 64 or 128 blocks then does not change band at each check.
 - A target, a threat memory or fence contact sets band 0.
 - Sensors use `scanRate(e -> base + band × base + (id & 15))`.
 - Idle behaviours use a `cooldownFor` that grows with the band (100 ticks at band 2, estimate).
@@ -6123,6 +6137,7 @@ Each fast path has three switches. They apply to the part index, the column cach
 #### Low-effects config
 
 - A client config with three low-effects switches: particles (all, reduced, none), screen shake, glow layers.
+  - The particle switch can follow vanilla instead (proposal, lead decides, D329). The vanilla Particles setting (All, Decreased, Minimal) already thins particles that spawn through `ClientLevel.addParticle`. Nublar particles then use that path, and the mod keeps only an off switch. Check this on 26.2.
 - It loads into static fields on load and on change. Renderers read the fields. F2.3's effects obey them.
 
 #### Tests and CI
@@ -6155,7 +6170,7 @@ Each fast path has three switches. They apply to the part index, the column cach
 - The PR records the vertex-allocation result.
 - The four lab machines at work meet the machine gate of F1.10, measured against the same world without the machines on the developer's own PC (F3 integrated-server tick, median of three readings one minute apart).
 
-**Changed since last review:** Machine gate set: the four lab machines add less than 2 ms to the server tick, and the client keeps at least 90 % of its frame rate with the lab in view.
+**Changed since last review:** Machine gate set: the four lab machines add less than 2 ms to the server tick, and the client keeps at least 90 % of its frame rate with the lab in view. Worst-tick readings, distance-band gaps and a particle switch that follows vanilla wait for the lead (D323, D326, D329).
 
 ### BH.2: Balance playtest and release
 
@@ -7031,6 +7046,20 @@ These rows come from a review of five art and agent tools on 2026-10-30. The too
 | --- | --- | --- | --- | --- |
 | D322 | F2.4, F2.5 | In the M0.P2 playtest of 2026-10-30 (round 6), Gallimimus do not avoid fire. One died in fire that spread to the block it stood on, and it never moved. Testers: "They should avoid it, and in a radius, not just when they're next to it." No dinosaur reacts to fire or to damage, as on 1.20.1. Water avoidance works. Does the plan add fire avoidance? | Answered 2026-10-30. Fire avoidance in a radius goes in M2 (lead, 2026-10-30). F2.4 owns it: a dinosaur notices fire within a radius around its body and moves away before it reaches the fire. A dinosaur whose body box catches fire moves out of the fire. The radius: value open, lead decides. The fire check keeps to the block-scan budget, under 1,000 block reads per animal per second. Running away once burning stays with F2.5 in M2: the lead chose not to pull it into M0.P2 | Answered |
 
+### D323 and later: game-dev cheat sheet review of 2026-11-01
+
+These rows come from a check of gamedev-cheatsheet.com, a list of 34 general game-dev concepts. The plan already covers most of them. The rows copy seven ideas that the plan does not cover. The site's numbers are generic, so no value comes from it.
+
+| Id | Work package | Question | Default if unanswered | Status |
+| --- | --- | --- | --- | --- |
+| D323 | BH.1 | Some gates limit one tick: "no aligned spike", "under 5 ms in any tick" and "plus repath spikes". `docs/performance-baseline.md` says that the F3 reading cannot test them, and leaves the method to each task plan. Should one method serve all of them: the P95 and P99 tick times from vanilla `/tick query`? Check the command on 26.2 first | Each task plan picks its own method | Lead decision pending |
+| D324 | F2.3 | F2.3 names the three species with screen shake and a client off switch, but no shake rule. Footsteps and roars from several animals can add up with no limit. A shake that turns the player's view also moves the aim. Should each client keep one shake level from 0 to 1? Each footstep and roar adds to it, and it falls to 0 in about 1 second. The camera moves by the level squared times smooth noise. The shake never turns the player's yaw or pitch | The F2.3 task plan picks the shake rule | Lead decision pending |
+| D325 | F4.2 | A trick starts on a jump press in the air. The vehicle is airborne only after more than 2 ticks off the ground, so a press at takeoff starts no trick. Should a jump press count for a few ticks? Also, back held while moving forward only adds a reverse push to the drag. Should it brake at a set rate? | No jump buffer and no brake rate | Lead decision pending |
+| D326 | F2.1, F2.2, BH.1 | The need and stress bands have hysteresis. The distance switches do not. They are the distance band at 64 and 128 blocks, the part count at 64 blocks and the D299 cube cut at 48 blocks. An animal near a line can change on each check, and cubes can pop in and out. Should each switch have a gap of a few blocks? | One line per switch | Lead decision pending |
+| D327 | F1.4 | The screen springs (stiffness 800 and 380) step by the frame time. With a simple step, a frame over about 40 to 70 ms can make the stiffness 800 spring jump past its target or shake. The first frame of a screen on the minimum PC can take that long. Should screen motion cap the frame time at 50 ms and step springs in equal 8 ms steps? The exact spring formula is the other choice. | Step by the frame time. The F1.4 task plan tests one long frame | Lead decision pending |
+| D328 | F2.1 | Client leg IK solves once per tick for each animal within 32 blocks. No rule skips an animal out of view. Should the solve skip an animal that did not draw in the last frame, and solve before its next frame when it draws again? | Solve every animal within 32 blocks | Lead decision pending |
+| D329 | BH.1, F2.3 | The BH.1 particle switch (all, reduced, none) repeats the vanilla Particles setting (All, Decreased, Minimal). Vanilla already thins particles that spawn through `ClientLevel.addParticle`. Should Nublar particles use that path and that setting, with only an off switch in the mod? Check this on 26.2 first | Keep the three-way switch | Lead decision pending |
+
 ---
 
 ## Change log
@@ -7125,3 +7154,4 @@ These rows come from a review of five art and agent tools on 2026-10-30. The too
 - **2026-10-30 (Sequencer Material 3 Expressive mock-ups):** D311 to D319. F1.4: the model fills most of the info card, light flows along the helix, and every tab has a narrow-window layout. Pop-ups grow an outline out of their slot, the run icon changes shape, the running bar waves, and rows and markers move on springs. Page changes keep the slide and cross-fade, and messages keep their ease. Reduced-motion and contrast options, bold type roles. The fps check is 95 % of a chest screen, tuned in playtest. F1.5: the animal picker and the gene control show only on demand. F1.6: the arrow keeps a plain fill. The Art list adds a motion sprites row.
 - **2026-10-30 (art-tool review):** D320 and D321, both proposals. F2.3 gets a Blockbench MCP trial for the "Needs export" rows and an optional Blender route (Sparkle) for clips.
 - **2026-10-30 (lead: M0.P2 playtest, round 6):** D322. F2.4 gets fire avoidance in a radius: a dinosaur moves away from fire near its body before it reaches the fire, and moves out of fire in its body box. The radius is open. The fire check keeps to the block-scan budget. Running away once burning stays with F2.5.
+- **2026-11-01 (game-dev cheat sheet review):** D323 to D329, all proposals. BH.1 gets worst-tick readings, distance-band gaps and a particle switch that follows vanilla. F2.3 gets a screen shake rule, and F4.2 a jump buffer and a brake rate. F1.4 gets a safe spring step, and F2.1 a leg IK skip for animals out of view.

@@ -454,6 +454,7 @@ The screen uses the Material Design 3 motion rules (https://m3.material.io/style
   - Reduced motion: no slides, fades, shape changes, waves, ripples or pulses. Each change still shows at once.
   - Contrast: standard, medium or high. Medium and high make dim text, borders, tracks and lines brighter. Each level uses fixed colour values.
 - Screen motion is client-only. It uses the frame time and changes nothing in the world.
+  - A long frame never makes a spring jump past its target or shake (proposal, lead decides).
 
 ##### Narrow window (all three tabs)
 
@@ -553,7 +554,7 @@ See Art list → Sequencer (models, dye mask, lit monitor, door animation, sound
 
 **Engineering:** backlog F1.4.
 
-**Changed since last review:** The monitor stays as a fourth build part. Amber is identified only by sequencing. Vanilla animals show "Modern" and their real diet. Power per drive set. The monitor glows whenever powered and animates while working. Screen style and motion for all three tabs: tab-shaped buttons, one soft glow on the next input, status chip, empty-slot icons, event messages, scroll bars, M3 motion that never delays content. Clone stats on the info card. The Isolated view shows the animals each gene needs. Screen cost rules for every machine screen (D309, D311). The model fills most of the info card. Light flows along the helix. Every tab has a narrow-window layout. Pop-ups grow an outline out of their slot. The run icon changes shape, and the running bar waves. Rows and markers move on springs. Reduced-motion and contrast options. Bold type roles. The fps check is 95 % of a chest screen.
+**Changed since last review:** The monitor stays as a fourth build part. Amber is identified only by sequencing. Vanilla animals show "Modern" and their real diet. Power per drive set. The monitor glows whenever powered and animates while working. Screen style and motion for all three tabs: tab-shaped buttons, one soft glow on the next input, status chip, empty-slot icons, event messages, scroll bars, M3 motion that never delays content. Clone stats on the info card. The Isolated view shows the animals each gene needs. Screen cost rules for every machine screen (D309, D311). The model fills most of the info card. Light flows along the helix. Every tab has a narrow-window layout. Pop-ups grow an outline out of their slot. The run icon changes shape, and the running bar waves. Rows and markers move on springs. Reduced-motion and contrast options. Bold type roles. The fps check is 95 % of a chest screen. A spring step rule for long frames is a proposal.
 
 ---
 
