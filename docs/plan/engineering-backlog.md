@@ -3838,7 +3838,7 @@ What needs each added clip:
 | Environment | Splash rings and water ripples near large dinosaurs in water | movement in water |
 | Sleep | Zzz particles and bubbles | the sleeping state |
 
-- This task makes the particle sprites that the Art list marks "Agent makes it (D330)".
+- This task makes the effect art that the Art list marks "Agent makes it (D330)": particle sprites, footprints and the overlays on a species texture.
 - Species applicability follows the spec F2.3 matrix.
   - Blood drips and the bloody mouth: T. rex, Velociraptor, Dilophosaurus and Gallimimus (an omnivore).
   - Bloody claw: T. rex, Velociraptor and Dilophosaurus.
@@ -5212,7 +5212,7 @@ Outside these additions, the fence stays 1:1 with the original. Each addition ch
 
 ##### Particles
 
-- Spark particles at cut ends and on contact use a Nublar spark particle with the original numbers:
+- Spark particles at cut ends and on contact use a Nublar spark particle with the 17 original 1.16 frames (D330) and the original numbers:
   - 8 at a break point, 30 on a shock
   - lifetime a quarter of the default
   - scale 0.25, gravity 0.75, lit
@@ -7060,7 +7060,7 @@ These rows come from a check of gamedev-cheatsheet.com, a list of 34 general gam
 | D327 | F1.4 | The screen springs (stiffness 800 and 380) step by the frame time. With a simple step, a frame over about 40 to 70 ms can make the stiffness 800 spring jump past its target or shake. The first frame of a screen on the minimum PC can take that long. Should screen motion cap the frame time at 50 ms and step springs in equal 8 ms steps? The exact spring formula is the other choice. | Step by the frame time. The F1.4 task plan tests one long frame | Lead decision pending |
 | D328 | F2.1 | Client leg IK solves once per tick for each animal within 32 blocks. No rule skips an animal out of view. Should the solve skip an animal that did not draw in the last frame, and solve before its next frame when it draws again? | Solve every animal within 32 blocks | Lead decision pending |
 | D329 | BH.1, F2.3 | The BH.1 particle switch (all, reduced, none) repeats the vanilla Particles setting (All, Decreased, Minimal). Vanilla already thins particles that spawn through `ClientLevel.addParticle`. Should Nublar particles use that path and that setting, with only an off switch in the mod? Check this on 26.2 first | Keep the three-way switch | Lead decision pending |
-| D330 | F1.7, F1.9, F1.11, F2.3, F4.2 | Who makes the particle sprites: drips, puffs, splashes, trails, Zzz and smoke? | Answered 2026-11-02 (lead): "yes agents can make the particle sprites. I don't want agents making significant art assets from scratch". The agent that builds an effect makes its particle sprites: small frames at particle size, and crops or recolours of art in the mod or of vanilla particles. Agents do not make significant new art from scratch: models, item and block textures, overlays on a species texture and new screen art stay with the artist. The Art list marks 21 rows "Agent makes it (D330)" | Answered |
+| D330 | F1.7, F1.9, F1.11, F2.3, F3.1, F4.2 | Who makes the effect art: particle sprites, footprints and the overlays on a species texture? | Answered 2026-11-02 (lead): "yes agents can make the particle sprites. I don't want agents making significant art assets from scratch". Then, the same day, "Yes to all of the above": footprints, the species texture overlays, the yawn effect and the fence spark. The agent that builds an effect makes its effect art: particle sprites, footprints, and the overlays on a species texture (bloody mouth, bloody claws, snow cover). These are small frames at particle size, and crops, recolours or paint-overs of art in the mod or of vanilla particles. The fence spark imports the 17 original 1.16 frames. Agents do not make significant new art from scratch: models, item and block textures and new screen art stay with the artist. The Art list marks 39 rows "Agent makes it (D330)" and 1 row "Agent imports it (D330)" | Answered |
 
 ---
 
@@ -7157,4 +7157,4 @@ These rows come from a check of gamedev-cheatsheet.com, a list of 34 general gam
 - **2026-10-30 (art-tool review):** D320 and D321, both proposals. F2.3 gets a Blockbench MCP trial for the "Needs export" rows and an optional Blender route (Sparkle) for clips.
 - **2026-10-30 (lead: M0.P2 playtest, round 6):** D322. F2.4 gets fire avoidance in a radius: a dinosaur moves away from fire near its body before it reaches the fire, and moves out of fire in its body box. The radius is open. The fire check keeps to the block-scan budget. Running away once burning stays with F2.5.
 - **2026-11-01 (game-dev cheat sheet review):** D323 to D329, all proposals. BH.1 gets worst-tick readings, distance-band gaps and a particle switch that follows vanilla. F2.3 gets a screen shake rule, and F4.2 a jump buffer and a brake rate. F1.4 gets a safe spring step, and F2.1 a leg IK skip for animals out of view.
-- **2026-11-02 (lead: particle sprites):** D330. The agent that builds an effect makes its particle sprites. Agents make no significant new art from scratch. The Art list marks 21 rows "Agent makes it (D330)". F2.3 and F4.2 say the same.
+- **2026-11-02 (lead: particle sprites):** D330. The agent that builds an effect makes its effect art: particle sprites, footprints and the overlays on a species texture. Agents make no significant new art from scratch. The Art list marks 39 rows "Agent makes it (D330)". The fence spark imports the 17 original 1.16 frames. F2.3, F3.1 and F4.2 say the same.

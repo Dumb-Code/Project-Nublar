@@ -5,7 +5,7 @@ Mirror of the shared page tab "Beta and Release 1 project plan" (the master copy
 The Beta is a survival Jurassic Park mod for Minecraft 26.2 on Fabric and NeoForge. The player finds fossils, clones and edits six dinosaur species, and keeps them in a powered, fenced, fed park.
 
 - **Status:** no milestone is started. Nothing blocks M0.
-- **Largest gap:** art. 458 of the 1023 Beta art assets are missing or are placeholders. 272 more need importing, exporting, converting or checking in game.
+- **Largest gap:** art. 457 of the 1023 Beta art assets are missing or are placeholders. 273 more need importing, exporting, converting or checking in game.
 
 ## Roadmap
 

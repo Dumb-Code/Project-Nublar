@@ -34,9 +34,9 @@ Status words:
 - The artist makes new pictures: models, item textures and new screen art.
 - These rows say "Agent makes it" in the last column. They keep their status word and count as work for the screen task.
 
-**Who makes particle sprites** (D330)
-- The agent that builds an effect makes its particle sprites: small frames at particle size, and crops or recolours of art in the mod or of vanilla particles.
-- Agents do not make significant new art from scratch. The artist makes models, item and block textures, overlays on a species texture, and new screen art.
+**Who makes effect art** (D330)
+- The agent that builds an effect makes its effect art: particle sprites, footprints, and the overlays on a species texture (bloody mouth, bloody claws, snow cover). These are small frames at particle size, and crops, recolours or paint-overs of art in the mod or of vanilla particles.
+- Agents do not make significant new art from scratch. The artist makes models, item and block textures, and new screen art.
 - These rows say "Agent makes it (D330)" in the last column. They keep their status word and count as work for the effect task.
 
 **No stand-ins**
@@ -106,15 +106,15 @@ Status words:
 | Fossils and amber | 1 | 0 | 15 | 0 | 18 | 0 | 0 |
 | Lab power | 1 | 0 | 2 | 1 | 8 | 0 | 0 |
 | Park power | 0 | 0 | 3 | 2 | 7 | 0 | 0 |
-| Fences | 6 | 0 | 7 | 0 | 9 | 0 | 0 |
+| Fences | 6 | 0 | 8 | 0 | 8 | 0 | 0 |
 | Feeders | 3 | 0 | 0 | 10 | 20 | 0 | 0 |
 | Digsites and villagers | 0 | 0 | 1 | 0 | 7 | 0 | 0 |
 | Vehicles | 1 | 0 | 2 | 5 | 26 | 0 | 0 |
-| **Total (without guns)** | **251** | **24** | **179** | **69** | **458** | **42** | **1** |
+| **Total (without guns)** | **251** | **24** | **180** | **69** | **457** | **42** | **1** |
 | Guns (blocked) | 0 | 0 | 2 | 11 | 3 | 0 | 0 |
 
 - **Counted rows:** 1023 (guns not included).
-- **Work left:** 730 rows (458 to make, 69 to export or convert, 179 to import, 24 to check in game), plus 42 shared files for the artist to confirm.
+- **Work left:** 730 rows (457 to make, 69 to export or convert, 180 to import, 24 to check in game), plus 42 shared files for the artist to confirm.
 - **Done:** 251.
 - **Not counted:** 1 row that waits on the lead, 32 rows with no art needed, 38 rows not in Beta (6 of them Release 1 groups).
 - **Guns:** blocked on D08. They are not in the total.
@@ -1380,16 +1380,16 @@ Milestone: Dinosaurs.
 | Roar spit particle | Spit flies when a dinosaur roars | Missing | F2.3 | None. Agent makes it (D330). |
 | Drinking water drips | Water drips from the mouth after drinking | Missing | F2.3 | None. Agent makes it (D330). |
 | Blood drip particle | Blood drips while a carnivore or the Gallimimus eats meat | Missing | F2.3 | None. Agent makes it (D330). |
-| Bloody mouth overlay: Tyrannosaurus | Mouth turns red after eating meat | Missing | F2.3 | One overlay on the species UV map |
-| Bloody mouth overlay: Velociraptor | Same | Missing | F2.3 | One overlay on the species UV map |
-| Bloody mouth overlay: Dilophosaurus | Same | Missing | F2.3 | One overlay on the species UV map |
-| Bloody mouth overlay: Gallimimus | The omnivore eats meat too | Missing | F2.3 | One overlay on the species UV map |
-| Bloody claw overlay: Tyrannosaurus | Claws turn red after an attack | Missing | F2.3 | One overlay on the species UV map |
-| Bloody claw overlay: Velociraptor | Same | Missing | F2.3 | One overlay on the species UV map |
-| Bloody claw overlay: Dilophosaurus | Same | Missing | F2.3 | One overlay on the species UV map |
+| Bloody mouth overlay: Tyrannosaurus | Mouth turns red after eating meat | Missing | F2.3 | One overlay on the species UV map. Agent makes it (D330). |
+| Bloody mouth overlay: Velociraptor | Same | Missing | F2.3 | One overlay on the species UV map. Agent makes it (D330). |
+| Bloody mouth overlay: Dilophosaurus | Same | Missing | F2.3 | One overlay on the species UV map. Agent makes it (D330). |
+| Bloody mouth overlay: Gallimimus | The omnivore eats meat too | Missing | F2.3 | One overlay on the species UV map. Agent makes it (D330). |
+| Bloody claw overlay: Tyrannosaurus | Claws turn red after an attack | Missing | F2.3 | One overlay on the species UV map. Agent makes it (D330). |
+| Bloody claw overlay: Velociraptor | Same | Missing | F2.3 | One overlay on the species UV map. Agent makes it (D330). |
+| Bloody claw overlay: Dilophosaurus | Same | Missing | F2.3 | One overlay on the species UV map. Agent makes it (D330). |
 | Plant bits particle | Leaves fall from the mouth while a herbivore eats | Missing | F2.3 | None. Agent makes it (D330). |
 | Foggy breath | Breath shows in cold biomes | Missing | F2.3 | None. Agent makes it (D330). |
-| Yawn effect | Tired or waking animal | Missing | F2.3 | None |
+| Yawn effect | Tired or waking animal | Missing | F2.3 | None. Agent makes it (D330). |
 | Sneeze effect | Sneeze puff | Missing | F2.3 | None. Agent makes it (D330). |
 | Snort effect | Snort puff from the nostrils | Missing | F2.3 | None. Agent makes it (D330). |
 | Camouflage look | Camouflage gene: hard to see while still | Missing | F2.7 | None. A texture or a code effect: artist and developer decide |
@@ -1398,10 +1398,10 @@ Milestone: Dinosaurs.
 
 | Asset | Used for | Status | Feature | Where / reference |
 | --- | --- | --- | --- | --- |
-| Footprint: small biped | Slow-fading prints (Velociraptor, Dilophosaurus, Gallimimus) | Missing | F2.3 | Prints differ by size and by quadruped or biped |
-| Footprint: large biped | Tyrannosaurus prints | Missing | F2.3 | None |
-| Footprint: quadruped | Triceratops prints | Missing | F2.3 | None |
-| Footprint: sauropod | Brachiosaurus prints | Missing | F2.3 | None |
+| Footprint: small biped | Slow-fading prints (Velociraptor, Dilophosaurus, Gallimimus) | Missing | F2.3 | Prints differ by size and by quadruped or biped. Agent makes it (D330). |
+| Footprint: large biped | Tyrannosaurus prints | Missing | F2.3 | None. Agent makes it (D330). |
+| Footprint: quadruped | Triceratops prints | Missing | F2.3 | None. Agent makes it (D330). |
+| Footprint: sauropod | Brachiosaurus prints | Missing | F2.3 | None. Agent makes it (D330). |
 | Dust trail | Dust behind a running animal | Missing | F2.3 | None. Agent makes it (D330). |
 | Air trails | Swipe trails on arm and tail attacks | Missing | F2.3 | None. Agent makes it (D330). |
 | Screen shake | A T. rex, Triceratops or Brachiosaurus walks close or roars. Config can turn it off | No art needed | F2.3 | Code only |
@@ -1410,12 +1410,12 @@ Milestone: Dinosaurs.
 
 | Asset | Used for | Status | Feature | Where / reference |
 | --- | --- | --- | --- | --- |
-| Snow cover overlay: Tyrannosaurus | Snow on an animal that sits or sleeps in a snow biome | Missing | F2.3 | One overlay on the species UV map |
-| Snow cover overlay: Velociraptor | Same | Missing | F2.3 | One overlay on the species UV map |
-| Snow cover overlay: Dilophosaurus | Same | Missing | F2.3 | One overlay on the species UV map |
-| Snow cover overlay: Triceratops | Same | Missing | F2.3 | One overlay on the species UV map |
-| Snow cover overlay: Brachiosaurus | Same | Missing | F2.3 | One overlay on the species UV map |
-| Snow cover overlay: Gallimimus | Same | Missing | F2.3 | One overlay on the species UV map |
+| Snow cover overlay: Tyrannosaurus | Snow on an animal that sits or sleeps in a snow biome | Missing | F2.3 | One overlay on the species UV map. Agent makes it (D330). |
+| Snow cover overlay: Velociraptor | Same | Missing | F2.3 | One overlay on the species UV map. Agent makes it (D330). |
+| Snow cover overlay: Dilophosaurus | Same | Missing | F2.3 | One overlay on the species UV map. Agent makes it (D330). |
+| Snow cover overlay: Triceratops | Same | Missing | F2.3 | One overlay on the species UV map. Agent makes it (D330). |
+| Snow cover overlay: Brachiosaurus | Same | Missing | F2.3 | One overlay on the species UV map. Agent makes it (D330). |
+| Snow cover overlay: Gallimimus | Same | Missing | F2.3 | One overlay on the species UV map. Agent makes it (D330). |
 | Splash ring | Large animal enters or moves in water | Missing | F2.3 | None. Agent makes it (D330). |
 | Water ripples | Ripples when a large dinosaur is near water | Missing | F2.3 | None. Agent makes it (D330). |
 | Sleep Zzz | Sleeping animal | Missing | F2.3 | None. Agent makes it (D330). |
@@ -2370,18 +2370,18 @@ Milestone: Park.
 The electric fences that keep dinosaurs in paddocks. 1:1 with the 1.12.2 fence: a low post 3 blocks high with 6 wires, a high post 8 blocks high with 8 wires. A switch cuts a section.
 Milestone: Park.
 
-**To make (9)**
+**To make (8)**
 
 - Models (2): Voltage sign hanging on a wire; Fence switch block.
 - Skins (1): Fence switch texture.
 - Sounds (4): Shock zap; Wire snap; Power-up hum; Power-down click.
-- Effects (1): Spark particle (placeholder).
 - Sprites (1): Fence switch item.
 
-**To import (7)**
+**To import (8)**
 
 - Skins (2): Low post: lit and off; High post: lit and off.
 - Sounds (1): Hum loop.
+- Effects (1): Spark particle.
 - Sprites (4): Wire spool fill stages 1 to 10 and empty; Fence remover (survival); Fence remover (creative); Voltage warning signs (3).
 
 **To fix (0)**
@@ -2425,7 +2425,7 @@ The fence keeps the repair place sound of the 1.12.2 fence. It also gets the fiv
 
 | Asset | Used for | Status | Feature | Where / reference |
 | --- | --- | --- | --- | --- |
-| Spark particle | Broken ends spark, shock sparks | Placeholder | F3.1 | Stand-in: vanilla electric spark. The original had its own spark sprite sheet |
+| Spark particle | Broken ends spark, shock sparks | Ready to import | F3.1 | The 17 frames of the original spark particle `Dumb-Code/ProjectNublar` branch `1.16`, src/main/resources/assets/projectnublar/textures/particle/spark_0.png to spark_16.png, with particles/spark.json. Agent imports it (D330). |
 
 ### Sprites
 
