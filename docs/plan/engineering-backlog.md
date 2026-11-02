@@ -3790,10 +3790,14 @@ What needs each added clip:
   - Keep the server only if it runs the GeckoLib export, and the clip plays in game as in Blockbench.
   - The server runs code inside Blockbench. Use it on a copy of the REPO file.
 - The agent moves only clips that exist. Artists still make every new clip.
-- The Sparkle add-on for Blender is optional for artists (proposal, lead decides, D321).
-  - It opens a `.bbmodel` in Blender and writes an edit back as a new clip. The old clip stays.
-  - The new clip has a linear key on every frame. The easing of the artist is lost, and the clip is hard to edit in Blockbench.
-  - Use it only for a clip that needs Blender tools, for example IK. It also renders mod scenes for trailers.
+- The mcblend add-on for Blender is optional for artists (proposal, lead decides, D321).
+  - It opens the species `.geo.json` in Blender and writes the new clip to a `.animation.json` file. The artist imports that file into the species `.bbmodel` in Blockbench.
+  - It writes a key only where the artist set a key, and only for bones that move. Each key keeps its easing: linear, smooth or step.
+  - It cannot open an existing clip. Edits to existing clips stay in Blockbench.
+  - IK and constraints bake only at key times. For IK, the artist adds keys in its "Extra frames" field.
+  - Frame 0 must be the rest pose. A turn of more than 180° between two keys exports incorrectly.
+  - Its documents cover Bedrock only. Its clips are untested in Blockbench and GeckoLib.
+  - Use it only for a clip that needs Blender tools, for example IK.
 
 #### Scope: sounds
 
@@ -7034,12 +7038,12 @@ These rows come from the review of the Material 3 Expressive mock-ups of the Seq
 
 ### D320 and later: art-tool review of 2026-10-30
 
-These rows come from a review of five art and agent tools on 2026-10-30. The tools are Blockbench MCP servers, the Sparkle add-on for Blender, Scenario, Claude Code Game Studios and a Blender MCP workflow. Only the first two fit a GeckoLib mod made in Blockbench. The mod adds no tool yet.
+These rows come from a review of five art and agent tools on 2026-10-30. The tools are Blockbench MCP servers, the Sparkle add-on for Blender, Scenario, Claude Code Game Studios and a Blender MCP workflow. Only the first two fit a GeckoLib mod made in Blockbench. The mod adds no tool yet. On 2026-11-02, D321 changed from Sparkle to the mcblend add-on for Blender. Sparkle writes a linear key on every frame, and mcblend keeps the keys and easing of the artist.
 
 | Id | Work package | Question | Default if unanswered | Status |
 | --- | --- | --- | --- | --- |
 | D320 | F2.3 | The Art list has 55 "Needs export" rows. Should an agent export them with a Blockbench MCP server? A trial on one row, the Velociraptor `swim` clip from the jptlw file, comes first | A person exports each row by hand in Blockbench | Lead decision pending |
-| D321 | F2.3 | Can artists make clips in Blender with the Sparkle add-on? It writes a linear key on every frame, so the easing of the artist is lost and the clip is hard to edit in Blockbench | Blockbench only for mod clips. Sparkle stays an option for trailer renders | Lead decision pending |
+| D321 | F2.3 | Can artists make new clips in Blender with the mcblend add-on? It keeps the keys and easing of the artist. It cannot open an existing clip, so edits stay in Blockbench | Blockbench only for mod clips | Lead decision pending |
 
 ### D322 and later: M0.P2 playtest round 6 of 2026-10-30
 
@@ -7158,3 +7162,4 @@ These rows come from a check of gamedev-cheatsheet.com, a list of 34 general gam
 - **2026-10-30 (lead: M0.P2 playtest, round 6):** D322. F2.4 gets fire avoidance in a radius: a dinosaur moves away from fire near its body before it reaches the fire, and moves out of fire in its body box. The radius is open. The fire check keeps to the block-scan budget. Running away once burning stays with F2.5.
 - **2026-11-01 (game-dev cheat sheet review):** D323 to D329, all proposals. BH.1 gets worst-tick readings, distance-band gaps and a particle switch that follows vanilla. F2.3 gets a screen shake rule, and F4.2 a jump buffer and a brake rate. F1.4 gets a safe spring step, and F2.1 a leg IK skip for animals out of view.
 - **2026-11-02 (lead: particle sprites):** D330. The agent that builds an effect makes its effect art: particle sprites, footprints and the overlays on a species texture. Agents make no significant new art from scratch. The Art list marks 39 rows "Agent makes it (D330)". The fence spark imports the 17 original 1.16 frames. F2.3, F3.1 and F4.2 say the same.
+- **2026-11-02 (Blender add-on check):** D321 proposes the mcblend add-on for new Blender clips. F2.3 export tooling lists its clip route and its limits.
