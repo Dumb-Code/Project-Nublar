@@ -34,6 +34,11 @@ Status words:
 - The artist makes new pictures: models, item textures and new screen art.
 - These rows say "Agent makes it" in the last column. They keep their status word and count as work for the screen task.
 
+**Who makes particle sprites** (D330)
+- The agent that builds an effect makes its particle sprites: small frames at particle size, and crops or recolours of art in the mod or of vanilla particles.
+- Agents do not make significant new art from scratch. The artist makes models, item and block textures, overlays on a species texture, and new screen art.
+- These rows say "Agent makes it (D330)" in the last column. They keep their status word and count as work for the effect task.
+
 **No stand-ins**
 - A copied file is a Placeholder.
 - An empty clip (0 bones) is a Placeholder.
@@ -781,8 +786,8 @@ None is in the mod. REPO folder: dinosaurs/dilophosaurus/sounds/ (31 files).
 
 | Asset | Used for | Status | Feature | Where / reference |
 | --- | --- | --- | --- | --- |
-| Spit projectile blob | Physics-based projectile blob | Missing | F2.3 | None |
-| Spit splash on hit | Splash particles | Missing | F2.3 | None |
+| Spit projectile blob | Physics-based projectile blob | Missing | F2.3 | None. Agent makes it to match spitparticles.png (D330). |
+| Spit splash on hit | Splash particles | Missing | F2.3 | None. Agent makes it to match spitparticles.png (D330). |
 | Spit particle | Spit attack | Ready to import | F2.3 | REPO dinosaurs/dilophosaurus/textures/spitparticles.png |
 
 ### Sprites
@@ -1372,9 +1377,9 @@ Milestone: Dinosaurs.
 
 | Asset | Used for | Status | Feature | Where / reference |
 | --- | --- | --- | --- | --- |
-| Roar spit particle | Spit flies when a dinosaur roars | Missing | F2.3 | None |
-| Drinking water drips | Water drips from the mouth after drinking | Missing | F2.3 | None |
-| Blood drip particle | Blood drips while a carnivore or the Gallimimus eats meat | Missing | F2.3 | None |
+| Roar spit particle | Spit flies when a dinosaur roars | Missing | F2.3 | None. Agent makes it (D330). |
+| Drinking water drips | Water drips from the mouth after drinking | Missing | F2.3 | None. Agent makes it (D330). |
+| Blood drip particle | Blood drips while a carnivore or the Gallimimus eats meat | Missing | F2.3 | None. Agent makes it (D330). |
 | Bloody mouth overlay: Tyrannosaurus | Mouth turns red after eating meat | Missing | F2.3 | One overlay on the species UV map |
 | Bloody mouth overlay: Velociraptor | Same | Missing | F2.3 | One overlay on the species UV map |
 | Bloody mouth overlay: Dilophosaurus | Same | Missing | F2.3 | One overlay on the species UV map |
@@ -1382,11 +1387,11 @@ Milestone: Dinosaurs.
 | Bloody claw overlay: Tyrannosaurus | Claws turn red after an attack | Missing | F2.3 | One overlay on the species UV map |
 | Bloody claw overlay: Velociraptor | Same | Missing | F2.3 | One overlay on the species UV map |
 | Bloody claw overlay: Dilophosaurus | Same | Missing | F2.3 | One overlay on the species UV map |
-| Plant bits particle | Leaves fall from the mouth while a herbivore eats | Missing | F2.3 | None |
-| Foggy breath | Breath shows in cold biomes | Missing | F2.3 | None |
+| Plant bits particle | Leaves fall from the mouth while a herbivore eats | Missing | F2.3 | None. Agent makes it (D330). |
+| Foggy breath | Breath shows in cold biomes | Missing | F2.3 | None. Agent makes it (D330). |
 | Yawn effect | Tired or waking animal | Missing | F2.3 | None |
-| Sneeze effect | Sneeze puff | Missing | F2.3 | None |
-| Snort effect | Snort puff from the nostrils | Missing | F2.3 | None |
+| Sneeze effect | Sneeze puff | Missing | F2.3 | None. Agent makes it (D330). |
+| Snort effect | Snort puff from the nostrils | Missing | F2.3 | None. Agent makes it (D330). |
 | Camouflage look | Camouflage gene: hard to see while still | Missing | F2.7 | None. A texture or a code effect: artist and developer decide |
 
 ### Effects: movement
@@ -1397,8 +1402,8 @@ Milestone: Dinosaurs.
 | Footprint: large biped | Tyrannosaurus prints | Missing | F2.3 | None |
 | Footprint: quadruped | Triceratops prints | Missing | F2.3 | None |
 | Footprint: sauropod | Brachiosaurus prints | Missing | F2.3 | None |
-| Dust trail | Dust behind a running animal | Missing | F2.3 | None |
-| Air trails | Swipe trails on arm and tail attacks | Missing | F2.3 | None |
+| Dust trail | Dust behind a running animal | Missing | F2.3 | None. Agent makes it (D330). |
+| Air trails | Swipe trails on arm and tail attacks | Missing | F2.3 | None. Agent makes it (D330). |
 | Screen shake | A T. rex, Triceratops or Brachiosaurus walks close or roars. Config can turn it off | No art needed | F2.3 | Code only |
 
 ### Effects: environment and sleep
@@ -1411,10 +1416,10 @@ Milestone: Dinosaurs.
 | Snow cover overlay: Triceratops | Same | Missing | F2.3 | One overlay on the species UV map |
 | Snow cover overlay: Brachiosaurus | Same | Missing | F2.3 | One overlay on the species UV map |
 | Snow cover overlay: Gallimimus | Same | Missing | F2.3 | One overlay on the species UV map |
-| Splash ring | Large animal enters or moves in water | Missing | F2.3 | None |
-| Water ripples | Ripples when a large dinosaur is near water | Missing | F2.3 | None |
-| Sleep Zzz | Sleeping animal | Missing | F2.3 | None |
-| Sleep bubbles | Sleeping animal | Missing | F2.3 | None |
+| Splash ring | Large animal enters or moves in water | Missing | F2.3 | None. Agent makes it (D330). |
+| Water ripples | Ripples when a large dinosaur is near water | Missing | F2.3 | None. Agent makes it (D330). |
+| Sleep Zzz | Sleeping animal | Missing | F2.3 | None. Agent makes it (D330). |
+| Sleep bubbles | Sleeping animal | Missing | F2.3 | None. Agent makes it (D330). |
 | Mud overlay | Mud look, for a later release | Not in Beta | F2.3 | None |
 | Wound overlays (cuts, scars) | Wound look | Not in Beta | F2.3 | REPO dinosaurs/_common/textures/damage_overlay_*.png |
 
@@ -1541,8 +1546,8 @@ Egg model per species, from the REPO egg folders:
 
 | Asset | Used for | Status | Feature | Where / reference |
 | --- | --- | --- | --- | --- |
-| Shell bits particle | Hatching | Missing | F1.9 | None |
-| Egg-break effect (failed print) | The egg on the printer platform breaks on a failed print | Missing | F1.7 | None. It can share the shell bits particle: artist to say |
+| Shell bits particle | Hatching | Missing | F1.9 | None. Agent makes it (D330). |
+| Egg-break effect (failed print) | The egg on the printer platform breaks on a failed print | Missing | F1.7 | None. It can share the shell bits particle. Agent makes it (D330). |
 
 ### Sprites
 
@@ -2263,7 +2268,7 @@ Milestone: Fossil to egg.
 | Conduit texture | Conduit look | Missing | F1.11 | None |
 | Basic Generator texture | Machine look | Ready to import | F1.11 | REPO machines/basic_power_generator/textures/basic_power_generator.png |
 | Creative Generator textures | Creative Generator look: a plain cube, as in 1.12.2 | Ready to import | F1.11 | The five 1.12 textures `Dumb-Code/ProjectNublar` branch `master`, src/main/resources/assets/projectnublar/textures/blocks/coal_generator_bottom.png, coal_generator_front.png, coal_generator_left.png, coal_generator_right.png, coal_generator_top.png. The 1.12 cube model models/block/creative_power.json (parent block/cube) puts bottom on the down and south faces, top up, front north, left east and right west. The item uses the block model |
-| Basic Generator flame glow and smoke | The flame glows while it burns. A smoke puff rises every 2 s. Light 13 | Missing | F1.11 | None. An emissive flame texture. The smoke can use the vanilla particle unless the artist makes a smoke texture |
+| Basic Generator flame glow and smoke | The flame glows while it burns. A smoke puff rises every 2 s. Light 13 | Missing | F1.11 | None. An emissive flame texture. The smoke uses the vanilla particle or a smoke sprite that the agent makes (D330) |
 
 ### Sounds
 
@@ -2708,9 +2713,9 @@ Code drives the wheel and door motion on the existing groups. No vehicle needs a
 
 | Asset | Used for | Status | Feature | Where / reference |
 | --- | --- | --- | --- | --- |
-| Tyre smoke | Drift. It grows thicker as the boost charges | Missing | F4.2 | None. A vanilla particle can serve. The artist decides |
-| Exhaust puff on a boost | A boost fires | Missing | F4.2 | None. A vanilla particle can serve. The artist decides |
-| Slipstream wind lines | A vehicle rides a slipstream | Missing | F4.2 | None. A vanilla particle can serve. The artist decides |
+| Tyre smoke | Drift. It grows thicker as the boost charges | Missing | F4.2 | None. A vanilla particle can serve, or the agent makes the sprite (D330) |
+| Exhaust puff on a boost | A boost fires | Missing | F4.2 | None. A vanilla particle can serve, or the agent makes the sprite (D330) |
+| Slipstream wind lines | A vehicle rides a slipstream | Missing | F4.2 | None. A vanilla particle can serve, or the agent makes the sprite (D330) |
 
 ### Sprites
 

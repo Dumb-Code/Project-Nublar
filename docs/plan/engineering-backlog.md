@@ -3838,6 +3838,7 @@ What needs each added clip:
 | Environment | Splash rings and water ripples near large dinosaurs in water | movement in water |
 | Sleep | Zzz particles and bubbles | the sleeping state |
 
+- This task makes the particle sprites that the Art list marks "Agent makes it (D330)".
 - Species applicability follows the spec F2.3 matrix.
   - Blood drips and the bloody mouth: T. rex, Velociraptor, Dilophosaurus and Gallimimus (an omnivore).
   - Bloody claw: T. rex, Velociraptor and Dilophosaurus.
@@ -5928,7 +5929,7 @@ F4.2 adds the Jeep Wrangler and the Ford Explorer, built part by part, and drive
 - [ ] **Boost:** one timed multiplier on top speed and push. A new boost replaces a weaker or shorter one. Boosts do not stack.
   - The server speed clamp uses the boosted top speed only while the server sees an active boost.
 - [ ] **Network:** drift, trick and boost states travel in the existing on-change state: one byte of flags plus the boost ticks. Smoke, wind lines and model turns stay on the client.
-- [ ] **Sounds and effects:** skid loop, boost burst, wind loop, landing thud. Tyre smoke, an exhaust puff and wind lines. A vanilla particle serves where the artist makes none.
+- [ ] **Sounds and effects:** skid loop, boost burst, wind loop, landing thud. Tyre smoke, an exhaust puff and wind lines. Each uses a vanilla particle or a sprite that this task makes (D330).
 
 #### Scope: Ford Explorer and tours
 
@@ -7059,6 +7060,7 @@ These rows come from a check of gamedev-cheatsheet.com, a list of 34 general gam
 | D327 | F1.4 | The screen springs (stiffness 800 and 380) step by the frame time. With a simple step, a frame over about 40 to 70 ms can make the stiffness 800 spring jump past its target or shake. The first frame of a screen on the minimum PC can take that long. Should screen motion cap the frame time at 50 ms and step springs in equal 8 ms steps? The exact spring formula is the other choice. | Step by the frame time. The F1.4 task plan tests one long frame | Lead decision pending |
 | D328 | F2.1 | Client leg IK solves once per tick for each animal within 32 blocks. No rule skips an animal out of view. Should the solve skip an animal that did not draw in the last frame, and solve before its next frame when it draws again? | Solve every animal within 32 blocks | Lead decision pending |
 | D329 | BH.1, F2.3 | The BH.1 particle switch (all, reduced, none) repeats the vanilla Particles setting (All, Decreased, Minimal). Vanilla already thins particles that spawn through `ClientLevel.addParticle`. Should Nublar particles use that path and that setting, with only an off switch in the mod? Check this on 26.2 first | Keep the three-way switch | Lead decision pending |
+| D330 | F1.7, F1.9, F1.11, F2.3, F4.2 | Who makes the particle sprites: drips, puffs, splashes, trails, Zzz and smoke? | Answered 2026-11-02 (lead): "yes agents can make the particle sprites. I don't want agents making significant art assets from scratch". The agent that builds an effect makes its particle sprites: small frames at particle size, and crops or recolours of art in the mod or of vanilla particles. Agents do not make significant new art from scratch: models, item and block textures, overlays on a species texture and new screen art stay with the artist. The Art list marks 21 rows "Agent makes it (D330)" | Answered |
 
 ---
 
@@ -7155,3 +7157,4 @@ These rows come from a check of gamedev-cheatsheet.com, a list of 34 general gam
 - **2026-10-30 (art-tool review):** D320 and D321, both proposals. F2.3 gets a Blockbench MCP trial for the "Needs export" rows and an optional Blender route (Sparkle) for clips.
 - **2026-10-30 (lead: M0.P2 playtest, round 6):** D322. F2.4 gets fire avoidance in a radius: a dinosaur moves away from fire near its body before it reaches the fire, and moves out of fire in its body box. The radius is open. The fire check keeps to the block-scan budget. Running away once burning stays with F2.5.
 - **2026-11-01 (game-dev cheat sheet review):** D323 to D329, all proposals. BH.1 gets worst-tick readings, distance-band gaps and a particle switch that follows vanilla. F2.3 gets a screen shake rule, and F4.2 a jump buffer and a brake rate. F1.4 gets a safe spring step, and F2.1 a leg IK skip for animals out of view.
+- **2026-11-02 (lead: particle sprites):** D330. The agent that builds an effect makes its particle sprites. Agents make no significant new art from scratch. The Art list marks 21 rows "Agent makes it (D330)". F2.3 and F4.2 say the same.

@@ -3832,7 +3832,7 @@ The driver has four arcade moves. They work on the Jeep, and on the Explorer whi
 - Tyre smoke in a drift. It grows thicker as the boost charges.
 - A puff from the exhaust when a boost fires.
 - Wind lines around a vehicle in a slipstream.
-- A vanilla particle can serve for each. The artist decides.
+- A vanilla particle can serve for each, or the agent makes the sprite (D330).
 
 #### Models
 
