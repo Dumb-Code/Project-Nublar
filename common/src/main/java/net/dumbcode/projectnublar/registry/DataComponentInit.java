@@ -19,6 +19,7 @@ import net.minecraft.network.codec.ByteBufCodecs;
  * <p>{@code ProjectNublar.init} registers them before the items.
  */
 public class DataComponentInit {
+    /** The Architectury register that holds the mod's data component types. */
     public static final DeferredRegister<DataComponentType<?>> COMPONENTS =
             DeferredRegister.create(Constants.MODID, Registries.DATA_COMPONENT_TYPE);
 
@@ -50,5 +51,9 @@ public class DataComponentInit {
     /** Registers the components; {@code ProjectNublar.init} calls it once, before {@code ItemInit.loadClass()}. */
     public static void loadClass() {
         COMPONENTS.register();
+    }
+
+    /** Not instantiated: the class only holds the static registrations. */
+    private DataComponentInit() {
     }
 }

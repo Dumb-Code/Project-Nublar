@@ -251,24 +251,22 @@ After this integration, the mod ports to a newer Minecraft version (section 11.1
 
 ### 3.1 Layout
 
-The project uses the MultiLoader Template layout. The `common` module holds almost all code, resources and generated data. The `forge` and `fabric` modules compile the common sources again (`buildSrc/src/main/groovy/multiloader-loader.gradle:24-32`).
+This section gives the state of branch `m0.p2/port-26.2`, the port to Minecraft 26.2 (M0.P2). The project uses the MultiLoader Template layout for 26.2. The `common` module holds almost all code, resources and generated data. The `nublar-gui` module holds the screen widgets. The `neoforge` and `fabric` modules compile the `common` and `nublar-gui` sources again (`build-logic/src/main/groovy/multiloader-loader.gradle:21-33`). The shared Gradle logic is the included build `build-logic`, as in the template.
 
 | Item | Version | Where |
 | --- | --- | --- |
-| Gradle | 8.14.x | `gradle/wrapper/gradle-wrapper.properties` |
-| ModDevGradle legacyforge | 2.0.77 | `build.gradle:3` (common and forge) |
-| fabric-loom | 1.9-SNAPSHOT | `build.gradle:2` |
-| Java / Minecraft / Parchment | 17 / 1.20.1 / 2023.09.03 | `gradle.properties` |
-| Forge | 47.2.30 | `gradle.properties` |
-| Fabric loader / API | 0.16.9 / 0.92.1+1.20.1 | `gradle.properties` |
-| GeckoLib | 4.7.3 | Models and animation |
-| SmartBrainLib | 1.15 | Dinosaur AI |
-| Architectury API | 9.2.14 | Registration |
-| Botarium | 2.3.4 (hard-coded) | Energy and fluids. 8 common files import it `[v]` |
-| Common Networking | 1.0.3 in common, 1.0.5 on loaders | The versions do not match `[v]` |
-| Forge Config API Port | 8.0.0 | On `integration/1.20.1`, `J/config/FossilsConfig.java` builds a `ForgeConfigSpec`. `FB/ProjectNublarFabric.java:16` registers it through `ForgeConfigRegistry` `[v]` |
-| MixinExtras | 0.4.1 | The build declares it. No code uses it |
-| NyfsGuiLib (`ngl`) | 0.0.19 | Comments disable it in all three modules. `J/client/widget` holds a copy of its widgets |
+| Gradle | 9.8.2 | `gradle/wrapper/gradle-wrapper.properties` |
+| ModDevGradle | 2.0.148 | `build.gradle:5` (`common`, `nublar-gui` and `neoforge`) |
+| Loom (`net.fabricmc.fabric-loom`, no remapping) | 1.19.3 | `build.gradle:3` (`fabric`) |
+| Java / Minecraft / Parchment | 25 / 26.2 / none | `gradle.properties`. The 26.2 game code has no obfuscation, so the build uses no mappings |
+| NeoForge | 26.2.0.93 | `gradle.properties` |
+| Fabric loader / API | 0.20.1 / 0.161.0+26.2 | `gradle.properties` |
+| GeckoLib | 5.5.6 in `common` and on NeoForge, 5.5.5 on Fabric | Models and animation. GeckoLib 5.5.6 has no Fabric build |
+| SmartBrainLib | 2.0.3 | Dinosaur AI |
+| Architectury API | 21.1.12 | Registration only |
+| Balm | 26.2.0.9 | Energy on 7 block entities. The Processor's water tank |
+| Forge Config API Port | 26.2.1 | The common spec class `ModConfigSpec`. The config registration on Fabric |
+| Team Reborn Energy | 5.0.0 | Nested in the Fabric jar, optional. The config key `compat.team_reborn_energy_bridge` turns the bridge off |
 
 The legacy branch `1.20.1` used these tools:
 
@@ -278,18 +276,19 @@ The legacy branch `1.20.1` used these tools:
 
 ### 3.2 Connections between the parts
 
-- **Entry.** `J/ProjectNublar.java:17-34` builds the custom `projectnublar:gene` registry. Then it calls `loadClass()` on each `*Init` class.
-- **Type token.** Line 19 passes `new GeneInit[0]` as the type token `[v]`. This is possibly wrong `[inf]`.
-- **Registration.** The `J/init/*Init.java` classes use the Architectury `DeferredRegister`. On the rft branch the package is `registry/`.
-- **Platform layer.** `J/platform/Services.java` loads `IPlatformHelper` through `ServiceLoader`. The helper covers the sequencer menu type, the incubator menu type and `openMenu`.
-- **SmartBrainLib sensors.** The `SBLLoader` service registers the sensors (`J/init/SensorTypesInit.java:20`).
-- **Networking.** `J/network/NetworkInit.java:9-13` registers 3 packets `[v]`. All three go from client to server. No packet goes from server to client.
+- **Entry.** On 26.2, `J/ProjectNublar.java:41-61` (`init()`) builds the custom `projectnublar:gene` registry. Then it calls `loadClass()` on each `*Init` class and registers the reload listeners.
+- **Type token.** Line 43 passes `new Genes.Gene[0]` as the type token. It matches the element type of the registry, `Genes.Gene` (`J/registry/GeneInit.java:27-28`). On 1.20.1 the token was `new GeneInit[0]`.
+- **Registration.** On 26.2, the `J/registry/*Init.java` classes use the Architectury `DeferredRegister`, for registration only (lead, 2026-10-25). Each block and item sets its id on its properties (`setId`).
+- **Platform layer.** On 26.2, `J/platform/Services.java` loads `IPlatformHelper` and `PlatformNetwork` through `ServiceLoader`. `IPlatformHelper` covers the platform checks, the two menu types, `openMenu`, `insertEnergy`, the reload-listener registration and the entity data serializers.
+- **SmartBrainLib sensors.** On 26.2, `J/registry/SensorTypesInit.java:29` registers the three sensor types through SmartBrainLib's platform service (`SBLConstants.PLATFORM`). SmartBrainLib 2 has no `SBLLoader`. The sensor ids stay in the `smartbrainlib` namespace, as on 1.20.1.
+- **Networking.** On 26.2, the packets are vanilla custom payloads (D263). `J/network/NublarPayloads.java` lists 3 payloads. All three go from client to server. No packet goes from server to client. Common code sends through the `PlatformNetwork` service. Each loader registers the payloads in one class.
 - **Packet names.** The packets are `UpdateEditInfoPacket`, `UpdateIncubatorSlotPacket` and `UpdateIncubatorPacket`.
 - **Config.** On `integration/1.20.1`, `J/config/FossilsConfig.java` defines one COMMON loader config, `config/projectnublar-fossils.toml` `[v]`. [config-reference.md](config-reference.md) lists its keys. Datapack JSON is in `R/data/projectnublar/config/**` and `R/data/projectnublar/diet/**`.
-- **Reload listeners.** Four reload listeners in `J/data` read that JSON. On `integration/1.20.1`, only `F/event/CommonForgeEvents.java:31-34` registers them `[v]`.
-- **Forge API in common classes.** Mixins inject it. Each loader has its own `GeoMultiBlockItemMixin`. The `BlockEntityElectricFence*Mixin` classes are Forge only and supply model data.
-- **Datagen.** Datagen is Forge only. `F/datagen` has 11 providers and the output goes to `G/`.
-- **Datagen gaps.** `ModWorldGenProvider.java:34-49` has empty bootstrap methods. A comment disables the body of `ModSoundProvider`.
+- **Reload listeners.** Four reload listeners in `J/data` read that JSON. On 26.2, `J/data/NublarReloadListeners.java` registers them on both loaders through the platform service.
+- **Mixins.** On 26.2, the mod has no mixins. M0.P2 removed every mixin and every mixin config.
+- **Datagen.** On 26.2, datagen runs on NeoForge only (`:neoforge:runData`). `neoforge/src/main/java/net/dumbcode/projectnublar/datagen` has 11 providers, and the output goes to `G/`. M0.P2 compared the output with the 1.20.1 output, file by file.
+- **Datagen gaps.** On 26.2, `neoforge/src/main/java/net/dumbcode/projectnublar/datagen/ModWorldGenProvider.java` writes the Cretaceous fossil veins: one configured feature, one placed feature and one biome modifier for each host stone. A comment disables the body of `ModSoundProvider`, so the mod ships the hand-written `sounds.json`.
+- **Size.** On 26.2, the server sets `Attributes.SCALE` from gene `SIZE` and the growth stage when `size.use_scale_attribute` is on (lead, 2026-10-25). The switch is on by default (lead, 2026-10-27). Then the hitboxes and the parts follow the attribute. When the switch is off, the renderer scales the model by hand, and the hitboxes are the 1.20.1 boxes.
 
 ### 3.3 Package guide (`1.20.1-ai`)
 
@@ -309,12 +308,14 @@ The legacy branch `1.20.1` used these tools:
 
 ### 3.4 Loader parity
 
-Fabric does not have these items:
+On 26.2 (M0.P2), the code gives Fabric and NeoForge the same features. `fabric.mod.json` declares the `main` and `client` entry points.
 
-- A client entrypoint. `FB/ProjectNublarClientFabric.java:17-33` is in a block comment. `fabric.mod.json:18-25` declares only `main` and `fabric-gametest` `[v]`.
-- The reload listeners, the death message hook and the handler that restores a wire with a spool.
-- The `fossil` and `test_tube` model loaders. `FB/client/FossilModel.java` is a stub that no code registers.
-- The fence mixins that supply model data.
+The block-entity renderers differ in one point, the render box:
+
+- Six renderers return `true` from `shouldRenderOffScreen()`: the four machines, the carnivore feeder and the fence post. The wire renderer returns `false`, as on 1.20.1.
+- Fabric draws each of the six renderers while it is in range, also when its box is off screen.
+- NeoForge reads the exact box of each renderer (`getRenderBoundingBox`). It tests that box against the view also when `shouldRenderOffScreen()` is `true`.
+- EntityCulling never applies the box while `shouldRenderOffScreen()` is `true`. On Fabric, its exact box is not available without a mixin. M0.P2 adds no mixin.
 
 No file in `common` or `nublar-gui` imports `net.minecraftforge.api.distmarker` `[v]`.
 
@@ -324,9 +325,9 @@ No file in `common` or `nublar-gui` imports `net.minecraftforge.api.distmarker` 
 - **README.** `README.md` gives the steps to build, run, test and contribute.
 - **Files that are not source.** M0.P0 removed the two crash logs, `forge/dataRun/**`, `G/.cache/**` and `.ai/mcp/mcp.json`. `.gitignore` now keeps these files out of the tree `[v]`.
 - **Template remnants.** The `rft/adversing` merge in M0.P0 removed `J/mixin/ExampleMixin.java` and the two `com.example` service files `[v]`.
-- **Metadata.** `mod_author=Dumb-Code`, `description=Clone dinosaurs from fossils and amber, raise them in powered enclosures.`, version 0.0.23, `minecraft_version_range=[1.20.1, 1.22)`.
-- **Dependencies.** `mods.toml` declares SmartBrainLib, GeckoLib, Architectury and Botarium, each with `side="BOTH"`. `fabric.mod.json` declares GeckoLib, SmartBrainLib and Architectury. The Fabric jar nests Botarium.
-- **Tests.** `./gradlew :common:test` runs the unit tests with JUnit 5. The GameTest bodies are in `J/gametest/`. `ForgeGameTests` and `FabricGameTests` register them on each loader. `.github/` holds the pull request template and the workflow `.github/workflows/build.yml`. The workflow builds both loaders and runs `:common:test` on every push and pull request.
+- **Metadata.** `mod_author=Dumb-Code`, `description=Clone dinosaurs from fossils and amber, raise them in powered enclosures.`, version 0.0.24, `minecraft_version_range=[26.2, 26.3)` (`gradle.properties` on 26.2).
+- **Dependencies.** On 26.2, `neoforge.mods.toml` declares NeoForge, Minecraft, GeckoLib, SmartBrainLib, Balm and Architectury, each required with `side="BOTH"`. `fabric.mod.json` depends on Fabric Loader, Fabric API, GeckoLib, SmartBrainLib, Balm and Architectury, and it suggests Team Reborn Energy. The Fabric jar nests Forge Config API Port and Team Reborn Energy.
+- **Tests.** `./gradlew :common:test` runs the unit tests with JUnit 5. The GameTest bodies are in `J/gametest/`. On 26.2, each GameTest is a vanilla test function (`J/gametest/GameTestInit.java`) with a test instance file in `G/data/projectnublar/test_instance/`. `:neoforge:runGameTestServer` and `:fabric:runGameTest` run the GameTests, and `./gradlew build` runs `:fabric:runGameTest`. 10 GameTests must pass. 8 herd GameTests are optional: `stackedmembersseparate` is flaky, and the other 7 fail in some or all runs, as on 1.20.1. `.github/` holds the pull request template and the workflow `.github/workflows/build.yml`. The workflow builds both loaders and runs `:common:test` and both GameTest servers. It runs for each pull request and for each push to `integration/1.20.1`.
 
 ---
 
@@ -2884,8 +2885,8 @@ Points for gameplay:
 - GeckoLib 5 moves each class that the mod imports to a new package (31 files). Five of those classes do not exist in GeckoLib 5.
 - SmartBrainLib 2 does not have `BrainUtils` (22 files use it), `BrainActivityGroup` or `SBLLoader`. On 2026-10-06 the project lead put both upgrades into phase P2 of the plan.
 - Botarium has no release after Minecraft 1.20.4. Its newest release is from 2024-06-29.
-- The mod uses Botarium for energy and fluids in 8 files (section 3.1). The port must replace it.
-- On 2026-10-06 the project lead selected Balm as the replacement, for energy and fluid storage only. Balm has builds for Fabric and NeoForge on 26.2. Architectury, Common Networking and Forge Config API Port stay for the other functions.
+- On 1.20.1, the mod used Botarium for energy and fluids in 8 files. The port replaces it.
+- On 2026-10-06 the project lead selected Balm as the replacement, for energy and fluid storage only. Balm has builds for Fabric and NeoForge on 26.2. Forge Config API Port stays for config. Architectury stays for registration only (lead, 2026-10-25). The packets use the vanilla custom payloads, not Common Networking (D263).
 - Common Storage Lib is the successor of Botarium from the same team. On 2026-10-06 it had builds for 1.21 and 1.21.1 only. The port plan compares it with Balm again on the day the port starts.
 - The project lead gave this rule: do not write an internal solution when a library gives the same function.
 - On 2026-10-10 the project lead confirmed the rule for the libraries that the mod already depends on:
@@ -2895,7 +2896,7 @@ Points for gameplay:
   - The mod has its own code only where no hook exists, for example stamina chases, scent trails, dominance, nests and herd formation. That code uses the base classes of the library.
   - Where a library does not have a feature, for example animation LOD in GeckoLib 5, the mod uses the extension points of the library. The mod does not fork the library.
   - The project plan has this rule in its global constraints. The source is `reports/Reference mod survey for Beta.md`.
-- These versions need Java 25. The mod uses Java 17 at this time.
+- These versions need Java 25. Since the port (M0.P2), the mod uses Java 25 (`java_version=25`).
 - The MultiLoader Template has a branch for each of these versions. Its modules are `common`, `fabric` and `neoforge`.
 - From version 26.1, the game code has no obfuscation. Parchment mappings are not available and are not necessary.
 
@@ -3007,10 +3008,12 @@ Results for compat:
 - An optional CC: Tweaked peripheral can ship with Beta on both loaders.
 - Create exists on 26.2 only as Create Fly on Fabric. The Create compat items wait.
 - Ponder, Refined Storage 2 and ModernFix need a 26.2 release before a test.
+- Energized Power 3.0.6 has a 26.2 build for each loader (published 2026-11-01). M0.P2 read its cable code. On NeoForge, the cable finds energy blocks through `Capabilities.Energy.BLOCK`. On Fabric, it finds them through Team Reborn Energy `EnergyStorage.SIDED`. The lead checks the cable on the Nublar generator in game (M0.P2 Task 24).
+- EntityCulling never applies the box while `shouldRenderOffScreen()` is `true`. On Fabric, its exact box is not available without a mixin. M0.P2 adds no mixin (section 3.4).
 
 #### Platform first
 
-The lead's rule applies: where the platform or a library that the mod uses covers a need, the mod uses it. Balm stays the bridge for energy and fluid storage only. Architectury, Common Networking and Forge Config API Port stay for the other functions. All three have 26.2 builds.
+The lead's rule applies: where the platform or a library that the mod uses covers a need, the mod uses it. Balm stays the bridge for energy and fluid storage only. Architectury stays for registration only (lead, 2026-10-25). Forge Config API Port stays for config. Both have 26.2 builds. The packets use the vanilla custom payloads (D263).
 
 | Need | What covers it | What Nublar writes |
 | --- | --- | --- |
@@ -3020,7 +3023,7 @@ The lead's rule applies: where the platform or a library that the mod uses cover
 | Fluids | Balm `FluidTank`, or the loader fluid APIs | Nothing more |
 | Item data | Vanilla data components with codecs | The component records |
 | Level and chunk data | `SavedData` and data attachments | The data records |
-| Packets | `CustomPacketPayload` with `StreamCodec` through Common Networking | Payloads and server checks |
+| Packets | Vanilla custom payloads: `CustomPacketPayload` with `StreamCodec`, registered by one class per loader (D263) | Payloads and server checks |
 | Render boxes | NeoForge `getRenderBoundingBox` on the renderer. Fabric has none. Vanilla `shouldRenderOffScreen` is the coarse fallback `[v]` | The box values |
 | Static fence geometry | Block models. NeoForge model data and `AddSectionGeometryEvent`. Fabric `emitQuads` with `RenderDataBlockEntity`. Sodium supports all of them `[v]` | One shared `FenceVisual` record and two small loader adapters |
 | Tracking range | Vanilla `EntityType.Builder` values `[v]` | Values per species and vehicle |

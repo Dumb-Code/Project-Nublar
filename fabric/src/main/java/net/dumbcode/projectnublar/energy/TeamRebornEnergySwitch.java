@@ -55,7 +55,12 @@ public final class TeamRebornEnergySwitch {
         });
     }
 
-    /** Whether Nublar blocks exchange energy with Team Reborn Energy, as read at game start. */
+    /**
+     * Whether Nublar blocks exchange energy with Team Reborn Energy, as read at game start.
+     *
+     * @return the value of {@code compat.team_reborn_energy_bridge} at the first config load;
+     *         {@code true} before that load
+     */
     public static boolean bridgeEnabled() {
         return bridgeEnabled;
     }

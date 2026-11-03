@@ -15,7 +15,7 @@ The targets are the two tiers that Mojang published for Java Edition on 2026-07-
 
 Every speed gate holds on both tiers. For example, 20 Gallimimus on screen keep at least 30 fps on the minimum PC with Fast graphics, and at least 60 fps on the recommended PC with Fancy graphics.
 
-**Dev runs.** The dev runs use Java 17 (`java_version=17` in `gradle.properties`). `gradle.properties` also sets `org.gradle.jvmargs=-Xmx3G`. This flag sets the heap of the Gradle process. The run tasks in `forge/build.gradle` and `fabric/build.gradle` add no `-Xmx` flag.
+**Dev runs.** The dev runs use Java 25 (`java_version=25` in `gradle.properties`). `gradle.properties` also sets `org.gradle.jvmargs=-Xmx3G`. This flag sets the heap of the Gradle process. The run tasks in `neoforge/build.gradle` and `fabric/build.gradle` add no `-Xmx` flag. The NeoForge runs use the folders `neoforge/runs/client`, `neoforge/runs/server`, `neoforge/runs/data` and `neoforge/runs/gameTestServer`. The Fabric runs use `fabric/runs/client` and `fabric/runs/server`. The Fabric GameTest run `runGameTest` uses `fabric/build/run/gameTest`, the folder that Loom sets.
 
 ## Fixed client settings
 
@@ -37,9 +37,9 @@ Every speed gate holds on both tiers. For example, 20 Gallimimus on screen keep 
 | --- | --- |
 | Game mode | Creative |
 | World type | Superflat |
-| Structures | The GameTest structures `herd_arena` and `herd_track`, from `common/src/main/resources/data/projectnublar/structures/` |
-| Time | Locked at time of day 1000 (morning): `/time set 1000`, then `/gamerule doDaylightCycle false` |
-| Weather | Clear: `/weather clear`, then `/gamerule doWeatherCycle false` |
+| Structures | The GameTest structures `herd_arena` and `herd_track`, from `common/src/main/resources/data/projectnublar/structure/` |
+| Time | Locked at time of day 1000 (morning): `/time set 1000`, then `/gamerule advance_time false` |
+| Weather | Clear: `/weather clear`, then `/gamerule advance_weather false` |
 
 To place a structure, use `/place template projectnublar:herd_arena` or `/place template projectnublar:herd_track`.
 
@@ -56,10 +56,10 @@ The package that owns a gate states its allowed difference in its task plan. The
 | Value | Reading | Result |
 | --- | --- | --- |
 | fps | The fps value on the F3 screen. Take three readings, one minute apart. | The median of the three readings |
-| Server tick time (ms gates) | The F3 line `Integrated server @ N ms ticks`, in single player (lead, 2026-10-25, D285). On 1.20.1, the game sets this value on every tick to 80 % of the old value plus 20 % of the new tick time. M0.P2 must check this F3 line again on 26.2. Take three readings, one minute apart. | The median of the three readings. Use this row for the gates set in ms, except the gates named under the table. |
+| Server tick time (ms gates) | The F3 line that starts with `Integrated server @`, in single player (lead, 2026-10-25, D285). On 1.20.1, the line was `Integrated server @ N ms ticks`. On 26.2, the line is `Integrated server @ N/T ms, X tx, Y rx` (`net/minecraft/client/gui/components/debug/DebugEntryTps.java:48` in the 26.2 sources). N is the smoothed server tick time in ms, with one decimal. T is the target time of one tick: 50.0 ms at 20 ticks per second. On every tick, the game sets N to 80 % of the old value plus 20 % of the new tick time (`net/minecraft/server/MinecraftServer.java:1012`). 1.20.1 used the same rule. The default F3 profile shows the line (`DebugScreenEntries.java:85-104`). In a frozen or sprinting game, the line adds ` (frozen)`, ` (frozen - stepping)` or ` (sprinting)` after `ms`, and T shows `-` while the game sprints (`DebugEntryTps.java:29-45`). Read the line only at normal speed. A developer checks the line once in a 26.2 client (M0.P2 Task 24). Take three readings, one minute apart. | The median of the three readings. Use this row for the gates set in ms, except the gates named under the table. |
 | Server tick rate (ticks-per-second gates) | Run `/debug start`. After 60 seconds, run `/debug stop`. | The ticks per second that `/debug stop` reports. Use this row only for the "20 ticks per second" gates. |
 
-The single-player F3 reading cannot test these gates:
+The single-player F3 reading cannot test these gates. The reasons in the list are for the 1.20.1 line, which showed whole milliseconds. The 26.2 line shows steps of 0.1 ms. On 26.2, the reasons for lines 3964, 4456 and 5931 and for the 5 ms peak of line 4457 still hold. The reasons for the 1 ms average of line 4457 and the 2 ms increment of lines 6801 and 6012 do not hold. These three gates stay on the list until the package that owns each gate checks it against the 0.1 ms step.
 
 - Backlog line 3964: under 0.1 ms. The F3 line shows whole milliseconds.
 - Backlog line 4457: herd AI under 1 ms on average. The F3 line shows whole milliseconds.

@@ -22,18 +22,35 @@ public final class ClientRecipeStore {
 
     private static final Map<RecipeType<?>, List<? extends RecipeHolder<?>>> RECIPES = new HashMap<>();
 
-    /** Replaces the stored recipes of {@code type} with {@code recipes}. */
+    /**
+     * Replaces the stored recipes of {@code type} with {@code recipes}.
+     *
+     * @param type    the recipe type
+     * @param recipes the recipes of that type that the server sent; the store keeps a copy
+     * @param <T>     the recipe class
+     */
     public static <T extends Recipe<?>> void put(RecipeType<T> type, List<RecipeHolder<T>> recipes) {
         RECIPES.put(type, List.copyOf(recipes));
     }
 
-    /** The stored recipes of {@code type}; an empty list when the server sent none of that type. */
+    /**
+     * The stored recipes of {@code type}.
+     *
+     * @param type the recipe type
+     * @param <T>  the recipe class
+     * @return the recipes, or an empty list when the server sent none of that type
+     */
     @SuppressWarnings("unchecked") // put files each list under the type of its recipes
     public static <T extends Recipe<?>> List<RecipeHolder<T>> get(RecipeType<T> type) {
         return (List<RecipeHolder<T>>) RECIPES.getOrDefault(type, List.of());
     }
 
-    /** Whether the store holds the recipe with this key, of any type. */
+    /**
+     * Whether the store holds the recipe with this key, of any type.
+     *
+     * @param key the recipe key
+     * @return {@code true} when a stored recipe has this key
+     */
     public static boolean has(ResourceKey<Recipe<?>> key) {
         return RECIPES.values().stream().flatMap(List::stream).anyMatch(recipe -> recipe.id().equals(key));
     }

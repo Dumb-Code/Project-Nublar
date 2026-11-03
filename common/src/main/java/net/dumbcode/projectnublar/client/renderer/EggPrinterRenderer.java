@@ -22,6 +22,11 @@ import net.minecraft.world.phys.AABB;
  */
 public class EggPrinterRenderer extends GeoBlockRenderer<EggPrinterBlockEntity, BlockEntityRenderState> {
 
+    /**
+     * Creates the renderer with the {@code egg_printer} GeckoLib model.
+     *
+     * @param context the block-entity renderer context from the loader
+     */
     public EggPrinterRenderer(BlockEntityRendererProvider.Context context) {
         super(context, new DefaultedBlockGeoModel<>(Identifier.fromNamespaceAndPath(Constants.MODID,"egg_printer")));
     }
@@ -29,6 +34,9 @@ public class EggPrinterRenderer extends GeoBlockRenderer<EggPrinterBlockEntity, 
     /**
      * The Egg Printer's footprint ({@link MultiEntityBlock#getFootprint}) plus half a block on every side, so the box
      * also holds the parts of the model that overhang the block grid.
+     *
+     * @param blockEntity the Egg Printer's block entity
+     * @return the render box in world coordinates
      */
     public AABB getRenderBoundingBox(EggPrinterBlockEntity blockEntity) {
         MultiEntityBlock block = (MultiEntityBlock) blockEntity.getBlockState().getBlock();

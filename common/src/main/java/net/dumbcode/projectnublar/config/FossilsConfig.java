@@ -18,7 +18,8 @@ import org.apache.commons.lang3.tuple.Pair;
  * other config file owns yet: {@code compat.team_reborn_energy_bridge} and
  * {@code size.use_scale_attribute}.
  *
- * <p>The values are the defaults of the {@code fossils-1.20.1} branch and are not tuned yet.
+ * <p>The fossil values are the defaults of the {@code fossils-1.20.1} branch and are not tuned yet.
+ * The port to 26.2 (M0.P2) added the two switches; both default to {@code true}.
  */
 public class FossilsConfig {
     // Filled by the constructor, so they are declared before the static block that runs it.
@@ -32,7 +33,8 @@ public class FossilsConfig {
 
     /**
      * {@code size.use_scale_attribute}: whether the scale attribute sets dinosaur size. Public so
-     * that a GameTest can set it.
+     * that a GameTest can set it. Not {@code final}: the constructor assigns it, and the static
+     * block runs the constructor once.
      */
     public static ModConfigSpec.BooleanValue USE_SCALE_ATTRIBUTE;
 

@@ -20,7 +20,10 @@ public final class NublarPayloads {
     /**
      * One payload: its id, its stream codec and the server-side handler.
      *
-     * @param <T> the payload record
+     * @param type    the payload id
+     * @param codec   writes and reads the payload
+     * @param handler runs the payload on the server thread for the player who sent it
+     * @param <T>     the payload record
      */
     public record Entry<T extends CustomPacketPayload>(
             CustomPacketPayload.Type<T> type,

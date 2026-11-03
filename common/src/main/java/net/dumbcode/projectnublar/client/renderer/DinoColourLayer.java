@@ -43,6 +43,12 @@ public class DinoColourLayer extends GeoRenderLayer<Dinosaur, Void, LivingEntity
     /**
      * The layer at {@code index} of the {@link Dinosaur#getLayers()} list of one gender ({@code male}), drawn with
      * {@code texture}.
+     *
+     * @param renderer the species renderer that draws this layer
+     * @param male     {@code true} for a layer of the male list, {@code false} for the female list
+     * @param index    the layer's position in that list; it also picks the layer's colour and visibility
+     * @param layer    the layer; a basic layer of -1 means "never tinted", drawn once in white
+     * @param texture  the layer's texture
      */
     public DinoColourLayer(DinosaurRenderer renderer, boolean male, int index, DinoLayer layer, Identifier texture) {
         super(renderer);

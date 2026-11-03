@@ -33,6 +33,10 @@ import team.reborn.energy.api.EnergyStorage;
  */
 public class FabricPlatformHelper implements IPlatformHelper {
 
+    /** Creates the service; {@code ServiceLoader} calls it for {@code Services.PLATFORM}. */
+    public FabricPlatformHelper() {
+    }
+
     @Override
     public String getPlatformName() {
         return "Fabric";

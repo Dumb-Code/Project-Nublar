@@ -15,6 +15,10 @@ import net.neoforged.neoforge.network.PacketDistributor;
  */
 public class NeoForgeNetwork implements PlatformNetwork {
 
+    /** Creates the service; {@code ServiceLoader} calls it for {@code Services.NETWORK}. */
+    public NeoForgeNetwork() {
+    }
+
     @Override
     public void sendToServer(CustomPacketPayload payload) {
         ClientPacketDistributor.sendToServer(payload);

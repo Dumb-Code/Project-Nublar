@@ -1,6 +1,6 @@
 # Project Nublar
 
-Project Nublar is a Minecraft mod. The player clones dinosaurs from fossil DNA and keeps them in powered enclosures. This code is for Minecraft 1.20.1 on Forge and Fabric. Work on the Beta is in progress.
+Project Nublar is a Minecraft mod. The player clones dinosaurs from fossil DNA and keeps them in powered enclosures. This code is for Minecraft 26.2 on Fabric and NeoForge. Work on the Beta is in progress.
 
 ## Beta scope
 
@@ -8,27 +8,28 @@ In the Beta, the player finds fossils and amber, extracts and edits DNA, and hat
 
 ## Build
 
-You need Java 17. On Windows, use `gradlew.bat` in place of `./gradlew`.
+You need JDK 25 or newer. Gradle itself runs on it. On Windows, use `gradlew.bat` in place of `./gradlew`.
 
 ```sh
 ./gradlew build
 ```
 
-This command builds the four modules. `common` holds the shared code and resources. `nublar-gui` holds the screen widgets. `forge` and `fabric` hold the code for each loader. The Forge jar goes to `forge/build/libs/`. The Fabric jar goes to `fabric/build/libs/`.
+This command builds the four modules. `common` holds the shared code and resources. `nublar-gui` holds the screen widgets. `neoforge` and `fabric` hold the code for each loader. The NeoForge jar goes to `neoforge/build/libs/`. The Fabric jar goes to `fabric/build/libs/`.
 
 ## Run
 
 | Command | Starts |
 | --- | --- |
-| `./gradlew :forge:runClient` | The Forge client |
+| `./gradlew :neoforge:runClient` | The NeoForge client |
 | `./gradlew :fabric:runClient` | The Fabric client |
-| `./gradlew :forge:runServer` | The Forge dedicated server |
+| `./gradlew :neoforge:runServer` | The NeoForge dedicated server |
+| `./gradlew :fabric:runServer` | The Fabric dedicated server |
 | `./gradlew :neoforge:runGameTestServer` | A NeoForge server that runs the mod's GameTests, then stops |
 | `./gradlew :fabric:runGameTest` | A Fabric server that runs the mod's GameTests, then stops |
 
-The Fabric client has no client entry point until M0.P2 (the port to Minecraft 26.2). It crashes when it enters a world.
+Fabric runs the same GameTests as NeoForge.
 
-The first `./gradlew :forge:runServer` writes `forge/run/eula.txt` and stops. To accept the [Minecraft EULA](https://aka.ms/MinecraftEULA), set `eula=true` in that file and run the command again.
+The first `./gradlew :neoforge:runServer` writes `neoforge/runs/server/eula.txt` and stops. The first `./gradlew :fabric:runServer` writes `fabric/runs/server/eula.txt` and stops. To accept the [Minecraft EULA](https://aka.ms/MinecraftEULA), set `eula=true` in that file and run the command again.
 
 `./gradlew build` also runs the Fabric GameTest server, because Fabric Loom makes `check` depend on `:fabric:runGameTest`. A failed required GameTest fails the build. For a quick local build without the GameTests, run `./gradlew build -x runGameTest`.
 

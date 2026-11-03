@@ -86,6 +86,12 @@ public class ModGameTestProvider extends DatapackBuiltinEntriesProvider {
             .add(Registries.TEST_ENVIRONMENT, ModGameTestProvider::environments)
             .add(Registries.TEST_INSTANCE, ModGameTestProvider::instances);
 
+    /**
+     * Creates the provider; the NeoForge data run makes it through {@code createProvider}.
+     *
+     * @param output     where the data run writes the files
+     * @param registries the registries the test instances refer to
+     */
     public ModGameTestProvider(PackOutput output, CompletableFuture<HolderLookup.Provider> registries) {
         super(output, registries, BUILDER, Set.of(Constants.MODID));
     }

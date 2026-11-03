@@ -15,6 +15,10 @@ import net.minecraft.server.level.ServerPlayer;
  */
 public class FabricNetwork implements PlatformNetwork {
 
+    /** Creates the service; {@code ServiceLoader} calls it for {@code Services.NETWORK}. */
+    public FabricNetwork() {
+    }
+
     @Override
     public void sendToServer(CustomPacketPayload payload) {
         ClientPlayNetworking.send(payload);

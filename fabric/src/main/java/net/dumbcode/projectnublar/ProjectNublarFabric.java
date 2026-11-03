@@ -43,6 +43,10 @@ public class ProjectNublarFabric implements ModInitializer {
             "sandstone_cretaceous_fossils_placed",
             "deepslate_cretaceous_fossils_placed");
 
+    /** Creates the entry point; Fabric Loader calls it before {@link #onInitialize()}. */
+    public ProjectNublarFabric() {
+    }
+
     @Override
     public void onInitialize() {
         ProjectNublar.init();

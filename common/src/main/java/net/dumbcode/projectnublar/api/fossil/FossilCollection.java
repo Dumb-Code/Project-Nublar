@@ -88,8 +88,9 @@ public record FossilCollection(
 
     /**
      * The host stone's properties for the block {@code id}, without occlusion. {@code ofLegacyCopy}
-     * is the 1.20.1 {@code copy}: unlike {@code ofFullCopy} it keeps the block's own loot table and
-     * name instead of the stone's.
+     * is the 1.20.1 {@code copy}, so the block behaves as on 1.20.1. {@code ofFullCopy} also copies
+     * the stone's jump factor, its redstone-conductor, valid-spawn, post-process, suffocating and
+     * view-blocking tests, and its loot table and name rules.
      */
     private static BlockBehaviour.Properties stoneCopy(FossilBase base, String id) {
         return BlockBehaviour.Properties.ofLegacyCopy(base.getBlock()).noOcclusion().setId(BlockInit.blockKey(id));

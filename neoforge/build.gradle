@@ -11,7 +11,8 @@ neoForge {
     }
     runs {
         configureEach {
-            // Lets `/test runall` and the GameTest server run this mod's GameTests.
+            // Kept from 1.20.1. NeoForge 26.2.0.93 does not read this property:
+            // none of its sources name it.
             systemProperty('neoforge.enabledGameTestNamespaces', mod_id)
             ideName = "NeoForge ${it.name.capitalize()} (${project.path})" // Unify the run config names with fabric
         }

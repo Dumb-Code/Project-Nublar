@@ -29,6 +29,8 @@ public final class NeoForgeClientGameEvents {
     /**
      * Stores the recipes of each type that the server sent, then logs at debug level whether the
      * unincubated egg recipe arrived. NeoForge fires this on the client thread.
+     *
+     * @param event the event with the recipe types and recipes that the server sent
      */
     @SubscribeEvent
     public static void storeRecipes(RecipesReceivedEvent event) {
@@ -37,7 +39,11 @@ public final class NeoForgeClientGameEvents {
                 ClientRecipeStore.has(ResourceKey.create(Registries.RECIPE, Constants.modLoc("unincubated_egg"))));
     }
 
-    /** Clears the stored recipes when the client leaves the world or server. */
+    /**
+     * Clears the stored recipes when the client leaves the world or server.
+     *
+     * @param event the logging-out event of the client player
+     */
     @SubscribeEvent
     public static void clearRecipes(ClientPlayerNetworkEvent.LoggingOut event) {
         ClientRecipeStore.clear();

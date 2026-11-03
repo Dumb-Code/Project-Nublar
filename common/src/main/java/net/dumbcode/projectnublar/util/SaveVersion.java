@@ -20,12 +20,21 @@ public final class SaveVersion {
     private SaveVersion() {
     }
 
-    /** Writes {@link #CURRENT} under {@link #KEY}; call it first in a save method. */
+    /**
+     * Writes {@link #CURRENT} under {@link #KEY}; call it first in a save method.
+     *
+     * @param out the save output of the block entity or animal
+     */
     public static void write(ValueOutput out) {
         out.putInt(KEY, CURRENT);
     }
 
-    /** Reads the saved version; a missing key gives {@code 0}, which means "written before this port". */
+    /**
+     * Reads the saved version.
+     *
+     * @param in the saved data of the block entity or animal
+     * @return the saved version; {@code 0} when the key is missing ("written before this port")
+     */
     public static int read(ValueInput in) {
         return in.getIntOr(KEY, 0);
     }

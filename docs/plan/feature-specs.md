@@ -2264,7 +2264,7 @@ See Art list → each species, Dinosaur effects, Dinosaur hover box. Shared with
 #### Today in the code
 
 - Behaviour runs as one list of tasks in the dinosaur.
-- In today's config, three carnivores use a nocturnal flag and the herbivores a diurnal one. That is current code, not a design value.
+- Each species config sets `activity_window` (D97). Only the three cathemeral configs (Dilophosaurus, Tyrannosaurus, Velociraptor) also set `sleep_windows`, with their two D98 windows. A diurnal species uses the built-in window, 16,000 to 24,000 ticks.
 - The idle pick only changes the standing clip.
 - No species looks at a player, flees, or warns a player before an attack. Every species plays the T. rex roar.
 - Stress and social do nothing. No contentment score and no hover box for dinosaurs exist.

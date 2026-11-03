@@ -36,6 +36,10 @@ import net.minecraft.world.item.crafting.RecipeType;
  */
 public class ProjectNublarClientFabric implements ClientModInitializer {
 
+    /** Creates the entry point; Fabric Loader calls it before {@link #onInitializeClient()}. */
+    public ProjectNublarClientFabric() {
+    }
+
     /**
      * Registers the client side. The menu screens wait for {@code CLIENT_STARTED}, the moment
      * NeoForge registers them too (its first client tick).

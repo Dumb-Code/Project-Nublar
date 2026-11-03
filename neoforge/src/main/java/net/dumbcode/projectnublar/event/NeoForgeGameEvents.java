@@ -23,7 +23,11 @@ import net.neoforged.neoforge.event.entity.player.PlayerInteractEvent;
 @EventBusSubscriber(modid = Constants.MODID)
 public final class NeoForgeGameEvents {
 
-    /** Adds the listeners that {@code NublarReloadListeners} registered, on every data pack load. */
+    /**
+     * Adds the listeners that {@code NublarReloadListeners} registered, on every data pack load.
+     *
+     * @param event the reload-listener event of the data pack load
+     */
     @SubscribeEvent
     public static void addReloadListeners(AddServerReloadListenersEvent event) {
         NeoForgePlatformHelper.serverReloadListeners().forEach(event::addListener);
@@ -32,13 +36,19 @@ public final class NeoForgeGameEvents {
     /**
      * Sends every recipe of the {@link RecipeInit#SYNCED_TYPES} types to the joining player, or to
      * all players after {@code /reload}. The client stores them in {@code ClientRecipeStore}.
+     *
+     * @param event the data pack sync event of the join or the reload
      */
     @SubscribeEvent
     public static void syncRecipes(OnDatapackSyncEvent event) {
         RecipeInit.SYNCED_TYPES.forEach(type -> event.sendRecipes(type.get()));
     }
 
-    /** Cancels the click when a wire spool repaired a fence wire (see {@link WireSpoolRepair}). */
+    /**
+     * Cancels the click when a wire spool repaired a fence wire (see {@link WireSpoolRepair}).
+     *
+     * @param event the player's right click on a block
+     */
     @SubscribeEvent
     public static void repairWire(PlayerInteractEvent.RightClickBlock event) {
         if (WireSpoolRepair.tryRepair(event.getLevel(), event.getEntity(), event.getHand(), event.getPos(),

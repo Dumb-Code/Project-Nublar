@@ -36,12 +36,24 @@ public class NeoForgePlatformHelper implements IPlatformHelper {
     private static final Map<Identifier, PreparableReloadListener> SERVER_RELOAD_LISTENERS = new LinkedHashMap<>();
     private static final Map<Identifier, EntityDataSerializer<?>> ENTITY_DATA_SERIALIZERS = new LinkedHashMap<>();
 
-    /** The server reload listeners by id, in the order the mod registered them. */
+    /** Creates the service; {@code ServiceLoader} calls it for {@code Services.PLATFORM}. */
+    public NeoForgePlatformHelper() {
+    }
+
+    /**
+     * The server reload listeners by id, in the order the mod registered them.
+     *
+     * @return a read-only view of the listeners
+     */
     public static Map<Identifier, PreparableReloadListener> serverReloadListeners() {
         return Collections.unmodifiableMap(SERVER_RELOAD_LISTENERS);
     }
 
-    /** The entity data serializers by registry id, in the order the mod registered them. */
+    /**
+     * The entity data serializers by registry id, in the order the mod registered them.
+     *
+     * @return a read-only view of the serializers
+     */
     public static Map<Identifier, EntityDataSerializer<?>> entityDataSerializers() {
         return Collections.unmodifiableMap(ENTITY_DATA_SERIALIZERS);
     }

@@ -34,6 +34,8 @@ public final class NeoForgeClientEvents {
      * Tints the fossil overlay (tint index 0 in {@code block/fossil_base}) to match the host stone,
      * so the bone reads as part of the rock. The colours are 1.20.1's with an opaque alpha byte:
      * 26.2 multiplies the alpha channel of a tint as well, 1.20.1 ignored it.
+     *
+     * @param event the block tint registration event
      */
     @SubscribeEvent
     public static void registerBlockTints(RegisterColorHandlersEvent.BlockTintSources event) {
@@ -47,7 +49,11 @@ public final class NeoForgeClientEvents {
                 collection.blocks().forEach(block -> event.register(tints, block.get())));
     }
 
-    /** Registers the entity and block entity renderers. */
+    /**
+     * Registers the entity and block entity renderers.
+     *
+     * @param event the renderer registration event
+     */
     @SubscribeEvent
     public static void registerRenderers(EntityRenderersEvent.RegisterRenderers event) {
         ClientRegistrationHolder.registerEntityRenderers();
@@ -57,6 +63,8 @@ public final class NeoForgeClientEvents {
     /**
      * Registers the renderer that draws the Sequencer edit tab's dinosaur and player into one
      * picture (see {@link GuiEntityGroupRenderer}).
+     *
+     * @param event the picture-in-picture renderer registration event
      */
     @SubscribeEvent
     public static void registerPictureInPictureRenderers(RegisterPictureInPictureRenderersEvent event) {
@@ -67,6 +75,8 @@ public final class NeoForgeClientEvents {
     /**
      * Registers the {@code select} properties that {@code items/fossil.json} and
      * {@code items/test_tube.json} name: they pick the texture of each fossil and test tube stack.
+     *
+     * @param event the select item model property registration event
      */
     @SubscribeEvent
     public static void registerSelectItemModelProperties(RegisterSelectItemModelPropertyEvent event) {
@@ -78,6 +88,8 @@ public final class NeoForgeClientEvents {
      * Queues the menu screens for the first client tick, before any menu can open (Fabric registers
      * them on {@code CLIENT_STARTED}, the same moment), then registers the colour layers and gene
      * widgets. Each dinosaur's model picks its own gender's base texture, so no texture loads here.
+     *
+     * @param event the client setup event
      */
     @SubscribeEvent
     public static void clientSetup(FMLClientSetupEvent event) {

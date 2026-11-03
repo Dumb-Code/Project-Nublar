@@ -34,7 +34,7 @@ This page is the master backlog for the Beta and Release 1 of Project Nublar. It
 - **Survey ids** (entity survey S1 to S27, tech survey T1 to T15, JC3 J1 to J23) name clean-room specifications in the survey reports.
 - **"(proposal, lead decides)"** marks a value that the lead has not confirmed. It applies until the lead answers.
 - **Architecture:** one MultiLoader project with the modules `common`, `fabric` and `neoforge`. Game logic lives in `common`. Each loader module holds only registration glue, platform services, datagen and the client entrypoint. Balm carries energy and fluid storage. Species data, fossil sets, diets and gene effects are datapack JSON. Global balance numbers are one TOML file.
-- **Tech stack:** Java 25, Minecraft 26.2, Fabric Loader and Fabric API, NeoForge, GeckoLib 5, SmartBrainLib 2, Forge Config API Port, Balm (energy and fluid storage only), JUnit 5, the vanilla GameTest framework. Networking uses the vanilla custom payloads: packets and codecs live in `common`, and each loader module registers them in one class of its own (D263). No Architectury and no Common Networking. Gradle is the version that ModDevGradle and fabric-loom support for Java 25 at port time (Gradle 9 or later).
+- **Tech stack:** Java 25, Minecraft 26.2, Fabric Loader and Fabric API, NeoForge, GeckoLib 5, SmartBrainLib 2, Forge Config API Port, Balm (energy and fluid storage only), JUnit 5, the vanilla GameTest framework. Networking uses the vanilla custom payloads: packets and codecs live in `common`, and each loader module registers them in one class of its own (D263). Architectury for registration only (lead, 2026-10-25). No Architectury for networking or config, and no Common Networking. Gradle is the version that ModDevGradle and fabric-loom support for Java 25 at port time (Gradle 9 or later).
 
 ---
 
@@ -135,7 +135,7 @@ No single work package owns these inputs. The owner adds the test.
    - Test: summon each species. Stats load from species data. A species with no record uses the M0 fallback record and logs one line.
 2. **Client classes on a dedicated server.** Causes:
    - `Minecraft.getInstance()` in `IncubatorMenu`.
-   - `distmarker` imports in five common files.
+   - The `distmarker` imports (removed in M0.P1).
    - The Forge entry point loads `ClientLevel` (a crash was seen).
    - Forge `@OnlyIn` in common classes breaks the Fabric build. M0.P1 fixes the Fabric build. M0.P2 owns the full cleanup.
    - Test: a dedicated server runs the full machine chain in a GameTest.
@@ -402,10 +402,12 @@ Work packages in order: M0.P0, M0.P1, M0.P2, M0.B00. M0.P2 blocks every later wo
 - **Depends on:** M0.P1
 - **Blocks:** every later work package
 - **Touches:** the build, every module, `J/**` for API moves.
-- **Produces:** the 26.2 build, Balm storage on eight block entities, the platform service layer.
-- **Config:** none. **Art:** none.
+- **Produces:** the 26.2 build, Balm energy storage on the seven storage block entities plus the Processor's water tank, the platform service layer.
+- **Config:** `compat.team_reborn_energy_bridge` and `size.use_scale_attribute`, both `true` by default. **Art:** none.
 
-**In game:** no new gameplay. Everything that worked on 1.20.1 works on 26.2 on Fabric and NeoForge, and on a dedicated server: the machine chain, fences, the six species and the Gallimimus herd.
+**In game:** no new gameplay, except the changes that the lead approved. Other mods' pipes can fill the Processor's water tank, a Balm fluid tank with the same capacity and fill sources (lead, 2026-10-25). The scale switch `size.use_scale_attribute` is on by default, so each hitbox matches its model (lead, 2026-10-27). The fixes from the in-game checks of the M0.P2 task plan also apply, for example the sleep windows and hunting only when hungry. Everything else that worked on 1.20.1 works on 26.2, on Fabric and NeoForge and on a dedicated server. That covers the machine chain, fences, the six species and the Gallimimus herd.
+
+**Plant matter tag:** the `plant_matter` item tag keeps its 1.20.1 rule. On 26.2 it also takes in the 14 compostables that vanilla 26.2 added. They are `bush`, `cactus_flower`, `closed_eyeblossom`, `open_eyeblossom`, `short_dry_grass`, `tall_dry_grass`, `firefly_bush`, `leaf_litter`, `pale_hanging_moss`, `pale_moss_block`, `pale_moss_carpet`, `pale_oak_leaves`, `pale_oak_sapling` and `wildflowers`. Vanilla also renamed `grass` to `short_grass`.
 
 **Target:** 26.2, Fabric and NeoForge, Java 25, unobfuscated (no Parchment).
 
@@ -422,20 +424,20 @@ Check on that day the current stable versions. Write them with dates and URLs in
 **Build and storage**
 
 - [ ] Branch `m0.p2/port-26.2` from the integration branch.
-- [ ] Replace the build with the MultiLoader Template for 26.2 (`common`, `fabric`, `neoforge`, `buildSrc`).
-  - Move `forge` into `neoforge`. Keep `nublar-gui` as a source set.
+- [ ] Replace the build with the MultiLoader Template for 26.2 (`common`, `fabric`, `neoforge`, `build-logic`).
+  - Move `forge` into `neoforge`. Keep `nublar-gui` as its own module, compiled like `common`.
   - Set `java_version=25` and `minecraft_version=26.2`. Remove Parchment.
 - [ ] Replace Botarium with Balm, for energy and fluid storage only:
   - Balm `common` gives `EnergyStorage`, `FluidTank`, `BalmEnergyStorageProvider`, `BalmFluidTankProvider`.
   - On NeoForge, Balm 26.2.0.9 bridges to the 26.2 `EnergyHandler` and `ResourceHandler` capabilities, not to `IEnergyStorage` or `IFluidHandler`.
   - On Fabric, Balm bridges energy to Team Reborn Energy only when it is installed. Balm does not bundle it. Fluids go to the Fabric Transfer API.
   - Record these facts in the task plan. Do not write an in-house adapter.
-  - Keep Forge Config API Port for config. No Architectury and no Common Networking (D263).
+  - Keep Forge Config API Port for config. Architectury for registration only (lead, 2026-10-25). No Architectury for networking or config, and no Common Networking (D263).
 - [ ] Networking on vanilla custom payloads (D263):
   - Every packet is a record with a codec in `common`. A platform service in `common` gives "send to server" and "send to player".
   - `fabric` registers the list with the Fabric API payload registry and its play networking. `neoforge` registers it in the payload handlers event. One class per loader.
   - Every client packet validates on the server (global constraints).
-  - The 8 users: `Connection`, `BlockEntityElectricFencePole`, `DinosaurFeederBlockEntity`, `EggPrinterBlockEntity`, `GeneratorBlockEntity`, `IncubatorBlockEntity`, `ProcessorBlockEntity`, `SequencerBlockEntity`.
+  - The users: the three client-to-server packets (`UpdateEditInfoPacket`, `UpdateIncubatorSlotPacket`, `UpdateIncubatorPacket`) and the two menus that open with extra data (`SequencerMenu`, `IncubatorMenu`).
 - [ ] Check Common Storage Lib (Terrarium) again on the start day.
   - On 2026-10-10 its newest branch was `1.21.x`.
   - If it has a stable 26.2 release, compare it with Balm (API fit, cable compat, maintenance) in the task plan.
@@ -443,12 +445,12 @@ Check on that day the current stable versions. Write them with dates and URLs in
 **Loader-neutral common code**
 
 - [ ] Replace every Forge-only API in `common`:
-  - The five `distmarker` imports and remaining `@OnlyIn`.
+  - The `distmarker` imports (removed in M0.P1) and remaining `@OnlyIn`.
   - The `ClientLevel` load in the Forge entry point (risk 2).
   - The model data in `BlockEntityElectricFence*Mixin`, and `GeoMultiBlockItemMixin`.
   - `ForgeConfigSpec`: use Forge Config API Port's spec class on both loaders, or Night Config.
-- [ ] Give Fabric what section 3.4 lists as missing.
-  - Client entrypoint, reload listeners, death message hook, spool repair handler, the `fossil` and `test_tube` model loaders, fence model data, dependency declarations.
+- [ ] Give Fabric what section 3.4 listed as missing on 1.20.1.
+  - Client entrypoint, reload listeners, death message hook, spool repair handler, the `fossil` and `test_tube` model loaders, fence model data.
   - Register reload listeners in `common` through a platform service.
 - [ ] Move `IncubatorMenu`'s `Minecraft.getInstance()` call to the client screen.
 
@@ -458,7 +460,7 @@ Check on that day the current stable versions. Write them with dates and URLs in
   - Imports move from `software.bernie.geckolib` to `com.geckolib` (31 files).
   - `AnimationState`, `CoreGeoBone`, `Color`, `EntityModelData` and `RenderProvider` no longer exist. Rewrite predicates, bone code, render layers and item renderer providers.
   - Move head look and sway to bone updaters, which run after the controllers.
-  - Use `setAnimationSpeed` (the speed handler is gone). Remove manual entity scaling, because GeckoLib 5 applies the scale attribute.
+  - Use `setAnimationSpeed` (the speed handler is gone). Put entity scaling behind `size.use_scale_attribute`. When the switch is on, GeckoLib 5 applies the scale attribute. The manual render scale stays while the switch is off.
   - Keep the current look. Look changes belong to F2.2.
 - [ ] Upgrade SmartBrainLib 1.15 to SmartBrainLib 2:
   - `BrainUtils` is gone (30 files use it). `BrainActivityGroup` is gone, and `ActivityBuilder` replaces it. `SBLLoader` is gone.
@@ -506,9 +508,9 @@ Check on that day the current stable versions. Write them with dates and URLs in
 - Each species renders with its layers and plays walk, idle and attack on both loaders.
 - The brain does what it did before: a T. rex drinks, eats dropped meat and hunts a cow (GameTest or recorded manual check).
 - A Gallimimus herd forms, follows its leader and travels on both loaders.
-- These return nothing: `grep -r "software.bernie.geckolib" common neoforge fabric`, `grep -r "net.minecraftforge" common/src`, `grep -r "botarium" .`.
-- `grep -rl "net.blay09" common/src` lists only the eight storage block entities and the platform service.
-- After login, the client recipe map holds the Nublar machine recipes on both loaders.
+- These return nothing: `grep -r "software.bernie.geckolib" common neoforge fabric`, `grep -r "net.minecraftforge" common/src`, `grep -r "botarium" .`. The acceptance greps search only the source and build files: `common`, `neoforge`, `fabric`, `nublar-gui`, `build-logic` and the root build files. They skip `.claude/`, `docs/` and `graphify-out/`, which quote the old names on purpose.
+- `grep -rl "net.blay09" common/src` lists only the seven storage block entities and `MachineGameTests`, whose smoke test fills the Processor tank.
+- After login, the client recipe map holds the unincubated egg recipe (the only Nublar recipe today) on both loaders.
 
 ### M0.B00: Config foundation and species data
 
@@ -2958,7 +2960,7 @@ F2.0 builds one brain skeleton for every dinosaur: an activity ladder, need and 
   - UNEASY starts `needs.stress_uneasy_margin` (20) below it.
   - The F2.4 hysteresis applies to each edge.
 - [ ] **Species behaviour profile in species data.** M0.B00 adds the record. F2.0 adds these keys, each with a `_basis` note:
-  - `activity_window`: diurnal, nocturnal or cathemeral. Tyrannosaurus, Velociraptor and Dilophosaurus are cathemeral. Triceratops, Brachiosaurus and Gallimimus are diurnal. Today's config flags (three carnivores nocturnal) are code, not a design value.
+  - `activity_window`: diurnal, nocturnal or cathemeral. Tyrannosaurus, Velociraptor and Dilophosaurus are cathemeral. Triceratops, Brachiosaurus and Gallimimus are diurnal. Today each species config sets `activity_window` (M0.P2). Only the three cathemeral configs also set `sleep_windows`. A diurnal species uses the built-in window, 16,000 to 24,000 ticks.
   - `sleep_windows`: two windows per cathemeral species, in ticks (config defaults, tuned in playtest). See the table below.
   - `idle_pool`: the list of idle acts and clips the species has (table below), with weights.
   - `call_interval_ticks`: see the table below. Babies use half the interval.
@@ -7059,7 +7061,7 @@ These rows come from the final plan review of 2026-10-19. D258 to D261 carry def
 | D260 | F2.4 | Stamina drain and regen rates. No source gives them. | Empty after 60 s of running, full after 120 s at rest and 240 s while walking. Basis: the stamina-limited chase and the 75 % journey-start rule. Answered 2026-10-19 (lead): confirmed as the config defaults | Answered |
 | D261 | F2.4, F3.3 | Bite rate at food. No source gives it. | One bite per 60 ticks. Each bite takes one food item and adds its tier value. Basis: eight Gallimimus fill from one feeder within 5 minutes. Answered 2026-10-19 (lead): confirmed as the config default | Answered |
 | D262 | F1.5, F2.6, F2.7 | F2.6 and F2.7 read vision and low-light vision genes that F1.5 never registers, and the donor table gives no vision values. | Answered 2026-10-19 (lead): no vision gene. Night sight is part of the Nocturnal gene: a nocturnal or cathemeral animal sees farther at night | Answered |
-| D263 | M0.P2 | Networking layer. Architectury, Common Networking and Balm overlapped on networking and config. | Answered 2026-10-19 (lead): vanilla custom payloads. Packets and codecs in `common`, one registration class per loader. No Architectury and no Common Networking. Balm stays for storage, Forge Config API Port for config | Answered |
+| D263 | M0.P2 | Networking layer. Architectury, Common Networking and Balm overlapped on networking and config. | Answered 2026-10-19 (lead): vanilla custom payloads. Packets and codecs in `common`, one registration class per loader. Architectury for registration only (lead, 2026-10-25). No Architectury for networking or config, and no Common Networking. Balm stays for storage, Forge Config API Port for config | Answered |
 | D264 | R02, R03 | The Mosasaurus needs a water feeder and an aquatic enclosure that no package built. | Answered 2026-10-19 (lead): R03 gets the Fish Feeder and the aquatic enclosure rule, with size, dependencies and acceptance. The Release 1 roster stays | Answered |
 | D265 | F2.0, F2.4 | The stress meter drained stress ÷ 12 every 20 ticks, so no cause ever reached the threshold. "Alone" was timed three ways. | Answered 2026-10-19 (lead): no drift. One update per 1,200-tick step: +2 per active cause, −5 per step with no active cause, hysteresis 10. The alone cause counts from the first step below the group minimum. One cause reaches 50 in 25 minutes, and a full meter clears in one in-game day | Answered |
 | D266 | F3.2 | How does a player build a pylon pole of any height? | Answered 2026-10-19 (lead): a plain pole block, stacked by hand one per click, with the Pylon Head on top. It reuses the fence post look. Fence posts keep the parity heights | Answered |

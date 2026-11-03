@@ -6,6 +6,8 @@ The "Section 11 ref" column points to a subsection of [section 11 of the codebas
 
 ## `config/projectnublar-fossils.toml`
 
+The class `FossilsConfig` defines this file with a `ModConfigSpec`, on both loaders.
+
 | Key | Default | Type | Section 11 ref | Added by |
 | --- | --- | --- | --- | --- |
 | `fossils.tyrannosaurus_rex.pieces` | `"biped"` | string | 11.1 | M0.P0 |
@@ -33,8 +35,12 @@ The "Section 11 ref" column points to a subsection of [section 11 of the codebas
 | `qualities.common.dna_yield` | `10.0` | double, 0..100 | 11.1 | M0.P0 |
 | `qualities.pristine.weight` | `4` | int, 0..2147483647 | 11.1 | M0.P0 |
 | `qualities.pristine.dna_yield` | `30.0` | double, 0..100 | 11.1 | M0.P0 |
+| `compat.team_reborn_energy_bridge` | `true` | boolean | 11.17 | M0.P2 |
+| `size.use_scale_attribute` | `true` | boolean | 11.9 | M0.P2 |
 
 Notes:
 
 - Only Cretaceous veins exist. With the default bands, the Carboniferous and Jurassic bands have no effect yet. A species `periods` entry other than `cretaceous` also has no effect yet.
 - The file is a COMMON config. The server does not sync it to clients.
+- `compat.team_reborn_energy_bridge` applies on Fabric only. NeoForge ignores it. The game reads it at game start. When it is `false`, Nublar blocks exchange no energy with Team Reborn Energy blocks.
+- `size.use_scale_attribute`: when it is `true`, the scale attribute sets each dinosaur's size and its corrected base hitbox. It is on by default (lead, 2026-10-27). The game reads it once for each dinosaur, on the animal's first server tick, and saves the mode with the animal. A change applies to animals that spawn after the change. It also applies to animals saved before this port, which have no stored mode. An animal that has a stored mode keeps it.

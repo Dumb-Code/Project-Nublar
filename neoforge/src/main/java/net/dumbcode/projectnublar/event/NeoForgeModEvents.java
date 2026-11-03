@@ -25,7 +25,11 @@ import net.neoforged.neoforge.registries.RegisterEvent;
 @EventBusSubscriber(modid = Constants.MODID)
 public final class NeoForgeModEvents {
 
-    /** Gives every dinosaur entity type its attributes. */
+    /**
+     * Gives every dinosaur entity type its attributes.
+     *
+     * @param event the attribute creation event
+     */
     @SubscribeEvent
     public static void createAttributes(EntityAttributeCreationEvent event) {
         EntityInit.attributeSuppliers.forEach(p -> event.put(p.entityTypeSupplier().get(), p.factory().get().build()));
@@ -34,6 +38,8 @@ public final class NeoForgeModEvents {
     /**
      * Registers every {@link NublarPayloads#SERVERBOUND} payload. Its handler runs on the server
      * thread with the sending player.
+     *
+     * @param event the payload handler registration event
      */
     @SubscribeEvent
     public static void registerPayloads(RegisterPayloadHandlersEvent event) {
@@ -49,6 +55,8 @@ public final class NeoForgeModEvents {
     /**
      * Registers the mod's entity data serializers in NeoForge's synced registry; NeoForge refuses
      * them in vanilla's list (see {@code DataSerializerInit}).
+     *
+     * @param event the registry event; only the entity data serializer key adds entries
      */
     @SubscribeEvent
     public static void registerEntityDataSerializers(RegisterEvent event) {

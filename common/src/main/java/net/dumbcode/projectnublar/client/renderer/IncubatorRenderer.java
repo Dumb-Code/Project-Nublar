@@ -31,6 +31,11 @@ public class IncubatorRenderer extends GeoBlockRenderer<IncubatorBlockEntity, Bl
     private static final DataTicket<Boolean> HAS_BASE = DataTicket.create("projectnublar_incubator_has_base", Boolean.class);
     private static final DataTicket<Boolean> HAS_ARM = DataTicket.create("projectnublar_incubator_has_arm", Boolean.class);
 
+    /**
+     * Creates the renderer with the {@code incubator} GeckoLib model.
+     *
+     * @param context the block-entity renderer context from the loader
+     */
     public IncubatorRenderer(BlockEntityRendererProvider.Context context) {
         super(context, new DefaultedBlockGeoModel<>(Identifier.fromNamespaceAndPath(Constants.MODID,"incubator")));
     }
@@ -64,6 +69,9 @@ public class IncubatorRenderer extends GeoBlockRenderer<IncubatorBlockEntity, Bl
     /**
      * The Incubator's footprint ({@link MultiEntityBlock#getFootprint}) plus half a block on every side, so the box
      * also holds the parts of the model that overhang the block grid.
+     *
+     * @param blockEntity the Incubator's block entity
+     * @return the render box in world coordinates
      */
     public AABB getRenderBoundingBox(IncubatorBlockEntity blockEntity) {
         MultiEntityBlock block = (MultiEntityBlock) blockEntity.getBlockState().getBlock();

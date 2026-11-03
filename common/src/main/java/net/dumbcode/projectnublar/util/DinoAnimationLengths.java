@@ -21,7 +21,7 @@ import java.util.Map;
  * flinch state. The client also reads idle and leg cycle lengths here (fix P12a).
  * <p>
  * Common code only, no GeckoLib and no client class: the server must not touch the client's resource cache
- * ({@code GeckoLibCache} belongs to the client's resource reload). It reads the species' animation file
+ * ({@code GeckoLibResources} belongs to the client's resource reload). It reads the species' animation file
  * ({@code assets/<namespace>/geckolib/animations/entity/<registry path>.animation.json}, the rule
  * {@code DinoAnimationAvailability} uses) from the mod's own classpath, once per species, and keeps each
  * animation's {@code animation_length} in seconds. A resource pack that replaces the file on a client is not seen.
