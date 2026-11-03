@@ -9,6 +9,13 @@ Suggested session title: **Gallimimus drink clip: in-game check of v19 (when the
 - The shared plan doc was synced in the same turn as this commit: Art list body rev 315, roadmap body rev 156.
 - **Do not launch the game until the user asks.** On 2026-11-02 they said "do not go to the game, let's assess after".
 - The PK reference clip section is still in the session scratchpad; delete it after the in-game check.
+- **v20 (built, not in the mod):** the user asked to check the dewlap between 3.75 and 4.24 s. In v19 it pumps in and out there: dewalp3/4 slides swell to 1.08/0.80 px and shrink back over frames 94-103.
+  - Cause: `close_flap.py`'s moving-max smoothing pulled the rise frames' big needs (0.7-1.0 px, frames 101+) back into frames 93-99. Fix: only frames 27-97 feed the smoothing.
+  - v20 = v19pre + fixed `close_flap.py` + `close_neck.py`: `blend\galli_drink20.blend`, `data\drink20_mcblend.json`. In the window the flap tip moves at most 0.14 px/frame against the head (v19 0.32). The other checks match v19.
+  - Files: `preview\dewlap_375_424_v19_v20.mp4` (half speed, v19 left) and `preview\drink_v20_hd_head_{L,FL}.mp4`.
+  - **v20 is now in the mod** in place of v19 (the user said "Yes, swap in v20"), committed with this note. `insert_clip.py --replace` removed the old `drink` clip (it must be the file's last clip) and inserted v20; every other clip is byte-identical. Tests 485/485.
+  - No plan counts changed, so the shared plan doc needed no sync.
+  - Another session was editing this checkout at the time: Java, game tests, README, structure files. Those changes were left out of this commit.
 
 ## v19 final
 
