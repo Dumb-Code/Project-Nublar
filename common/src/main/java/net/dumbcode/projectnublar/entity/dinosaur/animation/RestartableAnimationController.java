@@ -116,7 +116,10 @@ public class RestartableAnimationController<T extends GeoAnimatable> extends Ani
     /**
      * GeckoLib's {@code setAnimation} with a hand-over (class comment): a new animation with no pose to blend from
      * blends from {@code giver}'s pose and starts at its clock, or blends from {@link #REST} when {@code giver}
-     * animates no bone. The handler calls it on every frame the clip should play; it acts on the frame the clip starts.
+     * animates no bone. A new animation that replaces a clip playing here keeps this controller's clock, because
+     * GeckoLib 5 works out the old clip's pose with the clock on every frame of the blend, so a bone that Molang moves
+     * with the time would else jump to its pose at time 0 (52 degrees of Brachiosaurus tail at a run to walk switch).
+     * The handler calls it on every frame the clip should play; it acts on the frame the clip starts.
      *
      * @param giver the animatable's other controller, or {@code null} for none
      * @param bones which bones of {@code giver}'s pose to blend from
@@ -127,6 +130,8 @@ public class RestartableAnimationController<T extends GeoAnimatable> extends Ani
         // A null in handOverBones means no hand-over: the from-point would stay the giver's own point.
         Objects.requireNonNull(bones, "bones");
         RawAnimation previous = this.currentRawAnimation;
+        // Read before super, which drops the clip point the clock reads.
+        double clock = getCurrentAnimationTime();
         super.setAnimation(animation);
         // Only when super took a new animation: GeckoLib also clears the from-point while a clip plays (at each loop
         // wrap), and the handler calls this every frame, so without the check REST would be set on every frame of a
@@ -140,7 +145,8 @@ public class RestartableAnimationController<T extends GeoAnimatable> extends Ani
         this.handOverBones = null;
         this.easeInPoint = null;
         if (this.transitionFromPoint != null) {
-            // GeckoLib blends from the clip that played here, with its own clock.
+            // GeckoLib blends from the clip that played here; the clock goes on from the time shown.
+            this.clockStart = clock;
             return;
         }
         AnimationPoint pose = giver == null ? null : giver.handOverPose();

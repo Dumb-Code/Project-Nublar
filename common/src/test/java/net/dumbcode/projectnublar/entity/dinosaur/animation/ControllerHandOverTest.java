@@ -52,7 +52,8 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
  * ({@code tail}, {@code query.anim_time}, as the Brachiosaurus idle and walk do), and each has a bone of its own
  * ({@code idleOnly}, {@code walkOnly}). On {@code body} each clip also has a transform the other does not key: the
  * walk moves its position, the idle its scale (as the Brachiosaurus walk moves leg positions its idle does not key).
- * A pose is the six channels of {@link #CHANNELS}.
+ * A pose is the six channels of {@link #CHANNELS}. A run moves the walk's bones and transforms, with a tail wave of
+ * its own, for a switch inside one controller.
  * <p>
  * No jump (the lead's proof, Task 58): the first hand-over frame repeats the frame before it, the blend moves every
  * channel by the same step on every frame (from a held pose to the new clip's held first frame), and the step out of
@@ -80,6 +81,8 @@ class ControllerHandOverTest {
     private static final double IDLE_CYCLE = 2D;
     /** The walk's cycle, in seconds; its tail wave has the same period. */
     private static final double WALK_CYCLE = 1D;
+    /** The run's cycle, in seconds; its tail wave has the same period. */
+    private static final double RUN_CYCLE = 0.5D;
     /** Frames of idle before a walk starts: past its ease-in; its clock (1.57 s) is far from a whole walk cycle. */
     private static final int IDLE_FRAMES = 110;
     /** Frames of walk before a stop: past its ease-in, with every walk channel far from rest. */
@@ -105,14 +108,25 @@ class ControllerHandOverTest {
                     rotated(TAIL, onY(molang("math.sin(query.anim_time * 360) * 0.3", WALK_CYCLE))),
                     rotated(WALK_ONLY, onX(triangle(0.2D, 0.8D, WALK_CYCLE), 0D))},
             Animation.KeyframeMarkers.EMPTY);
+    /** Keys every transform the walk keys, so at a walk to run switch only the clock can make a channel jump. */
+    private static final Animation RUN_CLIP = Animation.create("run", RUN_CYCLE, LoopType.LOOP,
+            new BoneAnimation[] {
+                    new BoneAnimation(BODY, onX(triangle(0.2D, 1.0D, RUN_CYCLE), 0D),
+                            onY(triangle(0.8D, 1.2D, RUN_CYCLE)), KeyframeStack.EMPTY),
+                    rotated(TAIL, onY(molang("math.sin(query.anim_time * 720) * 0.4", RUN_CYCLE))),
+                    rotated(WALK_ONLY, onX(triangle(0.3D, 0.9D, RUN_CYCLE), 0D))},
+            Animation.KeyframeMarkers.EMPTY);
     /** An action that turns only {@code body}, as an attack that starts during a walk. */
     private static final Animation ATTACK_CLIP = Animation.create("attack1", 1D, LoopType.PLAY_ONCE,
             new BoneAnimation[] {rotated(BODY, onX(triangle(0.2D, 1.0D, 1D), 0D))}, Animation.KeyframeMarkers.EMPTY);
     private static final RawAnimation IDLE = RawAnimation.begin().thenLoop(IDLE_CLIP.name());
     private static final RawAnimation WALK = RawAnimation.begin().thenLoop(WALK_CLIP.name());
+    private static final RawAnimation RUN = RawAnimation.begin().thenLoop(RUN_CLIP.name());
     private static final RawAnimation ATTACK = RawAnimation.begin().thenPlay(ATTACK_CLIP.name());
 
     private boolean moving;
+    /** The gait clip the movement controller plays while moving. */
+    private RawAnimation gait = WALK;
     /** What the main controller should play; {@code null} when it should stop. */
     private @Nullable RawAnimation mainClip = IDLE;
     private @Nullable RawAnimation mainPlaying;
@@ -143,7 +157,7 @@ class ControllerHandOverTest {
 
         @Override
         public Animation getBakedAnimation(Animatable animatable, String name) {
-            for (Animation clip : new Animation[] {IDLE_CLIP, WALK_CLIP, ATTACK_CLIP}) {
+            for (Animation clip : new Animation[] {IDLE_CLIP, WALK_CLIP, RUN_CLIP, ATTACK_CLIP}) {
                 if (clip.name().equals(name)) {
                     return clip;
                 }
@@ -176,12 +190,12 @@ class ControllerHandOverTest {
         }
     }
 
-    /** The movement handler, as {@link DinoAnimator#movement}: the walk while moving, else the blend to rest. */
+    /** The movement handler, as {@link DinoAnimator#movement}: the gait clip while moving, else the blend to rest. */
     private PlayState movementHandler(AnimationTest<Animatable> test) {
         if (!this.moving) {
             return DinoAnimator.blendToRest(test);
         }
-        return DinoAnimator.playGait(test, WALK, 1D, this.main);
+        return DinoAnimator.playGait(test, this.gait, 1D, this.main);
     }
 
     /** The main handler, as {@link DinoAnimator#main} with its {@code set} and {@code stop}. */
@@ -358,6 +372,21 @@ class ControllerHandOverTest {
         }
         double carried = this.movement.getCurrentAnimationTime() - this.movement.getCurrentAnimationPoint().animTime();
         assertEquals(idleClock - drift, carried, 1.0E-9D, "in step after one cycle: a whole number of cycles");
+    }
+
+    /**
+     * A switch inside one controller (Task 61), walk to run in mid-cycle: GeckoLib 5 works out the walk's pose it
+     * blends from with the controller's clock, so the clock carries over and the tail, which the walk moves with
+     * {@code query.anim_time}, does not jump on the first frame (before the fix it went to the walk's pose at time 0).
+     */
+    @Test
+    void aSwitchInsideOneControllerKeepsTheTailPose() {
+        this.mainClip = null;
+        this.moving = true;
+        double[] walk = play(WALK_FRAMES);
+        assertTrue(Math.abs(walk[TAIL_ROTATION]) > 0.1D, "the walk's tail is far from its pose at clip time 0");
+        this.gait = RUN;
+        assertPose(walk, frame(), "the first frame of the switch repeats the frame before it");
     }
 
     /**
