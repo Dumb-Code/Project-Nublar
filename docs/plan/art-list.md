@@ -97,7 +97,7 @@ Status words:
 | Triceratops | 35 | 4 | 33 | 6 | 30 | 2 | 0 |
 | Brachiosaurus | 25 | 2 | 27 | 2 | 38 | 15 | 0 |
 | Gallimimus | 30 | 1 | 23 | 1 | 36 | 11 | 0 |
-| Dinosaur effects | 0 | 0 | 0 | 0 | 32 | 0 | 0 |
+| Dinosaur effects | 0 | 0 | 0 | 0 | 31 | 0 | 0 |
 | Dinosaur hover box | 0 | 0 | 0 | 0 | 2 | 0 | 0 |
 | Eggs and hatching | 1 | 0 | 4 | 5 | 18 | 0 | 0 |
 | Fossil Processor | 9 | 1 | 0 | 0 | 9 | 3 | 0 |
@@ -113,13 +113,13 @@ Status words:
 | Feeders | 3 | 0 | 0 | 10 | 20 | 0 | 0 |
 | Digsites and villagers | 0 | 0 | 1 | 0 | 7 | 0 | 0 |
 | Vehicles | 1 | 0 | 2 | 5 | 26 | 0 | 0 |
-| **Total (without guns)** | **250** | **25** | **180** | **70** | **462** | **42** | **1** |
+| **Total (without guns)** | **250** | **25** | **180** | **70** | **461** | **42** | **1** |
 | Guns (blocked) | 0 | 0 | 2 | 11 | 3 | 0 | 0 |
 
-- **Counted rows:** 1029 (guns not included).
-- **Work left:** 737 rows (462 to make, 70 to export or convert, 180 to import, 25 to check in game), plus 42 shared files for the artist to confirm.
+- **Counted rows:** 1028 (guns not included).
+- **Work left:** 736 rows (461 to make, 70 to export or convert, 180 to import, 25 to check in game), plus 42 shared files for the artist to confirm.
 - **Done:** 250.
-- **Not counted:** 1 row that waits on the lead, 32 rows with no art needed, 38 rows not in Beta (6 of them Release 1 groups).
+- **Not counted:** 1 row that waits on the lead, 33 rows with no art needed, 38 rows not in Beta (6 of them Release 1 groups).
 - **Guns:** blocked on D08. They are not in the total.
 - **Per-milestone counts:** the roadmap's milestone table. They come from the Feature column of each row (F1.x is M1, F2.x is M2, F3.x is M3, F4.x is M4), with guns left out.
 
@@ -1374,12 +1374,14 @@ Milestone: Dinosaurs.
 - **Omnivore meat effects:** the Gallimimus eats meat, so it gets blood drips and a bloody mouth.
 - **Bloody claws:** all three carnivores get them (Tyrannosaurus, Velociraptor, Dilophosaurus).
 - **Screen shake:** only the T. rex, Triceratops and Brachiosaurus cause it.
+- **Dust trail:** vanilla block particles of the ground under the feet, so it needs no art (D340).
+- **Where effects start:** mouth effects at the jaw or snout, splashes and ripples where a body part crosses the water (D339). The sprites stay the same.
 - **Today in the code:** the mod has no custom particle type.
 
-**To make (32)**
+**To make (31)**
 
 - Effects: mouth and body (16): Roar spit particle; Drinking water drips; Blood drip particle; Bloody mouth overlay: Tyrannosaurus, Velociraptor, Dilophosaurus, Gallimimus; Bloody claw overlay: Tyrannosaurus, Velociraptor, Dilophosaurus; Plant bits particle; Foggy breath; Yawn effect; Sneeze effect; Snort effect; Camouflage look.
-- Effects: movement (6): Footprint: small biped, large biped, quadruped, sauropod; Dust trail; Air trails.
+- Effects: movement (5): Footprint: small biped, large biped, quadruped, sauropod; Air trails.
 - Effects: environment and sleep (10): Snow cover overlay: Tyrannosaurus, Velociraptor, Dilophosaurus, Triceratops, Brachiosaurus, Gallimimus; Splash ring; Water ripples; Sleep Zzz; Sleep bubbles.
 
 **To import (0)**
@@ -1419,7 +1421,7 @@ Milestone: Dinosaurs.
 | Footprint: large biped | Tyrannosaurus prints | Missing | F2.3 | None. Agent makes it (D330). |
 | Footprint: quadruped | Triceratops prints | Missing | F2.3 | None. Agent makes it (D330). |
 | Footprint: sauropod | Brachiosaurus prints | Missing | F2.3 | None. Agent makes it (D330). |
-| Dust trail | Dust behind a running animal | Missing | F2.3 | None. Agent makes it (D330). |
+| Dust trail | Dust of the ground block behind a running animal | No art needed | F2.3 | Code only: vanilla block particles of the block under each foot (D340) |
 | Air trails | Swipe trails on arm and tail attacks | Missing | F2.3 | None. Agent makes it (D330). |
 | Screen shake | A T. rex, Triceratops or Brachiosaurus walks close or roars. Config can turn it off | No art needed | F2.3 | Code only |
 
@@ -1440,7 +1442,7 @@ Milestone: Dinosaurs.
 | Mud overlay | Mud look, for a later release | Not in Beta | F2.3 | None |
 | Wound overlays (cuts, scars) | Wound look | Not in Beta | F2.3 | REPO dinosaurs/_common/textures/damage_overlay_*.png |
 
-**Changed since last review:** All effects are in Beta. The Gallimimus gets blood drips and a bloody mouth. Screen shake stays with the three large species. All three carnivores get bloody claws.
+**Changed since last review:** All effects are in Beta. The Gallimimus gets blood drips and a bloody mouth. Screen shake stays with the three large species. All three carnivores get bloody claws. The dust trail needs no art (D340).
 
 ---
 
