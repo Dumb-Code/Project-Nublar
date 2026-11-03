@@ -2298,6 +2298,7 @@ F2.1 gives the six species their own stats, smooth growth, real-size bodies, hit
 - **Hit parts.** They cover the visible body: one head, a neck chain, two torso parts, one part per leg, a tail chain.
   - No arm parts and no frill part.
   - Parts follow the real clips.
+- **Attacks land with the clip.** A bite hits when the jaws close in its clip, and reach counts from the jaws, horns, claws or tail tip that strike (D335).
 - **Terrain.** Neck and tail bend away from blocks. Feet sit on the ground.
 - **Carcass.** A carcass stays for a time and then decays. It drops meat and bones and gives a DNA sample.
 
@@ -2490,6 +2491,8 @@ F2.3 gives each species its own clips, its own sounds and the full set of dinosa
 - **Sleep.** A sleeping animal shows Zzz and bubbles.
 - **Injury.** Below 30 % health an animal limps.
 - **No stand-ins.** A species never plays another species' clip or sound.
+- **Clean joints.** No gap or seam opens at a neck, leg or tail joint while the animal moves.
+- **Alive.** The head turns toward what the animal watches, the tail swings out behind a turn, and the snout meets the water when it drinks.
 
 #### Not in Beta
 
@@ -2509,7 +2512,18 @@ F2.3 gives each species its own clips, its own sounds and the full set of dinosa
 - **Dilophosaurus warning:** its intimidate clip, converted from the asset repo. If the player stays, it spits.
 - **Play:** uses existing clips (run, Velociraptor pounce). Play needs no new clip.
 - **Nesting:** the T. rex and the Velociraptor play their nesting clip while the female builds her nest. The other four species play an idle clip.
-- **Art order:** the Gallimimus drink and eat clips come first. Neck reach waits for them.
+- **Art order:** the Gallimimus eat clip comes first.
+- **Who makes a new clip:** the artist, unless the lead gives that Art list row to an agent, case by case (D331).
+- **Clean joints first.** Each species model gets a joint fix before its next new clip: overlap and pivots at the joints, no texture change. The lead approves each fix from before and after renders (D332).
+- **Quality bar.** No clip opens a hole or seam that the rest pose does not have, pokes a part through the body, flickers, or slides a planted foot. A loop ends on its first pose.
+- **Code layers on top of the clips** (D333):
+  - **Head look.** The head and neck turn toward the look target. The turn spreads over the neck bones, and each joint stops before it opens a gap. Roars and other actions pause it.
+  - **Short head clips over walking.** Look, speak and similar clips that move only the head, neck, jaw or tail play while the legs keep walking.
+  - **Neck reach.** When the animal drinks or eats, the neck bends a little so the snout meets the water or food surface.
+  - **Tail lag.** The tail swings out behind a turn and settles.
+  - **Breathing.** A slow sway per species, never doubled with a clip's own sway.
+  - **Feet on the ground.** Legs bend so the feet sit on slopes and steps (F2.1).
+  - Within 32 blocks only. Farther animals hold their pose.
 
 #### Sound rules
 
@@ -2722,10 +2736,14 @@ See Art list → each species (Animations, Sounds), Dinosaur effects.
 - No dinosaur effect exists.
 - Every species walks and runs at the same body speeds. Each species' walk and run clips show its own pace, so the feet slide.
 - A resting Triceratops lies down, then stands again while it rests, because its rest idle and get up clips are empty.
+- A Dilophosaurus stands in its bind pose when idle, resting or sleeping: those four clips are empty.
+- No head turns toward anything. The tail never lags.
+- Every bite lands 20 ticks after the attack starts, whatever the species' clip.
+- Seams open at the bent neck and leg joints of every species, most already in the rest pose.
 
 **Engineering:** backlog F2.3.
 
-**Changed since last review:** Gallimimus gets blood drips and a bloody mouth. Screen shake only on T. rex, Triceratops and Brachiosaurus. T. rex and Dilophosaurus get bloody claws. Only T. rex and Velociraptor play a nesting clip. Per-species walk and run speeds are open. Triceratops rest idle holds the last pose of its lie-down.
+**Changed since last review:** Agents make new clips case by case (D331). Joint fixes per model, a quality bar for every clip, and code layers for head look, short head clips over walking, neck reach, tail lag and breathing (D332, D333). Gallimimus gets blood drips and a bloody mouth. Screen shake only on T. rex, Triceratops and Brachiosaurus. T. rex and Dilophosaurus get bloody claws. Only T. rex and Velociraptor play a nesting clip. Per-species walk and run speeds are open. Triceratops rest idle holds the last pose of its lie-down.
 ### F2.4 Needs: hunger, thirst, stamina, sleep, stress and company
 
 Dinosaurs get hungry, thirsty, tired, sleepy, lonely and stressed, and a park that neglects them pays for it.
@@ -2735,7 +2753,7 @@ Dinosaurs get hungry, thirsty, tired, sleepy, lonely and stressed, and a park th
 - **Carnivores.** A hungry carnivore hunts, scavenges a carcass or eats dropped meat.
 - **Herbivores.** A hungry herbivore grazes the plants its head can reach and removes the block. A content herbivore grazes when idle, gains a little hunger and leaves the block in place.
 - **Herds eat together.** A herd gathers around one tree or plant patch, and each animal eats a different block.
-- **Water.** A thirsty animal walks to water and drinks with its head at the surface.
+- **Water.** A thirsty animal walks to water, turns to face it, and drinks with its head at the surface.
 - **Escape.** A tired predator gives up the chase, so a player can escape.
 - **Neglect kills.** A starving or stressed animal turns aggressive, loses health and dies.
 
