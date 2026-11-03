@@ -50,7 +50,9 @@ import java.util.Objects;
  * One clock: a controller has one Molang clock ({@link #getCurrentAnimationTime}, {@code query.anim_time}), and
  * GeckoLib works out the pose it blends from with it too (the Brachiosaurus idle and walk move the tail with it). So
  * a hand-over's clock starts at the other controller's clock, holds through the ease-in, then drifts into step with
- * the clip's own time (the same time within a whole number of cycles) over one cycle, by at most half a cycle.
+ * the clip's own time (the same time within a whole number of cycles) over one cycle, by at most half a cycle. A
+ * controller built with {@link SwitchClock#CARRY} also keeps its clock in this way when a new clip replaces the clip
+ * that plays (the walk and run, Task 61); a {@link SwitchClock#RESTART} controller starts the new clip at time 0.
  * <p>
  * Stop with a blend (Task 53): GeckoLib 5 has no fade for a stopped loop (GeckoLib 4 faded the bones back over the
  * transition ticks), and {@code reset()} alone snaps the bones to rest. {@link #blendToRest} plays an empty clip
@@ -222,7 +224,8 @@ public class RestartableAnimationController<T extends GeoAnimatable> extends Ani
             double stopClock = getCurrentAnimationTime();
             // GeckoLib keeps the current point as the point to blend from (setAnimation).
             setAnimation(REST_BLEND);
-            // setAnimation carries the clock for CARRY only; a RESTART controller's blend also needs the stop time.
+            // setAnimation carries the clock only for CARRY, and only when GeckoLib keeps a from-point (timeline time
+            // above 0); the blend always needs the stop time.
             this.clockStart = stopClock;
             setAnimationSpeed(1D);
             return PlayState.CONTINUE;

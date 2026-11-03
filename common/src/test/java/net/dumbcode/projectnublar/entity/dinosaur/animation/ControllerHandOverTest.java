@@ -87,6 +87,11 @@ class ControllerHandOverTest {
     private static final int IDLE_FRAMES = 110;
     /** Frames of walk before a stop: past its ease-in, with every walk channel far from rest. */
     private static final int WALK_FRAMES = 50;
+    /**
+     * Frames of walk, after the idle handed over, before a switch to run: past the walk's ease-in (15 frames) and the
+     * gait's 8-tick hold ({@code MovementGait.HOLD_TICKS}), so the carried clock still drifts, as in game.
+     */
+    private static final int SWITCH_FRAMES = 30;
     /** Frames of attack before a walk starts: its clip time is then 0.4 s, short of its keyframe at 0.5 s. */
     private static final int ATTACK_FRAMES = 40;
     /** The largest move of any channel in one frame of the clips themselves (the walk tail: 0.3 x 2 pi / 60). */
@@ -108,13 +113,16 @@ class ControllerHandOverTest {
                     rotated(TAIL, onY(molang("math.sin(query.anim_time * 360) * 0.3", WALK_CYCLE))),
                     rotated(WALK_ONLY, onX(triangle(0.2D, 0.8D, WALK_CYCLE), 0D))},
             Animation.KeyframeMarkers.EMPTY);
-    /** Keys every transform the walk keys, so at a walk to run switch only the clock can make a channel jump. */
+    /**
+     * Keys every transform the walk keys, so at a walk to run switch only the clock can make a channel jump. No
+     * channel moves more than {@link #CLIP_STEP} in one frame (the tail: 0.15 x 4 pi / 60), as in the walk.
+     */
     private static final Animation RUN_CLIP = Animation.create("run", RUN_CYCLE, LoopType.LOOP,
             new BoneAnimation[] {
-                    new BoneAnimation(BODY, onX(triangle(0.2D, 1.0D, RUN_CYCLE), 0D),
-                            onY(triangle(0.8D, 1.2D, RUN_CYCLE)), KeyframeStack.EMPTY),
-                    rotated(TAIL, onY(molang("math.sin(query.anim_time * 720) * 0.4", RUN_CYCLE))),
-                    rotated(WALK_ONLY, onX(triangle(0.3D, 0.9D, RUN_CYCLE), 0D))},
+                    new BoneAnimation(BODY, onX(triangle(0.2D, 0.5D, RUN_CYCLE), 0D),
+                            onY(triangle(0.8D, 1.0D, RUN_CYCLE)), KeyframeStack.EMPTY),
+                    rotated(TAIL, onY(molang("math.sin(query.anim_time * 720) * 0.15", RUN_CYCLE))),
+                    rotated(WALK_ONLY, onX(triangle(0.3D, 0.6D, RUN_CYCLE), 0D))},
             Animation.KeyframeMarkers.EMPTY);
     /** An action that turns only {@code body}, as an attack that starts during a walk. */
     private static final Animation ATTACK_CLIP = Animation.create("attack1", 1D, LoopType.PLAY_ONCE,
@@ -376,20 +384,29 @@ class ControllerHandOverTest {
     }
 
     /**
-     * A switch inside one controller (Task 61), walk to run in mid-cycle: GeckoLib 5 works out the walk's pose it
-     * blends from with the controller's clock, so the movement controller
-     * ({@link RestartableAnimationController.SwitchClock#CARRY}) carries its clock over and the tail, which the walk
-     * moves with {@code query.anim_time}, does not jump on the first frame (before the fix it went to the walk's pose
-     * at time 0).
+     * A walk to run switch and back (Task 61), as the game plays it: the walk starts from the idle by the hand-over,
+     * so its clock is carried and still drifts when a follower that falls behind starts to run, and the run's clock
+     * drifts when it walks again. GeckoLib 5 works out the old clip's pose it blends from with the controller's clock,
+     * so the movement controller ({@link RestartableAnimationController.SwitchClock#CARRY}) carries the clock shown,
+     * not the old clip's own time, and the tail, which both clips move with {@code query.anim_time}, does not jump:
+     * each switch passes the no-jump proof (class comment).
      */
     @Test
-    void aSwitchInsideOneControllerKeepsTheTailPose() {
-        this.mainClip = null;
+    void aWalkToRunSwitchAndBackKeepsTheTailPose() {
+        play(IDLE_FRAMES);
         this.moving = true;
-        double[] walk = play(WALK_FRAMES);
-        assertTrue(Math.abs(walk[TAIL_ROTATION]) > 0.1D, "the walk's tail is far from its pose at clip time 0");
+        this.mainClip = null;
+        double[] walk = play(SWITCH_FRAMES);
+        double walkCarry = this.movement.getCurrentAnimationTime()
+                - this.movement.getCurrentAnimationPoint().animTime();
+        assertTrue(Math.abs(walkCarry) > 0.2D, "the walk's clock is carried, not its clip time: " + walkCarry);
         this.gait = RUN;
-        assertPose(walk, frame(), "the first frame of the switch repeats the frame before it");
+        double[] run = assertNoJump(walk, "walk to run");
+        double runCarry = this.movement.getCurrentAnimationTime()
+                - this.movement.getCurrentAnimationPoint().animTime();
+        assertTrue(Math.abs(runCarry) > 0.2D, "the run's clock is carried, not its clip time: " + runCarry);
+        this.gait = WALK;
+        assertNoJump(run, "run to walk");
     }
 
     /**

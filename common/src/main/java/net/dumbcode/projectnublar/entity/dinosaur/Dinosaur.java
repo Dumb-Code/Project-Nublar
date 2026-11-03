@@ -281,6 +281,7 @@ public abstract class Dinosaur extends TamableAnimal implements FossilRevived, G
         // Walk or run from the real ground speed (fix P10; GeckoLib's generic walk controller only walks).
         // Blends instead of snaps between animations (fix P12a), and from rest after a stop (RestartableAnimationController).
         // The main controller restarts an animation that plays again (DinoAnimator.set).
+        // The movement controller keeps its Molang clock through a walk/run switch; the main one starts each clip at 0.
         // The empty sound handlers: some clips (Brachiosaurus move.walk, run, eatingtall2) have sound keyframes for
         // sounds the mod never registered. No footstep sound plays, the same as 1.20.1; without a handler GeckoLib 5
         // logs a warning at every start of such a clip.
