@@ -93,7 +93,7 @@ Status words:
 | Dilophosaurus | 34 | 0 | 22 | 5 | 73 | 3 | 0 |
 | Triceratops | 35 | 4 | 33 | 6 | 29 | 2 | 0 |
 | Brachiosaurus | 25 | 2 | 27 | 2 | 37 | 15 | 0 |
-| Gallimimus | 30 | 0 | 23 | 1 | 36 | 11 | 0 |
+| Gallimimus | 30 | 1 | 23 | 1 | 35 | 11 | 0 |
 | Dinosaur effects | 0 | 0 | 0 | 0 | 32 | 0 | 0 |
 | Dinosaur hover box | 0 | 0 | 0 | 0 | 2 | 0 | 0 |
 | Eggs and hatching | 1 | 0 | 4 | 5 | 18 | 0 | 0 |
@@ -110,17 +110,17 @@ Status words:
 | Feeders | 3 | 0 | 0 | 10 | 20 | 0 | 0 |
 | Digsites and villagers | 0 | 0 | 1 | 0 | 7 | 0 | 0 |
 | Vehicles | 1 | 0 | 2 | 5 | 26 | 0 | 0 |
-| **Total (without guns)** | **251** | **24** | **180** | **69** | **457** | **42** | **1** |
+| **Total (without guns)** | **251** | **25** | **180** | **69** | **456** | **42** | **1** |
 | Guns (blocked) | 0 | 0 | 2 | 11 | 3 | 0 | 0 |
 
 - **Counted rows:** 1023 (guns not included).
-- **Work left:** 730 rows (457 to make, 69 to export or convert, 180 to import, 24 to check in game), plus 42 shared files for the artist to confirm.
+- **Work left:** 730 rows (456 to make, 69 to export or convert, 180 to import, 25 to check in game), plus 42 shared files for the artist to confirm.
 - **Done:** 251.
 - **Not counted:** 1 row that waits on the lead, 32 rows with no art needed, 38 rows not in Beta (6 of them Release 1 groups).
 - **Guns:** blocked on D08. They are not in the total.
 - **Per-milestone counts:** the roadmap's milestone table. They come from the Feature column of each row (F1.x is M1, F2.x is M2, F3.x is M3, F4.x is M4), with guns left out.
 
-**Changed since last review:** Vehicle assembly uses existing groups, so the chassis and engine rows are gone and the wheel split is a Done developer row. Large Generator gets its own ignite, fuel-out and loop rows. Release 1 asset groups listed, not counted. Question 21 settled. One glow mask row per lab machine. Incubator lamp colours set as placeholders. The bird Embryo Syringe takes the 1.12 texture. The dinosaur-embryo syringe needs a new sprite. Edit-tab censor static row added. Generic pelvis, foot and spine are Missing: no shared sprite exists. Nublar widget kit for machine screens (sliders, dropdown arrows, buttons, text boxes), Sequencer style. Triceratops horn sets named: one file per set, one set and one colour per animal. Question 22 on the horn `v2` files and the Black/Yellow overlays. Triceratops rest idle holds the last pose of its lie-down, and it needs a get-up clip. Feeder 2 needs one bone per meat piece. Triceratops species icon imported. Amber ore needs an amber layer cut from the REPO ore texture. Creative Generator textures from 1.12.2 are ready to import. Sequencer screen rows for empty-slot icons, the soft glow and the status chip and event message. Shared scroll bar row. Processor fossil-slot icon row. Upgrade slot rows for the Sequencer, Egg Printer and Incubator screens. Sequencer motion sprites row.
+**Changed since last review:** Vehicle assembly uses existing groups, so the chassis and engine rows are gone and the wheel split is a Done developer row. Large Generator gets its own ignite, fuel-out and loop rows. Release 1 asset groups listed, not counted. Question 21 settled. One glow mask row per lab machine. Incubator lamp colours set as placeholders. The bird Embryo Syringe takes the 1.12 texture. The dinosaur-embryo syringe needs a new sprite. Edit-tab censor static row added. Generic pelvis, foot and spine are Missing: no shared sprite exists. Nublar widget kit for machine screens (sliders, dropdown arrows, buttons, text boxes), Sequencer style. Triceratops horn sets named: one file per set, one set and one colour per animal. Question 22 on the horn `v2` files and the Black/Yellow overlays. Triceratops rest idle holds the last pose of its lie-down, and it needs a get-up clip. Feeder 2 needs one bone per meat piece. Triceratops species icon imported. Amber ore needs an amber layer cut from the REPO ore texture. Creative Generator textures from 1.12.2 are ready to import. Sequencer screen rows for empty-slot icons, the soft glow and the status chip and event message. Shared scroll bar row. Processor fossil-slot icon row. Upgrade slot rows for the Sequencer, Egg Printer and Incubator screens. Sequencer motion sprites row. Gallimimus Drink clip is in the mod, to check in game.
 
 ## Questions for the artist and lead
 
@@ -1182,11 +1182,11 @@ None is in the mod. REPO folder: dinosaurs/brachiosaurus/sounds/ (30 files).
 The fast herd omnivore. It watches for danger and runs from threats.
 Milestone: Dinosaurs.
 
-**To make (36)**
+**To make (35)**
 
 - Skins, JP set (1): Bioluminescence glow mask.
 - Skins, JW set (1): Male: belly.
-- Animations (24): Drink; Eat; Ground peck (graze low); Call 2; Sleep; Get up; Jump; Idle 2; Limp; Death; Sniff ground; Head shake; Turn left and right; Guard nest; Hatch; Yawn; Sneeze; Shake body (extra); Scratch (extra); Speak (extra); Sit (rest) (placeholder); Rest idle (placeholder); Idle 1 (placeholder); Startled (placeholder).
+- Animations (23): Eat; Ground peck (graze low); Call 2; Sleep; Get up; Jump; Idle 2; Limp; Death; Sniff ground; Head shake; Turn left and right; Guard nest; Hatch; Yawn; Sneeze; Shake body (extra); Scratch (extra); Speak (extra); Sit (rest) (placeholder); Rest idle (placeholder); Idle 1 (placeholder); Startled (placeholder).
 - Sounds (9): Eat (peck); Footsteps (light); Sleep breath; Yawn; Sneeze; Snort; Nest call; Mating call; Hatchling sounds.
 - Sprites (1): Species icon (egg and DNA).
 
@@ -1196,11 +1196,13 @@ Milestone: Dinosaurs.
 - Sounds (8): Broadcast (3), bellow (5), chirp (2); Screech (4); Growl (4); Bite; Burp (3); Hurt (3); Death (3); Drink (2).
 - Sprites (2): Raw meat; Cooked meat.
 
-**To fix (12)**
+**To fix (13)**
 
 - Skins, JP set (4): Male: claws (confirm shared), mouth (confirm shared), nostrils (confirm shared), eyes (confirm shared).
 - Skins, JW set (7): Female: mouth (confirm shared), nostrils (confirm shared), eyes (confirm shared); Male: claws (confirm shared), nostrils (confirm shared), mouth (confirm shared), eyes (confirm shared).
-- Animations (1): Flinch (convert).
+- Animations (2):
+  - Check in game: Drink.
+  - Convert: Flinch.
 
 Elsewhere for this species: Bloody mouth overlay: Gallimimus (Missing, Dinosaur effects); Snow cover overlay: Gallimimus (Missing, Dinosaur effects); Printed egg: `normal` model (Missing, Eggs and hatching); Natural egg: Gallimimus (Missing, Eggs and hatching); Skull: Gallimimus (Ready to import, Fossils and amber); Tranquilised clip: Velociraptor, Dilophosaurus, Triceratops, Brachiosaurus, Gallimimus (Missing, Guns (blocked, list only)).
 
@@ -1275,11 +1277,10 @@ The JW skin is in Beta. REPO folders: textures/_skins/JW female/, JW male/. None
 
 - Clip file: MOD/animations/entity/gallimimus.animation.json.
 - The REPO model holds only 8 clips.
-- Neck reach waits on the Drink and Eat clips, so they come first in the art queue.
+- Neck reach waits on the Drink and Eat clips. Drink is in the mod; Eat comes first in the art queue.
 
 | Asset | Used for | Status | Feature | Where / reference |
 | --- | --- | --- | --- | --- |
-| Drink | Thirst. First in the art queue | Missing | F2.3 | None in the mod or REPO |
 | Eat | Hunger. First in the art queue | Missing | F2.3 | None |
 | Ground peck (graze low) | Omnivore feeding (GroundPeck) | Missing | F2.3 | None |
 | Call 2 | Second call | Missing | F2.3 | None |
@@ -1303,6 +1304,7 @@ The JW skin is in Beta. REPO folders: textures/_skins/JW female/, JW male/. None
 | Rest idle | Lying idle | Placeholder | F2.3 | Stand-in: `restidle` is the same static pose |
 | Idle 1 | Standing idle | Placeholder | F2.3 | Stand-in: `misc.idle` is one static pose (8 bones) |
 | Startled | Reaction before running | Placeholder | F2.3 | Stand-in: `startled` is a copy of the Velociraptor startled clip |
+| Drink | Thirst. A 5 s loop: the body tips forward, the neck arches down to the water, two sips with a swallow lift, then back to the idle pose | To check in game | F2.3 | `drink`. Agent-made with mcblend (D330 exception for this clip). Head and neck shape after the Prehistoric Kingdom Update 15 cinematic |
 | Flinch | Hit reaction | Needs conversion | F2.3 | `flinch`: 16 of 30 bones not in the model |
 | Walk | Moving | Done | F2.3 | `move.walk` |
 | Run (flee) | Gallimimus runs from threats | Done | F2.3 | `run` |
