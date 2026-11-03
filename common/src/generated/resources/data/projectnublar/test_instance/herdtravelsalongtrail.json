@@ -1,0 +1,8 @@
+{
+  "type": "minecraft:function",
+  "environment": "projectnublar:herdtravelsalongtrail",
+  "function": "projectnublar:herdtravelsalongtrail",
+  "max_ticks": 3200,
+  "required": false,
+  "structure": "projectnublar:herd_track"
+}

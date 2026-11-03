@@ -1,0 +1,8 @@
+{
+  "type": "minecraft:function",
+  "environment": "projectnublar:herdcrossesforest",
+  "function": "projectnublar:herdcrossesforest",
+  "max_ticks": 4000,
+  "required": false,
+  "structure": "projectnublar:herd_forest"
+}

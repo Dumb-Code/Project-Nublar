@@ -1,0 +1,8 @@
+{
+  "type": "minecraft:function",
+  "environment": "projectnublar:grazingherdholdshardminimum",
+  "function": "projectnublar:grazingherdholdshardminimum",
+  "max_ticks": 3000,
+  "required": false,
+  "structure": "projectnublar:herd_track"
+}

@@ -1,0 +1,7 @@
+{
+  "type": "minecraft:function",
+  "environment": "projectnublar:twentygallimimusformoneherdoftwenty",
+  "function": "projectnublar:twentygallimimusformoneherdoftwenty",
+  "max_ticks": 1200,
+  "structure": "projectnublar:herd_arena"
+}

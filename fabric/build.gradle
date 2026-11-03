@@ -40,6 +40,19 @@ loom {
     }
 }
 
+// Server GameTests from the main source set (the test instances are in common's generated data).
+// Loom adds the run `runGameTest` (in build/run/gameTest) and makes `check` depend on it,
+// so `build` runs it.
+// The mod has no client GameTests. With them off, Loom makes no client test run and no EULA file.
+fabricApi {
+    configureTests {
+        createSourceSet = false
+        modId = mod_id
+        enableGameTests = true
+        enableClientGameTests = false
+    }
+}
+
 // Implement mcgradleconventions loader attribute (MultiLoader Template)
 def loaderAttribute = Attribute.of('io.github.mcgradleconventions.loader', String)
 ['apiElements', 'runtimeElements', 'sourcesElements', 'javadocElements', 'includeInternal', 'modCompileClasspath'].each { variant ->

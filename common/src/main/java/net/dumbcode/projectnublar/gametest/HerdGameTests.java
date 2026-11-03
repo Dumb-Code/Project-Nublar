@@ -2,6 +2,7 @@ package net.dumbcode.projectnublar.gametest;
 
 import net.dumbcode.projectnublar.api.dinosaur.DinoBehaviourData;
 import net.dumbcode.projectnublar.api.dinosaur.DinoData;
+import net.dumbcode.projectnublar.config.FossilsConfig;
 import net.dumbcode.projectnublar.data.BehaviourDataReloadListener;
 import net.dumbcode.projectnublar.entity.dinosaur.ai.behavior.social.DinoGroup;
 import net.dumbcode.projectnublar.entity.dinosaur.ai.behavior.social.GroupManager;
@@ -16,7 +17,9 @@ import net.dumbcode.projectnublar.util.DinoNeedsUtils;
 import net.minecraft.core.BlockPos;
 import net.minecraft.gametest.framework.GameTestHelper;
 import net.minecraft.network.chat.Component;
+import net.minecraft.world.entity.EntityDimensions;
 import net.minecraft.world.entity.EntityType;
+import net.minecraft.world.entity.ai.attributes.Attributes;
 import net.minecraft.world.entity.ai.memory.MemoryModuleType;
 import net.minecraft.world.entity.ai.memory.WalkTarget;
 import net.minecraft.world.phys.AABB;
@@ -28,12 +31,12 @@ import java.util.ArrayList;
 import java.util.List;
 
 /**
- * GameTests for herds (plan B18 and the herd movement redesign). The lead runs them one at a time in a
- * creative world started from {@code runClient}. On the GameTest server each test is its own batch, so they run
- * one at a time there too. The tests have no loader code; the holders {@code ForgeGameTests} (Forge) and
- * {@code FabricGameTests} (Fabric) register them.
- * Run a test with {@code /test run <name>} on Forge and {@code /test run fabricgametests.<name>} on Fabric,
- * where the name is the method name in lower case:
+ * GameTests for herds (plan B18 and the herd movement redesign) and for the size of an animal at each growth
+ * stage. The lead runs them one at a time in a creative world started from {@code runClient}. On the GameTest
+ * server each test has an empty environment of its own ({@code ModGameTestProvider}), so it is its own batch
+ * and runs alone, as on 1.20.1; 26.2 runs the tests of one environment together, 5 blocks apart, and
+ * neighbouring herds would merge. {@code GameTestInit} registers the bodies. Run a test with
+ * {@code /test run projectnublar:<name>}, where the name is the method name in lower case:
  * <ul>
  * <li>{@code fivegallimimusformoneherdledbythestrongest}</li>
  * <li>{@code twentygallimimusformoneherdoftwenty}</li>
@@ -48,18 +51,21 @@ import java.util.List;
  * <li>{@code herdpassescorridor}</li>
  * <li>{@code memberneverenterslowgap}</li>
  * <li>{@code herdskirtswater}</li>
+ * <li>{@code scalefollowsgrowthstage}</li>
  * </ul>
  * The arenas {@code herd_track}, {@code herd_forest}, {@code herd_shore}, {@code herd_corridor} and
  * {@code herd_lowgap} come from {@code tools/gametest-templates/make_templates.py}. {@code herd_arena} (the
- * 24 x 24 formation arena) does not come from that script. Every test first checks that its animals stand
+ * 24 x 24 formation arena) does not come from that script. Every herd test first checks that its animals stand
  * on the arena floor.
  * <p>
  * <b>Travel time limits</b> (playtest 1, fix P4; they replace lead decision 18's 1200, 1500 and 2400 and the
  * plan's 2000, which were sized for speeds 3 to 8 times too high). Each travel test's limit is the realistic
  * time from the journey start, times 1.3 or more, rounded up to 100 ticks. The real ground speed is 0.138 x
  * modifier^2 blocks per tick ({@code GroundSpeed}): leader journey 0.8 = 0.088 b/t, catch-up and walk-back 1.2
- * = 0.198 b/t, graze 0.6 = 0.0496 b/t. The realistic time adds up, for the leader spawned in the farthest grid
- * cell:
+ * = 0.198 b/t, graze 0.6 = 0.0496 b/t. The figures here and in the test Javadocs use the 1.2-wide
+ * Gallimimus box of 1.20.1 (graze spacing 4.2, R = 11.2 for 20); the limits were not re-derived
+ * for the 0.8-wide box of the default scale switch (graze spacing 3.8, R about 10.0 for 20). The
+ * realistic time adds up, for the leader spawned in the farthest grid cell:
  * <ul>
  * <li>start 90: the first path, and members in the leader's line stepping aside (up to 40 ticks each);</li>
  * <li>walk: the leader's route length / 0.088, stopping 3 short of the goal (arrival distance);</li>
@@ -84,25 +90,26 @@ import java.util.List;
 public final class HerdGameTests {
 
     /**
-     * First walkable layer. The template sits one block above the test origin, so its floor (template y=0)
-     * is relative y=1; animals and goals at y=2 stand on it instead of falling through.
+     * First walkable layer, the top of the floor. On 26.2 the test origin is the template's own corner, so its
+     * floor (template y=0) is relative y=0 and animals and goals at y=1 stand on it. (On 1.20.1 the template
+     * sat one block above the origin, and this was 2.)
      */
-    private static final int FLOOR_Y = 2;
+    private static final int FLOOR_Y = 1;
     /** Tick at which every test checks that its animals stand on the floor. */
     private static final int FLOOR_CHECK_TICK = 5;
     /** An animal more than this below {@link #FLOOR_Y} fell through the floor. */
     private static final double FLOOR_TOLERANCE = 0.5D;
-    /** Template {@code data/projectnublar/structures/herd_arena.nbt}; public for the holders' {@code @GameTest} lines. */
+    /** Template {@code data/projectnublar/structure/herd_arena.nbt}; public for {@code ModGameTestProvider}. */
     public static final String ARENA = "herd_arena";
-    /** Template {@code data/projectnublar/structures/herd_track.nbt}; public for the holders' {@code @GameTest} lines. */
+    /** Template {@code data/projectnublar/structure/herd_track.nbt}; public for {@code ModGameTestProvider}. */
     public static final String TRACK = "herd_track";
-    /** Template {@code data/projectnublar/structures/herd_forest.nbt}; public for the holders' {@code @GameTest} lines. */
+    /** Template {@code data/projectnublar/structure/herd_forest.nbt}; public for {@code ModGameTestProvider}. */
     public static final String FOREST = "herd_forest";
-    /** Template {@code data/projectnublar/structures/herd_shore.nbt}; public for the holders' {@code @GameTest} lines. */
+    /** Template {@code data/projectnublar/structure/herd_shore.nbt}; public for {@code ModGameTestProvider}. */
     public static final String SHORE = "herd_shore";
-    /** Template {@code data/projectnublar/structures/herd_corridor.nbt}; public for the holders' {@code @GameTest} lines. */
+    /** Template {@code data/projectnublar/structure/herd_corridor.nbt}; public for {@code ModGameTestProvider}. */
     public static final String CORRIDOR = "herd_corridor";
-    /** Template {@code data/projectnublar/structures/herd_lowgap.nbt}; public for the holders' {@code @GameTest} lines. */
+    /** Template {@code data/projectnublar/structure/herd_lowgap.nbt}; public for {@code ModGameTestProvider}. */
     public static final String LOWGAP = "herd_lowgap";
     /**
      * Pinned grazing ticks before counting: spots are picked within 60 ticks (GrazeSchedule.ENTER_STAGGER_TICKS).
@@ -128,8 +135,6 @@ public final class HerdGameTests {
     private static final double STILL_SPEED = 0.01D;
     private static final double STILL_FRACTION = 0.7D;
     private static final double STILL_TICK_FRACTION = 0.9D;
-    /** Graze spacing of a Gallimimus: personal space 2.2 + 2 (spec T2). */
-    private static final double GRAZE_SPACING = 4.2D;
     /** A follower may change its spot only after holding it this long (GrazeSchedule.STAY_MIN_TICKS). */
     private static final int SPOT_STAY_MIN_TICKS = 600;
     private static final int LEADER_MOVES = 4;
@@ -202,9 +207,26 @@ public final class HerdGameTests {
     private static final double SAME_TARGET = 1.0E-6D;
     /**
      * Herd area scale of every test herd ({@link #herdOf}; playtest fix P9): the arenas were sized for the
-     * unscaled radius, so the R values in these Javadocs (11.2 for 20 Gallimimus) stay true.
+     * unscaled radius. The R values in these Javadocs (11.2 for 20 Gallimimus) are for the
+     * 1.2-wide box with the scale switch off; with it on (the default) R is about 10.0.
      */
     private static final double ARENA_AREA_SCALE = 1.0D;
+    /** scaleFollowsGrowthStage: the T. rex spawned with the scale switch on, and the one with it off. */
+    private static final BlockPos SCALE_ON_POS = new BlockPos(6, FLOOR_Y, 12);
+    private static final BlockPos SCALE_OFF_POS = new BlockPos(18, FLOOR_Y, 12);
+    /**
+     * Ticks for a size change to show: the animal's next server tick fixes its scale mode (first tick) or its
+     * growth stage, and then sets its size.
+     */
+    private static final int SCALE_SETTLE_TICKS = 2;
+    private static final double SCALE_TOLERANCE = 1.0E-4D;
+    private static final double BOX_TOLERANCE = 1.0E-3D;
+    private static final int BABY_STAGE = 1;
+    private static final int ADULT_STAGE = 4;
+    /** {@code Dinosaur.scaleFactor} of stage 1 relative to the adult: a baby is a quarter of its adult size. */
+    private static final float BABY_SIZE_FRACTION = 0.25F;
+    /** Vanilla's baby age scale ({@code AgeableMob.getAgeScale}): the switch-off baby factor. */
+    private static final float VANILLA_BABY_AGE_SCALE = 0.5F;
 
     private HerdGameTests() {
     }
@@ -327,9 +349,9 @@ public final class HerdGameTests {
     /**
      * Spec T1 and T2: a pinned grazing herd of 20 mostly stands: in 90% of the counted ticks at least 70% of
      * the members move under {@link #STILL_SPEED} (0.01) blocks per tick. On every counted tick no two graze
-     * spots are closer than {@link #GRAZE_SPACING} (4.2), and at least half of the followers hold a spot (so
-     * the spot check cannot pass with no spots). Counting starts after {@link #STAND_SETTLE_TICKS} of pinned
-     * grazing.
+     * spots are closer than the graze spacing of the members' boxes
+     * ({@link #checkSpotSpacing}), and at least half of the followers hold a spot (so the spot check
+     * cannot pass with no spots). Counting starts after {@link #STAND_SETTLE_TICKS} of pinned grazing.
      */
     public static void grazingMembersStayPut(GameTestHelper helper) {
         helper.setTime(MORNING_DAY_TIME);
@@ -388,9 +410,9 @@ public final class HerdGameTests {
      * <p>
      * No follower that holds a spot changes or loses it before holding it {@link #SPOT_STAY_MIN_TICKS} (the
      * schedule's own minimum stay). Followers without a spot are not checked for changes: random best-of-8
-     * sampling cannot always place 19 spots 4.2 apart inside the 22-wide arena (Review Focus 1). But at least
-     * {@link #MIN_SPOT_HOLDER_FRACTION} of the followers must hold a spot on every tick after the moves begin,
-     * so the spot check cannot pass with no spots.
+     * sampling cannot always place 19 spots a graze spacing apart inside the 22-wide arena
+     * (Review Focus 1). But at least {@link #MIN_SPOT_HOLDER_FRACTION} of the followers must hold a
+     * spot on every tick after the moves begin, so the spot check cannot pass with no spots.
      */
     public static void smallLeaderMovesKeepGraze(GameTestHelper helper) {
         helper.setTime(MORNING_DAY_TIME);
@@ -690,6 +712,119 @@ public final class HerdGameTests {
                 (group, sinceStart) -> arrivedTogether(helper, group, animals, SHORE_GOAL, travelled));
     }
 
+    /**
+     * D-g (Review Focus 8, P10): the scale switch {@code size.use_scale_attribute} decides how a dinosaur's size
+     * follows its growth stage. With the switch on (the default), the {@code SCALE} attribute holds
+     * {@code Dinosaur.scaleFactor} and the box is the species' corrected box times that factor; a baby is a
+     * quarter of its adult size. With the switch off, the attribute stays at 1 and the box is the 1.20.1 box:
+     * the entity type's size, halved for a baby by {@code getAgeScale()} (ruling P9). Every expected value is a
+     * relation against the species values ({@code adultScaleOffset()}, {@code correctedBaseBox()}, the type's
+     * size), never a table number. The {@code SIZE} gene is 0, so the factor is the species' offset alone.
+     * <p>
+     * Steps, {@link #SCALE_SETTLE_TICKS} apart: an adult with the switch on; the same animal as a baby; the
+     * switch off and a second adult; that one as a baby. The test changes the switch, so it runs in its own
+     * environment, {@code projectnublar:scale_switch}, where no other test spawns animals. The switch goes back
+     * to {@code true}, the default (lead, 2026-10-27), on every exit: after the last step, when a step or the
+     * set-up fails ({@link #restoringScaleSwitch}), and one tick before the 100-tick limit.
+     */
+    public static void scaleFollowsGrowthStage(GameTestHelper helper) {
+        FossilsConfig.USE_SCALE_ATTRIBUTE.set(true);
+        helper.runBeforeTestEnd(() -> FossilsConfig.USE_SCALE_ATTRIBUTE.set(true));
+        restoringScaleSwitch(() -> {
+            Dinosaur scaled = sizeZeroTyrannosaurus(helper, SCALE_ON_POS);
+            float[] adult = new float[2]; // width, height
+            Dinosaur[] unscaled = new Dinosaur[1];
+            helper.startSequence()
+                    .thenExecuteAfter(SCALE_SETTLE_TICKS, restoringScaleSwitch(() -> {
+                        checkScaledAdult(helper, scaled);
+                        adult[0] = scaled.getBbWidth();
+                        adult[1] = scaled.getBbHeight();
+                        scaled.setBaby(true);
+                    }))
+                    .thenExecuteAfter(SCALE_SETTLE_TICKS, restoringScaleSwitch(() -> {
+                        checkScaledBaby(helper, scaled, adult[0], adult[1]);
+                        FossilsConfig.USE_SCALE_ATTRIBUTE.set(false);
+                        unscaled[0] = sizeZeroTyrannosaurus(helper, SCALE_OFF_POS);
+                    }))
+                    .thenExecuteAfter(SCALE_SETTLE_TICKS, restoringScaleSwitch(() -> {
+                        checkUnscaled(helper, unscaled[0], "adult");
+                        unscaled[0].setBaby(true);
+                    }))
+                    .thenExecuteAfter(SCALE_SETTLE_TICKS, restoringScaleSwitch(() -> {
+                        assertNear(helper, unscaled[0].getAgeScale(), VANILLA_BABY_AGE_SCALE,
+                                SCALE_TOLERANCE, "the baby's age scale (switch off)");
+                        checkUnscaled(helper, unscaled[0], "baby");
+                        FossilsConfig.USE_SCALE_ATTRIBUTE.set(true);
+                    }))
+                    .thenSucceed();
+        }).run();
+    }
+
+    /** Switch on, adult: the attribute is the stage-4 factor and the box the corrected box times it. */
+    private static void checkScaledAdult(GameTestHelper helper, Dinosaur animal) {
+        double factor = Dinosaur.scaleFactor(0D, ADULT_STAGE, animal.adultScaleOffset());
+        assertNear(helper, animal.getAttribute(Attributes.SCALE).getBaseValue(), factor, SCALE_TOLERANCE,
+                "the adult's scale attribute (switch on)");
+        EntityDimensions box = animal.correctedBaseBox();
+        assertNear(helper, animal.getBbWidth(), box.width() * factor, BOX_TOLERANCE,
+                "the adult's width (switch on)");
+        assertNear(helper, animal.getBbHeight(), box.height() * factor, BOX_TOLERANCE,
+                "the adult's height (switch on)");
+    }
+
+    /** Switch on, baby: a quarter of the adult box, and the attribute is the stage-1 factor. */
+    private static void checkScaledBaby(GameTestHelper helper, Dinosaur animal, float adultWidth,
+                                        float adultHeight) {
+        assertNear(helper, animal.getBbWidth(), BABY_SIZE_FRACTION * adultWidth, BOX_TOLERANCE,
+                "the baby's width (switch on)");
+        assertNear(helper, animal.getBbHeight(), BABY_SIZE_FRACTION * adultHeight, BOX_TOLERANCE,
+                "the baby's height (switch on)");
+        assertNear(helper, animal.getAttribute(Attributes.SCALE).getBaseValue(),
+                Dinosaur.scaleFactor(0D, BABY_STAGE, animal.adultScaleOffset()), SCALE_TOLERANCE,
+                "the baby's scale attribute (switch on)");
+    }
+
+    /** Switch off: the attribute stays 1 and the box is the type's size times vanilla's age scale. */
+    private static void checkUnscaled(GameTestHelper helper, Dinosaur animal, String stage) {
+        assertNear(helper, animal.getAttribute(Attributes.SCALE).getBaseValue(), 1D, SCALE_TOLERANCE,
+                "the " + stage + "'s scale attribute (switch off)");
+        EntityDimensions box = animal.getType().getDimensions();
+        assertNear(helper, animal.getBbWidth(), box.width() * animal.getAgeScale(), BOX_TOLERANCE,
+                "the " + stage + "'s width (switch off)");
+        assertNear(helper, animal.getBbHeight(), box.height() * animal.getAgeScale(), BOX_TOLERANCE,
+                "the " + stage + "'s height (switch off)");
+    }
+
+    /**
+     * Wraps a scale-test step: when it throws (a failed assertion ends the test), the scale switch goes back
+     * to its default first, so a failed run does not leave it off for the tests after it.
+     */
+    private static Runnable restoringScaleSwitch(Runnable step) {
+        return () -> {
+            try {
+                step.run();
+            } catch (RuntimeException e) {
+                FossilsConfig.USE_SCALE_ATTRIBUTE.set(true);
+                throw e;
+            }
+        };
+    }
+
+    /** An adult T. rex hatched like the herd animals ({@link #hatch}), with its {@code SIZE} gene set to 0. */
+    private static Dinosaur sizeZeroTyrannosaurus(GameTestHelper helper, BlockPos pos) {
+        Dinosaur animal = hatch(helper, EntityInit.TYRANNOSAURUS_REX.get(), pos, 0D);
+        DinoData data = animal.getDinoData().copy();
+        data.setGeneValue(GeneInit.SIZE.get(), 0D);
+        animal.setDinoData(data);
+        return animal;
+    }
+
+    private static void assertNear(GameTestHelper helper, double actual, double expected, double tolerance,
+                                   String what) {
+        helper.assertTrue(Math.abs(actual - expected) <= tolerance,
+                what + " is " + actual + ", expected " + expected);
+    }
+
     /** Twenty adult Gallimimus on a 5 x 4 grid at the start of a track (x 3-19, z firstZ to firstZ + 15). */
     private static List<Dinosaur> hatchTwenty(GameTestHelper helper, int firstZ) {
         List<Dinosaur> animals = new ArrayList<>();
@@ -756,7 +891,10 @@ public final class HerdGameTests {
     }
 
     /**
-     * Fails if two reserved graze spots (the leader's included) are closer than {@link #GRAZE_SPACING} (spec T2).
+     * Fails if two reserved graze spots (the leader's included) are closer than the graze spacing
+     * (spec T2). The spacing comes from the members' boxes by the herd's own rule
+     * ({@link HerdSpacing#grazeSpacingOf}), so it follows the scale switch. A member picks its spot
+     * at its own spacing from every other spot, so a pair must keep the smaller of its two spacings.
      *
      * @return the number of followers (animals other than {@code leader}) that hold a spot
      */
@@ -772,6 +910,7 @@ public final class HerdGameTests {
                 holders++;
             }
             double az = group.spotZ(animals.get(i).getUUID());
+            double spacingA = HerdSpacing.grazeSpacingOf(animals.get(i));
             for (int j = i + 1; j < animals.size(); j++) {
                 double bx = group.spotX(animals.get(j).getUUID());
                 if (Double.isNaN(bx)) {
@@ -779,7 +918,8 @@ public final class HerdGameTests {
                 }
                 double dx = ax - bx;
                 double dz = az - group.spotZ(animals.get(j).getUUID());
-                if (dx * dx + dz * dz < GRAZE_SPACING * GRAZE_SPACING - 1.0E-6D) {
+                double spacing = Math.min(spacingA, HerdSpacing.grazeSpacingOf(animals.get(j)));
+                if (dx * dx + dz * dz < spacing * spacing - 1.0E-6D) {
                     helper.fail(Component.literal("two graze spots are closer than the graze spacing"), animals.get(i));
                 }
             }

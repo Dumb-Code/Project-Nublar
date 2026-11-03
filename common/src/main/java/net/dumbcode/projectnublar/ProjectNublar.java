@@ -7,6 +7,7 @@ import java.util.Map;
 import java.util.stream.Collectors;
 import net.dumbcode.projectnublar.api.gene.Genes;
 import net.dumbcode.projectnublar.data.NublarReloadListeners;
+import net.dumbcode.projectnublar.gametest.GameTestInit;
 import net.dumbcode.projectnublar.registry.AttributesInit;
 import net.dumbcode.projectnublar.registry.BlockInit;
 import net.dumbcode.projectnublar.registry.CreativeTabInit;
@@ -55,6 +56,7 @@ public class ProjectNublar {
         GeneInit.loadClass();
         MemoryModuleTypeInit.loadClass();
         SoundInit.loadClass();
+        GameTestInit.loadClass();
         NublarReloadListeners.register();
     }
 

@@ -35,12 +35,12 @@ public class DilophosaurusEntity extends CarnivoreDinosaur {
     }
 
     @Override
-    protected float adultScaleOffset() {
+    public float adultScaleOffset() {
         return ADULT_SCALE_OFFSET;
     }
 
     @Override
-    protected EntityDimensions correctedBaseBox() {
+    public EntityDimensions correctedBaseBox() {
         return EntityDimensions.scalable(BOX_WIDTH / ADULT_SCALE_OFFSET, BOX_HEIGHT / ADULT_SCALE_OFFSET);
     }
 

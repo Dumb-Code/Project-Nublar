@@ -1,0 +1,7 @@
+{
+  "type": "minecraft:function",
+  "environment": "minecraft:default",
+  "function": "projectnublar:sequencersynthstartswithgeneratoroncore",
+  "max_ticks": 200,
+  "structure": "projectnublar:herd_arena"
+}

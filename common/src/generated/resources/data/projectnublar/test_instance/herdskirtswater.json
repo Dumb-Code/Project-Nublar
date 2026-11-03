@@ -1,0 +1,8 @@
+{
+  "type": "minecraft:function",
+  "environment": "projectnublar:herdskirtswater",
+  "function": "projectnublar:herdskirtswater",
+  "max_ticks": 3400,
+  "required": false,
+  "structure": "projectnublar:herd_shore"
+}

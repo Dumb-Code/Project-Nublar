@@ -1,12 +1,10 @@
 /**
- * GameTest bodies with no loader code; each loader's holder class ({@code ForgeGameTests}, {@code FabricGameTests})
- * registers them.
+ * GameTest bodies with no loader code, run as vanilla 26.2 test instances on both loaders.
+ * {@code GameTestInit} registers each body as a test function, and the NeoForge data run
+ * ({@code ModGameTestProvider}) writes the matching test instance (template, environment, time
+ * limit) into {@code common/src/generated/resources/data/projectnublar/test_instance/}.
  * <p>
- * To add a test, write a {@code public static void} method that takes a {@code GameTestHelper} in a class of this
- * package. Then add one {@code @GameTest} method that calls it to each holder:
- * {@code forge/src/main/java/net/dumbcode/projectnublar/gametest/ForgeGameTests.java} and
- * {@code fabric/src/main/java/net/dumbcode/projectnublar/gametest/FabricGameTests.java}. Give both entries the same
- * {@code batch} and {@code timeoutTicks}. On Fabric, write the template as {@code Constants.MODID + ":" + <template>};
- * Forge adds the namespace itself.
+ * To add a test: a {@code public static void} method here, one {@code TEST_FUNCTIONS.register(...)}
+ * line in {@code GameTestInit}, one entry in {@code ModGameTestProvider}, then {@code runData}.
  */
 package net.dumbcode.projectnublar.gametest;

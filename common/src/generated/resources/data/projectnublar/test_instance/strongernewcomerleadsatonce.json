@@ -1,0 +1,7 @@
+{
+  "type": "minecraft:function",
+  "environment": "projectnublar:strongernewcomerleadsatonce",
+  "function": "projectnublar:strongernewcomerleadsatonce",
+  "max_ticks": 600,
+  "structure": "projectnublar:herd_arena"
+}

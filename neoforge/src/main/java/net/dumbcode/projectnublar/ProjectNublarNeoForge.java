@@ -2,6 +2,7 @@ package net.dumbcode.projectnublar;
 
 import net.dumbcode.projectnublar.config.FossilsConfig;
 import net.dumbcode.projectnublar.datagen.GeneDataProvider;
+import net.dumbcode.projectnublar.datagen.ModGameTestProvider;
 import net.dumbcode.projectnublar.datagen.ModLangProvider;
 import net.dumbcode.projectnublar.datagen.ModLootTableProvider;
 import net.dumbcode.projectnublar.datagen.ModModelProvider;
@@ -43,7 +44,7 @@ public class ProjectNublarNeoForge {
 
     /**
      * Adds every data provider, the client ones (models, language, sounds) and the data ones
-     * (recipes, loot tables, tags, world gen, gene data).
+     * (recipes, loot tables, tags, world gen, gene data, GameTest instances and environments).
      *
      * <p>There is no {@link GatherDataEvent.Server} listener: the mod's one data run ({@code data}
      * in {@code neoforge/build.gradle}, a {@code clientData()} run with {@code --all}) posts only
@@ -65,5 +66,6 @@ public class ProjectNublarNeoForge {
         event.createProvider(ModModelProvider::new);
         event.createProvider(ModLangProvider::new);
         event.createProvider(GeneDataProvider::new);
+        event.createProvider(ModGameTestProvider::new);
     }
 }

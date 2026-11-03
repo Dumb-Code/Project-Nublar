@@ -1,0 +1,7 @@
+{
+  "type": "minecraft:function",
+  "environment": "projectnublar:deadmemberleavesitsherd",
+  "function": "projectnublar:deadmemberleavesitsherd",
+  "max_ticks": 400,
+  "structure": "projectnublar:herd_arena"
+}

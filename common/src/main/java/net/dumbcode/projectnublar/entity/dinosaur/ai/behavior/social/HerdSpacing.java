@@ -76,6 +76,16 @@ public final class HerdSpacing {
         return hardMinimum(a.getBbWidth(), b.getBbWidth(), a.isResting() || b.isResting(), tightGroundOf(a) || tightGroundOf(b));
     }
 
+    /**
+     * The graze spacing for the animal's own box: {@code HerdArea.grazeSpacing} of its
+     * {@link #personalSpace}, as {@code FollowFormation.graze} computes it: 3.8 for a 0.8-wide
+     * body, 4.2 for a 1.2-wide one. Public for GameTests.
+     */
+    public static double grazeSpacingOf(Dinosaur dinosaur) {
+        double width = dinosaur.getBbWidth();
+        return HerdArea.grazeSpacing(personalSpace(width, width));
+    }
+
     /** Whether the animal's move control last measured tight ground under it ({@link HerdMoveControl#tightGround}); open without one. */
     static boolean tightGroundOf(Dinosaur dinosaur) {
         return dinosaur.getMoveControl() instanceof HerdMoveControl control && control.tightGround();

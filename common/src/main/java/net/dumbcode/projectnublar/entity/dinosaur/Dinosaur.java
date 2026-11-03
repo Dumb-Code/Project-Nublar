@@ -369,14 +369,17 @@ public abstract class Dinosaur extends TamableAnimal implements FossilRevived, G
         };
     }
 
-    /** The species' adult scale at {@code SIZE} gene 0 (moved here from the species renderers). */
-    protected abstract float adultScaleOffset();
+    /**
+     * The species' adult scale at {@code SIZE} gene 0 (moved here from the species renderers). Public, as
+     * {@link #correctedBaseBox()} is, so that the scale GameTest checks sizes against the species values.
+     */
+    public abstract float adultScaleOffset();
 
     /**
      * The species' corrected adult box divided by {@link #adultScaleOffset()}, used when {@link #SCALE_MODE} is
      * true: the {@code SCALE} attribute (the offset, at gene 0, for an adult) brings it back to the adult box.
      */
-    protected abstract EntityDimensions correctedBaseBox();
+    public abstract EntityDimensions correctedBaseBox();
 
     /**
      * Client: the drawn model's bind-pose size at render scale 1, in blocks, for the renderer's view culling (not a

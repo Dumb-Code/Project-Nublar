@@ -2,8 +2,9 @@
 
 Usage, from the worktree root:  python tools/gametest-templates/make_templates.py
 
-Template y=0 is the floor layer. In a test it sits at relative y=1, so animals and goals use relative
-y=2 (HerdGameTests.FLOOR_Y). Template x and z equal relative x and z.
+Template y=0 is the floor layer. On 26.2 a test's origin is the template's own corner, so the floor is
+relative y=0 and animals and goals use relative y=1 (HerdGameTests.FLOOR_Y). Template x and z equal
+relative x and z.
 """
 import gzip
 import os
@@ -11,7 +12,7 @@ import random
 import struct
 from collections import deque
 
-OUT = "common/src/main/resources/data/projectnublar/structures"
+OUT = "common/src/main/resources/data/projectnublar/structure"
 DATA_VERSION = 3465
 # Fixed seed: the forest is the same on every run. If the route check fails after an edit, change the seed.
 FOREST_SEED = 20261012

@@ -1,0 +1,8 @@
+{
+  "type": "minecraft:function",
+  "environment": "projectnublar:smallleadermoveskeepgraze",
+  "function": "projectnublar:smallleadermoveskeepgraze",
+  "max_ticks": 2400,
+  "required": false,
+  "structure": "projectnublar:herd_track"
+}

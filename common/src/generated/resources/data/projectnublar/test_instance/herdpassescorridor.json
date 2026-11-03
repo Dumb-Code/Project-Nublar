@@ -1,0 +1,7 @@
+{
+  "type": "minecraft:function",
+  "environment": "projectnublar:herdpassescorridor",
+  "function": "projectnublar:herdpassescorridor",
+  "max_ticks": 3400,
+  "structure": "projectnublar:herd_corridor"
+}

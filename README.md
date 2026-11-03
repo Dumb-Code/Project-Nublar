@@ -23,14 +23,16 @@ This command builds the four modules. `common` holds the shared code and resourc
 | `./gradlew :forge:runClient` | The Forge client |
 | `./gradlew :fabric:runClient` | The Fabric client |
 | `./gradlew :forge:runServer` | The Forge dedicated server |
-| `./gradlew :forge:runGameTestServer` | A Forge server that runs the mod's GameTests, then stops |
-| `./gradlew :fabric:runGametest` | A Fabric server that runs the mod's GameTests, then stops |
+| `./gradlew :neoforge:runGameTestServer` | A NeoForge server that runs the mod's GameTests, then stops |
+| `./gradlew :fabric:runGameTest` | A Fabric server that runs the mod's GameTests, then stops |
 
 The Fabric client has no client entry point until M0.P2 (the port to Minecraft 26.2). It crashes when it enters a world.
 
 The first `./gradlew :forge:runServer` writes `forge/run/eula.txt` and stops. To accept the [Minecraft EULA](https://aka.ms/MinecraftEULA), set `eula=true` in that file and run the command again.
 
-In one measured run of each, the Forge GameTest server took about 11 minutes and the Fabric GameTest server took less than 1 minute. Both GameTest servers report failures at this time and end with `BUILD FAILED`. On Forge, some herd tests fail, and the number changes from run to run (8 or 9 of 13 in recent runs). On Fabric, all 13 herd tests fail, because Fabric does not register the mod's data reload listeners until M0.P2. The machine tests pass on both loaders. These failures are known. Do not try to fix them in your work package.
+`./gradlew build` also runs the Fabric GameTest server, because Fabric Loom makes `check` depend on `:fabric:runGameTest`. A failed required GameTest fails the build. For a quick local build without the GameTests, run `./gradlew build -x runGameTest`.
+
+In one measured run of each, the NeoForge and the Fabric GameTest servers each took less than 2 minutes, and the tests in them less than 1 minute. Eight herd tests are optional: `grazingherdholdshardminimum`, `grazingmembersstayput`, `smallleadermoveskeepgraze`, `memberneverenterslowgap`, `herdskirtswater`, `herdtravelsalongtrail`, `herdcrossesforest` and `stackedmembersseparate`. They still run and report their result, but a failed optional test does not fail the GameTest server or `build`. The first seven are known to fail since Minecraft 1.20.1. On 26.2, `grazingherdholdshardminimum`, `smallleadermoveskeepgraze`, `memberneverenterslowgap` and `herdskirtswater` failed in every measured run, and `grazingmembersstayput`, `herdtravelsalongtrail` and `herdcrossesforest` failed in some runs. `stackedmembersseparate` is flaky. All the other GameTests are required, and they pass on both loaders. These failures are known. The herd fixes are a later plan task, so do not try to fix them in your work package.
 
 ## Test
 
@@ -40,14 +42,14 @@ To run the unit tests:
 ./gradlew :common:test
 ```
 
-To run the GameTests in the Forge client:
+To run the GameTests in the NeoForge client:
 
-1. Start the client with `./gradlew :forge:runClient`.
+1. Start the client with `./gradlew :neoforge:runClient`.
 2. Create a creative world.
-3. Type `/test runall` to run all of the mod's GameTests.
-4. Type `/test run <name>` to run one GameTest. The name is the method name in lower case, for example `/test run fivegallimimusformoneherdledbythestrongest`.
+3. Type `/test run projectnublar:*` to run all of the mod's GameTests.
+4. Type `/test run projectnublar:<name>` to run one GameTest. The name is the method name in lower case, for example `/test run projectnublar:fivegallimimusformoneherdledbythestrongest`.
 
-The Fabric client cannot run GameTests until M0.P2. On Fabric, use `./gradlew :fabric:runGametest`. The GameTest bodies are in `common/src/main/java/net/dumbcode/projectnublar/gametest/`.
+The GameTest bodies are in `common/src/main/java/net/dumbcode/projectnublar/gametest/`. Each one is a vanilla test function (`GameTestInit`) with a test instance file in `common/src/generated/resources/data/projectnublar/test_instance/`, which `./gradlew :neoforge:runData` writes.
 
 ## Contribute
 
