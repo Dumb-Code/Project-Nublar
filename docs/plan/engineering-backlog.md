@@ -4016,7 +4016,7 @@ See Art list → each species (every clip and sound row), and Dinosaur effects. 
 - A walking Triceratops plays `headshake` on the overlay while its legs keep walking.
 - A drinking animal's snout meets the water surface on a bank 1 block above the water, and the splash starts at the snout.
 - A Velociraptor that turns at a run leans into the turn, and its feet stay on the ground.
-- A T. rex at 0 % stamina breathes visibly faster than at full stamina.
+- Unit test: the breathing sway rate is the same at full and at one third stamina, then rises as stamina falls, highest at 0 %. A clip in the PR shows a T. rex at full and at 0 % stamina.
 - A Triceratops wading at a run makes splashes at its legs. A slow walk makes smaller ones.
 - A T. rex running on sand kicks up sand dust, and on snow, snow dust.
 - Each effect in the VFX table shows in its trigger, on both loaders.
