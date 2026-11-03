@@ -73,6 +73,21 @@ public class RestartableAnimationController<T extends GeoAnimatable> extends Ani
      */
     private static final RawAnimation REST_BLEND = RawAnimation.begin().thenWait(1);
 
+    /** What the clock does when a new clip replaces a clip that plays on this controller (P194). */
+    public enum SwitchClock {
+        /**
+         * The clock goes on from the time shown, so a bone that Molang moves with the time in the old clip does not
+         * jump on the switch's first frame. For the walk and run, whose Molang waves (the Brachiosaurus tail) run free.
+         */
+        CARRY,
+        /**
+         * The new clip starts at its own time 0, as Molang timed to its keyframes expects (a T. rex bite, a
+         * Velociraptor drink). A bone that Molang moves with the time in the old clip jumps to its pose at time 0 on
+         * the switch's first frame (up to 21 degrees of Brachiosaurus tail out of its idle).
+         */
+        RESTART
+    }
+
     /** Which bones of the other controller's pose a hand-over blends from. */
     enum HandOver {
         /** Every bone: the other controller stops, so a bone only its clip moves fades to rest here. */
@@ -81,6 +96,8 @@ public class RestartableAnimationController<T extends GeoAnimatable> extends Ani
         SHARED_BONES
     }
 
+    /** What the clock does at a clip switch. */
+    private final SwitchClock switchClock;
     /** The clock start of the current clip (class comment, one clock); 0 for GeckoLib's own clock. */
     private double clockStart;
     /** Whether the current clip has played one full cycle, so its clock drift is over. */
@@ -94,9 +111,28 @@ public class RestartableAnimationController<T extends GeoAnimatable> extends Ani
     /** GeckoLib's own point during that ease-in, given back to GeckoLib before each frame step. */
     private @Nullable AnimationPoint clipPoint;
 
-    /** Same as {@link AnimationController#AnimationController(String, int, AnimationStateHandler)}. */
+    /**
+     * Same as {@link AnimationController#AnimationController(String, int, AnimationStateHandler)}; a clip switch
+     * starts the new clip at its own time 0 ({@link SwitchClock#RESTART}).
+     */
     public RestartableAnimationController(String name, int transitionTicks, AnimationStateHandler<T> handler) {
+        this(name, transitionTicks, handler, SwitchClock.RESTART);
+    }
+
+    /**
+     * Same as {@link AnimationController#AnimationController(String, int, AnimationStateHandler)}, with what the
+     * clock does at a clip switch.
+     *
+     * @param name            the controller's name
+     * @param transitionTicks the blend length, in ticks
+     * @param handler         the state handler
+     * @param switchClock     what the clock does when a new clip replaces a clip that plays here
+     * @throws NullPointerException when {@code switchClock} is {@code null}
+     */
+    public RestartableAnimationController(String name, int transitionTicks, AnimationStateHandler<T> handler,
+            SwitchClock switchClock) {
         super(name, transitionTicks, handler);
+        this.switchClock = Objects.requireNonNull(switchClock, "switchClock");
     }
 
     /**
@@ -116,9 +152,10 @@ public class RestartableAnimationController<T extends GeoAnimatable> extends Ani
     /**
      * GeckoLib's {@code setAnimation} with a hand-over (class comment): a new animation with no pose to blend from
      * blends from {@code giver}'s pose and starts at its clock, or blends from {@link #REST} when {@code giver}
-     * animates no bone. A new animation that replaces a clip playing here keeps this controller's clock, because
-     * GeckoLib 5 works out the old clip's pose with the clock on every frame of the blend, so a bone that Molang moves
-     * with the time would else jump to its pose at time 0 (52 degrees of Brachiosaurus tail at a run to walk switch).
+     * animates no bone. A new animation that replaces a clip playing here keeps this controller's clock when it was
+     * built with {@link SwitchClock#CARRY}, because GeckoLib 5 works out the old clip's pose with the clock on every
+     * frame of the blend, so a bone that Molang moves with the time would else jump to its pose at time 0 (52 degrees
+     * of Brachiosaurus tail at a run to walk switch); with {@link SwitchClock#RESTART} it starts at its own time 0.
      * The handler calls it on every frame the clip should play; it acts on the frame the clip starts.
      *
      * @param giver the animatable's other controller, or {@code null} for none
@@ -145,8 +182,10 @@ public class RestartableAnimationController<T extends GeoAnimatable> extends Ani
         this.handOverBones = null;
         this.easeInPoint = null;
         if (this.transitionFromPoint != null) {
-            // GeckoLib blends from the clip that played here; the clock goes on from the time shown.
-            this.clockStart = clock;
+            // GeckoLib blends from the clip that played here; CARRY: the clock goes on from the time shown.
+            if (this.switchClock == SwitchClock.CARRY) {
+                this.clockStart = clock;
+            }
             return;
         }
         AnimationPoint pose = giver == null ? null : giver.handOverPose();
@@ -183,6 +222,7 @@ public class RestartableAnimationController<T extends GeoAnimatable> extends Ani
             double stopClock = getCurrentAnimationTime();
             // GeckoLib keeps the current point as the point to blend from (setAnimation).
             setAnimation(REST_BLEND);
+            // setAnimation carries the clock for CARRY only; a RESTART controller's blend also needs the stop time.
             this.clockStart = stopClock;
             setAnimationSpeed(1D);
             return PlayState.CONTINUE;

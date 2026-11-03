@@ -284,7 +284,8 @@ public abstract class Dinosaur extends TamableAnimal implements FossilRevived, G
         // The empty sound handlers: some clips (Brachiosaurus move.walk, run, eatingtall2) have sound keyframes for
         // sounds the mod never registered. No footstep sound plays, the same as 1.20.1; without a handler GeckoLib 5
         // logs a warning at every start of such a clip.
-        controllers.add(new RestartableAnimationController<>("movement", DinoAnimator.MOVEMENT_TRANSITION_TICKS, this.animator::movement)
+        controllers.add(new RestartableAnimationController<>("movement", DinoAnimator.MOVEMENT_TRANSITION_TICKS,
+                this.animator::movement, RestartableAnimationController.SwitchClock.CARRY)
                 .setSoundKeyframeHandler(event -> {}));
         controllers.add(new RestartableAnimationController<>("dino_controller", DinoAnimator.MAIN_TRANSITION_TICKS, this.animator::main)
                 .setSoundKeyframeHandler(event -> {}));

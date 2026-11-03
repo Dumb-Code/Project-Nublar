@@ -136,7 +136,8 @@ class ControllerHandOverTest {
     private double age;
     private final Animatable animatable = new Animatable();
     private final RestartableAnimationController<Animatable> movement = new RestartableAnimationController<>(
-            "movement", DinoAnimator.MOVEMENT_TRANSITION_TICKS, this::movementHandler);
+            "movement", DinoAnimator.MOVEMENT_TRANSITION_TICKS, this::movementHandler,
+            RestartableAnimationController.SwitchClock.CARRY);
     private final RestartableAnimationController<Animatable> main = new RestartableAnimationController<>(
             "dino_controller", DinoAnimator.MAIN_TRANSITION_TICKS, this::mainHandler);
     private final GeoModel<Animatable> model = new GeoModel<>() {
@@ -376,8 +377,10 @@ class ControllerHandOverTest {
 
     /**
      * A switch inside one controller (Task 61), walk to run in mid-cycle: GeckoLib 5 works out the walk's pose it
-     * blends from with the controller's clock, so the clock carries over and the tail, which the walk moves with
-     * {@code query.anim_time}, does not jump on the first frame (before the fix it went to the walk's pose at time 0).
+     * blends from with the controller's clock, so the movement controller
+     * ({@link RestartableAnimationController.SwitchClock#CARRY}) carries its clock over and the tail, which the walk
+     * moves with {@code query.anim_time}, does not jump on the first frame (before the fix it went to the walk's pose
+     * at time 0).
      */
     @Test
     void aSwitchInsideOneControllerKeepsTheTailPose() {
@@ -387,6 +390,23 @@ class ControllerHandOverTest {
         assertTrue(Math.abs(walk[TAIL_ROTATION]) > 0.1D, "the walk's tail is far from its pose at clip time 0");
         this.gait = RUN;
         assertPose(walk, frame(), "the first frame of the switch repeats the frame before it");
+    }
+
+    /**
+     * A switch in the main controller ({@link RestartableAnimationController.SwitchClock#RESTART}, P194) starts the
+     * new clip at its own time 0 and keeps the clip's own time, as Molang timed to the clip's keyframes expects (a
+     * T. rex bite): the idle, which moves the tail with {@code query.anim_time}, hands no clock to the attack.
+     */
+    @Test
+    void aSwitchInTheMainControllerStartsTheNewClipAtItsOwnTime() {
+        play(IDLE_FRAMES);
+        assertTrue(this.main.getCurrentAnimationTime() > 0.5D, "the idle clock is far from 0");
+        this.mainClip = ATTACK;
+        for (int i = 0; i < ATTACK_FRAMES; i++) {
+            frame();
+            assertEquals(this.main.getCurrentAnimationPoint().animTime(), this.main.getCurrentAnimationTime(), 1.0E-9D,
+                    "the attack's own time on frame " + i);
+        }
     }
 
     /**
