@@ -3975,7 +3975,7 @@ The code layers add to the clip pose each frame, in this order. No layer writes 
 - Dust trail (D340):
   - A custom particle type with the agent-made grey dust sprites (D330): 4 frames of 16×16 that show one lumpy cloud breaking up into specks. Each puff plays the frames by age, as vanilla campfire smoke does: a cloud at the foot, specks as it fades.
   - Code tints each puff with the colour of the block under the foot, made 30 % paler, because dust is lighter than the ground. The amount is a config value, set in playtest. The task plan picks the colour source. Grass gives brown dust, as vanilla sprint particles do, not green.
-  - Each puff picks a size and an opacity from a range. It is thrown back behind the foot, slows down, rises a little, and fades out at the end of its life. It does not follow the animal forward.
+  - Each puff picks a size and an opacity from a range. It is thrown back behind the foot, slows down, rises a little, and fades out at the end of its life. A fast animal may drag some dust forward where that looks right. The amount is set in playtest.
   - Each foot makes its burst when it lands: two feet on a biped, four on a quadruped.
   - The count and size per footstep grow with body size and speed. Starting values from the concept renders (2026-11-03), set in playtest:
     - Velociraptor: 4 puffs of 0.45 to 0.8 block, thrown back 0.5 to 1 block, rise 0.25 to 0.5 block, life up to 1.1 s.
