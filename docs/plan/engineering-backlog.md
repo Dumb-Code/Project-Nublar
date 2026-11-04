@@ -2999,6 +2999,8 @@ F2.0 builds one brain skeleton for every dinosaur: an activity ladder, need and 
   | passive | never | no | yes |
   | scared | never | no | yes |
 
+  - Only a species whose diet includes meat hunts (D390). A herbivore with any temperament or aggression gene fights back, defends and alerts, but never starts a hunt.
+
 - [ ] **Sleep windows.** REST switches by `SmartBrainSchedule.byDaytime` per `activity_window`. The F2.4 sleep behaviour reads the window from here.
   - Diurnal: 16,000 to 24,000.
   - Nocturnal: 4,000 to 12,000 (10:00 to 18:00, 8 h).
@@ -3151,7 +3153,7 @@ Spec F2.0 "How genes change behaviour".
   | Stress Tolerance (design doc name: Lower Threshold Stress) | Raises `stress_threshold` | F2.4 |
   | Heredity | See notes below | F2.5 part B |
 
-  - **Intelligence (I):** search radius and retry factor 0.75 + 0.05 × I. Failed-target time × (1 + 0.05 × I). Detection + I points.
+  - **Intelligence (I):** search radius and retry factor 0.75 + 0.05 × I. Failed-target time × (1 + 0.05 × I). Detection + I points. Remembered food and water spots per need: 1, 2 or 3 (F2.4, D386).
   - **Heredity:** midpoint plus variation. Choice genes come from one parent. Quirks: 50 % per parent that has it. Risk behaviour: from one parent, with a 50 % chance.
 
 - [ ] Each mapping that has no primary value carries a `_basis` note in the config reference.
@@ -3295,13 +3297,13 @@ See Art list → each species. Shared with F2.3.
 - **Behaviour genes.** A Velociraptor with wolf DNA counts as lonely with 3 mates near it (minimum 5). An unedited one does not. A Velociraptor finds a new feeder 32 blocks away sooner than a Brachiosaurus (median of 20 runs). A Triceratops with +75 % nocturnal sleeps in daytime.
 - **Performance.** 20 animals in one paddock keep the server tick under 25 ms on the reference setup, with the idle pool, the call scheduler, feeding claims and contentment on (F2.4 budget).
 
-**Changed since last review:** Feeding order applies to every species and source, with no fixed limit of 3. Company is a stress cause, not a need band. Lost sleep gives no stress. Carnivores are cathemeral. Gallimimus is an omnivore. Brachiosaurus defends. Hover box shows icons only. Contentment cap is lowest part + 50. No scent trails.
+**Changed since last review:** Feeding order applies to every species and source, with no fixed limit of 3. Company is a stress cause, not a need band. Lost sleep gives no stress. Carnivores are cathemeral. Gallimimus is an omnivore. Brachiosaurus defends. Hover box shows icons only. Contentment cap is lowest part + 50. No scent trails. Only meat-eaters hunt; herbivores defend but never hunt (D390). Intelligence sets how many food and water spots an animal remembers (D386).
 ### F2.1: Species core
 
 F2.1 gives each species its own stats, smooth growth, a carcass at death, baby behaviour, and section hitboxes with IK.
 
-- **Size:** XL (part A) + XL (part B)
-- **Depends on:** M1. Part B also needs F2.2 and F2.5 part A.
+- **Size:** XL (part A) + XL (part B) + M to L (part C)
+- **Depends on:** M1. Part B also needs F2.2 and F2.5 part A. Part C needs part B.
 - **Specs:** part B follows `docs/dinosaur-hitboxes-and-movement-design.md` ("Hitboxes", "Anti-clipping and IK", "Cross-loader implementation").
 - **Touches:** `J/entity/dinosaur/Dinosaur`, `CarnivoreDinosaur`, `HerbivoreDinosaur`, the six species classes, `J/entity/dinosaur/PartEntity`, both `DinosaurPart` classes (removed), `J/registry/EntityInit`, `MemoryModuleTypeInit`, `AttributesInit`, `J/util/DinoNeedsUtils`, `FenceAwareNodeEvaluator`, `J/init/DataSerializerInit`, the species renderers, new `CarcassEntity`, `RemainsItem`, part, pose-state and bake classes, a Gradle bake task, both loader modules.
 
@@ -3313,7 +3315,7 @@ F2.1 gives each species its own stats, smooth growth, a carcass at death, baby b
 - **Carcass.** A dead dinosaur leaves a carcass that players and scavengers eat.
 - **Babies.** Babies follow a parent and do not hunt.
 - **Body parts.** Arrows and melee hits land on the head, neck, torso, legs and tail.
-- **Natural pose.** Necks and tails bend away from blocks. Feet sit on the ground.
+- **Natural pose.** Necks and tails bend away from blocks. The body leans a little to fit uneven ground, and the feet sit on it.
 
 #### Not in Beta
 
@@ -3355,9 +3357,18 @@ F2.1 gives each species its own stats, smooth growth, a carcass at death, baby b
 - Water path cost: water deeper than the animal's height costs more, scaled by the underwater gene.
   - Babies and small species go around deep water. Large ones wade.
   - It is a cost, not a wall.
-- Wading and swimming: an animal in water wades while the water is shallower than a set share of its body height. In deeper water it swims. The share: value open, lead decides.
-  - A swimming animal does not bob like a vanilla mob, at any depth.
-  - A wading or swimming animal climbs out where the shore lets it.
+  - Water that the animal can wade costs less than other water, so animals cross shallow rivers (D383).
+- Wading and swimming: an animal in water wades while the water is no deeper than a share of its body height. In deeper water it swims (D382).
+  - Start share: 0.55 of the body height, tuned in game.
+  - A long-necked species (Brachiosaurus) wades while most of its neck stays above the water, also when its body is under. The bake gives the neck point.
+  - Depth is the water surface minus the top of the solid block shape below it.
+  - Wadeable water is walkable ground for that animal's path. A shore cell is walkable only when its 27 neighbours are dry or wadeable.
+  - A wading animal moves at a little under land speed (start 90 %, tuned in game), at any depth (D383). Water does not drag or push it.
+  - A swimming animal does not bob like a vanilla mob, at any depth. A jump stops when the animal enters water.
+  - **Climb-out (D384):** in deep water, the animal looks for a dry ledge in a 12 × 4 area with at most 6 path tests. It swims straight at the ledge and kicks up when it is within 0.6 blocks. It stops after 600 ticks.
+  - **Retry near water (D384):** when a walk to food, water or a feeder, or a hunt reach test, fails in or near water, the search runs one more time with a lower water cost. The animal uses the new path only if it reaches the target. Herd journey and fallback paths do not retry.
+  - A very thirsty animal that stands in water drinks where it stands (D384).
+  - A hunter may chase prey that stands in water while the prey is not fully under water (D384).
 
 ##### Death and carcass
 
@@ -3449,12 +3460,22 @@ F2.1 gives each species its own stats, smooth growth, a carcass at death, baby b
 - [ ] Neck and tail bend on the server tick within joint limits, with a synced bend-side byte.
   - A GeckoLib 5 updater adds the bend delta, lerped by partial tick.
   - A playtest checks for double sway and 20 Hz steps.
-- [ ] Client leg and foot IK: once per tick, lerped per frame, full within 16 blocks and none past 32.
+- [ ] Ground sampler for the leg IK and the part C body pose (D381). It reads the collision top of the block under each foot at the exact spot: slabs, stairs by facing, carpets, snow layers, farmland, fence posts, and the bed under water.
+  - 5 points per foot: the centre and 4 corners. The highest point counts.
+  - It starts at the heightmap when that is lower, so open sky costs no reads. An unloaded chunk counts as no ground.
+  - It replaces the IK ground raycasts.
+  - The bake gives each leg its foot spot (offset and size) and its length, from the rest pose. No new art.
+- [ ] Client leg and foot IK, by distance from the player (D393):
+  - Within 32 blocks: full IK once per tick, lerped per frame.
+  - From 32 to 48 blocks: full IK every other tick.
+  - From 48 to 64 blocks: each leg root moves up or down to its ground, with no knee solve (D381).
+  - Past 64 blocks: no leg work.
+  - The IK weight follows the gait: full when standing, less when walking, 30 % when running, so run clips keep their stride (D381).
   - Skip the solve for an animal that did not draw in the last frame (proposal, lead decides, D328). When it draws again, it solves before that frame, so the feet do not jump.
   - Keep the CHAOS branch solver and foot planner: FABRIK with knee limits, the foot segment, and the step planner. Keep their sources and credits, as the Mowzie's Mobs terms require.
   - Rewrite the part that writes the bones (D334). GeckoLib 5 bones are read-only, so the CHAOS bone class and its forced world matrices cannot port. The solve adds rotation deltas to the bone snapshots in a bone updater.
   - Leave out the CHAOS tail part and `ServerLimb` (D334). The server bend above covers tails, and nothing reads `ServerLimb`.
-  - The ground raycasts use a shared collision context. They do not create an entity per ray.
+  - The foot targets come from the ground sampler. It reads block shapes directly and creates no entity.
   - Each joint stops at its bend budget (F2.3). A foot target out of reach moves the target, never stretches the leg.
   - When the animal stops, the legs freeze and the IK pins the feet where they stand.
   - The 2024 board's open IK items (angle constraints, model and entity integration, movement and idle cycles) are context.
@@ -3476,6 +3497,20 @@ F2.1 gives each species its own stats, smooth growth, a carcass at death, baby b
   - Use GeckoLib 5 triggered animations and keyframe events.
   - Species data holds only the events that clip files lack.
 - [ ] Clips crossfade over 4 ticks through the GeckoLib transition length.
+
+#### Scope, part C: body pose on uneven ground
+
+Part C needs part B: the bake gives the foot spots, the sampler gives the ground, and the parts take the pose.
+
+- [ ] Body pose on uneven ground (D380). Before the leg IK, the body lifts, pitches and rolls to fit the ground under the feet.
+  - The server solves the pose each tick. It syncs lift, pitch and roll as 3 quantised bytes when they change. Clients lerp them by partial tick. The pose shows at every distance.
+  - The model and the torso, neck and tail parts use the synced pose, so hits match the visible body on a slope. Leg parts do not move.
+  - Support: a two-legged animal with both feet on the ground lifts and rolls, and never pitches. A four-legged animal with 3 or 4 feet on the ground lifts, pitches and rolls. With 2 feet it uses only the axes that those feet can show. Fewer feet give a weaker fit.
+  - Caps come from leg length L and scale s (start values, tuned in game): step up 0.35 × L × s, step down 0.9 × L × s, pitch at most 12°, roll at most 6° on two legs or 8° on four. A species can scale its tilt down (Brachiosaurus).
+  - Rate limits stop the body popping at a ledge. With no support, the pose holds for 0.75 s, then fades back to flat.
+  - A sleeping, dead, ridden or swimming animal fades to flat in about 0.35 s.
+  - A still animal costs almost nothing. The solve runs again only when the animal moves, turns, grows or its sample cache expires: 10 ticks, offset per animal.
+- [ ] A debug view shows the foot samples, the support and the tilt. A log gives the sample and solve cost per animal (D381).
 
 #### Config (defaults)
 
@@ -3510,6 +3545,9 @@ See Art list → each species, and Fossils and amber. Not done until those rows 
 - The hitbox grows with the model.
 - An adult T. rex does not path through a 1-wide gap.
 - A baby T. rex walks around a 3-deep pond when a land route exists.
+- An adult Triceratops walks through a 1-deep river at a little under its land speed. A Triceratops hatchling swims in it with no bobbing.
+- An adult Brachiosaurus wades through water deep enough to cover its body while most of its neck stays dry.
+- An adult T. rex dropped into a 3-deep pond with a 1-block bank climbs out within 600 ticks.
 - The Debug Stick shows need and activity to its holder only.
 - A killed Triceratops leaves a carcass that drops a horn. A killed Velociraptor drops no teeth. A carcass decays after 24,000 ticks.
 - A Velociraptor hatchling is 8 % of its adult height, and an infant 32 % (the T. rex ratios).
@@ -3530,6 +3568,8 @@ See Art list → each species, and Fossils and amber. Not done until those rows 
 - A creeper next to a T. rex tail damages it. A sweep across a tail reaches the animal.
 - The head part follows a calling Gallimimus's raised head.
 - A Brachiosaurus tail bends the same way on server and client.
+- A T. rex on a slab path keeps both feet on the slabs.
+- 20 Gallimimus within 32 blocks, all with full leg IK, keep the F2.3 frame gate: within 10 % of the F2.2 baseline frame time on the reference setup.
 - Parts appear for a `NoAI` animal on the first tick.
 - Melee and arrows on every part resolve on a dedicated server.
 - A tail in lava does not burn the dinosaur.
@@ -3542,6 +3582,13 @@ See Art list → each species, and Fossils and amber. Not done until those rows 
 - A look-around request during a T. rex roar fails, and the roar plays to its end.
 - A client that joins during a roar hears it at the synced tick, with no sound packet.
 
+#### Acceptance, part C (both loaders)
+
+- A Triceratops that stands across a 1-block step tilts its body, and all four feet rest on blocks. An arrow at its visible back hits the torso part.
+- A T. rex on a slope: its torso part sits within 0.1 blocks of the visible torso, on server and client.
+- A sleeping T. rex on a slope lies flat within 0.5 s.
+- A still animal re-solves its body pose no more than once per 10 ticks (debug log).
+
 #### Today in the code
 
 - A Brachiosaurus neck vanishes, because the box is `sized(2, 3)` (`EntityInit.java:36`).
@@ -3552,7 +3599,7 @@ See Art list → each species, and Fossils and amber. Not done until those rows 
 - Every attack deals its damage 20 ticks after it starts, for all species, whatever the clip length (0.83 to 3.71 s) (`Dinosaur.java`, `AnimatableMeleeAttack(20)`).
 - Hits use one axis-aligned box per animal. Tails and neck tips cannot be hit.
 
-**Changed since last review:** Leg IK keeps each joint within its bend budget, never stretches a leg, and pins the feet when the animal stops. Hit ticks come from a marker in each attack clip, and reach counts from the striking bone (D335). The bake also holds clip lengths and event ticks, and the shipped clips leave out bones that never move (D336). Leg IK keeps the CHAOS solver and planner with a new GeckoLib 5 bone writer, and leaves out the CHAOS tail (D334). A carcass lasts one in-game day. Only three species drop a special item, and only the T. rex drops teeth. Hatchlings use their own sounds. Mates share a carcass by feeding spots. Animals wade, then swim, by water depth against body height, with no vanilla bobbing. A leg IK skip for animals out of view and a part-count gap wait for the lead (D326, D328).
+**Changed since last review:** Leg IK keeps each joint within its bend budget, never stretches a leg, and pins the feet when the animal stops. Hit ticks come from a marker in each attack clip, and reach counts from the striking bone (D335). The bake also holds clip lengths and event ticks, and the shipped clips leave out bones that never move (D336). Leg IK keeps the CHAOS solver and planner with a new GeckoLib 5 bone writer, and leaves out the CHAOS tail (D334). A carcass lasts one in-game day. Only three species drop a special item, and only the T. rex drops teeth. Hatchlings use their own sounds. Mates share a carcass by feeding spots. Animals wade, then swim, by water depth against body height, with no vanilla bobbing. They wade up to 0.55 of their height, long necks deeper, cross shallow rivers a little slower and climb out at ledges (D382 to D384). The body leans to fit uneven ground on the server, and the torso, neck and tail parts follow it (D380). A block-top ground sampler replaces the IK raycasts (D381). Leg IK is full within 32 blocks, every other tick to 48, and a cheap ground shift to 64 (D393). Part C holds the body pose. A leg IK skip for animals out of view and a part-count gap wait for the lead (D326, D328).
 
 ### F2.2: Appearance
 
@@ -3910,11 +3957,12 @@ The code layers add to the clip pose each frame, in this order. No layer writes 
 | 2 | Head overlay | client | Plays short head clips over walk and idle (D341). |
 | 3 | Breathing sway | client | `IdleSway`, faster and deeper at low stamina (D338). It runs before the leg IK, so it never moves a planted foot (D342). |
 | 4 | Footfall bounce | client | A light dip of the body at each foot contact (D347). |
-| 5 | Leg IK | client | Feet on the ground (F2.1 part B). |
-| 6 | Neck and tail bend | server, synced | Bends away from blocks (F2.1 part B). |
-| 7 | Head look | client | Turns the head and neck toward the look target. |
-| 8 | Neck reach | client | Brings the snout to the water or food surface. |
-| 9 | Tail lag | client | Swings the tail behind turns. |
+| 5 | Body pose | server, synced | Lifts, pitches and rolls the body to fit the ground under the feet (F2.1 part B, D380). |
+| 6 | Leg IK | client | Feet on the ground (F2.1 part B). |
+| 7 | Neck and tail bend | server, synced | Bends away from blocks (F2.1 part B). |
+| 8 | Head look | client | Turns the head and neck toward the look target. |
+| 9 | Neck reach | client | Brings the snout to the water or food surface. |
+| 10 | Tail lag | client | Swings the tail behind turns. |
 
 - [ ] Head overlay (D341):
   - It plays clips that key only head, neck, jaw or tail bones over walk and idle.
@@ -4096,7 +4144,7 @@ See Art list → each species (every clip and sound row), and Dinosaur effects. 
 - Clip files total 12.4 MB; the T. rex file is 5.7 MB.
 - Fabric builds against GeckoLib 5.5.5 and NeoForge against 5.5.6. `RestartableAnimationController` uses 5.5.6 internals.
 
-**Changed since last review:** Short sounds never stream, every dinosaur sound varies in pitch and volume, and vocals get subtitles (D349 to D352). Dust takes vanilla's block particle colour, and the run fallback spawns by a chance from speed (D357, D358). Long-lived particles update less often far away (D359). Each animal breathes on its own phase and rate (D360). Head overlay clips play through a Nublar bone updater, not GeckoLib additive mode (D341). Breathing sway runs before the leg IK (D342). Effects start at the bone nearest the tip, with the listener on only when an effect can start (D343). A clip check in the unit tests (D344). Gallimimus walk and sentry fixes go to an agent (D345). No turning on the spot (D346). A light footfall bounce and control bones (D347, D348). Exact springs for tail lag and head look. The artist's GeckoLib plugin is 4.2.5. Agents make a new clip case by case, when the lead gives them the row (D331). A quality bar and clip checks for every clip, and a joint fix per species model first (D332). Head look, neck reach, tail lag and an additive overlay controller for head clips are in Beta (D333). Panting breath, effects from bone positions, and a dust trail of agent-made dust sprites tinted by the ground (D338 to D340). Turn lean waits until after Beta (D337). Every species gets own clips and sounds, placeholders count as missing. Per-species warning sounds. Only T. rex and Velociraptor have nesting clips. Limp in Beta below 30 % health. Get-up idle fallback is development only. Gallimimus gets blood effects. Screen shake for three large species. Per-species walk and run speeds are open. Triceratops rest idle holds the last pose of its lie-down. Two art-tool proposals wait for the lead (D320, D321). A screen shake rule waits for the lead (D324).
+**Changed since last review:** A body pose layer runs between the footfall bounce and the leg IK (D380). Short sounds never stream, every dinosaur sound varies in pitch and volume, and vocals get subtitles (D349 to D352). Dust takes vanilla's block particle colour, and the run fallback spawns by a chance from speed (D357, D358). Long-lived particles update less often far away (D359). Each animal breathes on its own phase and rate (D360). Head overlay clips play through a Nublar bone updater, not GeckoLib additive mode (D341). Breathing sway runs before the leg IK (D342). Effects start at the bone nearest the tip, with the listener on only when an effect can start (D343). A clip check in the unit tests (D344). Gallimimus walk and sentry fixes go to an agent (D345). No turning on the spot (D346). A light footfall bounce and control bones (D347, D348). Exact springs for tail lag and head look. The artist's GeckoLib plugin is 4.2.5. Agents make a new clip case by case, when the lead gives them the row (D331). A quality bar and clip checks for every clip, and a joint fix per species model first (D332). Head look, neck reach, tail lag and an additive overlay controller for head clips are in Beta (D333). Panting breath, effects from bone positions, and a dust trail of agent-made dust sprites tinted by the ground (D338 to D340). Turn lean waits until after Beta (D337). Every species gets own clips and sounds, placeholders count as missing. Per-species warning sounds. Only T. rex and Velociraptor have nesting clips. Limp in Beta below 30 % health. Get-up idle fallback is development only. Gallimimus gets blood effects. Screen shake for three large species. Per-species walk and run speeds are open. Triceratops rest idle holds the last pose of its lie-down. Two art-tool proposals wait for the lead (D320, D321). A screen shake rule waits for the lead (D324).
 ### F2.4: Needs
 
 F2.4 gives each dinosaur hunger, thirst, stamina, sleep and stress, makes each need have results, and keeps a 100-dinosaur park at 20 ticks per second.
@@ -4344,10 +4392,28 @@ Stress start values for playtest (proposal, lead decides):
 - Before it reads a 16-block section, a search asks the section palette for a diet-tag state. A section with none costs no reads.
 - Build search timers on SBL memories with an expiry, and gate sensors with `onlyScanIf`.
 
+##### Remembered food and water spots
+
+- Each animal saves the spot of its last meal and its last drink (D385).
+  - Spots per need by intelligence I (0 to 10 scale): 1 below 4, 2 from 4, 3 from 7 (D386, start values). It uses the nearest live spot.
+  - A spot that the animal has not visited for 3 in-game days goes (D386, start value, tuned in game).
+  - A spot within 8 blocks that gave nothing goes.
+- When a search finds nothing and the need is in its WANTS band or lower, a solo animal treks to a remembered spot.
+  - The trek lasts at most 2,400 ticks, at 80 % of the walk speed. In the URGENT band the speed cap goes.
+  - Every 20 ticks with no path: a search runs again if the animal moved 8 blocks since the last one. Else the animal paths straight to the spot if it is within 20 blocks, or else it takes a hop toward the spot.
+  - It stops within 8 blocks of the spot, and the normal search runs.
+  - If the distance does not fall by more than 2 blocks over 4 checks, the spot joins the failed-target ring and the trek ends.
+- A herd member does not trek alone. It writes its spot into the group memory, and the leader's journey goes there (F2.5 part A, herd water trip and herd meal).
+- **Foraging drift (D386):** while a need's last search found nothing and the need is still in WANTS or lower, wander picks targets far from the last 16 failed search spots. So the animal leaves a stripped patch.
+- Trek paths count against `ai.path_budget_per_tick` like any need walk.
+
 ##### Predator reach tests
 
 - The prey pass tests reach for at most 6 candidates per scan. A failed target costs no test.
 - While hunting, retest reach every 40 ticks. A fail ends the hunt and adds the failed target.
+- **Hunt watchdog (D389):** a hunt makes progress while the gap to the prey falls more than 1 block below its best, the prey's health falls below its lowest, or the hunter holds the gap at a full sprint.
+  - 200 ticks with no progress ends the hunt. The prey's spot joins the failed-target ring for 600 ticks.
+  - Long sprint chases still end by stamina ("Stamina-limited chases").
 - After any hunt, a 50 to 69 tick lockout precedes the next pick.
 - An optional species ratio skips prey whose max health exceeds ratio × own max health. Default off. JC3 uses 0.9.
 
@@ -4417,12 +4483,18 @@ GameTests on both loaders.
 - Herd members in REST fall asleep and wake on different ticks.
 - A starving dinosaur does not sleep in its window. A dinosaur with a monster in its box does not sleep.
 - A raptor with dropped meat and a stocked feeder in range eats the meat first.
+- A thirsty Dilophosaurus whose only water is 48 blocks away, at a pond it drank from before, treks there and drinks.
+- A thirsty Triceratops herd member does not leave its herd to trek. The leader's next journey goes to the member's water spot.
+- A remembered water spot that a player filled in is forgotten when the animal arrives, and the animal searches again.
+- A save and reload keeps every remembered spot.
 
 **Hunting**
 
 - A pack of three Velociraptors hunts a prey that one skips.
 - A fed T. rex never targets its own species. A starving one never targets its own group.
 - A predator whose prey hides makes at most 6 reach tests per scan.
+- A hungry T. rex chases a pig that circles on the far side of a 1-wide fence gap. The hunt ends within 200 ticks of the last progress, and the T. rex does not pick that spot again for 600 ticks.
+- A hungry Triceratops with a +50 % aggression gene never starts a hunt. It still fights back when hit.
 
 **Search and cost**
 
@@ -4451,7 +4523,7 @@ GameTests on both loaders.
   - The SmartBrainLib `Panic` behaviour was switched off on 1.20.1 too (a `TODO(DEAD)` note in the idle behaviours).
   - Vanilla path costs keep paths away from water and fire, but an animal that stands still never moves when fire spreads under it.
 
-**Changed since last review:** The Drink task turns the animal to face the water, and neck reach is an F2.3 code layer (D333). Loneliness is part of stress, with no bar. Need cooldown is 5 minutes. Lost sleep halves stamina regeneration and adds no stress. Danger memory lasts one in-game day. Five food tiers replace clade chunks. Herds graze together and idle-graze. Feeders are shared. Two path-cost proposals wait for the lead (D297, D298). A dinosaur moves away from fire within a radius (D322). The fire check keeps to the block-scan budget.
+**Changed since last review:** The Drink task turns the animal to face the water, and neck reach is an F2.3 code layer (D333). Loneliness is part of stress, with no bar. Need cooldown is 5 minutes. Lost sleep halves stamina regeneration and adds no stress. Danger memory lasts one in-game day. Five food tiers replace clade chunks. Herds graze together and idle-graze. Feeders are shared. Two path-cost proposals wait for the lead (D297, D298). A dinosaur moves away from fire within a radius (D322). The fire check keeps to the block-scan budget. Animals remember food and water spots and trek back to them; herd members hand the spot to the leader (D385). Clever animals keep more spots, spots expire, and a hungry animal drifts away from stripped ground (D386). A hunt with no progress for 200 ticks ends, but a sprint chase still runs on stamina (D389).
 
 ### F2.5: Groups: herds, packs, leaders, breeding, nests
 
@@ -4580,6 +4652,7 @@ Build in this order.
   - Only the main box breaks leaves, above a growth cut-off.
   - Large species break logs only when charging.
   - With `mobGriefing` off, breakers pass leaves and logs stay solid.
+  - On a climb, the leaf-clearing box also reaches up by the step height (D387).
   - Vanilla fences and walls hold dinosaurs with normal collision, and dinosaurs cannot break them. Beta has no decorative fences.
 - [ ] Capsule herd spacing with a circle broad phase.
   - The in-line pitch by the chest rule.
@@ -4607,7 +4680,7 @@ Build in this order.
   - Otherwise the leader roams its home area near its spot, and the pack follows in the wedge.
   - Beta has no home territory.
   - The roam radius is a config value in the task plan.
-- [ ] **Herd water trip** (D273). When the leader's thirst falls below 75 % (WANTS), its next journey target is the known water (the F2.4 water memory, or a search from the herd area).
+- [ ] **Herd water trip** (D273). When the leader's thirst falls below 75 % (WANTS), its next journey target is the known water (a water spot that members wrote into the group memory, F2.4, or a search from the herd area).
   - At the shore, each member claims a drinking spot along the water edge with the F2.0 spot model and drinks. Members with no spot wait as at a herd meal.
   - All regroup after the drink, and the herd returns to its area. No new clips: drink and walk.
   - A member whose own thirst is urgent still takes the D36 detour.
@@ -4621,13 +4694,19 @@ Build in this order.
   - Path types over the body height once per footprint column, cleared at search start and end.
   - A J13 compare switch checks it.
 - [ ] Step height `max(1, ceil(height ÷ 2) ÷ 2)`: Gallimimus 1.0, Brachiosaurus 2.5.
-  - A non-full block with a non-pathfindable collision shape in the step zone sets 0 for that move.
+  - A non-full block in the step zone sets 0 for that move only when it is fence-like, taller than 1 block, or has a gap in its shape (D387). Slabs and carpets keep the step.
+- [ ] A wide animal's path starts at the cell that its footprint covers (D387). If the body does not fit there, it starts at the nearest of the 3 × 3 cells around it at the same height, and else at the vanilla start.
+- [ ] An animal whose search starts inside cactus, powder snow or fire may path out through that block type, at a cost of at least 8, when its body fits (D387).
+- [ ] No path search runs below the world floor (D387).
+- [ ] Test item: if animals still stall at path nodes after the arrival fix, add a nudge. It moves the path on when the animal is within 0.25 blocks of a node that does not advance (D388).
 - [ ] Stuck detection.
   - Every 2 ticks add 2 to a window counter. Add 2 to a "trying" counter while a path is unfinished or the target is farther than width + 2.
   - A move of 2 blocks resets both.
   - At 60 counted ticks the animal is stuck if trying ≥ a third of the window.
   - A block by mates is waiting. Stuck starts the first ladder rung.
-- [ ] A rung tests 16 directions up to 8 steps for the longest run where the body fits with ground within 2 blocks below.
+- [ ] A rung tests each of the 8 directions once, up to 8 steps, for the longest run where the body fits with ground within 2 blocks below (D387).
+  - Between equal runs it picks one at random, so it does not try the same lane again.
+  - It skips a run over fire, cactus, honey, powder snow or another block with a negative path cost.
   - It walks there for 60 ticks if the run is longer than 1.
 
 #### In scope, part B: social life and breeding
@@ -4805,6 +4884,10 @@ GameTests on both loaders, in common code.
 - A 20-animal herd passes a 2-wide corridor in single file and regroups.
 - A growing animal next to a fence never clips into it.
 - A stuck animal reaches the snap rung and continues.
+- A stuck Velociraptor with two equal lanes, one over a cactus row, never takes the cactus lane. Over 10 stuck episodes in an open pen, it does not take the same lane every time.
+- An adult T. rex beside a wall and an adult Brachiosaurus in a 4-wide doorway each find a path on the first search.
+- A Gallimimus standing in a cactus patch walks out of it.
+- A Triceratops climbs a slab path one slab at a time and does not stall.
 - A far member with gaps of up to 20 ticks between asks still gets its fallback path.
 - The server tick stays inside the budget (estimates, profile in the PR):
   - Load A, 20 Gallimimus: 2 to 3 ms.
@@ -4865,7 +4948,7 @@ Both loaders.
 
 - A young's gender change also changes the mother's, because both share one genome.
 
-**Changed since last review:** No turning on the spot: the body turn rate falls with ground speed, and a standing animal steps as it turns (D346). Slot spacing scales with body size. Followers detour only at the urgent need band. A hungry pack journeys, a fed pack roams near its leader. No home territory. Dilophosaurus hunts as a pack. Nest from vanilla blocks. Breeding needs full health and no young near. Eggs count as young. Young do not count toward group size. Hatch rates raised. Triceratops horn set and horn colour come from one parent.
+**Changed since last review:** No turning on the spot: the body turn rate falls with ground speed, and a standing animal steps as it turns (D346). Slot spacing scales with body size. Followers detour only at the urgent need band. A hungry pack journeys, a fed pack roams near its leader. No home territory. Dilophosaurus hunts as a pack. Nest from vanilla blocks. Breeding needs full health and no young near. Eggs count as young. Young do not count toward group size. Hatch rates raised. Triceratops horn set and horn colour come from one parent. The stuck rung tests 8 distinct directions, picks at random between equal runs and skips hazards. Wide bodies start paths from their footprint, animals walk out of cactus and powder snow, and slabs keep the step (D387). A node nudge is a test item only (D388). The herd water trip uses the members' remembered water spots (D385).
 ### F2.6: The player: threat displays, detection, taming
 
 F2.6 decides how a dinosaur notices a player, how it warns before an attack, and how a player tames a calm animal.
@@ -6285,6 +6368,7 @@ BH.1 removes dead code and makes a large park run at full speed on a server.
 - Remove the `DebugStick` chat output. Check that no print call remains.
 - Resolve every open rft `TODO(BUG)` or make it a GitHub issue.
 - Every custom NBT root has a `"version"` integer.
+- A save round-trip command (D391), operator level 2: `/projectnublar debug roundtrip` saves the dinosaur or machine that the player looks at, loads it into a fresh copy and saves again. It lists each field that changed (`key: old → new`; list order does not count). The lead runs it in game on each species and each machine.
 - Remove the dead `shaders/core/incubator_bed` shader files (D364). No code uses them, and their old GLSL form cannot compile on 26.2.
 
 #### Profiling
@@ -6386,7 +6470,7 @@ Each fast path has three switches. They apply to the part index, the column cach
 - The PR records the vertex-allocation result.
 - The four lab machines at work meet the machine gate of F1.10, measured against the same world without the machines on the developer's own PC (F3 integrated-server tick, median of three readings one minute apart).
 
-**Changed since last review:** An Effects quality preset with cost labels (D356). Three resource-pack mod rows in the test matrix (D363). The dead incubator bed shader goes (D364). Machine gate set: the four lab machines add less than 2 ms to the server tick, and the client keeps at least 90 % of its frame rate with the lab in view. Worst-tick readings, distance-band gaps and a particle switch that follows vanilla wait for the lead (D323, D326, D329).
+**Changed since last review:** An Effects quality preset with cost labels (D356). Three resource-pack mod rows in the test matrix (D363). The dead incubator bed shader goes (D364). A save round-trip command lists fields that a save and reload lose (D391). Machine gate set: the four lab machines add less than 2 ms to the server tick, and the client keeps at least 90 % of its frame rate with the lab in view. Worst-tick readings, distance-band gaps and a particle switch that follows vanilla wait for the lead (D323, D326, D329).
 
 ### BH.2: Balance playtest and release
 
@@ -6512,6 +6596,7 @@ R03 adds the world data for the new species and the water systems that the Mosas
 These items are not in Beta (section 11.13) and not in Release 1. The lead assigns each one.
 
 - Pteranodon (the Release Plan says Release 2).
+  - Once its clips exist (idle, walk, takeoff, flap, soar, land, dive, fall, air death), study JurassiCraft 3.1.0 Ludodactylus flight for take-off checks, the landing-spot scan and banking (D392).
 - The tablet, the DNA server, hybrids, false eggs.
 - Gates, the overhanging fence, backup generators.
 - Trace and generic fossils, terracotta host stone, the drill extractor.
@@ -7190,7 +7275,7 @@ These rows come from a review of the specs against mechanics in other games.
 | D288 | F4.2 | Lead (2026-10-25): a basic level of arcade racing makes the vehicles more fun. Which handling moves ship, on which vehicles, and when? | Answered 2026-10-25 (lead): drift boost, slipstream, air pitch control and air trick boost. The Jeep has them, and so does the Explorer while the player drives it by hand. They ship in Beta. The question also offered a countdown start boost, and the lead did not pick it. The values in F4.2 are proposals | Answered |
 | D289 | F1.10 | The 26.2 port draws the machine-screen sliders and dropdown arrows with vanilla's sprites, because vanilla removed the old slider texture. Should machine screens use their own look? | Answered 2026-10-25 (lead): yes. Sliders, dropdown arrows, buttons and text boxes on machine screens get Nublar sprites in the Sequencer style, in F1.10. Until the art exists they use the vanilla 26.2 sprites and plain code-drawn frames | Answered |
 | D290 | F2.2, F1.5, F2.0, F2.5 | The Triceratops model has four horn sets, and each art file paints one set. The 26.2 port drew all four sets on every animal. Which horn set and horn colour does an animal show, and who chooses them? | Answered 2026-10-28 (lead): horn models and colours are "tied to genes so that players can modify". They are "passed down from parents to offsprings". Horn set and horn colour are look genes. Each animal shows one horn set in one horn colour. The player picks and edits both in the Sequencer. A bred young takes each from a random parent, one roll per trait. The colours are the art's colour files (Brown, Grey, Black), not a tint. Until the genes exist, each animal gets a random set and colour, fixed for that animal (M0.P2 Task 46). Open for the art team: the `v2` files and the Black/Yellow overlays (Art list question 22) | Answered |
-| D291 | F2.0, F2.1 | The plan has a water path cost and a "Swimming and wading" activity. Today an animal in deep water sinks to the bottom and drowns if it cannot climb out, as on 1.20.1. When does an animal wade, and when does it swim? | Answered 2026-10-28 (lead): dinosaurs "wade through water and then swim based on the depth to height ratio". There is "no vanilla floating". An animal wades while the water is shallower than a set share of its body height, and swims in deeper water. A swimming animal does not bob like a vanilla mob, at any depth. A wading or swimming animal climbs out where the shore lets it. The share: value open, lead decides | Answered |
+| D291 | F2.0, F2.1 | The plan has a water path cost and a "Swimming and wading" activity. Today an animal in deep water sinks to the bottom and drowns if it cannot climb out, as on 1.20.1. When does an animal wade, and when does it swim? | Answered 2026-10-28 (lead): dinosaurs "wade through water and then swim based on the depth to height ratio". There is "no vanilla floating". An animal wades while the water is shallower than a set share of its body height, and swims in deeper water. A swimming animal does not bob like a vanilla mob, at any depth. A wading or swimming animal climbs out where the shore lets it. The share is answered in D382 | Answered |
 | D292 | M0.B00, F2.3 | Every species walks and runs at the same body speeds. Each species' walk and run clips show its own pace, so the feet slide, as on 1.20.1. The species data has a `speed` stat, but no walk speed, run speed or walk-to-run switch per species. What are they? | Lead (2026-10-28): "It was more the speed of their walking itself. And it's still not much better as there is still a sliding effect." Each species gets its own walk speed, run speed and walk-to-run switch. The values: value open, lead decides. Until then, every species keeps the shared body speeds | Lead decision pending |
 | D293 | F3.3 | In the lead's playtest of 2026-10-28, the Small Carnivore Feeder platform does not rise smoothly, and the meat shows only at the top. The meat shows all or nothing. How do the platform and the meat look? | Answered 2026-10-28 (lead): "There's a lot of glitching as the platform rises and meat only appears when the platform hits the top - note this for later to fix". "Also the meat chunks should disappear chunk by chunk as the dinosaurs eat from it". A carnivore platform rises smoothly, with the meat on it for the whole rise. As dinosaurs eat, the meat pieces disappear one at a time, in step with the food left. The fix is F3.3 work | Answered |
 | D294 | F3.1 | In the lead's playtest of 2026-10-28, the black outline and the collision box of a fence post do not turn with the post. They are a fixed upright box (`DEFAULT_SHAPE`) or the wire boxes. Only the aim check uses the turned post shape (`cachedShape`). Same on 1.20.1 (Forge). Parity row F9 covers the wire outline only. Does the plan add an outline and a collision box that turn with the post? | Answered 2026-10-28 (lead): "Add to plan, later". The outline and the collision box of a post turn with the post. The fix is F3.1 work | Answered |
@@ -7326,6 +7411,20 @@ These rows come from the Recrafted research (`reports/Recrafted visual and sound
 | D363 | BH.1 | Should the mod test matrix get Polytone, Continuity and EMF with ETF? Does the lead own Recrafted for one run? | Answered 2026-11-04 (lead): "Add all three rows", "I don't own Recrafted". No Recrafted run | Answered |
 | D364 | BH.1 | The `incubator_bed` core shader is dead and cannot compile on 26.2. Remove it? | Answered 2026-11-04 (lead): "Remove in BH.1 cleanup" | Answered |
 | D365 | R01 | Resource packs replace the vanilla grass, fern and leaf models. Should Nublar plants avoid them as parents? | Answered 2026-11-04 (lead): "E: own plant models" | Answered |
+| D380 | F2.1, F2.3 | JurassiCraft 3.1.0 lifts, pitches and rolls the body to fit the ground under the feet. Nublar's leg IK never stretches a leg, so a foot floats on a step. Which version goes into F2.1 part B? | Answered 2026-11-04 (lead): "B: synced, parts follow". The server solves the pose and syncs 3 bytes. The model and the torso, neck and tail parts follow it. Leg parts do not move | Answered |
+| D381 | F2.1 | Which body pose add-ons go in? | Answered 2026-11-04 (lead): all four. A block-top ground sampler replaces the IK raycasts. The leg IK weight follows the gait. Distant legs get a ground shift with no knee solve (bands in D393). A debug view and a cost log | Answered |
+| D382 | F2.1, F2.0 | D291 left the wade share open. Up to what depth does a dinosaur wade? | Answered 2026-11-04 (lead): "half or maybe a bit more the body height but for some dinos like those with long necks should be able to wade as long as most of their neck is above water as their bodies will be too low". Start share 0.55, tuned in game | Answered |
+| D383 | F2.1 | How fast does a wading dinosaur move? | Answered 2026-11-04 (lead): "let's make the land speed slow a little less costly", then "Slowdown + cheaper path". A small flat slowdown (start 90 %), and wadeable water costs less on the path | Answered |
+| D384 | F2.1 | Which wading extras go in? | Answered 2026-11-04 (lead): all four. Ledge climb-out, a path retry near water (need walks and reach tests only, lead 2026-11-04 review), drinking while standing in water, and chasing prey into the shallows | Answered |
+| D385 | F2.4, F2.5 | JurassiCraft 3.1.0 animals save their last food and water spot and trek back. How does it fit Nublar's herds? | Answered 2026-11-04 (lead): "Solo treks, herds share". A herd member writes its spot into the group memory, and the leader's journey goes there | Answered |
+| D386 | F2.4, F2.0 | Which spot memory extras go in? | Answered 2026-11-04 (lead): all three. Foraging drift away from failed search spots, the intelligence gene sets 1 to 3 spots per need, and spots expire after 3 in-game days without a visit (start value) | Answered |
+| D387 | F2.5 | Which pathing and stuck fixes go into F2.5 part A? | Answered 2026-11-04 (lead): all four. The stuck rung tests 8 distinct directions, picks at random between equal runs and skips hazards. Wide-body start node. Hazard escape. Slabs and carpets keep the step, the leaf box reaches up on climbs, and no path search runs below the world floor | Answered |
+| D388 | F2.5 | A waypoint nudge moves the path on when an animal stalls within 0.25 blocks of a node. The planned arrival fix targets the same fault. What happens to the nudge? | Answered 2026-11-04 (lead): "Keep as a fallback". A test item only, added if animals still stall after the arrival fix | Answered |
+| D389 | F2.4 | A hunt that makes no progress for 200 ticks ends. How does it fit the stamina chase? | Answered 2026-11-04 (lead): "Stamina-aware". Holding the gap at a full sprint counts as progress, so sprint chases still end by stamina | Answered |
+| D390 | F2.0 | The temperament table lets a hungry or aggressive herbivore hunt, against F2.1. Add a diet rule? | Answered 2026-11-04 (lead): "Add the diet rule". Only species whose diet includes meat hunt | Answered |
+| D391 | BH.1 | Which dev tools from JurassiCraft 3.1.0 go in? | Answered 2026-11-04 (lead): the save round-trip check only | Answered |
+| D392 | Release 2 | JurassiCraft 3.1.0 flight is a reference for the Pteranodon, which has no clips yet. What goes into the plan? | Answered 2026-11-04 (lead): "One-line pointer". No design and no tasks until the clips exist | Answered |
+| D393 | F2.1 | The plan had full leg IK within 16 blocks and none past 32. With the body pose synced to every distance, where does the leg work stop? | Answered 2026-11-04 (lead): "full IK within 32 and cheaper at 48 and none past 64", then "Three steps to 64". Full IK within 32, every other tick from 32 to 48, a leg root shift from 48 to 64, nothing past 64. Part C (body pose) splits out of part B. The ground sampler stays in part B, because the leg IK needs it | Answered |
 
 ---
 
@@ -7430,3 +7529,4 @@ These rows come from the Recrafted research (`reports/Recrafted visual and sound
 - **2026-11-03 (dust motion):** From the concept renders (D340): dust is thrown back behind each foot and stays low, every foot that lands makes a burst, and F2.3 has starting values per species.
 - **2026-11-03 (animation resources research):** D341 to D348, and D327 answered. F2.3 gets a head overlay through a Nublar bone updater, breathing sway before the leg IK and a clip check in the unit tests. It also gets a light footfall bounce, control bones, exact springs for tail lag and head look, and the GeckoLib plugin 4.2.5. F2.2: two controllers and one garbage exception. F2.1: leg IK guards. F2.5: no turning on the spot. Art list: Gallimimus walk, run and sentry fixes for an agent.
 - **2026-11-04 (Recrafted research):** D349 to D365. Global constraints get rules for sound files, glow with no shader and pack-friendly ids. F2.3: short sounds never stream, every dinosaur sound varies, vocals get subtitles, dust takes vanilla's block particle colour, the run fallback spawns by a chance from speed, long-lived particles update less often, and each animal breathes on its own phase. F1.10: labels fit a wider font, and no colour is the only cue. BH.1: an Effects quality preset with cost labels, three resource-pack mod test rows, and the dead incubator shader goes. R01: plants use their own models.
+- **2026-11-04 (JurassiCraft 3.1.0 review):** D380 to D393. F2.1: the body leans to fit uneven ground and the hit parts follow, a block-top ground sampler, leg IK out to 64 blocks in three steps (D393), and wading up to 0.55 of the body height with climb-out. F2.4: remembered food and water spots, foraging drift and a stamina-aware hunt watchdog. F2.0: only meat-eaters hunt. F2.5: stuck rung and node fixes. BH.1: a save round-trip command. Release 2: a flight reference for the Pteranodon.

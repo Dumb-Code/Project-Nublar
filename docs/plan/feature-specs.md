@@ -1571,9 +1571,12 @@ Each activity below is in Beta. "Ends when" names what stops it. The ladder afte
 - A hungry pack journeys to find prey. Otherwise it roams its home area near its leader. It defends no home territory.
 - A pack that loses its leader flees to safety first. Then the two members with the highest dominance contest the lead.
 - Small animals go round deep water. Large animals wade.
-- An animal in water wades while the water is shallower than a set share of its body height. In deeper water it swims. The share: value open, lead decides.
+- An animal in water wades while the water is no deeper than about half its body height (start 0.55, tuned in game). In deeper water it swims (D382).
+- A long-necked animal (Brachiosaurus) keeps wading while most of its neck stays above the water, also when its body is under.
+- A wading animal walks a little slower than on land. It crosses a shallow river rather than walk around it (D383).
 - A swimming animal does not bob like a vanilla mob, at any depth.
-- A wading or swimming animal climbs out where the shore lets it.
+- A wading or swimming animal climbs out where the shore lets it. In deep water it swims to a dry ledge and climbs up (D384).
+- A very thirsty animal that stands in water drinks there. A hunter follows prey into shallow water (D384).
 
 ##### Rest
 
@@ -2155,6 +2158,7 @@ Section 11.6: aggression, intelligence, herd size, pack size, tamability, noctur
   - With intelligence I on the 0 to 10 scale after genes: (1) the food and water search radius is × (0.75 + 0.05 × I), and the retry delay is ÷ the same factor.
   - (2) A failed target stays remembered × (1 + 0.05 × I), so the animal stops trying an unreachable feeder sooner.
   - (3) The detection chance (F2.6) rises by I points.
+  - (4) It remembers more food and water spots: 1 below 4, 2 from 4, 3 from 7 (D386, start values).
   - Example: an unedited Velociraptor (intelligence 7) searches × 1.10, an unedited Brachiosaurus (intelligence 1) × 0.80. The raptor's search ring is about 40 % wider, so it finds a new feeder sooner.
 - **Herd size, pack size.** Herd size acts on herbivores, pack size on carnivores. A larger minimum makes a small group lonely sooner (company part of contentment).
   - Rounding: proposal, lead decides.
@@ -2274,7 +2278,7 @@ See Art list → each species, Dinosaur effects, Dinosaur hover box. Shared with
 
 **Engineering:** backlog F2.0 (new package). Scope owned here: the activity ladder and the idle pool (from F2.4), the stress-band idle shift (from F2.3), the temperament mapping (from F2.6). It adds feeding together (with F2.4, F2.5 and F3.3), contentment, and the behaviour gene readers (with F1.5).
 
-**Changed since last review:** Pairs count as company: only a lone adult gets the alone stress. Herd water trips. No scent trails. No home territory. Brachiosaurus defends. Carnivores stand or retreat by threat. Raptors hatch hyper-intelligent. Gallimimus is an omnivore. Loneliness is part of stress. Lost sleep gives no stress. Hover box shows icons only. Nest from vanilla blocks. Animals wade, then swim, by water depth against body height, with no vanilla bobbing. Triceratops horn set and horn colour come from one parent.
+**Changed since last review:** Animals wade up to about half their height, long necks deeper, cross shallow rivers a little slower and climb out at ledges (D382 to D384). Intelligence sets how many food and water spots an animal remembers (D386). Pairs count as company: only a lone adult gets the alone stress. Herd water trips. No scent trails. No home territory. Brachiosaurus defends. Carnivores stand or retreat by threat. Raptors hatch hyper-intelligent. Gallimimus is an omnivore. Loneliness is part of stress. Lost sleep gives no stress. Hover box shows icons only. Nest from vanilla blocks. Animals wade, then swim, by water depth against body height, with no vanilla bobbing. Triceratops horn set and horn colour come from one parent.
 ### F2.1 Species core
 
 F2.1 gives the six species their own stats, smooth growth, real-size bodies, hits that land where you aim, and a carcass when they die.
@@ -2285,6 +2289,7 @@ F2.1 gives the six species their own stats, smooth growth, real-size bodies, hit
 - **Smooth growth.** A hatchling is small and weak. Over in-game days it grows smoothly to adult size, and its body, hitbox and stats grow with it.
 - **Young need care.** Young animals follow a parent, cannot hunt and need care.
 - **Aimed hits.** An arrow in the head hurts more than an arrow in the tail.
+- **Natural pose.** The body leans a little to fit uneven ground, and hits still land where you aim (D380).
 - **Carcass.** A dead dinosaur leaves a carcass that drops meat, bones and special pieces. It decays after one in-game day.
 - **No two alike.** Each clone differs in stats, size, layer colours and rare morphs.
 
@@ -2527,8 +2532,9 @@ F2.3 gives each species its own clips, its own sounds and the full set of dinosa
   - **Breathing.** A slow sway per species, never doubled with a clip's own sway. As stamina falls below a third, the breathing gets faster and deeper, so a tired animal pants (D338). The breathing never moves a planted foot (D342). Each animal breathes on its own rhythm, a little faster or slower than the others, so a herd at rest never breathes in step (D360).
   - **Footfall bounce.** Each step gives the body a light dip and settle, so the weight shows (D347).
   - **Control bones.** A clip can turn a code layer down at exact times, for example head look off during a roar (D348).
-  - **Feet on the ground.** Legs bend so the feet sit on slopes and steps (F2.1).
-  - Within 32 blocks only. Farther animals hold their pose.
+  - **Body lean.** The body lifts and tilts a little to fit uneven ground, and the hit parts follow it (F2.1, D380). It shows at every distance.
+  - **Feet on the ground.** Legs bend so the feet sit on slopes and steps (F2.1). Full within 32 blocks, a little less often to 48, and a cheaper leg shift to 64 (D393).
+  - The other layers run within 32 blocks only. Farther animals hold their pose.
 
 #### Sound rules
 
@@ -2759,7 +2765,7 @@ See Art list → each species (Animations, Sounds), Dinosaur effects.
 
 **Engineering:** backlog F2.3.
 
-**Changed since last review:** Every call plays, sounds vary in pitch and volume, levels are clean, and vocals get subtitles (D349 to D352). Dust takes vanilla's block particle colour and grows with speed (D357, D358). Each animal breathes on its own rhythm (D360). Glow looks lit with no shader pack (D355). Head clips over walking keep the head's normal tilt (D341). Breathing never moves a planted foot (D342). A light footfall bounce and control bones (D347, D348). Animals step as they turn, never spinning on the spot (D346). Effects start at the bone nearest the tip. Agents make new clips case by case (D331). Joint fixes per model, a quality bar for every clip, and code layers for head look, short head clips over walking, neck reach, tail lag and breathing (D332, D333). Panting breath (D338). Turn lean waits until after Beta (D337). Effects start at the body part, and the dust trail takes the colour of the ground (D339, D340). Gallimimus gets blood drips and a bloody mouth. Screen shake only on T. rex, Triceratops and Brachiosaurus. T. rex and Dilophosaurus get bloody claws. Only T. rex and Velociraptor play a nesting clip. Per-species walk and run speeds are open. Triceratops rest idle holds the last pose of its lie-down.
+**Changed since last review:** The body leans to fit uneven ground at every distance, and feet stay on the ground out to 64 blocks (D380, D393). Every call plays, sounds vary in pitch and volume, levels are clean, and vocals get subtitles (D349 to D352). Dust takes vanilla's block particle colour and grows with speed (D357, D358). Each animal breathes on its own rhythm (D360). Glow looks lit with no shader pack (D355). Head clips over walking keep the head's normal tilt (D341). Breathing never moves a planted foot (D342). A light footfall bounce and control bones (D347, D348). Animals step as they turn, never spinning on the spot (D346). Effects start at the bone nearest the tip. Agents make new clips case by case (D331). Joint fixes per model, a quality bar for every clip, and code layers for head look, short head clips over walking, neck reach, tail lag and breathing (D332, D333). Panting breath (D338). Turn lean waits until after Beta (D337). Effects start at the body part, and the dust trail takes the colour of the ground (D339, D340). Gallimimus gets blood drips and a bloody mouth. Screen shake only on T. rex, Triceratops and Brachiosaurus. T. rex and Dilophosaurus get bloody claws. Only T. rex and Velociraptor play a nesting clip. Per-species walk and run speeds are open. Triceratops rest idle holds the last pose of its lie-down.
 ### F2.4 Needs: hunger, thirst, stamina, sleep, stress and company
 
 Dinosaurs get hungry, thirsty, tired, sleepy, lonely and stressed, and a park that neglects them pays for it.
@@ -2781,13 +2787,16 @@ Dinosaurs get hungry, thirsty, tired, sleepy, lonely and stressed, and a park th
 
 #### Feeding
 
-- **Prey.** Carnivores rank prey by clade, as on the T. rex card. Players and villagers are prey.
+- **Prey.** Carnivores rank prey by clade, as on the T. rex card. Players and villagers are prey. Only meat-eaters hunt. A herbivore defends itself but never hunts (D390).
+- **Lost hunts.** A predator that cannot close in or hurt its prey for 10 s gives up and tries elsewhere. A sprint chase still lasts until the predator tires (D389).
 - **Scavenging.** Carnivores eat carcasses and dropped meat. A kill of a player lowers hunger.
 - **Plants.** Herbivores eat grass, leaves and plants as blocks. Brachiosaurus eats high leaves, Triceratops low plants.
 - **Other mods.** Diet lists accept other mods' plants and meat.
 - **Head contact.** Eating and drinking count only when the head touches the source.
 - **Food value.** Five food tiers by item tag set the food value. The food value does not come from clade.
 - **Cooldown.** After an animal meets a need, a cooldown starts. During it, the animal does not look for that need. Values: see F2.0, When needs fail, Hunger.
+- **Remembered spots.** An animal remembers where it last ate and drank. When nothing is near, it walks back there. A herd animal tells its leader, and the herd goes together (D385). A clever animal remembers more spots, and an old spot is forgotten after a few days (D386).
+- **Moving on.** A hungry animal that finds nothing wanders away from the ground it has stripped (D386).
 
 Rules that F2.0 holds in full:
 
@@ -2864,7 +2873,7 @@ See Art list → each species (eat, drink, rest and sleep clips and sounds), Din
 
 **Engineering:** backlog F2.4.
 
-**Changed since last review:** Stress has no drift: +2 per cause and −5 relief per step. Only a lone adult gets the alone cause. Need rates are set (D258 to D261). The sleep cooldown follows damage only, and a full sleep is 5 minutes. Loneliness is part of stress, with no bar. Lost sleep gives no stress. Stress at 100 does no damage. Need cooldown is 5 minutes. A herd shares one tree or feeder. Idle grazing keeps the block. Gallimimus is an omnivore. Food tiers by item tag. A dinosaur moves away from fire within a radius (value open), and out of fire in its body box.
+**Changed since last review:** Animals remember food and water spots and go back to them (D385, D386). A stalled hunt ends after 10 s, and only meat-eaters hunt (D389, D390). Stress has no drift: +2 per cause and −5 relief per step. Only a lone adult gets the alone cause. Need rates are set (D258 to D261). The sleep cooldown follows damage only, and a full sleep is 5 minutes. Loneliness is part of stress, with no bar. Lost sleep gives no stress. Stress at 100 does no damage. Need cooldown is 5 minutes. A herd shares one tree or feeder. Idle grazing keeps the block. Gallimimus is an omnivore. Food tiers by item tag. A dinosaur moves away from fire within a radius (value open), and out of fire in its body box.
 
 ### F2.5 Groups: herds, packs, leaders, breeding, nests
 
@@ -2919,7 +2928,7 @@ Rules that F2.0 holds in full:
 - **Brachiosaurus.** An adult Brachiosaurus stays in open ground.
 - **Journeys.** Every 2 to 5 minutes, 156 to 314 blocks. The leader waits at most 10 s for stragglers.
 - **Paddocks.** A fenced herd picks journey targets inside its paddock only.
-- **Water trips.** When the leader's thirst falls below 75 %, its next journey goes to the known water. The herd drinks together at spots along the shore, like a herd meal, then regroups.
+- **Water trips.** When the leader's thirst falls below 75 %, its next journey goes to the known water: a spot where a member drank before (D385). The herd drinks together at spots along the shore, like a herd meal, then regroups.
 - **Detours.** The urgent-need detour (below 25 %): see F2.0, Which activity wins, Journeys.
 
 #### Feeding as a group
@@ -2980,7 +2989,7 @@ See Art list → Eggs and hatching (natural egg textures), each species (Animati
 
 **Engineering:** backlog F2.5.
 
-**Changed since last review:** Herd water trips when the leader's thirst falls below 75 %. Herd meals queue first. Urgent needs allow a detour from a journey. Nest from vanilla blocks, no nest model. Large clutches where most eggs fail, and failed eggs drop tissue. Group feeding for every species. Crowding gives no stress.
+**Changed since last review:** Water trips go to a spot where a member drank before (D385). Herd water trips when the leader's thirst falls below 75 %. Herd meals queue first. Urgent needs allow a detour from a journey. Nest from vanilla blocks, no nest model. Large clutches where most eggs fail, and failed eggs drop tissue. Group feeding for every species. Crowding gives no stress.
 
 ### F2.6 The player: threat displays, detection, taming
 

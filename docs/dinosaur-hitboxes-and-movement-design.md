@@ -111,7 +111,9 @@ The lead made these decisions after the research and the review. Each row gives 
 | Anti-clipping | Both methods. The planner avoids clipping spots, and the server bends the neck and tail within joint limits. The lead accepts small remaining mismatches. | — |
 | Neck and tail IK | Runs on the server tick with deterministic code. The client runs the same code. | CHAOS branch: client solve per render frame |
 | Bend side | The server picks the bend side per chain and syncs one byte | — |
-| Leg IK | Client only, visual only. Once per tick, lerped per frame. Full within 16 blocks, none past 32 blocks. | CHAOS branch: per-frame solve and server step planner |
+| Body pose | The server lifts, pitches and rolls the body to fit the ground under the feet, and syncs 3 bytes when they change. The model and the torso, neck and tail parts follow it. Leg parts do not move (D380). | — |
+| Ground reads | One block-top sampler for the body pose and the leg IK. It reads block shapes directly, with no raycasts (D381). | Ground raycasts |
+| Leg IK | Client only, visual only. Once per tick, lerped per frame, within 32 blocks. Every other tick from 32 to 48 blocks. A leg root shift with no knee solve from 48 to 64 blocks. None past 64 blocks (D393). | CHAOS branch: per-frame solve and server step planner |
 | CHAOS branch IK code | Part of the mod. The team uses it together with its sources: Mowzie's Mobs, the spider repo and others that apply. Credit is given as the Mowzie's Mobs terms require. The lead handles licence questions. | — |
 | Head contact | Eating and drinking count only when the head touches the source. The animal must be able to reach it. | — |
 | Neck reach IK | Deferred until eating and drinking animations exist | — |
@@ -659,7 +661,24 @@ Both are in [Movement](#corner-test-and-the-follower-danger-term). They reduce h
 
 **Why a synced side.** The bend search takes the first clear direction. Near a symmetric case, a 0.1-block input difference flips the choice. The inputs differ per side: lerped position, local `yBodyRot` and loaded chunks. Without the byte, the visible tail and the server tail can be up to 20 blocks apart (review H1, inference). With it, the two sides differ by the lerp error only.
 
-**Networking.** The pose state and the bend sides cost about 6 bytes per animal, sent on change only.
+**Networking.** The pose state and the bend sides cost about 6 bytes per animal, sent on change only. The body pose adds 3 bytes, sent on change only.
+
+### Body pose
+
+**In game:** a Triceratops across a step tips its body a few degrees, and all four feet rest on blocks. An arrow at its visible back hits the torso part.
+
+| Rule | Detail |
+|---|---|
+| Side | Server, deterministic. Clients lerp the synced lift, pitch and roll by partial tick (D380). |
+| Who follows | The model and the torso, neck and tail parts. Leg parts do not move. |
+| Support | Two legs: lift and roll, no pitch. Four legs: lift, pitch and roll with 3 or 4 feet down. With 2 feet, only the axes those feet show. |
+| Caps | From leg length L and scale s: step up 0.35 × L × s, step down 0.9 × L × s, pitch 12°, roll 6° (two legs) or 8° (four legs). Start values, tuned in game. |
+| Fades to flat | Sleeping, dead, ridden or swimming, in about 0.35 s. No support: hold 0.75 s, then fade. |
+| Cost | Solve again only on a move, turn, growth step or sample cache expiry (10 ticks, offset per animal). A still animal costs almost nothing. |
+| Data | Foot spots and leg lengths from the rest pose at the bake. |
+| Layer order | After the breathing sway and the footfall bounce, before the leg IK (F2.3). |
+
+**Ground sampler (D381).** The body pose and the leg IK read the ground through one sampler. It reads the collision top of the block under each foot at the exact spot, so slabs, stairs, carpets, snow layers, farmland and fence posts give their true height, and water gives its bed. Each foot has 5 sample points, and the highest counts. The scan starts at the heightmap when that is lower. An unloaded chunk counts as no ground.
 
 ### Client leg IK
 
@@ -669,8 +688,9 @@ Both are in [Movement](#corner-test-and-the-follower-danger-term). They reduce h
 |---|---|
 | Side | Client only |
 | Rate | Once per tick, lerped per frame |
-| Detail by distance | Full IK within 16 blocks of the player. None past 32 blocks. |
-| Raycasts | Pass `CollisionContext.empty()`, never an entity. No `Arrow` allocation per raycast. |
+| Detail by distance | Full IK within 32 blocks of the player. Full IK every other tick from 32 to 48 blocks. From 48 to 64 blocks, each leg root moves up or down to its ground with no knee solve. None past 64 blocks (D393). |
+| Weight by gait | Full when standing, less when walking, 30 % when running, so run clips keep their stride (D381). |
+| Ground reads | The ground sampler above. It reads block shapes directly and creates no entity. |
 
 The frame rate matters here. With 20 Gallimimus on screen, colour layers already cost about 80 % of the frame, at about 26 fps ([herd-movement handoff](../docs/superpowers/handoffs/2026-10-09-herd-movement-handoff.md)).
 
