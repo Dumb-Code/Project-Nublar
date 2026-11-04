@@ -35,7 +35,7 @@ Status words:
 - These rows say "Agent makes it" in the last column. They keep their status word and count as work for the screen task.
 
 **Who makes effect art** (D330)
-- The agent that builds an effect makes its effect art: particle sprites, footprints, and the overlays on a species texture (bloody mouth, bloody claws, snow cover). These are small frames at particle size, and crops, recolours or paint-overs of art in the mod or of vanilla particles.
+- The agent that builds an effect makes its effect art: particle sprites, footprints, and the overlays on a species texture (bloody mouth, bloody claws, the body coat mask for snow, sand, dirt and mud). These are small frames at particle size, and crops, recolours or paint-overs of art in the mod or of vanilla particles.
 - Agents do not make significant new art from scratch. The artist makes models, item and block textures, and new screen art.
 - These rows say "Agent makes it (D330)" in the last column. They keep their status word and count as work for the effect task.
 
@@ -133,7 +133,7 @@ Status words:
 - **Guns:** blocked on D08. They are not in the total.
 - **Per-milestone counts:** the roadmap's milestone table. They come from the Feature column of each row (F1.x is M1, F2.x is M2, F3.x is M3, F4.x is M4), with guns left out.
 
-**Changed since last review:** Sound files get a loudness target per class, a -1 dBFS peak limit and mono for world sounds; short clips do not stream (D349, D350). Glow must look lit with no shader pack (D355). The Gallimimus walk, run and sentry clips move to Needs conversion for an agent fix: a foot slide and sink, and keys after the end (D345). Each joint fix also adds one empty control bone (D348). Walk and run feet are planted with Blockbench IK and the GeckoLib plugin 4.2.5. A joint fix row per species model, made by the agent and approved by the lead (D332). Agents make new clips case by case (D331), and a quality bar applies to every clip. The T. rex turn clips move to Needs conversion: they hold one pose and key 9 bones the model lacks. Vehicle assembly uses existing groups, so the chassis and engine rows are gone and the wheel split is a Done developer row. Large Generator gets its own ignite, fuel-out and loop rows. Release 1 asset groups listed, not counted. Question 21 settled. One glow mask row per lab machine. Incubator lamp colours set as placeholders. The bird Embryo Syringe takes the 1.12 texture. The dinosaur-embryo syringe needs a new sprite. Edit-tab censor static row added. Generic pelvis, foot and spine are Missing: no shared sprite exists. Nublar widget kit for machine screens (sliders, dropdown arrows, buttons, text boxes), Sequencer style. Triceratops horn sets named: one file per set, one set and one colour per animal. Question 22 on the horn `v2` files and the Black/Yellow overlays. Triceratops rest idle holds the last pose of its lie-down, and it needs a get-up clip. Feeder 2 needs one bone per meat piece. Triceratops species icon imported. Amber ore needs an amber layer cut from the REPO ore texture. Creative Generator textures from 1.12.2 are ready to import. Sequencer screen rows for empty-slot icons, the soft glow and the status chip and event message. Shared scroll bar row. Processor fossil-slot icon row. Upgrade slot rows for the Sequencer, Egg Printer and Incubator screens. Sequencer motion sprites row. Gallimimus Drink clip is in the mod, to check in game.
+**Changed since last review:** Snow, bloody mouth and bloody claw overlays are grey fill-order masks, and code makes their 4 steps (D367). Sound files get a loudness target per class, a -1 dBFS peak limit and mono for world sounds; short clips do not stream (D349, D350). Glow must look lit with no shader pack (D355). The Gallimimus walk, run and sentry clips move to Needs conversion for an agent fix: a foot slide and sink, and keys after the end (D345). Each joint fix also adds one empty control bone (D348). Walk and run feet are planted with Blockbench IK and the GeckoLib plugin 4.2.5. A joint fix row per species model, made by the agent and approved by the lead (D332). Agents make new clips case by case (D331), and a quality bar applies to every clip. The T. rex turn clips move to Needs conversion: they hold one pose and key 9 bones the model lacks. Vehicle assembly uses existing groups, so the chassis and engine rows are gone and the wheel split is a Done developer row. Large Generator gets its own ignite, fuel-out and loop rows. Release 1 asset groups listed, not counted. Question 21 settled. One glow mask row per lab machine. Incubator lamp colours set as placeholders. The bird Embryo Syringe takes the 1.12 texture. The dinosaur-embryo syringe needs a new sprite. Edit-tab censor static row added. Generic pelvis, foot and spine are Missing: no shared sprite exists. Nublar widget kit for machine screens (sliders, dropdown arrows, buttons, text boxes), Sequencer style. Triceratops horn sets named: one file per set, one set and one colour per animal. Question 22 on the horn `v2` files and the Black/Yellow overlays. Triceratops rest idle holds the last pose of its lie-down, and it needs a get-up clip. Feeder 2 needs one bone per meat piece. Triceratops species icon imported. Amber ore needs an amber layer cut from the REPO ore texture. Creative Generator textures from 1.12.2 are ready to import. Sequencer screen rows for empty-slot icons, the soft glow and the status chip and event message. Shared scroll bar row. Processor fossil-slot icon row. Upgrade slot rows for the Sequencer, Egg Printer and Incubator screens. Sequencer motion sprites row. Gallimimus Drink clip is in the mod, to check in game.
 
 ## Questions for the artist and lead
 
@@ -220,7 +220,7 @@ Milestone: Dinosaurs.
   - Convert: Attack 2; Injured; Turn left and right.
 
 **Elsewhere for this species:**
-- Dinosaur effects (Missing): Bloody mouth overlay; Bloody claw overlay; Snow cover overlay.
+- Dinosaur effects (Missing): Bloody mouth overlay; Bloody claw overlay; Body coat mask.
 - Eggs and hatching (Ready to import): Printed egg, `tyrannosaurus` model; Natural egg.
 - Fossils and amber (Missing): Special piece, Tyrannosaurus tooth; Tyrannosaurus tooth fossil item; Tyrannosaurus tooth fresh drop.
 
@@ -389,7 +389,7 @@ Milestone: Dinosaurs.
 **Waits on the lead, not counted:** Crouch-then-leap.
 
 **Elsewhere for this species:**
-- Dinosaur effects (Missing): Bloody mouth overlay; Bloody claw overlay; Snow cover overlay.
+- Dinosaur effects (Missing): Bloody mouth overlay; Bloody claw overlay; Body coat mask.
 - Eggs and hatching (Ready to import): Printed egg, `velociraptor` model; Natural egg.
 - Fossils and amber: Skull (Ready to import); Special piece, Velociraptor toe claw (Missing); Velociraptor toe claw fossil item (Missing); Velociraptor toe claw fresh drop (Missing).
 - Guns (blocked, list only): Tranquilised clip for Velociraptor, Dilophosaurus, Triceratops, Brachiosaurus, Gallimimus (Missing).
@@ -613,7 +613,7 @@ Milestone: Dinosaurs.
 
 - Bloody mouth overlay: Dilophosaurus (Missing, Dinosaur effects)
 - Bloody claw overlay: Dilophosaurus (Missing, Dinosaur effects)
-- Snow cover overlay: Dilophosaurus (Missing, Dinosaur effects)
+- Body coat mask: Dilophosaurus (Missing, Dinosaur effects)
 - Printed egg: `velociraptor` model (Ready to import, Eggs and hatching)
 - Natural egg: Dilophosaurus (Missing, Eggs and hatching)
 - Skull: Dilophosaurus (Ready to import, Fossils and amber)
@@ -845,7 +845,7 @@ Milestone: Dinosaurs.
 
 **Elsewhere for this species:**
 
-- Snow cover overlay: Triceratops (Missing, Dinosaur effects)
+- Body coat mask: Triceratops (Missing, Dinosaur effects)
 - Printed egg: `tall_3` model (Missing, Eggs and hatching)
 - Natural egg: Triceratops (Missing, Eggs and hatching)
 - Skull: Triceratops (Ready to import, Fossils and amber)
@@ -1044,7 +1044,7 @@ Milestone: Dinosaurs.
 
 **Elsewhere for this species:**
 
-- Snow cover overlay: Brachiosaurus (Missing, Dinosaur effects)
+- Body coat mask: Brachiosaurus (Missing, Dinosaur effects)
 - Printed egg: `round` model (Missing, Eggs and hatching)
 - Natural egg: Brachiosaurus (Missing, Eggs and hatching)
 - Skull: Brachiosaurus (Ready to import, Fossils and amber)
@@ -1229,7 +1229,7 @@ Milestone: Dinosaurs.
   - Convert: Flinch.
   - Agent fix (D345): Walk (foot slide and sink), Run (foot sink), Sentry (keys after the end).
 
-Elsewhere for this species: Bloody mouth overlay: Gallimimus (Missing, Dinosaur effects); Snow cover overlay: Gallimimus (Missing, Dinosaur effects); Printed egg: `normal` model (Missing, Eggs and hatching); Natural egg: Gallimimus (Missing, Eggs and hatching); Skull: Gallimimus (Ready to import, Fossils and amber); Tranquilised clip: Velociraptor, Dilophosaurus, Triceratops, Brachiosaurus, Gallimimus (Missing, Guns (blocked, list only)).
+Elsewhere for this species: Bloody mouth overlay: Gallimimus (Missing, Dinosaur effects); Body coat mask: Gallimimus (Missing, Dinosaur effects); Printed egg: `normal` model (Missing, Eggs and hatching); Natural egg: Gallimimus (Missing, Eggs and hatching); Skull: Gallimimus (Ready to import, Fossils and amber); Tranquilised clip: Velociraptor, Dilophosaurus, Triceratops, Brachiosaurus, Gallimimus (Missing, Guns (blocked, list only)).
 
 ### Models
 
@@ -1393,7 +1393,7 @@ Milestone: Dinosaurs.
 
 - Effects: mouth and body (16): Roar spit particle; Drinking water drips; Blood drip particle; Bloody mouth overlay: Tyrannosaurus, Velociraptor, Dilophosaurus, Gallimimus; Bloody claw overlay: Tyrannosaurus, Velociraptor, Dilophosaurus; Plant bits particle; Foggy breath; Yawn effect; Sneeze effect; Snort effect; Camouflage look.
 - Effects: movement (5): Footprint: small biped, large biped, quadruped, sauropod; Air trails.
-- Effects: environment and sleep (10): Snow cover overlay: Tyrannosaurus, Velociraptor, Dilophosaurus, Triceratops, Brachiosaurus, Gallimimus; Splash ring; Water ripples; Sleep Zzz; Sleep bubbles.
+- Effects: environment and sleep (10): Body coat mask: Tyrannosaurus, Velociraptor, Dilophosaurus, Triceratops, Brachiosaurus, Gallimimus; Splash ring; Water ripples; Sleep Zzz; Sleep bubbles.
 
 **To import (0)**
 
@@ -1410,13 +1410,13 @@ Milestone: Dinosaurs.
 | Roar spit particle | Spit flies when a dinosaur roars | Missing | F2.3 | None. Agent makes it (D330). |
 | Drinking water drips | Water drips from the mouth after drinking | Missing | F2.3 | None. Agent makes it (D330). |
 | Blood drip particle | Blood drips while a carnivore or the Gallimimus eats meat | Missing | F2.3 | None. Agent makes it (D330). |
-| Bloody mouth overlay: Tyrannosaurus | Mouth turns red after eating meat | Missing | F2.3 | One overlay on the species UV map. Agent makes it (D330). |
-| Bloody mouth overlay: Velociraptor | Same | Missing | F2.3 | One overlay on the species UV map. Agent makes it (D330). |
-| Bloody mouth overlay: Dilophosaurus | Same | Missing | F2.3 | One overlay on the species UV map. Agent makes it (D330). |
-| Bloody mouth overlay: Gallimimus | The omnivore eats meat too | Missing | F2.3 | One overlay on the species UV map. Agent makes it (D330). |
-| Bloody claw overlay: Tyrannosaurus | Claws turn red after an attack | Missing | F2.3 | One overlay on the species UV map. Agent makes it (D330). |
-| Bloody claw overlay: Velociraptor | Same | Missing | F2.3 | One overlay on the species UV map. Agent makes it (D330). |
-| Bloody claw overlay: Dilophosaurus | Same | Missing | F2.3 | One overlay on the species UV map. Agent makes it (D330). |
+| Bloody mouth overlay: Tyrannosaurus | Mouth turns red after eating meat | Missing | F2.3 | One grey fill-order mask on the species UV map: dark pixels fill first, and code makes the 4 steps (D367). Agent makes it (D330). |
+| Bloody mouth overlay: Velociraptor | Same | Missing | F2.3 | One grey fill-order mask on the species UV map: dark pixels fill first, and code makes the 4 steps (D367). Agent makes it (D330). |
+| Bloody mouth overlay: Dilophosaurus | Same | Missing | F2.3 | One grey fill-order mask on the species UV map: dark pixels fill first, and code makes the 4 steps (D367). Agent makes it (D330). |
+| Bloody mouth overlay: Gallimimus | The omnivore eats meat too | Missing | F2.3 | One grey fill-order mask on the species UV map: dark pixels fill first, and code makes the 4 steps (D367). Agent makes it (D330). |
+| Bloody claw overlay: Tyrannosaurus | Claws turn red after an attack | Missing | F2.3 | One grey fill-order mask on the species UV map: dark pixels fill first, and code makes the 4 steps (D367). Agent makes it (D330). |
+| Bloody claw overlay: Velociraptor | Same | Missing | F2.3 | One grey fill-order mask on the species UV map: dark pixels fill first, and code makes the 4 steps (D367). Agent makes it (D330). |
+| Bloody claw overlay: Dilophosaurus | Same | Missing | F2.3 | One grey fill-order mask on the species UV map: dark pixels fill first, and code makes the 4 steps (D367). Agent makes it (D330). |
 | Plant bits particle | Leaves fall from the mouth while a herbivore eats | Missing | F2.3 | None. Agent makes it (D330). |
 | Foggy breath | Breath shows in cold biomes | Missing | F2.3 | None. Agent makes it (D330). |
 | Yawn effect | Tired or waking animal | Missing | F2.3 | None. Agent makes it (D330). |
@@ -1440,20 +1440,19 @@ Milestone: Dinosaurs.
 
 | Asset | Used for | Status | Feature | Where / reference |
 | --- | --- | --- | --- | --- |
-| Snow cover overlay: Tyrannosaurus | Snow on an animal that sits or sleeps in a snow biome | Missing | F2.3 | One overlay on the species UV map. Agent makes it (D330). |
-| Snow cover overlay: Velociraptor | Same | Missing | F2.3 | One overlay on the species UV map. Agent makes it (D330). |
-| Snow cover overlay: Dilophosaurus | Same | Missing | F2.3 | One overlay on the species UV map. Agent makes it (D330). |
-| Snow cover overlay: Triceratops | Same | Missing | F2.3 | One overlay on the species UV map. Agent makes it (D330). |
-| Snow cover overlay: Brachiosaurus | Same | Missing | F2.3 | One overlay on the species UV map. Agent makes it (D330). |
-| Snow cover overlay: Gallimimus | Same | Missing | F2.3 | One overlay on the species UV map. Agent makes it (D330). |
+| Body coat mask: Tyrannosaurus | Snow cover and the sand, dirt and mud coats (D370) | Missing | F2.3 | One grey fill-order mask on the species UV map: dark pixels fill first, and code makes the 4 steps (D367). Each coat colours it with its own palette. Agent makes it (D330). |
+| Body coat mask: Velociraptor | Same | Missing | F2.3 | One grey fill-order mask on the species UV map: dark pixels fill first, and code makes the 4 steps (D367). Agent makes it (D330). |
+| Body coat mask: Dilophosaurus | Same | Missing | F2.3 | One grey fill-order mask on the species UV map: dark pixels fill first, and code makes the 4 steps (D367). Agent makes it (D330). |
+| Body coat mask: Triceratops | Same | Missing | F2.3 | One grey fill-order mask on the species UV map: dark pixels fill first, and code makes the 4 steps (D367). Agent makes it (D330). |
+| Body coat mask: Brachiosaurus | Same | Missing | F2.3 | One grey fill-order mask on the species UV map: dark pixels fill first, and code makes the 4 steps (D367). Agent makes it (D330). |
+| Body coat mask: Gallimimus | Same | Missing | F2.3 | One grey fill-order mask on the species UV map: dark pixels fill first, and code makes the 4 steps (D367). Agent makes it (D330). |
 | Splash ring | Large animal enters or moves in water | Missing | F2.3 | None. Agent makes it (D330). |
 | Water ripples | Ripples when a large dinosaur is near water | Missing | F2.3 | None. Agent makes it (D330). |
 | Sleep Zzz | Sleeping animal | Missing | F2.3 | None. Agent makes it (D330). |
 | Sleep bubbles | Sleeping animal | Missing | F2.3 | None. Agent makes it (D330). |
-| Mud overlay | Mud look, for a later release | Not in Beta | F2.3 | None |
 | Wound overlays (cuts, scars) | Wound look | Not in Beta | F2.3 | REPO dinosaurs/_common/textures/damage_overlay_*.png |
 
-**Changed since last review:** All effects are in Beta. The Gallimimus gets blood drips and a bloody mouth. Screen shake stays with the three large species. All three carnivores get bloody claws. The dust trail is agent-made dust sprites, tinted by the ground (D340). Its 4 frames are in the mod, to check in game.
+**Changed since last review:** Each overlay row is one grey fill-order mask; code makes the 4 steps (D367). The snow cover rows became body coat masks: one mask per species serves snow and the sand, dirt and mud coats, so mud needs no row of its own and is in Beta (D370). Wet skin needs no art: it darkens the skin colour (D368). All effects are in Beta. The Gallimimus gets blood drips and a bloody mouth. Screen shake stays with the three large species. All three carnivores get bloody claws. The dust trail is agent-made dust sprites, tinted by the ground (D340). Its 4 frames are in the mod, to check in game.
 
 ---
 

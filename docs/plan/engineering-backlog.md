@@ -3794,7 +3794,6 @@ F2.3 gives each species its own clips, sounds and visual effects, with no borrow
 
 #### Not in Beta
 
-- The mud overlay (later).
 - Aquatic breach and dive effects (Release 1 and later).
 - Animation speed that follows body size (D14).
 - The `tranqed` clip (F4.3).
@@ -4047,6 +4046,8 @@ The code layers add to the clip pose each frame, in this order. No layer writes 
 | Movement | Screen shake when a large dinosaur walks close or roars | footstep and roar events within range |
 | Environment | Snow cover overlay on an animal that sits or sleeps in a snow biome | rest or sleep in snow |
 | Environment | Splash rings and water ripples where a leg, the snout or the tail crosses the water surface | movement in water |
+| Environment | Wet skin: the parts that were under water, and the back in rain, turn a little darker and dry again | movement in water, rain |
+| Environment | Ground coats: sand (reddish from red sand), dirt and mud on the legs from walking and on the body from resting | walking, sitting, resting or sleeping on sand, dirt or mud |
 | Sleep | Zzz particles and bubbles | the sleeping state |
 
 - This task makes the effect art that the Art list marks "Agent makes it (D330)": particle sprites, footprints and the overlays on a species texture.
@@ -4079,7 +4080,25 @@ The code layers add to the clip pose each frame, in this order. No layer writes 
     - Brachiosaurus: 7 puffs per foot of 1.4 to 2.2 blocks, thrown back 0.8 to 1.4 blocks, rise 0.1 to 0.2 block, life up to 1.8 s. The puffs roll out to the sides of the foot, so the dust of the far feet shows past the near legs.
     - Dilophosaurus, Triceratops and Gallimimus: the task plan sets values between these, by body size.
   - A run clip with no footstep keyframes yet spawns dust from under the body by a chance per tick that rises with ground speed, with a cap per animal (D358). Each spawn makes 1 or 2 puffs, thrown at a part of the body speed. Starting values: chance `speed × 1.6`, at most 0.25 per tick. Values set in playtest. A trot makes a little dust, a sprint more, and a running herd does not fill the screen.
-- Overlays (blood, snow) are render layers with F2.2 bone masks. They clear after a time.
+- Overlays (blood, snow) are render layers with F2.2 bone masks.
+- Coverage (D366, D369): each overlay has a coverage value from 0 to 1 per animal, kept on the client from synced state. No packet.
+  - Snow: rises while the animal sits, rests or sleeps in a snow biome or in snowfall. It falls slowly once the animal moves, fast in a warm biome, and drops to 0 in water.
+  - Bloody mouth: full after the eat clip on meat or a carcass. Bloody claws: full after an attack hit. Both fall over time, and drop to 0 when the animal drinks or swims.
+  - Rise and fall rates are config values, set in playtest.
+- Ground coats (D370 to D372): sand, dirt and mud, each its own layer, so two can show at once (muddy legs, a sandy back).
+  - Block tags say which ground gives which coat: `projectnublar:coats/sand` (sand, red sand, suspicious sand), `projectnublar:coats/dirt` (dirt, coarse dirt, rooted dirt, podzol) and `projectnublar:coats/mud` (mud, muddy mangrove roots). Grass blocks give no coat. Other mods' blocks can join the tags.
+  - Walking or running on the ground raises the coverage of the legs, faster at a sprint. Sitting, resting or sleeping on it raises the coverage of the body. Coverage keeps two zones: legs and body.
+  - Mud rises faster and fades slower than sand and dirt. Each coat fades slowly once the animal is off its ground. Water clears the parts under the surface at once.
+  - The sand coat takes its colour from the block, with the D357 colour source, so red sand gives a reddish coat.
+- A coat or overlay layer draws only while its coverage is above 0, so most animals draw none.
+- Steps (D367): each overlay draws in 4 steps, at 25, 50, 75 and 100 % coverage.
+  - The source is a grey fill-order mask on the species UV map. Dark pixels fill first: crevices, edges and the lower body. Each species has three: a body mask that serves snow and the three ground coats, a mouth mask and a claw mask for blood. The agent makes them (D330).
+  - On resource load, code turns each mask into 4 step textures. A pixel is in step n when its mask value is in the darkest n quarters. Code colours each covered pixel from a small fixed palette per overlay (snow whites, sand, dirt and mud browns, blood reds), varied per pixel. The palettes are set in the task plan by eye.
+  - Whole texture pixels only, so a half-covered animal never looks see-through. No shader.
+- Wet skin (D368):
+  - Each body part that was under the water surface gets wet, and the back gets wet in rain. The part list comes from the F2.2 bone masks and the D339 bone positions, which are on while the animal is in water.
+  - A wet part is drawn a little darker. It dries in about 20 to 60 s, faster in sunlight and near fire, lava or a lit campfire. Darkness and drying rates are config values, set in playtest.
+  - No shader and no texture. The task plan picks the draw method: a darker vertex colour on the masked bones or a masked darkening pass.
 - Footprints are client particles or decals. They never change blocks.
 - Long-lived particles (footprints, plant bits at rest) update every 5th tick when 2 or more blocks from the player, and not at all while out of view (D359). Their fade keeps its speed in steps.
 - Every effect follows the BH.1 low-effects switches: particles (all, reduced, none), screen shake, glow layers.
@@ -4127,6 +4146,12 @@ See Art list → each species (every clip and sound row), and Dinosaur effects. 
 - Unit test: no Nublar sound entry shorter than 10 s has `"stream": true`. Every roar, call, threat, hurt and death event has a subtitle key with an `en_us.json` line.
 - Two roars in a row of the same animal differ in pitch. A hatchling sounds higher than an adult.
 - A herd of 8 resting Triceratops loaded at once does not breathe in step.
+- A T. rex that sleeps in a snow biome gets snow in 4 steps, crevices first. When it walks into a warm biome the snow melts away, and in a river it is gone at once (a clip in the PR).
+- A Velociraptor's bloody mouth steps down over time after it eats, and clears when it drinks.
+- A Triceratops that wades belly-deep has darker legs and belly that dry again on land. In rain its back turns darker.
+- A Gallimimus that runs across a desert gets sandy legs, and after it rests on red sand its body is reddish. A Brachiosaurus that walks through a mangrove swamp gets muddy legs, which clear when it wades into deep water. A dinosaur that walks on grass gets no coat.
+- An animal with no coat, snow or blood draws no overlay layer.
+- Unit test: from a test mask, the 4 step textures hold 25, 50, 75 and 100 % of the masked pixels, and each step holds every pixel of the step before.
 - 20 animals with all effects and clips stay within 10 % of the F2.2 baseline frame time (the layers-on figure in the F2.2 PR), on the reference setup.
 
 #### Today in the code
@@ -4144,7 +4169,7 @@ See Art list → each species (every clip and sound row), and Dinosaur effects. 
 - Clip files total 12.4 MB; the T. rex file is 5.7 MB.
 - Fabric builds against GeckoLib 5.5.5 and NeoForge against 5.5.6. `RestartableAnimationController` uses 5.5.6 internals.
 
-**Changed since last review:** A body pose layer runs between the footfall bounce and the leg IK (D380). Short sounds never stream, every dinosaur sound varies in pitch and volume, and vocals get subtitles (D349 to D352). Dust takes vanilla's block particle colour, and the run fallback spawns by a chance from speed (D357, D358). Long-lived particles update less often far away (D359). Each animal breathes on its own phase and rate (D360). Head overlay clips play through a Nublar bone updater, not GeckoLib additive mode (D341). Breathing sway runs before the leg IK (D342). Effects start at the bone nearest the tip, with the listener on only when an effect can start (D343). A clip check in the unit tests (D344). Gallimimus walk and sentry fixes go to an agent (D345). No turning on the spot (D346). A light footfall bounce and control bones (D347, D348). Exact springs for tail lag and head look. The artist's GeckoLib plugin is 4.2.5. Agents make a new clip case by case, when the lead gives them the row (D331). A quality bar and clip checks for every clip, and a joint fix per species model first (D332). Head look, neck reach, tail lag and an additive overlay controller for head clips are in Beta (D333). Panting breath, effects from bone positions, and a dust trail of agent-made dust sprites tinted by the ground (D338 to D340). Turn lean waits until after Beta (D337). Every species gets own clips and sounds, placeholders count as missing. Per-species warning sounds. Only T. rex and Velociraptor have nesting clips. Limp in Beta below 30 % health. Get-up idle fallback is development only. Gallimimus gets blood effects. Screen shake for three large species. Per-species walk and run speeds are open. Triceratops rest idle holds the last pose of its lie-down. Two art-tool proposals wait for the lead (D320, D321). A screen shake rule waits for the lead (D324).
+**Changed since last review:** Snow and blood overlays build up and fade, draw in 4 steps from fill-order masks, and wash off in water (D366, D367, D369). Wet skin below the waterline and on the back in rain (D368). Sand, dirt and mud coats are in Beta, each its own layer, from walking and resting (D370 to D372). A body pose layer runs between the footfall bounce and the leg IK (D380). Short sounds never stream, every dinosaur sound varies in pitch and volume, and vocals get subtitles (D349 to D352). Dust takes vanilla's block particle colour, and the run fallback spawns by a chance from speed (D357, D358). Long-lived particles update less often far away (D359). Each animal breathes on its own phase and rate (D360). Head overlay clips play through a Nublar bone updater, not GeckoLib additive mode (D341). Breathing sway runs before the leg IK (D342). Effects start at the bone nearest the tip, with the listener on only when an effect can start (D343). A clip check in the unit tests (D344). Gallimimus walk and sentry fixes go to an agent (D345). No turning on the spot (D346). A light footfall bounce and control bones (D347, D348). Exact springs for tail lag and head look. The artist's GeckoLib plugin is 4.2.5. Agents make a new clip case by case, when the lead gives them the row (D331). A quality bar and clip checks for every clip, and a joint fix per species model first (D332). Head look, neck reach, tail lag and an additive overlay controller for head clips are in Beta (D333). Panting breath, effects from bone positions, and a dust trail of agent-made dust sprites tinted by the ground (D338 to D340). Turn lean waits until after Beta (D337). Every species gets own clips and sounds, placeholders count as missing. Per-species warning sounds. Only T. rex and Velociraptor have nesting clips. Limp in Beta below 30 % health. Get-up idle fallback is development only. Gallimimus gets blood effects. Screen shake for three large species. Per-species walk and run speeds are open. Triceratops rest idle holds the last pose of its lie-down. Two art-tool proposals wait for the lead (D320, D321). A screen shake rule waits for the lead (D324).
 ### F2.4: Needs
 
 F2.4 gives each dinosaur hunger, thirst, stamina, sleep and stress, makes each need have results, and keeps a 100-dinosaur park at 20 ticks per second.
@@ -7411,6 +7436,13 @@ These rows come from the Recrafted research (`reports/Recrafted visual and sound
 | D363 | BH.1 | Should the mod test matrix get Polytone, Continuity and EMF with ETF? Does the lead own Recrafted for one run? | Answered 2026-11-04 (lead): "Add all three rows", "I don't own Recrafted". No Recrafted run | Answered |
 | D364 | BH.1 | The `incubator_bed` core shader is dead and cannot compile on 26.2. Remove it? | Answered 2026-11-04 (lead): "Remove in BH.1 cleanup" | Answered |
 | D365 | R01 | Resource packs replace the vanilla grass, fern and leaf models. Should Nublar plants avoid them as parents? | Answered 2026-11-04 (lead): "E: own plant models" | Answered |
+| D366 | F2.3 | The snow cover overlay is on or off and clears after a time. Recrafted's armour builds snow up, melts it in warmth and washes it off in water. Should snow cover build up and fade? | Answered 2026-11-04 (lead): "Build up and fade". Not on the legs while walking | Answered |
+| D367 | F2.3, Art list | How are the overlay steps made with no shader? | Answered 2026-11-04 (lead): "One fill-order mask". One grey mask per species and overlay; code makes the 4 step textures on resource load | Answered |
+| D368 | F2.3 | Should skin look wet after a swim or rain? | Answered 2026-11-04 (lead): "Yes, below waterline". The parts that were under water, and the back in rain, darken and dry | Answered |
+| D369 | F2.3 | Should the bloody mouth and claws use the same steps? | Answered 2026-11-04 (lead): "Yes, same steps". They fade in steps and wash off when the animal drinks or swims | Answered |
+| D370 | F2.3, Art list | Mud was not in Beta, and dirt and sand coats were not in the plan. Which ground coats ship, and when? | Answered 2026-11-04 (lead): "Sand (and red sand)", "Dirt", "Mud", "All in Beta". Mud moves into Beta | Answered |
+| D371 | F2.3 | One coat layer coloured by the ground, or a layer per coat? | Answered 2026-11-04 (lead): "Separate coat layers". Two coats can show at once. Snow keeps its own layer | Answered |
+| D372 | F2.3 | What puts a ground coat on? | Answered 2026-11-04 (lead): "Walking coats the legs", "Resting coats the body", "Water washes it off" | Answered |
 | D380 | F2.1, F2.3 | JurassiCraft 3.1.0 lifts, pitches and rolls the body to fit the ground under the feet. Nublar's leg IK never stretches a leg, so a foot floats on a step. Which version goes into F2.1 part B? | Answered 2026-11-04 (lead): "B: synced, parts follow". The server solves the pose and syncs 3 bytes. The model and the torso, neck and tail parts follow it. Leg parts do not move | Answered |
 | D381 | F2.1 | Which body pose add-ons go in? | Answered 2026-11-04 (lead): all four. A block-top ground sampler replaces the IK raycasts. The leg IK weight follows the gait. Distant legs get a ground shift with no knee solve (bands in D393). A debug view and a cost log | Answered |
 | D382 | F2.1, F2.0 | D291 left the wade share open. Up to what depth does a dinosaur wade? | Answered 2026-11-04 (lead): "half or maybe a bit more the body height but for some dinos like those with long necks should be able to wade as long as most of their neck is above water as their bodies will be too low". Start share 0.55, tuned in game | Answered |
@@ -7530,3 +7562,4 @@ These rows come from the Recrafted research (`reports/Recrafted visual and sound
 - **2026-11-03 (animation resources research):** D341 to D348, and D327 answered. F2.3 gets a head overlay through a Nublar bone updater, breathing sway before the leg IK and a clip check in the unit tests. It also gets a light footfall bounce, control bones, exact springs for tail lag and head look, and the GeckoLib plugin 4.2.5. F2.2: two controllers and one garbage exception. F2.1: leg IK guards. F2.5: no turning on the spot. Art list: Gallimimus walk, run and sentry fixes for an agent.
 - **2026-11-04 (Recrafted research):** D349 to D365. Global constraints get rules for sound files, glow with no shader and pack-friendly ids. F2.3: short sounds never stream, every dinosaur sound varies, vocals get subtitles, dust takes vanilla's block particle colour, the run fallback spawns by a chance from speed, long-lived particles update less often, and each animal breathes on its own phase. F1.10: labels fit a wider font, and no colour is the only cue. BH.1: an Effects quality preset with cost labels, three resource-pack mod test rows, and the dead incubator shader goes. R01: plants use their own models.
 - **2026-11-04 (JurassiCraft 3.1.0 review):** D380 to D393. F2.1: the body leans to fit uneven ground and the hit parts follow, a block-top ground sampler, leg IK out to 64 blocks in three steps (D393), and wading up to 0.55 of the body height with climb-out. F2.4: remembered food and water spots, foraging drift and a stamina-aware hunt watchdog. F2.0: only meat-eaters hunt. F2.5: stuck rung and node fixes. BH.1: a save round-trip command. Release 2: a flight reference for the Pteranodon.
+- **2026-11-04 (Recrafted overlays):** D366 to D372. F2.3: snow cover builds up and fades, overlays draw in 4 steps from fill-order masks, blood fades in steps and washes off in water, wet skin shows below the waterline and on the back in rain, and sand, dirt and mud coats join Beta, each its own layer.

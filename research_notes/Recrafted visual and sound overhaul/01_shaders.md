@@ -196,3 +196,35 @@ What a mod should follow
 - Bloom mask [v `06_builtin_shaders/light_bloom/assets/recrafted/shaders/post/bloom_mask.fsh`]: the pass writes 1 for entity pixels and 0 for the rest, so bloom leaves entities out.
 - Nublar render types [v]: dinosaur layers use vanilla `RenderTypes.entityTranslucent` (`DinoLayer.java:57`), and `IncubatorRenderer.java:66` uses the same. So Nublar entities and machines get the pack's entity shading and shadows with no Nublar change.
 - `incubator_bed` [v]: the shader is `#version 120` and no code uses it; `IncubatorScreen.java:25` marks it `TODO(DEAD)`. It is dead code, not a port task.
+
+## Armour weathering, read in full by the main session (2026-11-04)
+
+Files: `06_builtin_shaders/armor_weathering/` (20 files): Polytone global expressions per armour piece, `shaders/core/entity.fsh` and `item.fsh`, and the include `assets/recrafted/shaders/include/armor_weathering.glsl` (406 lines). Default on; the config gives it `performance_impact` low and the "complete" preset only. [v]
+
+**What it does in game.** The local player's armour picks up sand (with a red-sand tint), snow and wetness, piece by piece, and loses it again. There is no dirt or mud coating. [v: `grep -i "dirt\|mud"` finds nothing in the module]
+
+**State.** One value from 0 to 1 per coating and per piece (helmet, chest, legs, boots), updated every tick (`update_interval` 1) from the local player only (`p.*` calls). Other players and mobs get nothing. Two values share one float to save uniforms: sand + 2 × round(snow × 100). [v `armor_sand_*.json`, `armor_weathering.glsl` 4-13, 254-260]
+
+**Build-up and loss** (per tick; time constants are 1/rate) [v; seconds are inf at 20 ticks/s]:
+
+| Coating | Gain | Loss |
+| --- | --- | --- |
+| Sand, boots | 0.010 × (1 − value) while walking on sand: about 5 s to 63 % | 0.0003 × value when not gaining: about 2.8 min |
+| Sand, chest and helmet | Touching sand blocks at body height | Same |
+| Red tint | Moves toward 1 on red sand, 0 on sand, rate 0.012 | Holds |
+| Snow, boots | 0.012 walking on snow (about 4 s), 0.020 inside powder snow, 0.003 × rain in snowfall | Melts 0.004 in warm places (about 12.5 s), 0.0002 in cold (about 4 min) |
+| Wet | Toward 0.40 (boots) or 0.90 (chest) in rain; toward 1 when under water; puddles and melting snow too | Dries 0.001 to 0.003 × value (about 50 s at night, 17 s in full sun). Heat dries fast: on fire 0.25, next to lava, magma or sponge 0.08, lit campfire 0.03, lit furnace 0.015 |
+
+- **Water washes by depth.** A waterline value (0 to 1 up the body, from the fluid blocks at feet, body and head) sets how far each piece is under water. Boots wash between 0 and 0.14, the chest between 0.40 and 0.78. Wash rate 0.06 + 0.10 × speed per tick, so a dip clears in under a second. [v `armor_waterline.json`, `armor_water_surface.json`, `armor_sand_*.json`]
+- **Temperature with height.** Snow and rain use the biome temperature minus 0.00125 per block above y 80, so a high mountain in a warm biome still snows. [v]
+
+**Look.** [v `armor_weathering.glsl`]
+- The shader marks armour by a sentinel alpha (252 humanoid armour, 251 leggings; 246 and 245 for reflective ones) and picks the piece from the UV region of the vanilla armour texture layout.
+- Coverage is a threshold on noise (value-noise fbm plus Worley cells), snapped to whole texture pixels (`PIXELATE` 1), so the coating stays pixel-art. Base coverage 0.30, scale 7 texels, with an edge term that fills dark (low-luminance) pixels first, so crevices fill before flat faces.
+- Colour comes from fixed 6-step palettes (sand, red sand, snow), desaturated 0.38 toward the base, with a small hue shift. A fake height bump (relief 0.30) shades the deposit edge.
+- Wet darkens the albedo and adds a wet film with rain beads and a sky-reflection finish.
+
+**Nublar fit.** No code to take: it is a core shader on armour, for the local player only, and OC6 forbids a core shader. The ideas fit F2.3's snow cover overlay (Beta), the mud overlay (later) and the timed clearing of blood overlays:
+- A coverage value per animal and body zone that rises while the trigger holds (gain × (1 − value)), fades slowly after, melts faster in warm places and washes off in water by depth.
+- Overlay masks that fill crevices and the lower body first, in whole texture pixels, from a small fixed palette. Nublar can draw them as a few stepped mask textures per species (D330 agent work) instead of a shader.
+- A wet look (darker skin after a swim or rain, drying in under a minute) is not in the plan.
