@@ -2723,7 +2723,7 @@ Every effect in the matrix is in Beta. Screen shake has a config switch.
   - Drips, blood, plant bits, spit, foggy breath and snorts start at the jaw or snout.
   - Splash rings and ripples start where a leg, the snout or the tail crosses the water surface. A fast part makes a bigger splash than a slow one.
   - A drinking animal makes a small splash when its snout meets the water.
-- **Dust from the ground** (D340): the dust puffs take the colour of the ground under each foot, so sand makes sand-coloured dust, snow white dust and grass brown dust. Each puff has its own size and opacity. Larger and faster animals make more dust.
+- **Dust from the ground** (D340): the dust puffs take the colour of the ground under each foot, a little paler, so sand makes sand-coloured dust, snow white dust and grass light brown dust. Each puff starts as a small cloud at the foot and breaks up into specks as it fades, as campfire smoke does. Each puff has its own size and opacity. Larger and faster animals make more dust.
 
 #### Art needed
 

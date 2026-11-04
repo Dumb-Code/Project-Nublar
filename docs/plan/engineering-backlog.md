@@ -3973,9 +3973,9 @@ The code layers add to the clip pose each frame, in this order. No layer writes 
   - One listener object per animal, reused each frame, no new object per frame (F2.2). Effects spawn on the client tick from the last frame's positions.
   - Within 32 blocks only, as the code layers.
 - Dust trail (D340):
-  - A custom particle type with the agent-made grey dust puff sprites (D330), one sprite picked per puff.
-  - Code tints each puff with the colour of the block under the foot. The task plan picks the colour source. Grass gives brown dust, as vanilla sprint particles do, not green.
-  - Each puff picks a size and an opacity from a range, and fades out at the end of its life.
+  - A custom particle type with the agent-made grey dust sprites (D330): 4 frames of 16×16 that show one lumpy cloud breaking up into specks. Each puff plays the frames by age, as vanilla campfire smoke does: a cloud at the foot, specks as it fades.
+  - Code tints each puff with the colour of the block under the foot, made 30 % paler, because dust is lighter than the ground. The amount is a config value, set in playtest. The task plan picks the colour source. Grass gives brown dust, as vanilla sprint particles do, not green.
+  - Each puff picks a size and an opacity from a range, rises a little, and fades out at the end of its life.
   - The count per footstep grows with body size and speed.
   - A run clip with no footstep keyframes yet spawns from under the body each tick while running, as vanilla sprint particles do.
 - Overlays (blood, snow) are render layers with F2.2 bone masks. They clear after a time.
@@ -4014,7 +4014,7 @@ See Art list → each species (every clip and sound row), and Dinosaur effects. 
 - A drinking animal's snout meets the water surface on a bank 1 block above the water, and the splash starts at the snout.
 - Unit test: the breathing sway rate is the same at full and at one third stamina, then rises as stamina falls, highest at 0 %. A clip in the PR shows a T. rex at full and at 0 % stamina.
 - A Triceratops wading at a run makes splashes at its legs. A slow walk makes smaller ones.
-- A T. rex running on sand kicks up sand-coloured dust, on snow white dust, and on grass brown dust. The puffs differ in size and opacity.
+- A T. rex running on sand kicks up sand-coloured dust, on snow white dust, and on grass light brown dust. Each puff starts as a cloud at the foot and breaks up into specks as it fades. The puffs differ in size and opacity.
 - Each effect in the VFX table shows in its trigger, on both loaders.
 - With particles off, no Nublar particle spawns. With screen shake off, the camera does not shake.
 - 20 animals with all effects and clips stay within 10 % of the F2.2 baseline frame time (the layers-on figure in the F2.2 PR), on the reference setup.
@@ -7215,7 +7215,7 @@ These rows come from a check of gamedev-cheatsheet.com, a list of 34 general gam
 | D337 | F2.3 | Should the body lean into turns? It needs no clip | Answered 2026-11-03 (lead): "Defer lean only". Not in Beta. After Beta, once the leg IK works on its own: a code layer rolls the body by turn rate times speed, through a damped spring, before the leg IK so the feet stay planted. The bipeds lean more than the Triceratops and Brachiosaurus | Answered |
 | D338 | F2.3, F2.0 | Should a tired animal pant? Today the F2.0 pant is a breath sound only | Answered 2026-11-03 (lead): "Approve, show part 2". The breathing sway gets faster and deeper below a third stamina, highest at 0 %, from the synced stamina value. The breath sound plays with it at 0 % | Answered |
 | D339 | F2.3 | Should effects start at the body part, not at the animal's position? | Answered 2026-11-03 (lead): "Approve, show part 2". Mouth effects start at the jaw or snout bone. Splashes and ripples start where a leg, the snout or the tail crosses the water, sized by that part's speed. A drinking snout makes a small splash. GeckoLib 5 gives the bone positions on both loaders | Answered |
-| D340 | F2.3 | How does the dust trail look: vanilla block particles of the ground, or agent-made sprites (D330)? | Answered 2026-11-03 (lead): "we should have custom sprites that change color and range in opacity and size". Agent-made grey dust puff sprites, tinted by the block under each foot, each puff with its own size and opacity, more for larger and faster animals. The Art list "Dust trail" row stays Missing | Answered |
+| D340 | F2.3 | How does the dust trail look: vanilla block particles of the ground, or agent-made sprites (D330)? | Answered 2026-11-03 (lead): "we should have custom sprites that change color and range in opacity and size". Agent-made grey dust puff sprites, tinted by the block under each foot, each puff with its own size and opacity, more for larger and faster animals. Mock-up approved 2026-11-03 (lead, sixth draft): 4 frames of 16×16 in the style of campfire smoke, played by age, tinted 30 % paler than the block, the amount set in playtest | Answered |
 
 ---
 
@@ -7316,3 +7316,4 @@ These rows come from a check of gamedev-cheatsheet.com, a list of 34 general gam
 - **2026-11-02 (Blender add-on check):** D321 proposes the mcblend add-on for new Blender clips. F2.3 export tooling lists its clip route and its limits.
 - **2026-11-03 (animation review):** D331 to D336. F2.3 gets a clip quality bar and clip checks, a joint fix per species model (D332), agent-made clips case by case (D331), and code layers: head look, neck reach, tail lag, a breathing-sway fix and an additive overlay controller (D333). F2.1 gets hit ticks from clip markers and reach from the striking bone (D335), clip lengths and events in the bake with static bones left out (D336), and a GeckoLib 5 bone writer for the CHAOS leg IK (D334). F2.2 allows three controllers and no garbage per frame. D14 keeps only speed by body size. The Art list adds a joint fix row per species and moves the T. rex turn row to "Needs conversion".
 - **2026-11-03 (motion and effects):** D337 to D340. F2.3 gets panting breath at low stamina, effects that start at bone positions, and a dust trail of agent-made dust sprites, tinted by the ground, with their own size and opacity. Turn lean waits until after Beta.
+- **2026-11-03 (dust sprites):** D340 mock-up approved. The dust trail has 4 frames of 16×16, played by age as campfire smoke does, tinted 30 % paler than the ground.
