@@ -28,6 +28,10 @@ import org.jetbrains.annotations.Nullable;
  * client sync data, and the update tag is built the same way
  * ({@code TagValueOutput.createWithContext(ProblemReporter.DISCARDING, registries)}, then
  * {@code buildResult()}).
+ *
+ * <p>The core of a machine multiblock also refreshes the capability caches of its whole machine
+ * in {@link #setRemoved} and {@link #clearRemoved}. A subclass that overrides either must call
+ * {@code super}, or a cable at another block of the machine can keep a stale storage.
  */
 public abstract class SyncingContainerBlockEntity extends BaseContainerBlockEntity {
 

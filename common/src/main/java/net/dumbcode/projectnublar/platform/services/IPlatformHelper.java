@@ -82,9 +82,10 @@ public interface IPlatformHelper {
     /**
      * Tells the loader that what a block offers to other mods (energy, items, fluids) may have
      * changed at {@code pos}, so their cached lookups ask again. A machine multiblock calls it for
-     * each of its blocks when that block is placed or removed: every block of a machine answers a
-     * lookup for the core, but only the core has a block entity, and a loader refreshes on its own
-     * only where a block entity comes or goes.
+     * each of its blocks when that block is placed or removed, and its core calls it for every
+     * block of the machine when the core's chunk loads or unloads: every block of a machine
+     * answers a lookup for the core, but only the core has a block entity, and a loader refreshes
+     * on its own only where a block entity comes or goes.
      *
      * <p>NeoForge calls {@code level.invalidateCapabilities(pos)}, which its
      * {@code BlockCapabilityCache} needs. Fabric does nothing: Fabric API's block lookup cache
