@@ -2923,7 +2923,7 @@ Points for gameplay:
 
 ## 12. Reference mod surveys
 
-Three surveys read other mods for patterns that Nublar can use. Each survey has a full report in `reports/` and a folder of research notes in `research_notes/`. This section gives the results that matter for the plan. The reports have the evidence, the clean-room specifications and the repository facts.
+Three surveys read other mods for patterns that Nublar can use. A fourth survey checked animation tools and references (12.4). Each survey has a full report in `reports/` and a folder of research notes in `research_notes/`. This section gives the results that matter for the plan. The reports have the evidence, the clean-room specifications and the repository facts.
 
 The surveys use the same labels as the reports:
 
@@ -3155,6 +3155,40 @@ The main results:
 | 4 | Part index self-checks: count check, foreign parts indexed, verify switch | B27, B25 | A missed part heals on the next query |
 | 5 | Pose flags and event ticks: exclusive, hold, server and client events | B27, B16, B19 | A roar is never cut off. Sounds need no packet |
 | 6 | Movement keys from the vanilla input, one small packet for extra keys | B22 | The Jeep needs no drive packet of its own |
+
+### 12.4 Animation resources and tools (2026-11-03)
+
+Full report: [Animation resources and tools for Beta](../reports/Animation%20resources%20and%20tools%20for%20Beta.md). Notes: `research_notes/Animation resources and tools for Beta/` (11 files).
+
+The survey checked ten resources for the F2.3 animation work:
+
+- the GeckoLib 5 hooks, Blockbench IK and the headless Blockbench tools
+- springs and procedural animation talks
+- movement science, game diaries and live-animal footage
+- Mowzie's Mobs and other tools
+
+Speeds from science and from other games are reference points only. The lead tunes the game values in game.
+
+The main results:
+
+- GeckoLib 5 additive mode drops the model rotation of a bone. It adds the clip value to the snapshot minus the model rotation, and the renderer adds the model rotation again. 14 to 26 head, neck, jaw and tail bones per species have a model rotation. The proposal: the D333 head overlay clips use Nublar's own delta bone updater.
+- `BonePositionListener#accept` gets the world, model and local positions, in that order. The point is the bone pivot. No model has a locator.
+- The Brachiosaurus front legs are children of `hips`, and the breathing sway turns `hips`. With the sway after the leg IK, the planted front feet move. The move is about 0.5 px at render scale 1 today, and the D338 panting makes it larger.
+- The shipped Gallimimus `move.walk` slides each foot about 5 to 7.5 px forward at touch-down, and a foot sinks about 1 px. No game speed stops this slide. The leg IK may hide part of it. The clip needs a fix.
+- The headless Blockbench gates miss loop ends, foot slide and parts through the body. A script on the same pose code finds loop ends and foot slide, and runs 6 clips in about 16 s. Its overlap test also gives false flags. The `detachment` gate and the script both missed a 60° neck bend, so the F2.3 seam check needs the bend-budget table. The checker must pose the mod's model, because the artist files differ from the shipped clips.
+- Exact damped springs (Holden) suit tail lag, head look and the D327 screen springs. They stay stable at any frame length.
+- The lead's Blockbench is 5.2.2, and its GeckoLib plugin 4.1.3 supports Blockbench 5.0.0 at most. The replacement plugin 4.2.5 and the Blockbench "Bake Inverse Kinematics" action need a test on copies.
+
+#### Top changes
+
+| Rank | Change | Module | In-game effect |
+| --- | --- | --- | --- |
+| 1 | Head overlay clips through a Nublar delta bone updater, not GeckoLib additive mode (D333 mechanism) | F2.3 layer 1, F2.2 | A head clip over walking turns the head from its normal pose. The head does not snap |
+| 2 | Breathing sway before the leg IK, or no `hips` sway on the Brachiosaurus | F2.3 layer order | A resting Brachiosaurus keeps its front feet still |
+| 3 | Tail lag as an exact damped spring on the tick, head first and tail last | F2.3 layer 6 | The tail swings behind a turn and settles. No pop at a long frame |
+| 4 | A clip checker in `tools/animation/` that poses the mod's model and shipped clips | F2.3 checks (D332) | A skid, a sinking foot or a pop at the loop shows before a tester sees it |
+| 5 | Gallimimus clip fixes: the `move.walk` skid, the foot sink, the `sentry` keys after its end | Art list | A walking Gallimimus plants each foot with no forward slide |
+| 6 | Leg IK guards: a bend clamp, a stretch check and a stop rule | F2.1 part B | Legs never bend backward. A stopping animal does not shuffle |
 
 ---
 
