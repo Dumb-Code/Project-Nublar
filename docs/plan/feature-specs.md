@@ -2519,10 +2519,12 @@ F2.3 gives each species its own clips, its own sounds and the full set of dinosa
 - **Quality bar.** No clip opens a hole or seam that the rest pose does not have, pokes a part through the body, flickers, or slides a planted foot. A loop ends on its first pose.
 - **Code layers on top of the clips** (D333):
   - **Head look.** The head and neck turn toward the look target. The turn spreads over the neck bones, and each joint stops before it opens a gap. Roars and other actions pause it.
-  - **Short head clips over walking.** Look, speak and similar clips that move only the head, neck, jaw or tail play while the legs keep walking.
+  - **Short head clips over walking.** Look, speak and similar clips that move only the head, neck, jaw or tail play while the legs keep walking. The head keeps its normal tilt (D341).
   - **Neck reach.** When the animal drinks or eats, the neck bends a little so the snout meets the water or food surface.
-  - **Tail lag.** The tail swings out behind a turn and settles.
-  - **Breathing.** A slow sway per species, never doubled with a clip's own sway. As stamina falls below a third, the breathing gets faster and deeper, so a tired animal pants (D338).
+  - **Tail lag.** The tail swings out behind a turn and settles. A light tail overshoots a little. A heavy tail settles slowly with no overshoot.
+  - **Breathing.** A slow sway per species, never doubled with a clip's own sway. As stamina falls below a third, the breathing gets faster and deeper, so a tired animal pants (D338). The breathing never moves a planted foot (D342).
+  - **Footfall bounce.** Each step gives the body a light dip and settle, so the weight shows (D347).
+  - **Control bones.** A clip can turn a code layer down at exact times, for example head look off during a roar (D348).
   - **Feet on the ground.** Legs bend so the feet sit on slopes and steps (F2.1).
   - Within 32 blocks only. Farther animals hold their pose.
 
@@ -2543,7 +2545,7 @@ F2.3 gives each species its own clips, its own sounds and the full set of dinosa
 | --- | --- |
 | Walk, run, swim | Movement, chase, flight |
 | Jump / fall | Ledges, jump gene |
-| Turn left, turn right | Turn in place in tight ground |
+| Turn left, turn right | A stepping turn on the spot in tight ground. No species spins with still legs (D346) |
 | Idle 1, idle 2 | Idle acts |
 | Rest, rest idle, get up | Rest and stamina |
 | Sleep | Sleep need |
@@ -2723,6 +2725,7 @@ Every effect in the matrix is in Beta. Screen shake has a config switch.
   - Drips, blood, plant bits, spit, foggy breath and snorts start at the jaw or snout.
   - Splash rings and ripples start where a leg, the snout or the tail crosses the water surface. A fast part makes a bigger splash than a slow one.
   - A drinking animal makes a small splash when its snout meets the water.
+  - Each effect starts at the existing bone nearest the tip, for example the snout, not at the jaw hinge.
 - **Dust from the ground** (D340): the dust puffs take the colour of the ground under each foot, a little paler, so sand makes sand-coloured dust, snow white dust and grass light brown dust. Each puff starts as a small cloud at the foot and breaks up into specks as it fades, as campfire smoke does. Each puff has its own size and opacity, is thrown back behind the foot and stays low to the ground. Larger and faster animals make more and bigger dust, and a Brachiosaurus raises dust at all four feet.
 
 #### Art needed
@@ -2749,7 +2752,7 @@ See Art list → each species (Animations, Sounds), Dinosaur effects.
 
 **Engineering:** backlog F2.3.
 
-**Changed since last review:** Agents make new clips case by case (D331). Joint fixes per model, a quality bar for every clip, and code layers for head look, short head clips over walking, neck reach, tail lag and breathing (D332, D333). Panting breath (D338). Turn lean waits until after Beta (D337). Effects start at the body part, and the dust trail takes the colour of the ground (D339, D340). Gallimimus gets blood drips and a bloody mouth. Screen shake only on T. rex, Triceratops and Brachiosaurus. T. rex and Dilophosaurus get bloody claws. Only T. rex and Velociraptor play a nesting clip. Per-species walk and run speeds are open. Triceratops rest idle holds the last pose of its lie-down.
+**Changed since last review:** Head clips over walking keep the head's normal tilt (D341). Breathing never moves a planted foot (D342). A light footfall bounce and control bones (D347, D348). Animals step as they turn, never spinning on the spot (D346). Effects start at the bone nearest the tip. Agents make new clips case by case (D331). Joint fixes per model, a quality bar for every clip, and code layers for head look, short head clips over walking, neck reach, tail lag and breathing (D332, D333). Panting breath (D338). Turn lean waits until after Beta (D337). Effects start at the body part, and the dust trail takes the colour of the ground (D339, D340). Gallimimus gets blood drips and a bloody mouth. Screen shake only on T. rex, Triceratops and Brachiosaurus. T. rex and Dilophosaurus get bloody claws. Only T. rex and Velociraptor play a nesting clip. Per-species walk and run speeds are open. Triceratops rest idle holds the last pose of its lie-down.
 ### F2.4 Needs: hunger, thirst, stamina, sleep, stress and company
 
 Dinosaurs get hungry, thirsty, tired, sleepy, lonely and stressed, and a park that neglects them pays for it.

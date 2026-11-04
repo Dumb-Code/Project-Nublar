@@ -85,7 +85,8 @@ Status words:
 - Young animals play with clips that exist (run, raptor pounce). Play needs no new art.
 - **Who makes a new clip** (D331): the artist, unless the lead gives that row to an agent, case by case. Such a row says "Agent-made (D331)" and stays "To check in game" until the lead checks it in game.
 - **Quality bar:** no hole or seam beyond the rest pose, no part through the body, no flicker, no sliding foot. A loop ends on its first pose. Engineering backlog F2.3 has the checks.
-- **Joint fix first** (D332): each species model has a "Joint fix (seams)" row. The agent edits a copy of the model, with no texture change, and the lead approves it. It comes before the species' next new clip.
+- **Joint fix first** (D332): each species model has a "Joint fix (seams)" row. The agent edits a copy of the model, with no texture change, and the lead approves it. It comes before the species' next new clip. The same change adds one empty control bone that clips can key (D348).
+- **Planted feet** (D345): walk and run clips plant their feet with Blockbench IK and "Bake Inverse Kinematics". Each leg gets an IK pole and a null path that closes the loop. The clip check in the unit tests checks the result. The GeckoLib plugin is "GeckoLib Models & Animations" 4.2.5.
 
 ## Summary
 
@@ -96,7 +97,7 @@ Status words:
 | Dilophosaurus | 34 | 0 | 22 | 5 | 74 | 3 | 0 |
 | Triceratops | 35 | 4 | 33 | 6 | 30 | 2 | 0 |
 | Brachiosaurus | 25 | 2 | 27 | 2 | 38 | 15 | 0 |
-| Gallimimus | 30 | 1 | 23 | 1 | 36 | 11 | 0 |
+| Gallimimus | 27 | 1 | 23 | 4 | 36 | 11 | 0 |
 | Dinosaur effects | 0 | 1 | 0 | 0 | 31 | 0 | 0 |
 | Dinosaur hover box | 0 | 0 | 0 | 0 | 2 | 0 | 0 |
 | Eggs and hatching | 1 | 0 | 4 | 5 | 18 | 0 | 0 |
@@ -123,7 +124,7 @@ Status words:
 - **Guns:** blocked on D08. They are not in the total.
 - **Per-milestone counts:** the roadmap's milestone table. They come from the Feature column of each row (F1.x is M1, F2.x is M2, F3.x is M3, F4.x is M4), with guns left out.
 
-**Changed since last review:** A joint fix row per species model, made by the agent and approved by the lead (D332). Agents make new clips case by case (D331), and a quality bar applies to every clip. The T. rex turn clips move to Needs conversion: they hold one pose and key 9 bones the model lacks. Vehicle assembly uses existing groups, so the chassis and engine rows are gone and the wheel split is a Done developer row. Large Generator gets its own ignite, fuel-out and loop rows. Release 1 asset groups listed, not counted. Question 21 settled. One glow mask row per lab machine. Incubator lamp colours set as placeholders. The bird Embryo Syringe takes the 1.12 texture. The dinosaur-embryo syringe needs a new sprite. Edit-tab censor static row added. Generic pelvis, foot and spine are Missing: no shared sprite exists. Nublar widget kit for machine screens (sliders, dropdown arrows, buttons, text boxes), Sequencer style. Triceratops horn sets named: one file per set, one set and one colour per animal. Question 22 on the horn `v2` files and the Black/Yellow overlays. Triceratops rest idle holds the last pose of its lie-down, and it needs a get-up clip. Feeder 2 needs one bone per meat piece. Triceratops species icon imported. Amber ore needs an amber layer cut from the REPO ore texture. Creative Generator textures from 1.12.2 are ready to import. Sequencer screen rows for empty-slot icons, the soft glow and the status chip and event message. Shared scroll bar row. Processor fossil-slot icon row. Upgrade slot rows for the Sequencer, Egg Printer and Incubator screens. Sequencer motion sprites row. Gallimimus Drink clip is in the mod, to check in game.
+**Changed since last review:** The Gallimimus walk, run and sentry clips move to Needs conversion for an agent fix: a foot slide and sink, and keys after the end (D345). Each joint fix also adds one empty control bone (D348). Walk and run feet are planted with Blockbench IK and the GeckoLib plugin 4.2.5. A joint fix row per species model, made by the agent and approved by the lead (D332). Agents make new clips case by case (D331), and a quality bar applies to every clip. The T. rex turn clips move to Needs conversion: they hold one pose and key 9 bones the model lacks. Vehicle assembly uses existing groups, so the chassis and engine rows are gone and the wheel split is a Done developer row. Large Generator gets its own ignite, fuel-out and loop rows. Release 1 asset groups listed, not counted. Question 21 settled. One glow mask row per lab machine. Incubator lamp colours set as placeholders. The bird Embryo Syringe takes the 1.12 texture. The dinosaur-embryo syringe needs a new sprite. Edit-tab censor static row added. Generic pelvis, foot and spine are Missing: no shared sprite exists. Nublar widget kit for machine screens (sliders, dropdown arrows, buttons, text boxes), Sequencer style. Triceratops horn sets named: one file per set, one set and one colour per animal. Question 22 on the horn `v2` files and the Black/Yellow overlays. Triceratops rest idle holds the last pose of its lie-down, and it needs a get-up clip. Feeder 2 needs one bone per meat piece. Triceratops species icon imported. Amber ore needs an amber layer cut from the REPO ore texture. Creative Generator textures from 1.12.2 are ready to import. Sequencer screen rows for empty-slot icons, the soft glow and the status chip and event message. Shared scroll bar row. Processor fossil-slot icon row. Upgrade slot rows for the Sequencer, Egg Printer and Incubator screens. Sequencer motion sprites row. Gallimimus Drink clip is in the mod, to check in game.
 
 ## Questions for the artist and lead
 
@@ -218,7 +219,7 @@ Milestone: Dinosaurs.
 
 | Asset | Used for | Status | Feature | Where / reference |
 | --- | --- | --- | --- | --- |
-| Joint fix (seams) | Closes the gaps at bent neck, leg and tail joints, so clips and head look can bend further | Missing | F2.3 | Agent makes it (D332): a copy of the mod model with joint overlap and pivots on the joints, no texture change. The lead approves before and after renders. Worst joints (estimate): `neck3` to `neck4` 7.7 px open at rest; `thigh` to `calf` 5.6 px |
+| Joint fix (seams) | Closes the gaps at bent neck, leg and tail joints, so clips and head look can bend further | Missing | F2.3 | Agent makes it (D332): a copy of the mod model with joint overlap and pivots on the joints, no texture change. The lead approves before and after renders. The same change adds one empty control bone (D348). Worst joints (estimate): `neck3` to `neck4` 7.7 px open at rest; `thigh` to `calf` 5.6 px |
 | Adult model (male and female use it) | The animal | Done | F2.1 | MOD/geo/entity/tyrannosaurus_rex.geo.json. REPO dinosaurs/tyrannosaurus/models/tyrannosaurus_adult.bbmodel |
 | Baby model | Young animals scale from the adult | Not in Beta | F2.1 | None |
 
@@ -388,7 +389,7 @@ Milestone: Dinosaurs.
 
 | Asset | Used for | Status | Feature | Where / reference |
 | --- | --- | --- | --- | --- |
-| Joint fix (seams) | Closes the gaps at bent neck, leg and tail joints, so clips and head look can bend further | Missing | F2.3 | Agent makes it (D332): a copy of the mod model with joint overlap and pivots on the joints, no texture change. The lead approves before and after renders. Worst joints (estimate): `neck1` to `neck5` 2.2 to 4.5 px open at rest. Nublar model |
+| Joint fix (seams) | Closes the gaps at bent neck, leg and tail joints, so clips and head look can bend further | Missing | F2.3 | Agent makes it (D332): a copy of the mod model with joint overlap and pivots on the joints, no texture change. The lead approves before and after renders. The same change adds one empty control bone (D348). Worst joints (estimate): `neck1` to `neck5` 2.2 to 4.5 px open at rest. Nublar model |
 | Sorna adult model (JP3 look) | The Sorna set uses its own JP3 model | Needs export | F2.2 | REPO models/velociraptor_adult_JP3.bbmodel (28 clips inside) |
 | Nublar adult model (JP and TLW look) | The animal | Done | F2.1 | MOD/geo/entity/velociraptor.geo.json. REPO models/velociraptor_adult_jptlw.bbmodel |
 | Infant model | Young animals scale from the adult | Not in Beta | F2.1 | REPO models/tbl/velociraptor_infant_novel.tbl |
@@ -613,7 +614,7 @@ Milestone: Dinosaurs.
 
 | Asset | Used for | Status | Feature | Where / reference |
 | --- | --- | --- | --- | --- |
-| Joint fix (seams) | Closes the gaps at bent neck, leg and tail joints, so clips and head look can bend further | Missing | F2.3 | Agent makes it (D332): a copy of the mod model with joint overlap and pivots on the joints, no texture change. The lead approves before and after renders. Worst joints (estimate): `calf` to `ankle` 4.0 px open at rest; `neck1` to `neck5` 1.7 to 3.1 px |
+| Joint fix (seams) | Closes the gaps at bent neck, leg and tail joints, so clips and head look can bend further | Missing | F2.3 | Agent makes it (D332): a copy of the mod model with joint overlap and pivots on the joints, no texture change. The lead approves before and after renders. The same change adds one empty control bone (D348). Worst joints (estimate): `calf` to `ankle` 4.0 px open at rest; `neck1` to `neck5` 1.7 to 3.1 px |
 | Adult model | The animal | Done | F2.1 | MOD/geo/entity/dilophosaurus.geo.json. REPO models/Dilophosaurus.bbmodel |
 
 ### Skins and textures: JP set
@@ -849,7 +850,7 @@ Milestone: Dinosaurs.
 
 | Asset | Used for | Status | Feature | Where / reference |
 | --- | --- | --- | --- | --- |
-| Joint fix (seams) | Closes the gaps at bent neck, leg and tail joints, so clips and head look can bend further | Missing | F2.3 | Agent makes it (D332): a copy of the mod model with joint overlap and pivots on the joints, no texture change. The lead approves before and after renders. Worst joints (estimate): `hips` to `tail1` 2.2 px open at rest; `calf` to `ankle` 1.7 px |
+| Joint fix (seams) | Closes the gaps at bent neck, leg and tail joints, so clips and head look can bend further | Missing | F2.3 | Agent makes it (D332): a copy of the mod model with joint overlap and pivots on the joints, no texture change. The lead approves before and after renders. The same change adds one empty control bone (D348). Worst joints (estimate): `hips` to `tail1` 2.2 px open at rest; `calf` to `ankle` 1.7 px |
 | Adult model | The animal | Done | F2.1 | MOD/geo/entity/triceratops.geo.json. REPO models/Triceratops_25_04.bbmodel |
 
 ### Skins and textures: Nublar set (JP)
@@ -1044,7 +1045,7 @@ Milestone: Dinosaurs.
 
 | Asset | Used for | Status | Feature | Where / reference |
 | --- | --- | --- | --- | --- |
-| Joint fix (seams) | Closes the gaps at bent neck, leg and tail joints, so clips and head look can bend further | Missing | F2.3 | Agent makes it (D332): a copy of the mod model with joint overlap and pivots on the joints, no texture change. The lead approves before and after renders. Worst joints (estimate): `hips` to `tail1` 4.5 px open at rest; `neck5` to `head1` 1.7 to 2.7 px. JP1 model |
+| Joint fix (seams) | Closes the gaps at bent neck, leg and tail joints, so clips and head look can bend further | Missing | F2.3 | Agent makes it (D332): a copy of the mod model with joint overlap and pivots on the joints, no texture change. The lead approves before and after renders. The same change adds one empty control bone (D348). Worst joints (estimate): `hips` to `tail1` 4.5 px open at rest; `neck5` to `head1` 1.7 to 2.7 px. JP1 model |
 | Adult model, JP3 look | JP3 set uses its own model | Needs export | F2.2 | REPO models/brachiosaurus_adult_JP3.bbmodel (24 clips inside) |
 | Adult model, JP1 look | The animal | Done | F2.1 | MOD/geo/entity/brachiosaurus.geo.json. REPO models/brachiosaurus_bb.bbmodel |
 
@@ -1210,13 +1211,14 @@ Milestone: Dinosaurs.
 - Sounds (8): Broadcast (3), bellow (5), chirp (2); Screech (4); Growl (4); Bite; Burp (3); Hurt (3); Death (3); Drink (2).
 - Sprites (2): Raw meat; Cooked meat.
 
-**To fix (13)**
+**To fix (16)**
 
 - Skins, JP set (4): Male: claws (confirm shared), mouth (confirm shared), nostrils (confirm shared), eyes (confirm shared).
 - Skins, JW set (7): Female: mouth (confirm shared), nostrils (confirm shared), eyes (confirm shared); Male: claws (confirm shared), nostrils (confirm shared), mouth (confirm shared), eyes (confirm shared).
-- Animations (2):
+- Animations (5):
   - Check in game: Drink.
   - Convert: Flinch.
+  - Agent fix (D345): Walk (foot slide and sink), Run (foot sink), Sentry (keys after the end).
 
 Elsewhere for this species: Bloody mouth overlay: Gallimimus (Missing, Dinosaur effects); Snow cover overlay: Gallimimus (Missing, Dinosaur effects); Printed egg: `normal` model (Missing, Eggs and hatching); Natural egg: Gallimimus (Missing, Eggs and hatching); Skull: Gallimimus (Ready to import, Fossils and amber); Tranquilised clip: Velociraptor, Dilophosaurus, Triceratops, Brachiosaurus, Gallimimus (Missing, Guns (blocked, list only)).
 
@@ -1224,7 +1226,7 @@ Elsewhere for this species: Bloody mouth overlay: Gallimimus (Missing, Dinosaur 
 
 | Asset | Used for | Status | Feature | Where / reference |
 | --- | --- | --- | --- | --- |
-| Joint fix (seams) | Closes the gaps at bent neck, leg and tail joints, so clips and head look can bend further | Missing | F2.3 | Agent makes it (D332): a copy of the mod model with joint overlap and pivots on the joints, no texture change. The lead approves before and after renders. Worst joints (estimate): `legUpper` to `legMiddle` 3.0 px open at rest; `neck5` to `neck8` 0.8 to 1.4 px |
+| Joint fix (seams) | Closes the gaps at bent neck, leg and tail joints, so clips and head look can bend further | Missing | F2.3 | Agent makes it (D332): a copy of the mod model with joint overlap and pivots on the joints, no texture change. The lead approves before and after renders. The same change adds one empty control bone (D348). Worst joints (estimate): `legUpper` to `legMiddle` 3.0 px open at rest; `neck5` to `neck8` 0.8 to 1.4 px |
 | Adult model | The animal | Done | F2.1 | MOD/geo/entity/gallimimus.geo.json (newer than REPO models/gallimimus_adult.bbmodel) |
 
 ### Skins and textures: JP set
@@ -1321,12 +1323,12 @@ The JW skin is in Beta. REPO folders: textures/_skins/JW female/, JW male/. None
 | Startled | Reaction before running | Placeholder | F2.3 | Stand-in: `startled` is a copy of the Velociraptor startled clip |
 | Drink | Thirst. A 5 s loop: the body tips forward, the neck arches down to the water, two sips with a swallow lift, then back to the idle pose | To check in game | F2.3 | `drink`. Agent-made with mcblend (D331: the lead gave this row to an agent). Head and neck shape after the Prehistoric Kingdom Update 15 cinematic |
 | Flinch | Hit reaction | Needs conversion | F2.3 | `flinch`: 16 of 30 bones not in the model |
-| Walk | Moving | Done | F2.3 | `move.walk` |
-| Run (flee) | Gallimimus runs from threats | Done | F2.3 | `run` |
+| Walk | Moving | Needs conversion | F2.3 | `move.walk`. Agent fix (D345): each foot slides 5 to 7.5 px forward when it lands, and a foot sinks about 1 px into the ground. The clip check finds both |
+| Run (flee) | Gallimimus runs from threats | Needs conversion | F2.3 | `run`. Agent fix (D345): a foot sinks about 1 px into the ground |
 | Swim | Water | Done | F2.3 | `swim` |
 | Attack (kick, bite) | Cornered defence | Done | F2.3 | `attack1`, `attack2` |
 | Call | Herd call and alarm call | Done | F2.3 | `calling` |
-| Sentry (upright watch) | Alert before fleeing | Done | F2.3 | `sentry` |
+| Sentry (upright watch) | Alert before fleeing | Needs conversion | F2.3 | `sentry`. Agent fix (D345): 11 bones have a key at 4.75 s in the 4.74 s clip. No new motion |
 | Sniff air | Detection | Done | F2.3 | `sniffair` |
 | Look left and right | Detection | Done | F2.3 | `lookleft`, `lookright` |
 | Threat display | Gallimimus flees instead. The alarm call serves | Not in Beta | F2.3 | Not needed while the species always flees |

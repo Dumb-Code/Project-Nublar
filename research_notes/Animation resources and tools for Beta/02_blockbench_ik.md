@@ -33,14 +33,29 @@ Labels:
 - The in-game leg IK (layer 2) still runs. A baked clip with planted feet gives it less to fix. [inf]
 - Limit: the bake plants feet only for the clip's own speed. The game speed must match the stride (D292). [inf]
 
+## Hands-on test (2026-11-03, the lead's yes)
+
+The agent drove Blockbench 5.2.2 on the lead's PC. All files were copies in `build/anim-research/bbtest/` (ignored by git). No artist file changed (no `.bbmodel` in `ProjectNublar-Assets` is newer than the test). [v]
+
+- **Old plugin.** At start, 4.1.3 shows its own warning that it supports only Blockbench 4.12.0 to 5.0.0. Its plugin page says "Plugin is outdated and does not work with this version of Blockbench". [v]
+- **Plugin swap.** The agent uninstalled "GeckoLib Animation Utils" 4.1.3 and installed "GeckoLib Models & Animations" 4.2.5 from the plugin store. [v] The lead's Blockbench now has the new plugin.
+- **Import of the mod's clips.** Animation > Import Animations read the mod's `gallimimus.animation.json` (with its `post: {vector}` keys) and listed all 16 clips. [v] So the new plugin opens the mod's clip files.
+- **Round trip.** The agent exported the 10 clips that only the mod file has (`move.walk`, `attack2`, `calling`, `misc.idle`, `rest`, `restidle`, `sentry`, `flinch`, `startled`, `drink`: 4,636 keys). Every key time, value, curve type (`lerp_mode`), clip length and loop flag matches the original, and keyed bones that the model lacks stay in the file. [v] (script comparison) Clips with the same name in the artist file were left out, because the export list merges same-name clips.
+- **IK bake.** The agent added one null object to a copy (target `footRight`, root `legUpperRight`, three position keys) on the shipped `move.walk`. "Bake Inverse Kinematics" shows in the Animation menu once a null object exists. [v] After the bake and an export:
+  - the three chain bones (`legUpperRight`, `legMiddleRight`, `legLowerRight`) have 46 rotation keys each, at 24 per second; [v]
+  - the null object and its keys are gone from the export; the root's own position keys stay; the target bone (`footRight`) keeps its own 15 keys; the left leg does not change; [v]
+  - the baked loop does not close: `legLowerRight` starts at 62.6° and ends at 1.5°, and the first step is about 22°; [v]
+  - the knee flips 10° to 30° between frames at several times. [v]
+  - Probable cause: no IK pole and a test path for the null that does not loop. [inf] Rule for real use: set an IK pole (5.2.0 and later), key the null so that the loop closes, and run the clip checker on the baked clip. [inf]
+
 ## Not done
 
-- The hands-on test in Blockbench (a copy with a null object, bake, export through the plugin, load in game). The handoff says to ask the lead before launching Blockbench. The live `blockbench` MCP also failed to connect on 2026-11-03.
-- A test of the new `geckolib` plugin 4.2.5 on the mod's clip files.
+- A load of a baked clip in game.
+- A real foot-plant fix with IK. That is the Gallimimus Art list row.
 
 ## Verdicts
 
-- Blockbench IK with "Bake Inverse Kinematics" on 5.2.2: **use it** for new or fixed walk and run clips, after one test on a copy.
+- Blockbench IK with "Bake Inverse Kinematics" on 5.2.2: **use it** for new or fixed walk and run clips, with an IK pole and a closed null path, and check the baked clip. Tested on a copy.
 - Export with live (unbaked) IK: **drop**. It overwrites other keys on the same bones.
-- GeckoLib plugin 4.1.3 on Blockbench 5.2.2: **replace** with the `geckolib` plugin 4.2.5, after a test on copies (lead's call; it is the artist's tool).
+- GeckoLib plugin 4.1.3 on Blockbench 5.2.2: **replaced** with the `geckolib` plugin 4.2.5 on 2026-11-03 (the lead's yes). The round trip of the mod's clips is exact.
 - mcblend for IK: **keep** for clips that need Blender tools. Blockbench bake covers foot planting.

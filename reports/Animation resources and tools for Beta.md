@@ -219,6 +219,17 @@ Other facts for the layers:
 7. File the Gallimimus clip fixes on the Art list (the skid and sink for the artist, the `sentry` keys for an agent)?
 8. The three new ideas: no turning in place, a footfall spring and controller bones.
 
+## Answers (lead, 2026-11-03)
+
+1. Overlay clips: Nublar's own delta bone updater (D341).
+2. Brachiosaurus: breathing sway before the leg IK, for every species (D342).
+3. D327: the exact spring formula.
+4. An F2.2 exception for GeckoLib's own objects, with the listener on only when an effect can start (D343).
+5. The agent ran the Blockbench test. The GeckoLib plugin is now 4.2.5, the round trip of the mod's clips is exact, and the IK bake works (note 02).
+6. The clip check lives in the mod's unit tests, on GeckoLib's own evaluation, and is built with F2.3 (D344).
+7. The Gallimimus walk, run and sentry fixes go to an agent (D345).
+8. No turning on the spot for every species (D346). A light footfall bounce for every species (D347). Control bones (D348).
+
 ## Not done
 
 - Nothing ran in game. The clip defects come from the headless pose code.

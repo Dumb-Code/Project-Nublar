@@ -3177,7 +3177,8 @@ The main results:
 - The shipped Gallimimus `move.walk` slides each foot about 5 to 7.5 px forward at touch-down, and a foot sinks about 1 px. No game speed stops this slide. The leg IK may hide part of it. The clip needs a fix.
 - The headless Blockbench gates miss loop ends, foot slide and parts through the body. A script on the same pose code finds loop ends and foot slide, and runs 6 clips in about 16 s. Its overlap test also gives false flags. The `detachment` gate and the script both missed a 60° neck bend, so the F2.3 seam check needs the bend-budget table. The checker must pose the mod's model, because the artist files differ from the shipped clips.
 - Exact damped springs (Holden) suit tail lag, head look and the D327 screen springs. They stay stable at any frame length.
-- The lead's Blockbench is 5.2.2, and its GeckoLib plugin 4.1.3 supports Blockbench 5.0.0 at most. The replacement plugin 4.2.5 and the Blockbench "Bake Inverse Kinematics" action need a test on copies.
+- The lead's Blockbench 5.2.2 got the GeckoLib plugin 4.2.5 on 2026-11-03, in place of 4.1.3. The new plugin opens the mod's clip files and exports them again with no change. "Bake Inverse Kinematics" works. A baked loop needs an IK pole and a null path that closes the loop.
+- The lead answered the eight open questions on 2026-11-03 (D341 to D348, and D327). The plan has the results.
 
 #### Top changes
 

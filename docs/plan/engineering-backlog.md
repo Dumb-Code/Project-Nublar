@@ -101,7 +101,7 @@ Every work package follows these rules.
   - SmartBrainLib 2 ticks the brain. Remove the manual brain tick.
   - Gate sensors with `onlyScanIf` and set a scan rate per entity. No always-on block scan.
   - Use the built-in sensors and behaviours for nearby entities, players, hurt-by, attack targets, flee, follow and breeding.
-  - Use GeckoLib 5 triggered animations, additive controllers and bone updaters. GeckoLib 5 applies the scale attribute.
+  - Use GeckoLib 5 triggered animations and bone updaters. Do not use additive controllers: they drop a keyed bone's model rotation (D341). GeckoLib 5 applies the scale attribute.
   - Write Nublar code only where no hook exists (stamina chases, dominance, nests, herd formation, the incubator arm solver). Build it on the library's base classes. Use the library's extension points. Do not fork a library.
 - **Three rules for the mod's own code** (tech survey, section 12.2):
   1. Still things use static geometry. Fence posts, wires and idle machines draw from the chunk mesh or a block model, not from a block-entity renderer every frame.
@@ -1250,7 +1250,7 @@ F1.4 delivers the Sequencer block, its frame screen and the Sequence tab. F1.5 a
   - Scroll bars on the lists that grow. The mouse wheel and a bar drag scroll them.
   - Material Design 3 motion that only decorates. A click shows its result in the same frame, and text never fades.
   - The Material 3 Expressive motion of the F1.4 spec, the reduced-motion and contrast options, and bold type roles (D312, D313, D318).
-  - A long frame does not break a spring (proposal, lead decides, D327). Cap the frame time at 50 ms and step springs in equal 8 ms steps, or use the exact spring formula.
+  - A long frame does not break a spring (D327). Screen springs use the exact spring formula, which stays stable at any frame length.
   - The narrow-window layout of every tab, below 351 px of scaled width (D317).
   - The screen cost rules: no shader passes, effects in slices, panel tiles of 16 px or more, at most two 3D models, layout only on open and on resize.
 - Clicking a slot opens a small popup with a title and one slot. The main screen dims behind it.
@@ -1384,7 +1384,7 @@ F1.4 delivers the Sequencer block, its frame screen and the Sequence tab. F1.5 a
 - The machine gate of F1.10 holds for this machine.
 - The fps with the Sequencer screen open stays at 95 % or more of the fps with a chest screen open. Playtests tune this start value (D311).
 
-**Changed since last review:** Sequencing is the only step that identifies amber DNA. Empty tubes and syringes come back. Vanilla cards show "Modern" and real diet. Power draw 20 (HDD) and 42 (SSD) FE per tick. Door animation and monitor glow added. The monitor glows whenever powered. No Ender SSD. Screen style and motion for all three tabs (D300 to D303). Clone stats on the info card, with a failed-egg count on the drive (D304). The Isolated view shows the animals each gene needs. Screen cost rules for every machine screen, with an fps check (D309, D311). The screen task makes its GUI sprites (D310). Model fills most of the info card, light flows along the helix, narrow-window layout for every tab (D315 to D317). Material 3 Expressive motion, reduced-motion and contrast options, bold type roles (D312, D313, D318). Fps check at 95 % of a chest screen (D311). A spring step rule for long frames waits for the lead (D327).
+**Changed since last review:** Sequencing is the only step that identifies amber DNA. Empty tubes and syringes come back. Vanilla cards show "Modern" and real diet. Power draw 20 (HDD) and 42 (SSD) FE per tick. Door animation and monitor glow added. The monitor glows whenever powered. No Ender SSD. Screen style and motion for all three tabs (D300 to D303). Clone stats on the info card, with a failed-egg count on the drive (D304). The Isolated view shows the animals each gene needs. Screen cost rules for every machine screen, with an fps check (D309, D311). The screen task makes its GUI sprites (D310). Model fills most of the info card, light flows along the helix, narrow-window layout for every tab (D315 to D317). Material 3 Expressive motion, reduced-motion and contrast options, bold type roles (D312, D313, D318). Fps check at 95 % of a chest screen (D311). Screen springs use the exact spring formula (D327).
 ### F1.5: Sequencer: gene editing
 
 F1.5 is the Edit tab of the Sequencer: the player mixes donor DNA, edits isolated genes and colours, and sees the risk before synthesis.
@@ -3442,6 +3442,8 @@ F2.1 gives each species its own stats, smooth growth, a carcass at death, baby b
   - Rewrite the part that writes the bones (D334). GeckoLib 5 bones are read-only, so the CHAOS bone class and its forced world matrices cannot port. The solve adds rotation deltas to the bone snapshots in a bone updater.
   - Leave out the CHAOS tail part and `ServerLimb` (D334). The server bend above covers tails, and nothing reads `ServerLimb`.
   - The ground raycasts use a shared collision context. They do not create an entity per ray.
+  - Each joint stops at its bend budget (F2.3). A foot target out of reach moves the target, never stretches the leg.
+  - When the animal stops, the legs freeze and the IK pins the feet where they stand.
   - The 2024 board's open IK items (angle constraints, model and entity integration, movement and idle cycles) are context.
 - [ ] A missed part add or remove heals on the next query.
   - A part moves between buckets only when its key changes.
@@ -3537,7 +3539,7 @@ See Art list → each species, and Fossils and amber. Not done until those rows 
 - Every attack deals its damage 20 ticks after it starts, for all species, whatever the clip length (0.83 to 3.71 s) (`Dinosaur.java`, `AnimatableMeleeAttack(20)`).
 - Hits use one axis-aligned box per animal. Tails and neck tips cannot be hit.
 
-**Changed since last review:** Hit ticks come from a marker in each attack clip, and reach counts from the striking bone (D335). The bake also holds clip lengths and event ticks, and the shipped clips leave out bones that never move (D336). Leg IK keeps the CHAOS solver and planner with a new GeckoLib 5 bone writer, and leaves out the CHAOS tail (D334). A carcass lasts one in-game day. Only three species drop a special item, and only the T. rex drops teeth. Hatchlings use their own sounds. Mates share a carcass by feeding spots. Animals wade, then swim, by water depth against body height, with no vanilla bobbing. A leg IK skip for animals out of view and a part-count gap wait for the lead (D326, D328).
+**Changed since last review:** Leg IK keeps each joint within its bend budget, never stretches a leg, and pins the feet when the animal stops. Hit ticks come from a marker in each attack clip, and reach counts from the striking bone (D335). The bake also holds clip lengths and event ticks, and the shipped clips leave out bones that never move (D336). Leg IK keeps the CHAOS solver and planner with a new GeckoLib 5 bone writer, and leaves out the CHAOS tail (D334). A carcass lasts one in-game day. Only three species drop a special item, and only the T. rex drops teeth. Hatchlings use their own sounds. Mates share a carcass by feeding spots. Animals wade, then swim, by water depth against body height, with no vanilla bobbing. A leg IK skip for animals out of view and a part-count gap wait for the lead (D326, D328).
 
 ### F2.2: Appearance
 
@@ -3658,7 +3660,7 @@ Each set is complete with every layer for both genders. A layer shared by both g
 - Far animals animate at lower cost with GeckoLib 5 extension points.
   - Hold the last pose beyond 32 blocks.
   - Skip frames by distance and size: skip = distance ÷ 20, divided by half the largest box side for bodies over 2 blocks.
-  - Three controllers at most: movement, action and the F2.3 overlay (D333).
+  - Two controllers: movement and action. The F2.3 head overlay plays through a bone updater, not a controller (D341).
   - Expected: 50 to 75 % fewer keyframe evaluations at 32 to 96 blocks (estimate).
   - Risk: this relies on an override of `applyAnimationControllers` on an internal GeckoLib interface. If unsupported, pause far controllers instead.
 - Far animals skip small cubes, for example cubes with no side over 2 px beyond 48 blocks (proposal, lead decides, D299).
@@ -3667,6 +3669,7 @@ Each set is complete with every layer for both genders. A layer shared by both g
   - The cut has a gap of a few blocks, so cubes do not pop in and out at 48 blocks (proposal, lead decides, D326).
 - Render types stay batchable and shader-safe: one `RenderType` per texture, cached. No core shader. No `sortOnUpload` on an opaque type.
 - The render path makes no garbage per frame (`docs/java-best-practices.md`): no new arrays, streams, boxed colours or `Optional`s per animal. Today `DinosaurRenderer.addRenderData`, `IdleSway` and `Dinosaur.layerColor` make them, and the gender and scale gene lookups run twice per frame.
+  - One exception (D343): GeckoLib makes about 10 small objects per pass for each bone that has a position listener, and Nublar's code cannot remove them. F2.3 adds the listener only on frames where an effect can start.
 - The culling box is F2.1's. F2.2 renders inside it.
 
 #### Config (defaults)
@@ -3706,7 +3709,7 @@ See Art list → each species: skin layers per set and gender, glow masks. Not d
 - The Velociraptor registry draws `base` only.
 - Each Triceratops draws one horn set in one horn colour, picked at random and fixed for that animal. No gene holds them yet.
 
-**Changed since last review:** Triceratops and Brachiosaurus height targets set. Morphs are tints, with no morph textures. One glow mask per species. JW looks only for Brachiosaurus, Gallimimus and Dilophosaurus. Quill card set in Beta. DNA share picks the skin set. Velociraptor crest, quill and breeding rules. CPU bake, no core shader. Triceratops horn set and horn colour are look genes, one of each per animal. A small-cube cut for far animals and its distance gap wait for the lead (D299, D326). Three controllers at most, with the F2.3 overlay (D333). No garbage per frame in the render path.
+**Changed since last review:** Triceratops and Brachiosaurus height targets set. Morphs are tints, with no morph textures. One glow mask per species. JW looks only for Brachiosaurus, Gallimimus and Dilophosaurus. Quill card set in Beta. DNA share picks the skin set. Velociraptor crest, quill and breeding rules. CPU bake, no core shader. Triceratops horn set and horn colour are look genes, one of each per animal. A small-cube cut for far animals and its distance gap wait for the lead (D299, D326). Two controllers: the F2.3 head overlay is a bone updater (D341). No garbage per frame in the render path, apart from GeckoLib's own bone-position objects (D343).
 
 ### F2.3: Animations, sounds and visual effects per species
 
@@ -3723,6 +3726,7 @@ F2.3 gives each species its own clips, sounds and visual effects, with no borrow
 - **Own clips and sounds.** Every species has its full clip list and its own sound events.
 - **Clean joints.** No clip opens a hole or seam that the model's rest pose does not have. Each species model gets a joint fix first (D332).
 - **Living heads and tails.** Code turns the head and neck toward the look target, swings the tail behind turns, and plays short head clips over walking (D333). A tired animal pants (D338).
+- **Weight in every step.** Each footfall gives the body a light bounce (D347), and an animal steps as it turns, never spinning on the spot (D346).
 - **Own warnings.** Each species warns with its own sound, not the T. rex roar.
 - **Tracks.** Dinosaurs leave fading footprints and kick up dust of the ground they run on (D340).
 - **Body effects.** They drip water after a drink, breathe fog in the cold and snore Zzz in their sleep.
@@ -3801,6 +3805,8 @@ What needs each added clip:
 ##### Export tooling
 
 - The Art list has 55 "Needs export" rows. Each clip or model is in a REPO Blockbench file and only has to go into the mod.
+- The artist's Blockbench (5.2.2) runs the GeckoLib plugin "GeckoLib Models & Animations" 4.2.5. It opens the mod's clip files and exports them again with no change.
+- Walk and run clips plant their feet with Blockbench IK. Each leg gets a null object with an IK pole and a null path that closes the loop. Then "Bake Inverse Kinematics" and the clip check run.
 - Before the clip work starts, try a Blockbench MCP server on one row (proposal, lead decides, D320). The trial row is the Velociraptor `swim` clip from the jptlw file.
   - Keep the server only if it runs the GeckoLib export, and the clip plays in game as in Blockbench.
   - The server runs code inside Blockbench. Use it on a copy of the REPO file.
@@ -3837,11 +3843,18 @@ Every new, exported, converted or fixed clip meets all of these before it counts
   - no keyed bone is static;
   - loop clips end on their first pose;
   - no rotation step is over 180° between two keys;
-  - keys use a form that both GeckoLib and Blockbench open. Blockbench with the GeckoLib plugin 4.1.3 cannot open `post: {vector}` keys today.
+  - keys use a form that both GeckoLib and Blockbench open. The GeckoLib plugin 4.2.5 opens the mod's `post: {vector}` keys.
 - [ ] A bend-budget table per species, made from the model: for each joint, the bend in degrees at which a gap opens. The clip test and the code layers read it.
   - The clip test fails a new or changed clip that bends a joint past its budget.
   - For a clip that is already in the mod, it only reports the joints past budget, until that species' joint fix is in. Many Done clips bend past today's budgets.
-- [ ] The clip kit's Blender checks run on every agent-made or agent-fixed clip before anybody sees it: holes, poke-through, flicker, foot slip and export match. The headless Blockbench `detachment` check runs at the extreme frames.
+- [ ] A clip check in the unit tests (D344). It poses every clip of every species with GeckoLib 5's own clip evaluation, on the mod's model. It fails on:
+  - a planted foot that sinks under the ground or moves forward (a touch-down skid)
+  - a loop clip whose last pose differs from its first
+  - a part whose corner comes out through the face of another part, apart from the face where the two join at rest
+  - keys after the clip's end.
+  - A list per clip turns off the ground rules where they do not apply: swim, drink, lie-down.
+  - It is built with F2.3 and runs with the normal tests on every build.
+- [ ] The clip kit's Blender checks run on every agent-made or agent-fixed clip before anybody sees it: holes, poke-through, flicker, foot slip and export match.
 - [ ] The kit's scripts move from `Documents\Minecraft Modding\Animation Work\` into the repo under `tools/animation/`, so the next agent or artist can run them.
 
 ##### Joint fix per species (D332)
@@ -3880,21 +3893,25 @@ The code layers add to the clip pose each frame, in this order. No layer writes 
 
 | Order | Layer | Side | What it does |
 | --- | --- | --- | --- |
-| 1 | Clips | client | `movement` (walk, run), `dino_controller` (actions), and a new additive `overlay` controller. The no-op `dino_secondary_Controller` goes. |
-| 2 | Leg IK | client | Feet on the ground (F2.1 part B). |
-| 3 | Neck and tail bend | server, synced | Bends away from blocks (F2.1 part B). |
-| 4 | Head look | client | Turns the head and neck toward the look target. |
-| 5 | Neck reach | client | Brings the snout to the water or food surface. |
-| 6 | Tail lag | client | Swings the tail behind turns. |
-| 7 | Breathing sway | client | `IdleSway`, faster and deeper at low stamina (D338). |
+| 1 | Clips | client | `movement` (walk, run) and `dino_controller` (actions). The no-op `dino_secondary_Controller` goes. |
+| 2 | Head overlay | client | Plays short head clips over walk and idle (D341). |
+| 3 | Breathing sway | client | `IdleSway`, faster and deeper at low stamina (D338). It runs before the leg IK, so it never moves a planted foot (D342). |
+| 4 | Footfall bounce | client | A light dip of the body at each foot contact (D347). |
+| 5 | Leg IK | client | Feet on the ground (F2.1 part B). |
+| 6 | Neck and tail bend | server, synced | Bends away from blocks (F2.1 part B). |
+| 7 | Head look | client | Turns the head and neck toward the look target. |
+| 8 | Neck reach | client | Brings the snout to the water or food surface. |
+| 9 | Tail lag | client | Swings the tail behind turns. |
 
-- [ ] Overlay controller:
-  - It plays clips that key only head, neck, jaw or tail bones over walk and idle. GeckoLib 5 additive mode adds them to the pose below.
+- [ ] Head overlay (D341):
+  - It plays clips that key only head, neck, jaw or tail bones over walk and idle.
+  - A Nublar bone updater samples the overlay clip with its own clip clock and adds the clip's angles to the pose below. It fades in and out.
+  - It does not use GeckoLib's additive mode. In GeckoLib 5.5.5 and 5.5.6 that mode drops each keyed bone's model rotation, and 14 to 26 head, neck, jaw and tail bones per species have one.
   - Today only the Triceratops `speak`, `lookleft`, `lookright`, `headshake`, `sniffair`, `attack1` and `attack2` key none of the walk bones. Other look and speak clips qualify after the static-bone cleanup.
-  - Test additive mode first on a bone with a model rotation. The GeckoLib 5.5.6 additive code may be wrong for such bones.
 - [ ] Head look:
   - The brain's look target sets the vanilla head yaw and pitch on the server. Per-species limits and turn speed override `getMaxHeadYRot`, `getMaxHeadXRot` and `getHeadRotSpeed`.
   - A per-species weight curve over the neck bones spreads the turn. The weights sum to 1. Each joint stops at its bend budget.
+  - One critically damped spring eases the total yaw and pitch, before the weight curve splits them. Heavy heads use a double spring. The head leads the neck a little.
   - The roar suppression rule above scales it.
   - The look-left and look-right idle clips stay as idle acts.
   - Until a species has its joint fix, its head look keeps to today's budgets. The T. rex then has about 21° of pitch over its whole neck.
@@ -3902,15 +3919,26 @@ The code layers add to the clip pose each frame, in this order. No layer writes 
   - During drink (all six species) and eat (the species with an eat clip), the neck base and head pitch add the height difference between the clip's snout and the water or food surface, up to the bend budgets.
   - The animal faces the water before the clip starts (F2.4).
 - [ ] Tail lag:
-  - A damped spring per tail bone, driven by the body's turn rate and speed. It steps on the client tick, lerped per frame.
+  - An exact damped spring per tail bone, set by half-life and damping ratio, driven by the body's turn rate and speed. It steps on the client tick, and the render evaluates it forward by the partial tick.
+  - Head first, body next, tail last. A light tail overshoots a little. A heavy tail settles with no overshoot.
   - Visual only: hit parts follow the server bend, not the lag.
   - Spring values per species: value open, set in the task plan by eye.
 - [ ] Breathing sway:
   - Amounts per species. Today every species uses the Gallimimus amounts.
   - Off while the clip has its own sway: the Gallimimus and T. rex `misc.idle`. Today the sway adds on top, so those clips probably sway twice.
   - Below a third stamina, the sway rate and amount rise as stamina falls, highest at 0 % (D338). It reads the synced `STAMINA` value, so no new sync is needed. At 0 % the F2.0 breath sound plays with it. Values set in the task plan by eye.
-- [ ] One bone map per species names the head, neck, tail, leg, foot, and jaw or snout bones. Names differ: `head1` on the Brachiosaurus, `legUpperRight` and `thighLeft` on the Velociraptor.
-- [ ] Distance: head look, neck reach and tail lag run within 32 blocks. Past 32 the pose holds (F2.2). Leg IK keeps its F2.1 distances.
+  - A damper eases each change of rate and amount, and a stored phase keeps the sway from jumping when the rate changes.
+  - It runs before the leg IK (D342). The Brachiosaurus front legs hang from `hips`, so a later sway would move its planted front feet.
+- [ ] Footfall bounce (D347):
+  - At each foot contact, a light damped spring dips the body and lets it settle, so each step reads as heavy.
+  - All species, scaled by body size. The default is light. Values set in the task plan and tuned by eye in game.
+  - It runs before the leg IK, so the feet stay planted.
+- [ ] Control bones (D348):
+  - Each species model gets one empty control bone with no cubes. A clip keys it from 0 to 1 to scale a code layer at exact times, for example head look off during a roar.
+  - A clip with no control keys uses the rules above, for example the roar suppression.
+  - The bone is a model change. It goes in with the species' joint fix, and the lead approves it.
+- [ ] One bone map per species names the head, neck, tail, leg, foot, jaw or snout, and control bones. Names differ: `head1` on the Brachiosaurus, `legUpperRight` and `thighLeft` on the Velociraptor.
+- [ ] Distance: the head overlay, footfall bounce, head look, neck reach and tail lag run within 32 blocks. Past 32 the pose holds (F2.2). Leg IK keeps its F2.1 distances.
 
 #### Scope: sounds
 
@@ -3969,8 +3997,9 @@ The code layers add to the clip pose each frame, in this order. No layer writes 
 - Effects run on the client from synced state and clip events. No server packet per effect.
 - Effects start at the body part (D339):
   - Mouth effects start at the jaw or snout bone of the bone map. Water effects start where a bone of the bone map crosses the water surface. The bone's speed sets the splash and ripple size.
-  - GeckoLib 5 `RenderPassInfo#addBonePositionListener` gives the bone positions each frame. It exists in 5.5.5 (Fabric) and 5.5.6 (NeoForge).
-  - One listener object per animal, reused each frame, no new object per frame (F2.2). Effects spawn on the client tick from the last frame's positions.
+  - GeckoLib 5 `RenderPassInfo#addBonePositionListener` gives the bone positions each frame, on 5.5.5 (Fabric) and 5.5.6 (NeoForge). The position is the bone's pivot.
+  - Per species, the effect bone is the existing bone whose pivot sits nearest the tip, for example a snout bone for the drink splash.
+  - One listener object per animal, reused each frame. The renderer adds it only on frames where an effect can start: in water, eating or running. GeckoLib's own objects for it are the F2.2 exception (D343). Effects spawn on the client tick from the last frame's positions.
   - Within 32 blocks only, as the code layers.
 - Dust trail (D340):
   - A custom particle type with the agent-made grey dust sprites (D330): 4 frames of 16×16 that show one lumpy cloud breaking up into specks. Each puff plays the frames by age, as vanilla campfire smoke does: a cloud at the foot, specks as it fades.
@@ -4015,7 +4044,10 @@ See Art list → each species (every clip and sound row), and Dinosaur effects. 
 - Each species with its joint fix shows no seam beyond the rest pose in its walk, run, drink and eat clips (before and after renders in the PR).
 - A turning T. rex leads with its head and its tail trails, then settles (a clip in the PR, both loaders).
 - A Gallimimus turns its head and neck toward a still player within 8 blocks, and no neck joint opens.
-- A walking Triceratops plays `headshake` on the overlay while its legs keep walking.
+- A walking Triceratops plays `headshake` on the overlay while its legs keep walking, and its head and frill keep their normal tilt.
+- The clip check passes for all six species. A walking Gallimimus's planted feet do not slide forward when they land.
+- A resting Brachiosaurus keeps its front feet still while it breathes and while it pants.
+- A walking T. rex's body dips lightly at each footfall, and its feet stay planted (a clip in the PR).
 - A drinking animal's snout meets the water surface on a bank 1 block above the water, and the splash starts at the snout.
 - Unit test: the breathing sway rate is the same at full and at one third stamina, then rises as stamina falls, highest at 0 %. A clip in the PR shows a T. rex at full and at 0 % stamina.
 - A Triceratops wading at a run makes splashes at its legs. A slow walk makes smaller ones.
@@ -4035,10 +4067,12 @@ See Art list → each species (every clip and sound row), and Dinosaur effects. 
 - Most clips key every bone while about a quarter of them move, so no clip can play over another.
 - No bone turns the head: the brain turns the vanilla head, and nothing reads it. Eight synced clip flags are never set, among them the look and turn flags.
 - Breathing sway adds to every clip with the Gallimimus amounts.
+- The shipped Gallimimus `move.walk` slides each foot 5 to 7.5 px forward when it lands. `move.walk` and `run` sink a foot about 1 px into the ground. `sentry` has keys 0.01 s after its end. The clip proof of 2026-11-03 found these. Nobody has seen them in game yet.
+- GeckoLib 5.5.5 and 5.5.6 additive mode drops a keyed bone's model rotation, also on the newest GeckoLib branch.
 - Clip files total 12.4 MB; the T. rex file is 5.7 MB.
 - Fabric builds against GeckoLib 5.5.5 and NeoForge against 5.5.6. `RestartableAnimationController` uses 5.5.6 internals.
 
-**Changed since last review:** Agents make a new clip case by case, when the lead gives them the row (D331). A quality bar and clip checks for every clip, and a joint fix per species model first (D332). Head look, neck reach, tail lag and an additive overlay controller for head clips are in Beta (D333). Panting breath, effects from bone positions, and a dust trail of agent-made dust sprites tinted by the ground (D338 to D340). Turn lean waits until after Beta (D337). Every species gets own clips and sounds, placeholders count as missing. Per-species warning sounds. Only T. rex and Velociraptor have nesting clips. Limp in Beta below 30 % health. Get-up idle fallback is development only. Gallimimus gets blood effects. Screen shake for three large species. Per-species walk and run speeds are open. Triceratops rest idle holds the last pose of its lie-down. Two art-tool proposals wait for the lead (D320, D321). A screen shake rule waits for the lead (D324).
+**Changed since last review:** Head overlay clips play through a Nublar bone updater, not GeckoLib additive mode (D341). Breathing sway runs before the leg IK (D342). Effects start at the bone nearest the tip, with the listener on only when an effect can start (D343). A clip check in the unit tests (D344). Gallimimus walk and sentry fixes go to an agent (D345). No turning on the spot (D346). A light footfall bounce and control bones (D347, D348). Exact springs for tail lag and head look. The artist's GeckoLib plugin is 4.2.5. Agents make a new clip case by case, when the lead gives them the row (D331). A quality bar and clip checks for every clip, and a joint fix per species model first (D332). Head look, neck reach, tail lag and an additive overlay controller for head clips are in Beta (D333). Panting breath, effects from bone positions, and a dust trail of agent-made dust sprites tinted by the ground (D338 to D340). Turn lean waits until after Beta (D337). Every species gets own clips and sounds, placeholders count as missing. Per-species warning sounds. Only T. rex and Velociraptor have nesting clips. Limp in Beta below 30 % health. Get-up idle fallback is development only. Gallimimus gets blood effects. Screen shake for three large species. Per-species walk and run speeds are open. Triceratops rest idle holds the last pose of its lie-down. Two art-tool proposals wait for the lead (D320, D321). A screen shake rule waits for the lead (D324).
 ### F2.4: Needs
 
 F2.4 gives each dinosaur hunger, thirst, stamina, sleep and stress, makes each need have results, and keeps a 100-dinosaur park at 20 ticks per second.
@@ -4515,6 +4549,7 @@ Build in this order.
   - Split the clearance box by job: torso width for paths, whole model for spacing.
 - [ ] In tight ground a dinosaur stops, turns, then walks. In open ground it slows while it turns.
   - A hard turn gate, a soft gate and the anti-orbit guard.
+  - No turning on the spot (D346). For every species, the body turn rate falls as ground speed falls. A standing animal turns only while its legs step: its turn clip where it has one, or the walk clip at a slow pace. It never spins with still legs.
 - [ ] A stuck ladder that changes the path.
   - Its last rung snaps to a clear spot, also with a player near.
 - [ ] Leaves pass or break per species config.
@@ -4742,6 +4777,7 @@ GameTests on both loaders, in common code.
 
 - A dinosaur of whole-number width advances through every node.
 - A Gallimimus walks under a 3-high canopy.
+- A Brachiosaurus that turns round in a pen steps through the turn. No species spins on the spot with still legs (D346).
 - A 20-animal herd passes a 2-wide corridor in single file and regroups.
 - A growing animal next to a fence never clips into it.
 - A stuck animal reaches the snap rung and continues.
@@ -4805,7 +4841,7 @@ Both loaders.
 
 - A young's gender change also changes the mother's, because both share one genome.
 
-**Changed since last review:** Slot spacing scales with body size. Followers detour only at the urgent need band. A hungry pack journeys, a fed pack roams near its leader. No home territory. Dilophosaurus hunts as a pack. Nest from vanilla blocks. Breeding needs full health and no young near. Eggs count as young. Young do not count toward group size. Hatch rates raised. Triceratops horn set and horn colour come from one parent.
+**Changed since last review:** No turning on the spot: the body turn rate falls with ground speed, and a standing animal steps as it turns (D346). Slot spacing scales with body size. Followers detour only at the urgent need band. A hungry pack journeys, a fed pack roams near its leader. No home territory. Dilophosaurus hunts as a pack. Nest from vanilla blocks. Breeding needs full health and no young near. Eggs count as young. Young do not count toward group size. Hatch rates raised. Triceratops horn set and horn colour come from one parent.
 ### F2.6: The player: threat displays, detection, taming
 
 F2.6 decides how a dinosaur notices a player, how it warns before an attack, and how a player tames a calm animal.
@@ -6754,7 +6790,7 @@ D40 to D68 come from the questions Q1 to Q29 of [ai-behaviour-genetics-reconcili
 | D11 | F2.2 | Approve the render-scale targets (Triceratops 3.0 blocks, Brachiosaurus 12.5) and the section 11.16 missing-stat draft | Answered 2026-10-12 (lead): use the height targets, Triceratops 3.0 blocks (scale 1.32) and Brachiosaurus 12.5 (scale 1.61). They are interim values until real cards exist | Answered |
 | D12 | F2.1 | Real stat cards for five species | Answered 2026-10-12 (lead): the section 11.16 interim stats stay the working values | Answered |
 | D13 | M0.B00, F2.6 | Flee or stand for Tyrannosaurus, Velociraptor, Dilophosaurus and Brachiosaurus? `stress_threshold` and `territory_radius` per species? | Answered 2026-10-12 (lead): one `stress_threshold` per species in the species data, default 50, no gender split. The Brachiosaurus defends with tail whip and stomp after a roar warning (D50). A personal-space radius replaces the territory radius (D165). Follow-up pass: the three carnivores stand or retreat by threat and group size. Each animal adds its pair's or pack's summed threat to its own. It stands unless the attacker's threat is more than 2 × (D112). This replaces "the carnivores always stand" | Answered |
-| D14 | F2.3 | Animation speed that follows body size, and look-around clips on the second controller (review items ANI-6, ANI-2) | Speed by body size: not built. The lead answered "not decided" on 2026-10-06. Note 2026-10-28 (lead, playtest): "The animation speed wasn't the issue, although it should be more dynamic." The foot slide comes from the walking speed itself (D292). Look-around on a second controller: answered 2026-11-03 by D333 (head look in code, head clips on an additive overlay controller). Still blocked: speed by body size only. | Blocked |
+| D14 | F2.3 | Animation speed that follows body size, and look-around clips on the second controller (review items ANI-6, ANI-2) | Speed by body size: not built. The lead answered "not decided" on 2026-10-06. Note 2026-10-28 (lead, playtest): "The animation speed wasn't the issue, although it should be more dynamic." The foot slide comes from the walking speed itself (D292). Look-around on a second controller: answered 2026-11-03 by D333 and D341 (head look in code, head clips over walking through a Nublar bone updater). Still blocked: speed by body size only. | Blocked |
 | D15 | F2.6 | How long does an awareness episode last before a dinosaur rolls again for the same player? | Answered 2026-10-12 (lead, follow-up pass): one notice roll every 10 s (200 ticks) for each player in range, `detection.episode_ticks` | Answered |
 | D16 | F2.6 | Which sources drop scent points, at what spacing, and with what cap per chunk? | Moot 2026-10-12 (lead): scent is not in Beta. A predator that loses sight of its target searches the last seen spot. This reverses the decision of 2026-10-05 | Answered |
 | D17 | F1.9 | Does a hatchling get an owner? | Answered 2026-10-12 (lead, follow-up pass): no owner. The hatchling stays wild until a player tames it | Answered |
@@ -7208,13 +7244,13 @@ These rows come from a check of gamedev-cheatsheet.com, a list of 34 general gam
 | D324 | F2.3 | F2.3 names the three species with screen shake and a client off switch, but no shake rule. Footsteps and roars from several animals can add up with no limit. A shake that turns the player's view also moves the aim. Should each client keep one shake level from 0 to 1? Each footstep and roar adds to it, and it falls to 0 in about 1 second. The camera moves by the level squared times smooth noise. The shake never turns the player's yaw or pitch | The F2.3 task plan picks the shake rule | Lead decision pending |
 | D325 | F4.2 | A trick starts on a jump press in the air. The vehicle is airborne only after more than 2 ticks off the ground, so a press at takeoff starts no trick. Should a jump press count for a few ticks? Also, back held while moving forward only adds a reverse push to the drag. Should it brake at a set rate? | No jump buffer and no brake rate | Lead decision pending |
 | D326 | F2.1, F2.2, BH.1 | The need and stress bands have hysteresis. The distance switches do not. They are the distance band at 64 and 128 blocks, the part count at 64 blocks and the D299 cube cut at 48 blocks. An animal near a line can change on each check, and cubes can pop in and out. Should each switch have a gap of a few blocks? | One line per switch | Lead decision pending |
-| D327 | F1.4 | The screen springs (stiffness 800 and 380) step by the frame time. With a simple step, a frame over about 40 to 70 ms can make the stiffness 800 spring jump past its target or shake. The first frame of a screen on the minimum PC can take that long. Should screen motion cap the frame time at 50 ms and step springs in equal 8 ms steps? The exact spring formula is the other choice. | Step by the frame time. The F1.4 task plan tests one long frame | Lead decision pending |
+| D327 | F1.4 | The screen springs (stiffness 800 and 380) step by the frame time. With a simple step, a frame over about 40 to 70 ms can make the stiffness 800 spring jump past its target or shake. The first frame of a screen on the minimum PC can take that long. Should screen motion cap the frame time at 50 ms and step springs in equal 8 ms steps? The exact spring formula is the other choice. | Answered 2026-11-03 (lead): "Exact spring formula". Screen springs use the closed-form spring, which stays stable at any frame length and keeps the tuned motion | Answered |
 | D328 | F2.1 | Client leg IK solves once per tick for each animal within 32 blocks. No rule skips an animal out of view. Should the solve skip an animal that did not draw in the last frame, and solve before its next frame when it draws again? | Solve every animal within 32 blocks | Lead decision pending |
 | D329 | BH.1, F2.3 | The BH.1 particle switch (all, reduced, none) repeats the vanilla Particles setting (All, Decreased, Minimal). Vanilla already thins particles that spawn through `ClientLevel.addParticle`. Should Nublar particles use that path and that setting, with only an off switch in the mod? Check this on 26.2 first | Keep the three-way switch | Lead decision pending |
 | D330 | F1.7, F1.9, F1.11, F2.3, F3.1, F4.2 | Who makes the effect art: particle sprites, footprints and the overlays on a species texture? | Answered 2026-11-02 (lead): "yes agents can make the particle sprites. I don't want agents making significant art assets from scratch". Then, the same day, "Yes to all of the above": footprints, the species texture overlays, the yawn effect and the fence spark. The agent that builds an effect makes its effect art: particle sprites, footprints, and the overlays on a species texture (bloody mouth, bloody claws, snow cover). These are small frames at particle size, and crops, recolours or paint-overs of art in the mod or of vanilla particles. The fence spark imports the 17 original 1.16 frames. Agents do not make significant new art from scratch: models, item and block textures and new screen art stay with the artist. The Art list marks 39 rows "Agent makes it (D330)" and 1 row "Agent imports it (D330)" | Answered |
 | D331 | F2.3 | Who makes the missing and placeholder clips? Today the artist makes every new clip; the Gallimimus `drink` was a one-off agent clip | Answered 2026-11-03 (lead): "Let's keep it on a case by case basis". The artist makes new clips. The lead may give one Art list row to an agent, which builds it with the clip kit and the quality bar. The Gallimimus `drink` was the first such row. Clip fixes with no new motion (bone renames, static-bone cleanup, hold clips from the species' own last pose) are agent work | Answered |
 | D332 | F2.3 | How do we fix the joint seams that the models cause? Joints of bent necks and legs are open at rest, and most open after 1 to 5° more bend | Answered 2026-11-03 (lead): agent mock-ups, the lead approves. Per species, the agent edits a copy of the model (overlap, pivot on the joint, a hidden filler cube only where needed, no texture change) and shows before and after renders. After approval the change goes into the mod and the REPO model | Answered |
-| D333 | F2.3, F2.2 | Which code-driven animation layers go into Beta? | Answered 2026-11-03 (lead): head look, tail lag, an additive overlay controller for head clips, and neck reach for drinking (and eating where the eat clip exists). Leg IK and the server neck and tail bend were already in F2.1 part B | Answered |
+| D333 | F2.3, F2.2 | Which code-driven animation layers go into Beta? | Answered 2026-11-03 (lead): head look, tail lag, an additive overlay controller for head clips, and neck reach for drinking (and eating where the eat clip exists). Leg IK and the server neck and tail bend were already in F2.1 part B. The head clips play through a Nublar bone updater, not an additive controller (D341) | Answered |
 | D334 | F2.1 | How does the leg IK reuse the CHAOS branch code on GeckoLib 5? | Answered 2026-11-03 (lead): "Approve all three" (D334 to D336). Keep the CHAOS solver and foot planner. Rewrite the part that writes bones: GeckoLib 5 bones are read-only, so it adds rotation deltas to the bone snapshots. Leave out the CHAOS tail part and `ServerLimb` | Answered |
 | D335 | F2.1 | When and where does an attack land? Today every attack deals damage 20 ticks after it starts, whatever the clip length | Answered 2026-11-03 (lead): "Approve all three" (D334 to D336). A `hit` marker in each attack clip sets the hit tick, and the bake fails without it. `attack_reach` counts from the striking bone at that tick, from the bake | Answered |
 | D336 | F2.1, F2.3 | Should the shipped clip files leave out keyed bones that never move? Each species has 20 to 60 such bones, they stop clips from layering, and the clip files total 12.4 MB | Answered 2026-11-03 (lead): "Approve all three" (D334 to D336). A clip tool removes them, and the clip test fails on a static keyed bone | Answered |
@@ -7222,6 +7258,21 @@ These rows come from a check of gamedev-cheatsheet.com, a list of 34 general gam
 | D338 | F2.3, F2.0 | Should a tired animal pant? Today the F2.0 pant is a breath sound only | Answered 2026-11-03 (lead): "Approve, show part 2". The breathing sway gets faster and deeper below a third stamina, highest at 0 %, from the synced stamina value. The breath sound plays with it at 0 % | Answered |
 | D339 | F2.3 | Should effects start at the body part, not at the animal's position? | Answered 2026-11-03 (lead): "Approve, show part 2". Mouth effects start at the jaw or snout bone. Splashes and ripples start where a leg, the snout or the tail crosses the water, sized by that part's speed. A drinking snout makes a small splash. GeckoLib 5 gives the bone positions on both loaders | Answered |
 | D340 | F2.3 | How does the dust trail look: vanilla block particles of the ground, or agent-made sprites (D330)? | Answered 2026-11-03 (lead): "we should have custom sprites that change color and range in opacity and size". Agent-made grey dust puff sprites, tinted by the block under each foot, each puff with its own size and opacity, more for larger and faster animals. Mock-up approved 2026-11-03 (lead, sixth draft): 4 frames of 16×16 in the style of campfire smoke, played by age, tinted 30 % paler than the block, the amount set in playtest. Concept renders 2026-11-03 (lead): smaller, lower puffs, thrown back behind the feet; starting values per species in F2.3 | Answered |
+
+### D341 and later: animation resources research of 2026-11-03
+
+These rows come from the animation resources research (`reports/Animation resources and tools for Beta.md`). The lead answered all of them on 2026-11-03.
+
+| Id | Work package | Question | Default if unanswered | Status |
+| --- | --- | --- | --- | --- |
+| D341 | F2.3, F2.2 | D333 puts short head clips over walking on an additive overlay controller. GeckoLib 5.5.5 and 5.5.6 additive mode drops each keyed bone's model rotation, and 14 to 26 head, neck, jaw and tail bones per species have one. A Triceratops head then jumps to the wrong pose while a head clip plays. How should head clips layer over walking? | Answered 2026-11-03 (lead): "Yes, use recommended". A Nublar bone updater samples the head clip with its own clip clock and adds its angles to the pose below, with a fade in and out. No GeckoLib additive mode. So two controllers remain | Answered |
+| D342 | F2.3 | The breathing sway turns `hips`, and the Brachiosaurus front legs hang from `hips`. After the leg IK, the sway moves planted front feet (about 0.5 px at render scale 1 today, more when it pants). What should happen? | Answered 2026-11-03 (lead): "Sway before leg IK". The breathing sway runs before the leg IK for every species | Answered |
+| D343 | F2.3, F2.2 | GeckoLib makes about 10 small objects per pass for each bone that has a position listener (D339). F2.2 allows no new object per frame. How does the rule treat them? | Answered 2026-11-03 (lead): "Exception, listen when needed". GeckoLib's own objects are an F2.2 exception. The listener goes on only on frames where an effect can start | Answered |
+| D344 | F2.3 | Where does the clip check live: in the mod's unit tests with GeckoLib's own clip evaluation, or as a separate script for artists? When is it built? | Answered 2026-11-03 (lead): "Inside the mod's tests", "Build it with F2.3" | Answered |
+| D345 | F2.3, Art list | The shipped Gallimimus `move.walk` slides each foot 5 to 7.5 px forward when it lands, `move.walk` and `run` sink a foot about 1 px, and `sentry` has keys after its end. Who fixes them? | Answered 2026-11-03 (lead): "Walk skid + sink: agent", "Sentry keys: agent". Both rows go to an agent (D331) | Answered |
+| D346 | F2.5, F2.3 | Should big animals stop turning on the spot? | Answered 2026-11-03 (lead): "Yes, all species". The body turn rate falls as ground speed falls. A standing animal turns only while its legs step | Answered |
+| D347 | F2.3 | Should each footfall give the body a small dip and settle, so steps read as heavy? | Answered 2026-11-03 (lead): "all but the strength needs to be relatively light". All species, light by default, before the leg IK | Answered |
+| D348 | F2.3, Art list | Should clips scale code layers at exact times through one empty control bone per model? | Answered 2026-11-03 (lead): "Yes". One control bone per species model, added with its joint fix after the lead approves it | Answered |
 
 ---
 
@@ -7324,3 +7375,4 @@ These rows come from a check of gamedev-cheatsheet.com, a list of 34 general gam
 - **2026-11-03 (motion and effects):** D337 to D340. F2.3 gets panting breath at low stamina, effects that start at bone positions, and a dust trail of agent-made dust sprites, tinted by the ground, with their own size and opacity. Turn lean waits until after Beta.
 - **2026-11-03 (dust sprites):** D340 mock-up approved. The dust trail has 4 frames of 16×16, played by age as campfire smoke does, tinted 30 % paler than the ground.
 - **2026-11-03 (dust motion):** From the concept renders (D340): dust is thrown back behind each foot and stays low, every foot that lands makes a burst, and F2.3 has starting values per species.
+- **2026-11-03 (animation resources research):** D341 to D348, and D327 answered. F2.3 gets a head overlay through a Nublar bone updater, breathing sway before the leg IK and a clip check in the unit tests. It also gets a light footfall bounce, control bones, exact springs for tail lag and head look, and the GeckoLib plugin 4.2.5. F2.2: two controllers and one garbage exception. F2.1: leg IK guards. F2.5: no turning on the spot. Art list: Gallimimus walk, run and sentry fixes for an agent.
