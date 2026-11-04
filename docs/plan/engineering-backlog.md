@@ -3953,7 +3953,7 @@ The code layers add to the clip pose each frame, in this order. No layer writes 
 | Mouth and body | Yawn, sneeze, snort | idle acts and sleep start |
 | Mouth and body | Dilophosaurus spit: splash particles and a blob projectile with physics | the F2.6 spit |
 | Movement | Slow-fading footprints, by body size and by biped or quadruped | each footstep event on a solid top face |
-| Movement | Dust trail when running, from the block under each foot | each footstep event while running |
+| Movement | Dust trail when running, tinted by the block under each foot | each footstep event while running |
 | Movement | Air trails during attack clips (arm and tail swipes) | attack clip events |
 | Movement | Screen shake when a large dinosaur walks close or roars | footstep and roar events within range |
 | Environment | Snow cover overlay on an animal that sits or sleeps in a snow biome | rest or sleep in snow |
@@ -3978,7 +3978,9 @@ The code layers add to the clip pose each frame, in this order. No layer writes 
   - One listener object per animal, reused each frame, no new object per frame (F2.2). Effects spawn on the client tick from the last frame's positions.
   - Within 32 blocks only, as the code layers.
 - Dust trail (D340):
-  - Vanilla block particles (`ParticleTypes.BLOCK`) of the block under the foot, as vanilla sprint particles do. The ground block gives the colour, so the trail needs no sprite.
+  - A custom particle type with the agent-made grey dust puff sprites (D330), one sprite picked per puff.
+  - Code tints each puff with the colour of the block under the foot. The task plan picks the colour source. Grass gives brown dust, as vanilla sprint particles do, not green.
+  - Each puff picks a size and an opacity from a range, and fades out at the end of its life.
   - The count per footstep grows with body size and speed.
   - A run clip with no footstep keyframes yet spawns from under the body each tick while running, as vanilla sprint particles do.
 - Overlays (blood, snow) are render layers with F2.2 bone masks. They clear after a time.
@@ -4018,7 +4020,7 @@ See Art list → each species (every clip and sound row), and Dinosaur effects. 
 - A Velociraptor that turns at a run leans into the turn, and its feet stay on the ground.
 - Unit test: the breathing sway rate is the same at full and at one third stamina, then rises as stamina falls, highest at 0 %. A clip in the PR shows a T. rex at full and at 0 % stamina.
 - A Triceratops wading at a run makes splashes at its legs. A slow walk makes smaller ones.
-- A T. rex running on sand kicks up sand dust, and on snow, snow dust.
+- A T. rex running on sand kicks up sand-coloured dust, on snow white dust, and on grass brown dust. The puffs differ in size and opacity.
 - Each effect in the VFX table shows in its trigger, on both loaders.
 - With particles off, no Nublar particle spawns. With screen shake off, the camera does not shake.
 - 20 animals with all effects and clips stay within 10 % of the F2.2 baseline frame time (the layers-on figure in the F2.2 PR), on the reference setup.
@@ -4036,7 +4038,7 @@ See Art list → each species (every clip and sound row), and Dinosaur effects. 
 - Clip files total 12.4 MB; the T. rex file is 5.7 MB.
 - Fabric builds against GeckoLib 5.5.5 and NeoForge against 5.5.6. `RestartableAnimationController` uses 5.5.6 internals.
 
-**Changed since last review:** Agents make a new clip case by case, when the lead gives them the row (D331). A quality bar and clip checks for every clip, and a joint fix per species model first (D332). Head look, neck reach, tail lag and an additive overlay controller for head clips are in Beta (D333). Turn lean, panting breath, effects from bone positions, and a dust trail from vanilla block particles (D337 to D340). Every species gets own clips and sounds, placeholders count as missing. Per-species warning sounds. Only T. rex and Velociraptor have nesting clips. Limp in Beta below 30 % health. Get-up idle fallback is development only. Gallimimus gets blood effects. Screen shake for three large species. Per-species walk and run speeds are open. Triceratops rest idle holds the last pose of its lie-down. Two art-tool proposals wait for the lead (D320, D321). A screen shake rule waits for the lead (D324).
+**Changed since last review:** Agents make a new clip case by case, when the lead gives them the row (D331). A quality bar and clip checks for every clip, and a joint fix per species model first (D332). Head look, neck reach, tail lag and an additive overlay controller for head clips are in Beta (D333). Turn lean, panting breath, effects from bone positions, and a dust trail of agent-made dust sprites tinted by the ground (D337 to D340). Every species gets own clips and sounds, placeholders count as missing. Per-species warning sounds. Only T. rex and Velociraptor have nesting clips. Limp in Beta below 30 % health. Get-up idle fallback is development only. Gallimimus gets blood effects. Screen shake for three large species. Per-species walk and run speeds are open. Triceratops rest idle holds the last pose of its lie-down. Two art-tool proposals wait for the lead (D320, D321). A screen shake rule waits for the lead (D324).
 ### F2.4: Needs
 
 F2.4 gives each dinosaur hunger, thirst, stamina, sleep and stress, makes each need have results, and keeps a 100-dinosaur park at 20 ticks per second.
@@ -7219,7 +7221,7 @@ These rows come from a check of gamedev-cheatsheet.com, a list of 34 general gam
 | D337 | F2.3 | Should the body lean into turns? It needs no clip | Answered 2026-11-03 (lead): "Approve, show part 2". A code layer rolls the body by turn rate times speed, through a damped spring, before the leg IK so the feet stay planted. The bipeds lean more than the Triceratops and Brachiosaurus | Answered |
 | D338 | F2.3, F2.0 | Should a tired animal pant? Today the F2.0 pant is a breath sound only | Answered 2026-11-03 (lead): "Approve, show part 2". The breathing sway gets faster and deeper below a third stamina, highest at 0 %, from the synced stamina value. The breath sound plays with it at 0 % | Answered |
 | D339 | F2.3 | Should effects start at the body part, not at the animal's position? | Answered 2026-11-03 (lead): "Approve, show part 2". Mouth effects start at the jaw or snout bone. Splashes and ripples start where a leg, the snout or the tail crosses the water, sized by that part's speed. A drinking snout makes a small splash. GeckoLib 5 gives the bone positions on both loaders | Answered |
-| D340 | F2.3 | Should the dust trail use vanilla block particles of the ground, not an agent-made sprite (D330)? | Answered 2026-11-03 (lead): "Approve, show part 2". Vanilla block particles of the block under each foot: sand gives sand dust, snow gives snow dust, more for larger and faster animals. The Art list "Dust trail" row needs no art | Answered |
+| D340 | F2.3 | How does the dust trail look: vanilla block particles of the ground, or agent-made sprites (D330)? | Answered 2026-11-03 (lead): "we should have custom sprites that change color and range in opacity and size". Agent-made grey dust puff sprites, tinted by the block under each foot, each puff with its own size and opacity, more for larger and faster animals. The Art list "Dust trail" row stays Missing | Answered |
 
 ---
 
@@ -7319,4 +7321,4 @@ These rows come from a check of gamedev-cheatsheet.com, a list of 34 general gam
 - **2026-11-02 (lead: particle sprites):** D330. The agent that builds an effect makes its effect art: particle sprites, footprints and the overlays on a species texture. Agents make no significant new art from scratch. The Art list marks 39 rows "Agent makes it (D330)". The fence spark imports the 17 original 1.16 frames. F2.3, F3.1 and F4.2 say the same.
 - **2026-11-02 (Blender add-on check):** D321 proposes the mcblend add-on for new Blender clips. F2.3 export tooling lists its clip route and its limits.
 - **2026-11-03 (animation review):** D331 to D336. F2.3 gets a clip quality bar and clip checks, a joint fix per species model (D332), agent-made clips case by case (D331), and code layers: head look, neck reach, tail lag, a breathing-sway fix and an additive overlay controller (D333). F2.1 gets hit ticks from clip markers and reach from the striking bone (D335), clip lengths and events in the bake with static bones left out (D336), and a GeckoLib 5 bone writer for the CHAOS leg IK (D334). F2.2 allows three controllers and no garbage per frame. D14 keeps only speed by body size. The Art list adds a joint fix row per species and moves the T. rex turn row to "Needs conversion".
-- **2026-11-03 (motion and effects):** D337 to D340. F2.3 gets a turn lean layer, panting breath at low stamina, effects that start at bone positions, and a dust trail from vanilla block particles. The Art list "Dust trail" row needs no art.
+- **2026-11-03 (motion and effects):** D337 to D340. F2.3 gets a turn lean layer, panting breath at low stamina, effects that start at bone positions, and a dust trail of agent-made dust sprites, tinted by the ground, with their own size and opacity.

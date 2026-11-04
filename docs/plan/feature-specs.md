@@ -2723,7 +2723,7 @@ Every effect in the matrix is in Beta. Screen shake has a config switch.
   - Drips, blood, plant bits, spit, foggy breath and snorts start at the jaw or snout.
   - Splash rings and ripples start where a leg, the snout or the tail crosses the water surface. A fast part makes a bigger splash than a slow one.
   - A drinking animal makes a small splash when its snout meets the water.
-- **Dust from the ground** (D340): the dust trail is made of the block under each foot, so sand makes sand dust and snow makes snow dust. Larger and faster animals make more dust.
+- **Dust from the ground** (D340): the dust puffs take the colour of the ground under each foot, so sand makes sand-coloured dust, snow white dust and grass brown dust. Each puff has its own size and opacity. Larger and faster animals make more dust.
 
 #### Art needed
 
@@ -2749,7 +2749,7 @@ See Art list → each species (Animations, Sounds), Dinosaur effects.
 
 **Engineering:** backlog F2.3.
 
-**Changed since last review:** Agents make new clips case by case (D331). Joint fixes per model, a quality bar for every clip, and code layers for head look, short head clips over walking, neck reach, tail lag and breathing (D332, D333). Turn lean and panting breath (D337, D338). Effects start at the body part, and the dust trail uses the ground block (D339, D340). Gallimimus gets blood drips and a bloody mouth. Screen shake only on T. rex, Triceratops and Brachiosaurus. T. rex and Dilophosaurus get bloody claws. Only T. rex and Velociraptor play a nesting clip. Per-species walk and run speeds are open. Triceratops rest idle holds the last pose of its lie-down.
+**Changed since last review:** Agents make new clips case by case (D331). Joint fixes per model, a quality bar for every clip, and code layers for head look, short head clips over walking, neck reach, tail lag and breathing (D332, D333). Turn lean and panting breath (D337, D338). Effects start at the body part, and the dust trail takes the colour of the ground (D339, D340). Gallimimus gets blood drips and a bloody mouth. Screen shake only on T. rex, Triceratops and Brachiosaurus. T. rex and Dilophosaurus get bloody claws. Only T. rex and Velociraptor play a nesting clip. Per-species walk and run speeds are open. Triceratops rest idle holds the last pose of its lie-down.
 ### F2.4 Needs: hunger, thirst, stamina, sleep, stress and company
 
 Dinosaurs get hungry, thirsty, tired, sleepy, lonely and stressed, and a park that neglects them pays for it.
