@@ -3195,7 +3195,7 @@ The main results:
 
 Full report: [Recrafted visual and sound overhaul for Beta](../reports/Recrafted%20visual%20and%20sound%20overhaul%20for%20Beta.md). Notes: `research_notes/Recrafted visual and sound overhaul/` (5 files).
 
-The research read Recrafted Early Access 0.2.1, a paid 26.2 resource pack (4,448 files, 48 options, 47 on by default), and the 26.2 source of Polytone, Continuity and EMF, the mods that it uses. It changes no plan module.
+The research read Recrafted Early Access 0.2.1, a paid 26.2 resource pack (4,448 files, 48 options, 47 on by default), and the 26.2 source of Polytone, Continuity and EMF, the mods that it uses.
 
 The main results:
 
@@ -3204,6 +3204,8 @@ The main results:
 - The pack makes text 15 to 26 % wider and restyles the vanilla slider, button and tooltip sprites that Nublar screens still use.
 - Patterns worth copying: options with a cost label and presets, grey particle sprites tinted at spawn, dust spawned by a chance that follows speed, slow updates for resting particles, and a loudness target for sounds.
 - Verdicts: Polytone and Continuity are compat duties and pattern sources, never dependencies. EMF does not touch dinosaurs.
+- The pack's armour weathering (sand, snow and wet on the local player's armour) gave the idea for F2.3 overlays that build up and fade: snow, sand, dirt, mud and blood, in steps from grey masks, with no shader.
+- The lead answered the proposals on 2026-11-04 (D349 to D373). The plan has the results.
 
 #### Top changes
 

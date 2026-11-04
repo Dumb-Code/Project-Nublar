@@ -1,6 +1,6 @@
 # Recrafted visual and sound overhaul for Beta: what a 26.2 overhaul pack teaches Nublar
 
-Date: 2026-11-04. Status: research report for the project lead. It changes no code, no asset and no plan module. The changes below are proposals.
+Date: 2026-11-04. Status: research report for the project lead. It changes no code and no asset. The lead answered the proposals the same day (D349 to D373, see "Answers"), and the plan has the results.
 
 Recrafted Early Access 0.2.1 (MR_CHOO) is a paid resource pack for Minecraft 26.2 (pack format 88, the same version as the mod). It has 4,448 files in 48 options, and 47 of them are on by default. It changes block, item and GUI textures, the font, the HUD, particles, sounds and nearly every world shader. It needs Polytone. It also uses Sodium, Continuity, Entity Model Features (EMF) and Entity Texture Features (ETF). This research read the whole pack and the source of Polytone, Continuity and EMF at their 26.2 branches.
 
@@ -93,10 +93,24 @@ Each row is a proposal. "Plan" names the plan part it changes. Effort: S is unde
 | Continuity (`d15d442`) | Yes `[doc]` | Fabric; NeoForge only through Connector | Yes, on block models by `matchBlocks` `[doc]`. Not entities or GeckoLib block entities `[inf]` | Compat test. Pattern for F1.1 baked-model variation |
 | EMF 3.3.12 (`c801331`) | Yes `[doc]` | Fabric, Forge, NeoForge; needs ETF | No: it hooks `EntityModelSet.bakeLayer`, `ModelPart` only, no GeckoLib code `[v]` | Ignore for dinosaurs. Patterns: animation detail by distance scaled by FOV and body size; bake models once (EMF stops after 64 bakes of one layer) |
 
-## Open questions for the lead
+## Answers (lead, 2026-11-04)
 
-1. Which of the twelve changes and six duties go into the plan? Each accepted item becomes a register row from D349.
-2. Do you own Recrafted, and do you want one test run of Nublar with it at BH.1? The research did not run it.
+| Items | Answer | Register |
+| --- | --- | --- |
+| Changes 1 to 4, sounds | Short sounds never stream, with an in-game test. Peak limit, loudness per class and mono apply to all Nublar sounds. Dinosaurs vary in code; blocks, machines and fences vary through `sounds.json`. Subtitles for dinosaur vocals only | D349 to D352 |
+| Changes 5 and 6, screens | Spare room, then "…" with a hover tooltip, and one check at 320 px before Beta. Never colour alone | D353, D354 |
+| Change 7, glow | Glow looks lit with no shader | D355 |
+| Change 8, options | Preset and cost labels. Glow layers stay on in Low | D356 |
+| Changes 9 to 11, particles | Taken as proposed | D357 to D359 |
+| Change 12, breathing | Phase per animal, and the rate varies a little | D360 |
+| Widget sprites | Keep the D310 schedule | D361 |
+| Stable ids, test rows, dead shader, plant models | Taken. No Recrafted run: the lead does not own it | D362 to D365 |
+| Island biomes in vanilla tags | Not added | None |
+| Overlays, from the armour weathering module | Snow builds up and fades. Overlays draw in 4 steps from grey masks, with no shader. Blood fades and washes off. Wet skin below the waterline | D366 to D369 |
+| Ground coats | Sand, dirt and mud in Beta, each its own layer, from walking and resting. Water washes them off | D370 to D372 |
+| Overlay look, from concept renders | Patchy, blended with the skin, in small zones | D373 |
+
+The lead also asked why Nublar has no shaders of its own. The reasons are compatibility first (Iris, resource-pack shaders, Sodium, ImmediatelyFast), then batching and per-version upkeep. The lead's rule stays: no own core shader where the same look works without one.
 
 ## Not done
 
