@@ -2492,12 +2492,13 @@ F2.3 gives each species its own clips, its own sounds and the full set of dinosa
 - **Injury.** Below 30 % health an animal limps.
 - **No stand-ins.** A species never plays another species' clip or sound.
 - **Clean joints.** No gap or seam opens at a neck, leg or tail joint while the animal moves.
-- **Alive.** The head turns toward what the animal watches, the body leans into a turn, the tail swings out behind it, the snout meets the water when it drinks, and a tired animal pants.
+- **Alive.** The head turns toward what the animal watches, the tail swings out behind a turn, the snout meets the water when it drinks, and a tired animal pants.
 
 #### Not in Beta
 
 - The mud overlay, and the effects for sea reptiles and pterosaurs.
 - Baby model clips.
+- Turn lean: the body leaning into a turn. It can come after Beta, once the leg IK works (D337).
 
 #### Animation rules
 
@@ -2521,7 +2522,6 @@ F2.3 gives each species its own clips, its own sounds and the full set of dinosa
   - **Short head clips over walking.** Look, speak and similar clips that move only the head, neck, jaw or tail play while the legs keep walking.
   - **Neck reach.** When the animal drinks or eats, the neck bends a little so the snout meets the water or food surface.
   - **Tail lag.** The tail swings out behind a turn and settles.
-  - **Turn lean.** The body leans into a turn, more at speed, and settles when the turn ends. The feet stay on the ground (D337).
   - **Breathing.** A slow sway per species, never doubled with a clip's own sway. As stamina falls below a third, the breathing gets faster and deeper, so a tired animal pants (D338).
   - **Feet on the ground.** Legs bend so the feet sit on slopes and steps (F2.1).
   - Within 32 blocks only. Farther animals hold their pose.
@@ -2749,7 +2749,7 @@ See Art list → each species (Animations, Sounds), Dinosaur effects.
 
 **Engineering:** backlog F2.3.
 
-**Changed since last review:** Agents make new clips case by case (D331). Joint fixes per model, a quality bar for every clip, and code layers for head look, short head clips over walking, neck reach, tail lag and breathing (D332, D333). Turn lean and panting breath (D337, D338). Effects start at the body part, and the dust trail takes the colour of the ground (D339, D340). Gallimimus gets blood drips and a bloody mouth. Screen shake only on T. rex, Triceratops and Brachiosaurus. T. rex and Dilophosaurus get bloody claws. Only T. rex and Velociraptor play a nesting clip. Per-species walk and run speeds are open. Triceratops rest idle holds the last pose of its lie-down.
+**Changed since last review:** Agents make new clips case by case (D331). Joint fixes per model, a quality bar for every clip, and code layers for head look, short head clips over walking, neck reach, tail lag and breathing (D332, D333). Panting breath (D338). Turn lean waits until after Beta (D337). Effects start at the body part, and the dust trail takes the colour of the ground (D339, D340). Gallimimus gets blood drips and a bloody mouth. Screen shake only on T. rex, Triceratops and Brachiosaurus. T. rex and Dilophosaurus get bloody claws. Only T. rex and Velociraptor play a nesting clip. Per-species walk and run speeds are open. Triceratops rest idle holds the last pose of its lie-down.
 ### F2.4 Needs: hunger, thirst, stamina, sleep, stress and company
 
 Dinosaurs get hungry, thirsty, tired, sleepy, lonely and stressed, and a park that neglects them pays for it.
