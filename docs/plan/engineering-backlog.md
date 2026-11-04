@@ -76,6 +76,13 @@ Every work package follows these rules.
 - **Machine animation.** Animation state that players see the same is server-owned and synced. Timers use game time. Nothing counts frames or partial ticks.
   - The Egg Printer and the Incubator animate in code. The original 1.12.2 and 1.16 behaviour is the reference. Do not copy its bugs: client-only state and frame-rate timing.
 - **Species art scope.** Animations per species are the 2020 board's clip list for that species, plus every clip that a Beta behaviour needs. All Dino VFX are in Beta. The Beta skin sets are complete, with every layer for both genders.
+- **Sound files** (D349, D350, D351):
+  - A sound shorter than about 10 s plays from memory: no `"stream": true`. Only long loops stream. Vanilla 26.2 plays at most 8 streamed sounds at once, music included.
+  - Each sound class (roar, call, bite, footstep, breath, machine, fence) has one loudness target, set by ear in playtest. No file has a true peak above -1 dBFS.
+  - A sound that comes from a place in the world is mono, so it pans and fades with distance.
+  - Block, machine and fence sounds get their variety from pitch and volume variants in `sounds.json`. Dinosaur sounds vary in code (F2.3).
+- **Glow** (D355): every glow mask, machine screen, lamp and fence light looks lit as a plain full-bright texture, with no shader pack. Shader packs add bloom to terrain blocks only, never to entities or block-entity renderers. A soft halo, if wanted, is painted into the texture.
+- **Pack-friendly ids** (D362): every particle type, sound event and block has a `projectnublar:` id, and each particle type has a vanilla-style definition in `particles/<id>.json`. Resource packs can then retune Nublar content by id with no Nublar code.
 - **Art status.** Art status lives only in the Art list. This backlog holds no art counts and no asset status.
   - Each work package lists "Art: see Art list → <thing>".
   - A package is not done until each of its Art list rows is "Done" (no Placeholder, no To check).
@@ -2476,6 +2483,11 @@ F1.10 is the code that every lab machine shares: parts, the master block, upgrad
 - [ ] Nublar widget look (D289): sliders, dropdown arrows, buttons and text boxes on machine screens draw the mod's own sprites in the Sequencer style. This task makes the sprites (D310).
   - The sprites are nine-sliced in the mod's GUI sprites, like vanilla's widget sprites, so resource packs can restyle them.
   - The `nublar-gui` slider and dropdown widgets take a sprite set; until the art exists they keep the vanilla 26.2 sprites.
+- [ ] Text fit (D353): font packs can make text about a quarter wider.
+  - Each label box leaves about 25 % room past the width the vanilla font needs, where the layout has space.
+  - Each label is measured with `Font.width` when drawn. A label that still does not fit ends in "…" and shows its full text in a tooltip on hover.
+  - Before Beta, check every machine screen once at 320 px with a wide font pack.
+- [ ] Colour plus shape (D354): no colour is the only cue on a screen. Each colour that means something also has an icon, a shape or a word, for example a mark on an isolated gene and a "!" on a failure. The screen task picks the marks.
 - [ ] One layout record per machine drives the menu, the screen, the item handler and any recipe viewer.
   - The record holds a name, a screen size (default 176 × 166), a slot list and the player inventory position.
   - A slot entry holds index, x, y, role, accept test, outside-insert and outside-extract flags and a side mask.
@@ -2614,6 +2626,7 @@ See Art list → Lab items (chip and tank upgrade sprites), Screens (GUI) (tab f
 - With turbo on, `machine_chain_smoke` finishes each job in 20 ticks.
 - A machine plays a start event on the work edge and stops its loop on the stop edge. No sound packet goes out while state is steady.
 - `machine_chain_smoke` passes on both loaders with the test machine. Each machine package repeats it after its machine moves onto the framework.
+- With a font pack that makes text 25 % wider, every label on the test machine screen fits or ends in "…" with a tooltip, at 320 px (D353).
 
 #### Today in the code
 
@@ -2621,7 +2634,7 @@ See Art list → Lab items (chip and tank upgrade sprites), Screens (GUI) (tab f
 - Every machine uses `ENTITYBLOCK_ANIMATED`.
 - In the lead's playtest of 2026-10-24 the machines caused visible lag.
 
-**Changed since last review:** At most 3 upgrades per machine. A replaced upgrade returns to the player. Only chips and bulbs cost extra power, by the run-cost factor. Part names follow the video. Upgrade looks use existing bones only. No NO_BULB fault. No comparator output. Two creative items per machine, with full energy. Status panel: 8 blocks, per-player key and switch. Glow regions and one glow mask per machine. Machine gate set. Nublar widget look for sliders, dropdown arrows, buttons and text boxes. Upgrade slots on every machine screen, as well as right-click (D308).
+**Changed since last review:** Labels fit a font 25 % wider or end in "…" with a tooltip (D353). No colour is the only cue (D354). At most 3 upgrades per machine. A replaced upgrade returns to the player. Only chips and bulbs cost extra power, by the run-cost factor. Part names follow the video. Upgrade looks use existing bones only. No NO_BULB fault. No comparator output. Two creative items per machine, with full energy. Status panel: 8 blocks, per-player key and switch. Glow regions and one glow mask per machine. Machine gate set. Nublar widget look for sliders, dropdown arrows, buttons and text boxes. Upgrade slots on every machine screen, as well as right-click (D308).
 
 ### F1.11: Lab power
 
@@ -3928,6 +3941,7 @@ The code layers add to the clip pose each frame, in this order. No layer writes 
   - Off while the clip has its own sway: the Gallimimus and T. rex `misc.idle`. Today the sway adds on top, so those clips probably sway twice.
   - Below a third stamina, the sway rate and amount rise as stamina falls, highest at 0 % (D338). It reads the synced `STAMINA` value, so no new sync is needed. At 0 % the F2.0 breath sound plays with it. Values set in the task plan by eye.
   - A damper eases each change of rate and amount, and a stored phase keeps the sway from jumping when the rate changes.
+  - Each animal starts its breathing and idle sway at its own phase, taken from its id, and breathes a few percent faster or slower than the species rate. So a herd that loads together does not breathe in step (D360). Today the sway runs from the animal's life time, which starts at 0 on load.
   - It runs before the leg IK (D342). The Brachiosaurus front legs hang from `hips`, so a later sway would move its planted front feet.
 - [ ] Footfall bounce (D347):
   - At each foot contact, a light damped spring dips the body and lets it settle, so each step reads as heavy.
@@ -3960,6 +3974,10 @@ The code layers add to the clip pose each frame, in this order. No layer writes 
   - Wire every keyframe effect name to a sound event.
   - Rename the Brachiosaurus `walk2` and `eatingtall2` effects to names that match their sounds.
 - Gameplay sounds (roars, calls) start from server clip events, not only from keyframes, because Dynamic FPS skips frames.
+- Every call plays (D349). No dinosaur sound shorter than about 10 s has `"stream": true`. Vanilla 26.2 plays at most 8 streamed sounds at once, music included. Today all 37 T. rex entries stream.
+- Variation (D351): every dinosaur sound plays through the voice pitch of `Dinosaur.getVoicePitch` (up to ±0.2 at random, 1.5 for a hatchling) and a small random volume. Roars, calls, footsteps and keyframe sounds included. Today the `ThreatDisplay` roar plays at pitch 1. The volume range is a config value, set in playtest.
+- Levels (D350): the sound files follow the Global constraints "Sound files" rule: one loudness target per sound class, true peak at or below -1 dBFS, mono.
+- Subtitles (D352): roars, calls, threat sounds, hurt and death of every species have a subtitle translation key `subtitles.projectnublar.<event>` with an `en_us.json` line, for example "Tyrannosaurus roars". Footsteps, eating and breathing have none. Today 7 T. rex events carry plain-text subtitles such as "t.rex roar".
 - Blocked on D91: the real T. rex recordings. Until the artist names their folder, the T. rex sounds count as Placeholder, and this package is not done.
 
 #### Scope: Dino VFX
@@ -4003,7 +4021,8 @@ The code layers add to the clip pose each frame, in this order. No layer writes 
   - Within 32 blocks only, as the code layers.
 - Dust trail (D340):
   - A custom particle type with the agent-made grey dust sprites (D330): 4 frames of 16×16 that show one lumpy cloud breaking up into specks. Each puff plays the frames by age, as vanilla campfire smoke does: a cloud at the foot, specks as it fades.
-  - Code tints each puff with the colour of the block under the foot, made 30 % paler, because dust is lighter than the ground. The amount is a config value, set in playtest. The task plan picks the colour source. Grass gives brown dust, as vanilla sprint particles do, not green.
+  - Code tints each puff with the colour of the block under the foot, made 30 % paler, because dust is lighter than the ground. The amount is a config value, set in playtest.
+  - The colour source is the one vanilla 26.2 `TerrainParticle` uses (D357): the average colour of the block model's particle sprite, times the block's `BlockTintSource.colorAsTerrainParticle`. Grass gives brown dust, as vanilla sprint particles do, because the grass block's particle texture is dirt. A resource pack that recolours a block recolours its dust. Cache the average per sprite.
   - Each puff picks a size and an opacity from a range. It is thrown back behind the foot, slows down, rises a little, and fades out at the end of its life. A fast animal may drag some dust forward where that looks right. The amount is set in playtest.
   - Each foot makes its burst when it lands: two feet on a biped, four on a quadruped.
   - The count and size per footstep grow with body size and speed. Starting values from the concept renders (2026-11-03), set in playtest:
@@ -4011,9 +4030,10 @@ The code layers add to the clip pose each frame, in this order. No layer writes 
     - Tyrannosaurus: 6 puffs of 0.7 to 1.2 blocks, thrown back 0.6 to 1.2 blocks, rise 0.25 to 0.5 block, life up to 1.3 s.
     - Brachiosaurus: 7 puffs per foot of 1.4 to 2.2 blocks, thrown back 0.8 to 1.4 blocks, rise 0.1 to 0.2 block, life up to 1.8 s. The puffs roll out to the sides of the foot, so the dust of the far feet shows past the near legs.
     - Dilophosaurus, Triceratops and Gallimimus: the task plan sets values between these, by body size.
-  - A run clip with no footstep keyframes yet spawns from under the body each tick while running, as vanilla sprint particles do.
+  - A run clip with no footstep keyframes yet spawns dust from under the body by a chance per tick that rises with ground speed, with a cap per animal (D358). Each spawn makes 1 or 2 puffs, thrown at a part of the body speed. Starting values: chance `speed × 1.6`, at most 0.25 per tick. Values set in playtest. A trot makes a little dust, a sprint more, and a running herd does not fill the screen.
 - Overlays (blood, snow) are render layers with F2.2 bone masks. They clear after a time.
 - Footprints are client particles or decals. They never change blocks.
+- Long-lived particles (footprints, plant bits at rest) update every 5th tick when 2 or more blocks from the player, and not at all while out of view (D359). Their fade keeps its speed in steps.
 - Every effect follows the BH.1 low-effects switches: particles (all, reduced, none), screen shake, glow layers.
 - Durations, ranges, sizes and fade times are config values, set in the task plan with a stated basis.
 - Every row of Art list → Dinosaur effects is Beta.
@@ -4055,6 +4075,10 @@ See Art list → each species (every clip and sound row), and Dinosaur effects. 
 - A running Brachiosaurus kicks up dust at all four feet, and the dust of the far feet shows past the near legs.
 - Each effect in the VFX table shows in its trigger, on both loaders.
 - With particles off, no Nublar particle spawns. With screen shake off, the camera does not shake.
+- 10 dinosaurs that call at the same time while music plays: every call plays, and the music does not stop (in game, both loaders) (D349).
+- Unit test: no Nublar sound entry shorter than 10 s has `"stream": true`. Every roar, call, threat, hurt and death event has a subtitle key with an `en_us.json` line.
+- Two roars in a row of the same animal differ in pitch. A hatchling sounds higher than an adult.
+- A herd of 8 resting Triceratops loaded at once does not breathe in step.
 - 20 animals with all effects and clips stay within 10 % of the F2.2 baseline frame time (the layers-on figure in the F2.2 PR), on the reference setup.
 
 #### Today in the code
@@ -4072,7 +4096,7 @@ See Art list → each species (every clip and sound row), and Dinosaur effects. 
 - Clip files total 12.4 MB; the T. rex file is 5.7 MB.
 - Fabric builds against GeckoLib 5.5.5 and NeoForge against 5.5.6. `RestartableAnimationController` uses 5.5.6 internals.
 
-**Changed since last review:** Head overlay clips play through a Nublar bone updater, not GeckoLib additive mode (D341). Breathing sway runs before the leg IK (D342). Effects start at the bone nearest the tip, with the listener on only when an effect can start (D343). A clip check in the unit tests (D344). Gallimimus walk and sentry fixes go to an agent (D345). No turning on the spot (D346). A light footfall bounce and control bones (D347, D348). Exact springs for tail lag and head look. The artist's GeckoLib plugin is 4.2.5. Agents make a new clip case by case, when the lead gives them the row (D331). A quality bar and clip checks for every clip, and a joint fix per species model first (D332). Head look, neck reach, tail lag and an additive overlay controller for head clips are in Beta (D333). Panting breath, effects from bone positions, and a dust trail of agent-made dust sprites tinted by the ground (D338 to D340). Turn lean waits until after Beta (D337). Every species gets own clips and sounds, placeholders count as missing. Per-species warning sounds. Only T. rex and Velociraptor have nesting clips. Limp in Beta below 30 % health. Get-up idle fallback is development only. Gallimimus gets blood effects. Screen shake for three large species. Per-species walk and run speeds are open. Triceratops rest idle holds the last pose of its lie-down. Two art-tool proposals wait for the lead (D320, D321). A screen shake rule waits for the lead (D324).
+**Changed since last review:** Short sounds never stream, every dinosaur sound varies in pitch and volume, and vocals get subtitles (D349 to D352). Dust takes vanilla's block particle colour, and the run fallback spawns by a chance from speed (D357, D358). Long-lived particles update less often far away (D359). Each animal breathes on its own phase and rate (D360). Head overlay clips play through a Nublar bone updater, not GeckoLib additive mode (D341). Breathing sway runs before the leg IK (D342). Effects start at the bone nearest the tip, with the listener on only when an effect can start (D343). A clip check in the unit tests (D344). Gallimimus walk and sentry fixes go to an agent (D345). No turning on the spot (D346). A light footfall bounce and control bones (D347, D348). Exact springs for tail lag and head look. The artist's GeckoLib plugin is 4.2.5. Agents make a new clip case by case, when the lead gives them the row (D331). A quality bar and clip checks for every clip, and a joint fix per species model first (D332). Head look, neck reach, tail lag and an additive overlay controller for head clips are in Beta (D333). Panting breath, effects from bone positions, and a dust trail of agent-made dust sprites tinted by the ground (D338 to D340). Turn lean waits until after Beta (D337). Every species gets own clips and sounds, placeholders count as missing. Per-species warning sounds. Only T. rex and Velociraptor have nesting clips. Limp in Beta below 30 % health. Get-up idle fallback is development only. Gallimimus gets blood effects. Screen shake for three large species. Per-species walk and run speeds are open. Triceratops rest idle holds the last pose of its lie-down. Two art-tool proposals wait for the lead (D320, D321). A screen shake rule waits for the lead (D324).
 ### F2.4: Needs
 
 F2.4 gives each dinosaur hunger, thirst, stamina, sleep and stress, makes each need have results, and keeps a 100-dinosaur park at 20 ticks per second.
@@ -6261,6 +6285,7 @@ BH.1 removes dead code and makes a large park run at full speed on a server.
 - Remove the `DebugStick` chat output. Check that no print call remains.
 - Resolve every open rft `TODO(BUG)` or make it a GitHub issue.
 - Every custom NBT root has a `"version"` integer.
+- Remove the dead `shaders/core/incubator_bed` shader files (D364). No code uses them, and their old GLSL form cannot compile on 26.2.
 
 #### Profiling
 
@@ -6326,6 +6351,8 @@ Each fast path has three switches. They apply to the part index, the column cach
 
 - A client config with three low-effects switches: particles (all, reduced, none), screen shake, glow layers.
   - The particle switch can follow vanilla instead (proposal, lead decides, D329). The vanilla Particles setting (All, Decreased, Minimal) already thins particles that spawn through `ClientLevel.addParticle`. Nublar particles then use that path, and the mod keeps only an off switch. Check this on 26.2.
+- One "Effects quality" preset, Low, Medium or High, sets the switches at once, and footprint life with them (D356). The single switches stay for fine control. Default High: all on. Low: particles reduced, screen shake off, short footprints; glow layers stay on. Medium: between them, set in the task plan (proposal, lead decides).
+- The config screen shows a cost label, low, medium or high, next to each effect switch, so a player knows what to turn off first (D356).
 - It loads into static fields on load and on change. Renderers read the fields. F2.3's effects obey them.
 
 #### Tests and CI
@@ -6333,6 +6360,7 @@ Each fast path has three switches. They apply to the part index, the column cach
 - A unit test parses every shipped JSON file.
 - Every work package has GameTests in common code. CI runs the GameTest server of both loaders.
 - Run the optimization-mod test matrix, one row per mod with a duty in section 12.2: Sodium, Iris, EntityCulling, ImmediatelyFast, Chloride, Lithium, Immersive Optimization, FerriteCore, C2ME (Fabric only), ScalableLux, Krypton, PacketFixer, Particle Core, Alternate Current, MoreCulling, LambDynamicLights (F4.2 headlights), and "Prefer Vulkan". A row runs only on a loader where the mod has a 26.2 build, and the PR lists the rows it skipped.
+  - Three resource-pack mod rows (D363): Polytone (Nublar particles show, and a pack modifier on a `projectnublar:` particle takes effect), Continuity on Fabric (fossil blocks mesh right with its default connected-texture pack and Sodium face culling on), and EMF with ETF (dinosaurs and machines look unchanged).
 
 #### Out of scope
 
@@ -6344,7 +6372,7 @@ Each fast path has three switches. They apply to the part index, the column cach
 
 - **Produces:** the interval class, the distance band, the low-effects config, the profile records.
 - **Art:** none.
-- **Config (defaults):** client `particles` all, `screen_shake` true, `glow_layers` true. Server fast-path off and compare switches, all off by default.
+- **Config (defaults):** client `effects_quality` high, `particles` all, `screen_shake` true, `glow_layers` true. Server fast-path off and compare switches, all off by default.
 
 #### Acceptance
 
@@ -6358,7 +6386,7 @@ Each fast path has three switches. They apply to the part index, the column cach
 - The PR records the vertex-allocation result.
 - The four lab machines at work meet the machine gate of F1.10, measured against the same world without the machines on the developer's own PC (F3 integrated-server tick, median of three readings one minute apart).
 
-**Changed since last review:** Machine gate set: the four lab machines add less than 2 ms to the server tick, and the client keeps at least 90 % of its frame rate with the lab in view. Worst-tick readings, distance-band gaps and a particle switch that follows vanilla wait for the lead (D323, D326, D329).
+**Changed since last review:** An Effects quality preset with cost labels (D356). Three resource-pack mod rows in the test matrix (D363). The dead incubator bed shader goes (D364). Machine gate set: the four lab machines add less than 2 ms to the server tick, and the client keeps at least 90 % of its frame rate with the lab in view. Worst-tick readings, distance-band gaps and a particle switch that follows vanilla wait for the lead (D323, D326, D329).
 
 ### BH.2: Balance playtest and release
 
@@ -6418,6 +6446,7 @@ R01 adds five plants, four wood sets and the petrified tree.
 - Four wood sets (logs, planks, stairs, slabs, fences, doors, trapdoors, signs) and the petrified tree.
 - Herbivore diet tags extend to the mod's plants. Plant matter recipes use them.
 - Paleobotanist trades. The paleobotanist ships in Release 1 with the plants.
+- Each plant uses its own block models. None takes a vanilla grass, fern or leaf model as its parent, because resource packs replace those models (D365).
 
 #### Open
 
@@ -7274,6 +7303,30 @@ These rows come from the animation resources research (`reports/Animation resour
 | D347 | F2.3 | Should each footfall give the body a small dip and settle, so steps read as heavy? | Answered 2026-11-03 (lead): "all but the strength needs to be relatively light". All species, light by default, before the leg IK | Answered |
 | D348 | F2.3, Art list | Should clips scale code layers at exact times through one empty control bone per model? | Answered 2026-11-03 (lead): "Yes". One control bone per species model, added with its joint fix after the lead approves it | Answered |
 
+### D349 and later: Recrafted overhaul research of 2026-11-04
+
+These rows come from the Recrafted research (`reports/Recrafted visual and sound overhaul for Beta.md`): a paid 26.2 resource pack and the Polytone, Continuity and EMF mods that it uses. The lead answered all of them on 2026-11-04.
+
+| Id | Work package | Question | Default if unanswered | Status |
+| --- | --- | --- | --- | --- |
+| D349 | F2.3, Global constraints | Vanilla 26.2 plays at most 8 streamed sounds at once (`Library`: `clamp(sqrt(channels), 2, 8)`), music included. All 37 Nublar entries stream, and the clips run 1.1 to 6.3 s. When should a sound stream? | Answered 2026-11-04 (lead): "Stream only long loops", "Test in game first". A sound shorter than about 10 s plays from memory. A test with 10 calling dinosaurs and music checks that no call drops | Answered |
+| D350 | F2.3, Global constraints, Art list | 26 of the 37 T. rex clips have a true peak above 0 dBFS (bite +2.4 dB), and levels differ by accident (growl -11.5 LUFS, breath -16.4 LUFS). Should the sound files get a loudness rule? | Answered 2026-11-04 (lead): "Peak limit -1 dBFS", "Target per sound class", "Mono for positional". Asked again for their reach, the lead ticked all four sound file rules (with D349) for every Nublar sound, machines, fences, generators and vehicles included | Answered |
+| D351 | F2.3, Global constraints | Hurt, death and idle sounds already vary through vanilla's voice pitch; the threat roar and keyframe sounds do not. How should sounds vary? | Answered 2026-11-04 (lead): "Yes, take it" (after asking which is better). Every dinosaur sound plays through the voice-pitch spread plus a small random volume, in code. Block, machine and fence sounds get pitch and volume variants in `sounds.json` | Answered |
+| D352 | F2.3 | Today 7 T. rex events carry plain-text subtitles, and the plan has no subtitle rule. Which sounds get subtitles? | Answered 2026-11-04 (lead): "Dinosaur vocals only". Roars, calls, threat sounds, hurt and death, as translation keys | Answered |
+| D353 | F1.10, F1.4 to F1.8 | A font pack can make text about a quarter wider ("Tyrannosaurus Rex" 100 to 124 px with Recrafted's font). How do machine-screen labels fit? | Answered 2026-11-04 (lead): "Fix A: cut with … + hover", "Fix B: 25 % spare room", "Check once before Beta" | Answered |
+| D354 | F1.10, F1.4 to F1.8 | Shader packs can dull GUI text colours, and colour-blind players may not tell purple from blue. Should a screen rely on colour alone? | Answered 2026-11-04 (lead): "Never colour alone". Each colour that means something also has an icon, a shape or a word | Answered |
+| D355 | Global constraints, F2.2, F1.10, F3.1 | Shader packs bloom terrain blocks, never entities or block-entity renderers. How must Nublar glow look? | Answered 2026-11-04 (lead): "Must look lit with no shader". A halo, if wanted, is painted into the texture | Answered |
+| D356 | BH.1 | Should the low-effects config get a preset and cost labels? | Answered 2026-11-04 (lead): "Add Low/Medium/High preset", "Add cost labels", then on the drafted levels "Glow stays on in Low". The rest of each level's contents is a proposal | Answered |
+| D357 | F2.3 | D340 left the dust colour source to the task plan. Which source? | Answered 2026-11-04 (lead): "Yes, vanilla particle colour". The colour vanilla 26.2 `TerrainParticle` uses, then 30 % paler | Answered |
+| D358 | F2.3 | A run clip with no footstep keys spawns dust every tick, 240 puffs per second for a herd of 12. How often should it spawn? | Answered 2026-11-04 (lead): "Yes, chance from speed". A chance per tick from ground speed, with a cap, 1 or 2 puffs | Answered |
+| D359 | F2.3, BH.1 | Should long-lived particles (footprints, plant bits at rest) update less often? | Answered 2026-11-04 (lead): "Yes, take it". Every 5th tick when 2 or more blocks from the player, none while out of view | Answered |
+| D360 | F2.3 | A herd that loads together breathes in step, because the sway runs from each animal's life time. Should each animal breathe on its own? | Answered 2026-11-04 (lead): "Yes, offset per animal", "Also vary the rate a little" | Answered |
+| D361 | F1.10 | The `nublar-gui` slider still uses vanilla sprites, which Recrafted turns near-black. Should the D310 widget sprites come before the first public test jar? | Answered 2026-11-04 (lead): "When D310 is scheduled". No change to the order | Answered |
+| D362 | Global constraints | Should every Nublar particle, sound and block keep a `projectnublar:` id with vanilla-style particle JSON, so resource packs can retune them? | Answered 2026-11-04 (lead): "Yes, add the rule" | Answered |
+| D363 | BH.1 | Should the mod test matrix get Polytone, Continuity and EMF with ETF? Does the lead own Recrafted for one run? | Answered 2026-11-04 (lead): "Add all three rows", "I don't own Recrafted". No Recrafted run | Answered |
+| D364 | BH.1 | The `incubator_bed` core shader is dead and cannot compile on 26.2. Remove it? | Answered 2026-11-04 (lead): "Remove in BH.1 cleanup" | Answered |
+| D365 | R01 | Resource packs replace the vanilla grass, fern and leaf models. Should Nublar plants avoid them as parents? | Answered 2026-11-04 (lead): "E: own plant models" | Answered |
+
 ---
 
 ## Change log
@@ -7376,3 +7429,4 @@ These rows come from the animation resources research (`reports/Animation resour
 - **2026-11-03 (dust sprites):** D340 mock-up approved. The dust trail has 4 frames of 16×16, played by age as campfire smoke does, tinted 30 % paler than the ground.
 - **2026-11-03 (dust motion):** From the concept renders (D340): dust is thrown back behind each foot and stays low, every foot that lands makes a burst, and F2.3 has starting values per species.
 - **2026-11-03 (animation resources research):** D341 to D348, and D327 answered. F2.3 gets a head overlay through a Nublar bone updater, breathing sway before the leg IK and a clip check in the unit tests. It also gets a light footfall bounce, control bones, exact springs for tail lag and head look, and the GeckoLib plugin 4.2.5. F2.2: two controllers and one garbage exception. F2.1: leg IK guards. F2.5: no turning on the spot. Art list: Gallimimus walk, run and sentry fixes for an agent.
+- **2026-11-04 (Recrafted research):** D349 to D365. Global constraints get rules for sound files, glow with no shader and pack-friendly ids. F2.3: short sounds never stream, every dinosaur sound varies, vocals get subtitles, dust takes vanilla's block particle colour, the run fallback spawns by a chance from speed, long-lived particles update less often, and each animal breathes on its own phase. F1.10: labels fit a wider font, and no colour is the only cue. BH.1: an Effects quality preset with cost labels, three resource-pack mod test rows, and the dead incubator shader goes. R01: plants use their own models.

@@ -2923,7 +2923,7 @@ Points for gameplay:
 
 ## 12. Reference mod surveys
 
-Three surveys read other mods for patterns that Nublar can use. A fourth survey checked animation tools and references (12.4). Each survey has a full report in `reports/` and a folder of research notes in `research_notes/`. This section gives the results that matter for the plan. The reports have the evidence, the clean-room specifications and the repository facts.
+Three surveys read other mods for patterns that Nublar can use. A fourth survey checked animation tools and references (12.4). A fifth read a visual and sound overhaul pack and the three client mods that it uses (12.5). Each survey has a full report in `reports/` and a folder of research notes in `research_notes/`. This section gives the results that matter for the plan. The reports have the evidence, the clean-room specifications and the repository facts.
 
 The surveys use the same labels as the reports:
 
@@ -3190,6 +3190,31 @@ The main results:
 | 4 | A clip checker in `tools/animation/` that poses the mod's model and shipped clips | F2.3 checks (D332) | A skid, a sinking foot or a pop at the loop shows before a tester sees it |
 | 5 | Gallimimus clip fixes: the `move.walk` skid, the foot sink, the `sentry` keys after its end | Art list | A walking Gallimimus plants each foot with no forward slide |
 | 6 | Leg IK guards: a bend clamp, a stretch check and a stop rule | F2.1 part B | Legs never bend backward. A stopping animal does not shuffle |
+
+### 12.5 Recrafted visual and sound overhaul (2026-11-04)
+
+Full report: [Recrafted visual and sound overhaul for Beta](../reports/Recrafted%20visual%20and%20sound%20overhaul%20for%20Beta.md). Notes: `research_notes/Recrafted visual and sound overhaul/` (5 files).
+
+The research read Recrafted Early Access 0.2.1, a paid 26.2 resource pack (4,448 files, 48 options, 47 on by default), and the 26.2 source of Polytone, Continuity and EMF, the mods that it uses. It changes no plan module.
+
+The main results:
+
+- Nublar must carry its own look. Under this pack, entities and block-entity renderers never bloom, get no coloured light and push no plants. EMF and Polytone entity emitters work only on vanilla `ModelPart` models, so no pack reaches a GeckoLib bone. Dinosaurs and machines use vanilla render types, so they get the pack's shading and shadows. The OC6 rule (no core shader) holds.
+- All 37 Nublar sounds are streamed, and vanilla 26.2 plays at most 8 streamed sounds at once. With several dinosaurs calling, sounds drop out. This defect does not depend on the pack.
+- The pack makes text 15 to 26 % wider and restyles the vanilla slider, button and tooltip sprites that Nublar screens still use.
+- Patterns worth copying: options with a cost label and presets, grey particle sprites tinted at spawn, dust spawned by a chance that follows speed, slow updates for resting particles, and a loudness target for sounds.
+- Verdicts: Polytone and Continuity are compat duties and pattern sources, never dependencies. EMF does not touch dinosaurs.
+
+#### Top changes
+
+| Rank | Change | Module | In-game effect |
+| --- | --- | --- | --- |
+| 1 | Stream only long loops; every clip under about 10 s plays from memory | F2.3 sounds | Ten dinosaurs can call at once and every call plays |
+| 2 | One loudness target per sound class, true peak at or below -1 dBFS, mono for positional sounds | F2.3 sounds, Art list | Roars do not crackle |
+| 3 | Random pitch and volume spread per play | F2.3 sounds | Two growls in a row differ |
+| 4 | Subtitle translation keys on every Nublar sound event | F2.3, D313 | A player with sound off sees what called and from where |
+| 5 | Screen labels measured with `font.width`, with "…" and a tooltip when too long; test with a 25 % wider font | F1.4 to F1.8 | Machine screens stay readable with any font pack |
+| 6 | Glow reads without bloom; any halo is painted into the texture | F2.2, F1.10, F3.1 | Eyes, screens and live fences look lit with or without a shader pack |
 
 ---
 

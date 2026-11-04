@@ -432,6 +432,8 @@ The player reads DNA samples onto a hard drive and watches each species fill tow
   - The mouse wheel or a drag on the bar scrolls the list.
 - **Hover.** Hover lights a button, a tab or a row. Gene bars and donor rows show a small tooltip.
 - **Type roles.** Titles, the chosen tab, names, stats and values are bold. Labels and hints stay regular. The font has one size, so bold takes the place of a type scale.
+- **Text fit.** A font pack can make text about a quarter wider. Each label box leaves that room where the layout has space. A label that still does not fit ends in "…" and shows its full text on hover (D353).
+- **Colour plus shape.** No colour is the only cue. Each colour that means something also has an icon, a shape or a word, for example a mark on an isolated gene and a "!" on a failure (D354).
 
 ##### Screen motion (all three tabs)
 
@@ -554,7 +556,7 @@ See Art list → Sequencer (models, dye mask, lit monitor, door animation, sound
 
 **Engineering:** backlog F1.4.
 
-**Changed since last review:** The monitor stays as a fourth build part. Amber is identified only by sequencing. Vanilla animals show "Modern" and their real diet. Power per drive set. The monitor glows whenever powered and animates while working. Screen style and motion for all three tabs: tab-shaped buttons, one soft glow on the next input, status chip, empty-slot icons, event messages, scroll bars, M3 motion that never delays content. Clone stats on the info card. The Isolated view shows the animals each gene needs. Screen cost rules for every machine screen (D309, D311). The model fills most of the info card. Light flows along the helix. Every tab has a narrow-window layout. Pop-ups grow an outline out of their slot. The run icon changes shape, and the running bar waves. Rows and markers move on springs. Reduced-motion and contrast options. Bold type roles. The fps check is 95 % of a chest screen. A spring step rule for long frames is a proposal.
+**Changed since last review:** Labels fit a font a quarter wider or end in "…" (D353). No colour is the only cue (D354). The monitor stays as a fourth build part. Amber is identified only by sequencing. Vanilla animals show "Modern" and their real diet. Power per drive set. The monitor glows whenever powered and animates while working. Screen style and motion for all three tabs: tab-shaped buttons, one soft glow on the next input, status chip, empty-slot icons, event messages, scroll bars, M3 motion that never delays content. Clone stats on the info card. The Isolated view shows the animals each gene needs. Screen cost rules for every machine screen (D309, D311). The model fills most of the info card. Light flows along the helix. Every tab has a narrow-window layout. Pop-ups grow an outline out of their slot. The run icon changes shape, and the running bar waves. Rows and markers move on springs. Reduced-motion and contrast options. Bold type roles. The fps check is 95 % of a chest screen. A spring step rule for long frames is a proposal.
 
 ---
 
@@ -2522,7 +2524,7 @@ F2.3 gives each species its own clips, its own sounds and the full set of dinosa
   - **Short head clips over walking.** Look, speak and similar clips that move only the head, neck, jaw or tail play while the legs keep walking. The head keeps its normal tilt (D341).
   - **Neck reach.** When the animal drinks or eats, the neck bends a little so the snout meets the water or food surface.
   - **Tail lag.** The tail swings out behind a turn and settles. A light tail overshoots a little. A heavy tail settles slowly with no overshoot.
-  - **Breathing.** A slow sway per species, never doubled with a clip's own sway. As stamina falls below a third, the breathing gets faster and deeper, so a tired animal pants (D338). The breathing never moves a planted foot (D342).
+  - **Breathing.** A slow sway per species, never doubled with a clip's own sway. As stamina falls below a third, the breathing gets faster and deeper, so a tired animal pants (D338). The breathing never moves a planted foot (D342). Each animal breathes on its own rhythm, a little faster or slower than the others, so a herd at rest never breathes in step (D360).
   - **Footfall bounce.** Each step gives the body a light dip and settle, so the weight shows (D347).
   - **Control bones.** A clip can turn a code layer down at exact times, for example head look off during a roar (D348).
   - **Feet on the ground.** Legs bend so the feet sit on slopes and steps (F2.1).
@@ -2533,6 +2535,10 @@ F2.3 gives each species its own clips, its own sounds and the full set of dinosa
 - Each species has its own full set. Design scale: about 30 sounds per species, 47 for the T. rex.
 - A T. rex roar never serves another species.
 - Footsteps play in time with the walk and run clips. Young footsteps sound higher and quieter.
+- **Every call plays.** Short sounds play from memory, so ten dinosaurs can call at once while music plays, and no call drops (D349).
+- **No two the same.** Every dinosaur sound plays at a slightly random pitch and volume, so two roars in a row differ. A hatchling sounds higher (D351).
+- **Clean levels.** Each kind of sound has one loudness, so a roar is always louder than a footstep. No sound crackles. Sounds from an animal fade and pan with distance (D350).
+- **Subtitles.** Roars, calls, threat sounds, hurt and death show a subtitle, for example "Tyrannosaurus roars" (D352).
 - Hatchlings have their own sounds per species. A pitched adult voice does not count.
 - Yawn, sneeze and snort have their own sounds per species. One shared carnivore eat sound is accepted.
 - The Velociraptor threat screech has its own clip and its own sounds, apart from the pack call.
@@ -2726,7 +2732,8 @@ Every effect in the matrix is in Beta. Screen shake has a config switch.
   - Splash rings and ripples start where a leg, the snout or the tail crosses the water surface. A fast part makes a bigger splash than a slow one.
   - A drinking animal makes a small splash when its snout meets the water.
   - Each effect starts at the existing bone nearest the tip, for example the snout, not at the jaw hinge.
-- **Dust from the ground** (D340): the dust puffs take the colour of the ground under each foot, a little paler, so sand makes sand-coloured dust, snow white dust and grass light brown dust. Each puff starts as a small cloud at the foot and breaks up into specks as it fades, as campfire smoke does. Each puff has its own size and opacity, is thrown back behind the foot and stays low to the ground. Larger and faster animals make more and bigger dust, and a Brachiosaurus raises dust at all four feet.
+- **Dust from the ground** (D340): the dust puffs take the colour of the ground under each foot, a little paler, so sand makes sand-coloured dust, snow white dust and grass light brown dust. Each puff starts as a small cloud at the foot and breaks up into specks as it fades, as campfire smoke does. Each puff has its own size and opacity, is thrown back behind the foot and stays low to the ground. Larger and faster animals make more and bigger dust, and a Brachiosaurus raises dust at all four feet. The dust takes the colour that vanilla's own block particles have, so grass gives brown dust and a resource pack that recolours a block recolours its dust too (D357). A trot raises a little dust, a sprint more, and a running herd never fills the screen (D358).
+- **Glow.** Glowing eyes and bioluminescent patterns look lit without a shader pack (D355).
 
 #### Art needed
 
@@ -2752,7 +2759,7 @@ See Art list → each species (Animations, Sounds), Dinosaur effects.
 
 **Engineering:** backlog F2.3.
 
-**Changed since last review:** Head clips over walking keep the head's normal tilt (D341). Breathing never moves a planted foot (D342). A light footfall bounce and control bones (D347, D348). Animals step as they turn, never spinning on the spot (D346). Effects start at the bone nearest the tip. Agents make new clips case by case (D331). Joint fixes per model, a quality bar for every clip, and code layers for head look, short head clips over walking, neck reach, tail lag and breathing (D332, D333). Panting breath (D338). Turn lean waits until after Beta (D337). Effects start at the body part, and the dust trail takes the colour of the ground (D339, D340). Gallimimus gets blood drips and a bloody mouth. Screen shake only on T. rex, Triceratops and Brachiosaurus. T. rex and Dilophosaurus get bloody claws. Only T. rex and Velociraptor play a nesting clip. Per-species walk and run speeds are open. Triceratops rest idle holds the last pose of its lie-down.
+**Changed since last review:** Every call plays, sounds vary in pitch and volume, levels are clean, and vocals get subtitles (D349 to D352). Dust takes vanilla's block particle colour and grows with speed (D357, D358). Each animal breathes on its own rhythm (D360). Glow looks lit with no shader pack (D355). Head clips over walking keep the head's normal tilt (D341). Breathing never moves a planted foot (D342). A light footfall bounce and control bones (D347, D348). Animals step as they turn, never spinning on the spot (D346). Effects start at the bone nearest the tip. Agents make new clips case by case (D331). Joint fixes per model, a quality bar for every clip, and code layers for head look, short head clips over walking, neck reach, tail lag and breathing (D332, D333). Panting breath (D338). Turn lean waits until after Beta (D337). Effects start at the body part, and the dust trail takes the colour of the ground (D339, D340). Gallimimus gets blood drips and a bloody mouth. Screen shake only on T. rex, Triceratops and Brachiosaurus. T. rex and Dilophosaurus get bloody claws. Only T. rex and Velociraptor play a nesting clip. Per-species walk and run speeds are open. Triceratops rest idle holds the last pose of its lie-down.
 ### F2.4 Needs: hunger, thirst, stamina, sleep, stress and company
 
 Dinosaurs get hungry, thirsty, tired, sleepy, lonely and stressed, and a park that neglects them pays for it.
