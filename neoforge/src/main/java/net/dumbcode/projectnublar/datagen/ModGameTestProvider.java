@@ -38,8 +38,8 @@ import java.util.stream.Collectors;
  * runs alone, as every test did on 1.20.1. The machine tests share {@code minecraft:default}. The
  * scale test has {@link #SCALE_SWITCH}, because it changes a config switch that other tests read.
  *
- * <p>The time limits are the 1.20.1 {@code timeoutTicks} values; the two new tests explain theirs
- * in their Javadoc. The codec leaves out fields at their default ({@code setup_ticks} 0,
+ * <p>The time limits are the 1.20.1 {@code timeoutTicks} values; the tests added on 26.2 explain
+ * theirs in their Javadoc. The codec leaves out fields at their default ({@code setup_ticks} 0,
  * {@code required} true), so the files show only the other values.
  *
  * <p>Eight herd tests are optional ({@code required} false): they run and report, but a failure
@@ -78,9 +78,9 @@ public class ModGameTestProvider extends DatapackBuiltinEntriesProvider {
             optionalHerdTest("herdskirtswater", HerdGameTests.SHORE, 3400),
             new TestEntry("scalefollowsgrowthstage", HerdGameTests.ARENA, 100, SCALE_SWITCH, true),
             machineTest("sequencersynthstartswithgeneratoroncore", 200),
-            machineTest("sequencersynthfailswithgeneratoronpart", 200),
             machineTest("sequencercorereceivesenergy", 200),
-            machineTest("machinechainsmoke", 450));
+            machineTest("machinechainsmoke", 450),
+            machineTest("generatoronpartfillseachmachine", 200));
 
     private static final RegistrySetBuilder BUILDER = new RegistrySetBuilder()
             .add(Registries.TEST_ENVIRONMENT, ModGameTestProvider::environments)

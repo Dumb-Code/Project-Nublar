@@ -10,6 +10,7 @@ import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.network.syncher.EntityDataSerializer;
 import net.minecraft.resources.Identifier;
+import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.server.packs.resources.PreparableReloadListener;
 import net.minecraft.world.MenuProvider;
@@ -105,6 +106,12 @@ public class NeoForgePlatformHelper implements IPlatformHelper {
             }
             return accepted;
         }
+    }
+
+    /** Invalidates the capabilities at {@code pos}, so the capability caches there ask again. */
+    @Override
+    public void invalidateCapabilities(ServerLevel level, BlockPos pos) {
+        level.invalidateCapabilities(pos);
     }
 
     @Override

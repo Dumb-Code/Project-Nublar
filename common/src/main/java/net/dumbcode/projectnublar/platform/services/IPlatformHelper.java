@@ -6,6 +6,7 @@ import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.network.syncher.EntityDataSerializer;
 import net.minecraft.resources.Identifier;
+import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.server.packs.resources.PreparableReloadListener;
 import net.minecraft.world.MenuProvider;
@@ -77,6 +78,22 @@ public interface IPlatformHelper {
      * @return the energy that the block accepted, 0 when it has no energy storage on that side
      */
     int insertEnergy(Level level, BlockPos pos, Direction side, int amount, boolean simulate);
+
+    /**
+     * Tells the loader that what a block offers to other mods (energy, items, fluids) may have
+     * changed at {@code pos}, so their cached lookups ask again. A machine multiblock calls it for
+     * each of its blocks when that block is placed or removed: every block of a machine answers a
+     * lookup for the core, but only the core has a block entity, and a loader refreshes on its own
+     * only where a block entity comes or goes.
+     *
+     * <p>NeoForge calls {@code level.invalidateCapabilities(pos)}, which its
+     * {@code BlockCapabilityCache} needs. Fabric does nothing: Fabric API's block lookup cache
+     * reads the block at each lookup.
+     *
+     * @param level the server level of the block
+     * @param pos   the position of the block that was placed or removed
+     */
+    void invalidateCapabilities(ServerLevel level, BlockPos pos);
 
     /**
      * Adds a server data reload listener. It runs on every data pack load and reload, after the

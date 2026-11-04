@@ -5,6 +5,7 @@ import com.mojang.serialization.Codec;
 import com.mojang.serialization.MapCodec;
 import com.mojang.serialization.codecs.RecordCodecBuilder;
 import net.dumbcode.projectnublar.client.ModShapes;
+import net.dumbcode.projectnublar.platform.Services;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.server.level.ServerLevel;
@@ -138,12 +139,31 @@ public abstract class MultiEntityBlock extends BaseEntityBlock implements MultiB
     }
 
     /**
-     * Runs on the server after this block is replaced by a different block: updates comparators
-     * at the core and breaks the other blocks of the multiblock. The core's inventory and machine
-     * parts drop before this, in the block entity's {@code preRemoveSideEffects}.
+     * Runs on the server after this block is set at {@code pos}: refreshes the loader's capability
+     * caches there ({@code IPlatformHelper.invalidateCapabilities}). Every block of a machine
+     * answers an energy lookup for the core, but a loader refreshes on its own only where a block
+     * entity comes or goes, that is at the core. So a cable that looked at this space before the
+     * machine stood here sees the machine now.
+     */
+    @Override
+    protected void onPlace(BlockState state, Level level, BlockPos pos, BlockState oldState,
+                           boolean movedByPiston) {
+        super.onPlace(state, level, pos, oldState, movedByPiston);
+        if (level instanceof ServerLevel serverLevel) {
+            Services.PLATFORM.invalidateCapabilities(serverLevel, pos);
+        }
+    }
+
+    /**
+     * Runs on the server after this block is replaced by a different block: refreshes the loader's
+     * capability caches at {@code pPos} (see {@link #onPlace}), so no cable keeps the energy of a
+     * removed machine, updates comparators at the core and breaks the other blocks of the
+     * multiblock. The core's inventory and machine parts drop before this, in the block entity's
+     * {@code preRemoveSideEffects}.
      */
     @Override
     protected void affectNeighborsAfterRemoval(BlockState pState, ServerLevel pLevel, BlockPos pPos, boolean pMovedByPiston) {
+        Services.PLATFORM.invalidateCapabilities(pLevel, pPos);
         if (pState.getValue(ROWS) == 0 && pState.getValue(COLUMNS) == 0 && pState.getValue(DEPTH) == 0) {
             Containers.updateNeighboursAfterDestroy(pState, pLevel, pPos);
         }

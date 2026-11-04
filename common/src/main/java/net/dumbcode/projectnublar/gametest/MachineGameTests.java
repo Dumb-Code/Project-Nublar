@@ -1,5 +1,7 @@
 package net.dumbcode.projectnublar.gametest;
 
+import net.blay09.mods.balm.platform.energy.BalmEnergyStorageProvider;
+import net.blay09.mods.balm.platform.energy.EnergyStorage;
 import net.blay09.mods.balm.platform.fluid.FluidTank;
 import net.dumbcode.projectnublar.Constants;
 import net.dumbcode.projectnublar.api.dinosaur.DNAData;
@@ -12,6 +14,7 @@ import net.dumbcode.projectnublar.block.api.multiblock.MultiEntityBlock;
 import net.dumbcode.projectnublar.block.entity.IncubatorBlockEntity;
 import net.dumbcode.projectnublar.block.entity.ProcessorBlockEntity;
 import net.dumbcode.projectnublar.block.entity.SequencerBlockEntity;
+import net.dumbcode.projectnublar.platform.Services;
 import net.dumbcode.projectnublar.registry.BlockInit;
 import net.dumbcode.projectnublar.registry.EntityInit;
 import net.dumbcode.projectnublar.registry.ItemInit;
@@ -35,26 +38,30 @@ import net.minecraft.world.phys.AABB;
 import org.jetbrains.annotations.Nullable;
 
 import java.lang.reflect.Field;
+import java.util.ArrayList;
 import java.util.List;
+import java.util.function.Supplier;
 
 /**
  * GameTests for the machines: the Sequencer's synthesis start ("Begin"), the energy that reaches
  * it from a creative generator, and the machine chain from a fossil to an incubated egg. The
  * Sequencer is a 2 x 2 x 2 multiblock, and only its core block (rows, columns and depth all 0) has
- * the block entity that stores energy; the first three tests check whether a generator must touch
- * that core block. Every test uses the herd arena template ({@code HerdGameTests.ARENA}) and the
- * {@code minecraft:default} environment. {@code GameTestInit} registers the bodies, and
- * {@code ModGameTestProvider} writes their test instances. Run one test with
- * {@code /test run projectnublar:<name>}, where the name is the method name in lower case:
+ * the block entity that stores energy; the first two tests put the generator against that core
+ * block, and {@code generatoronpartfillseachmachine} checks that a generator or a cable reaches it
+ * from any other block of a machine. Every test uses the herd arena template
+ * ({@code HerdGameTests.ARENA}) and the {@code minecraft:default} environment.
+ * {@code GameTestInit} registers the bodies, and {@code ModGameTestProvider} writes their test
+ * instances. Run one test with {@code /test run projectnublar:<name>}, where the name is the
+ * method name in lower case:
  * <ul>
  * <li>{@code sequencersynthstartswithgeneratoroncore}: generator against the core, all inputs filled;
  * synthesis must start.</li>
- * <li>{@code sequencersynthfailswithgeneratoronpart}: generator against a non-core part only, all inputs
- * filled; synthesis must NOT start (the test passes when it does not).</li>
  * <li>{@code sequencercorereceivesenergy}: generator against the core, no inputs; the core must store more
  * than the 32 FE a synthesis tick needs.</li>
  * <li>{@code machinechainsmoke}: fossils through the Processor, Sequencer and Incubator to an
  * incubated egg.</li>
+ * <li>{@code generatoronpartfillseachmachine}: a generator against a non-core block of each of the
+ * four machines; each machine must fill up.</li>
  * </ul>
  * Every test logs its readings with the prefix {@code [machinetest]}.
  */
@@ -66,8 +73,6 @@ public final class MachineGameTests {
     private static final BlockPos CORE = new BlockPos(10, FLOOR_Y, 10);
     /** East of the core: touches the core only. */
     private static final BlockPos GENERATOR_ON_CORE = CORE.east();
-    /** East of part (rows 0, columns 0, depth 1) at CORE.south(): touches that part only, diagonal to the core. */
-    private static final BlockPos GENERATOR_ON_PART = CORE.south().east();
     /** Core of the chain test's Processor (3 x 2 x 2), clear of the Sequencer at {@link #CORE}. */
     private static final BlockPos PROCESSOR_CORE = new BlockPos(5, FLOOR_Y, 4);
     /** Core of the chain test's Incubator (2 x 2 x 1), clear of the other two machines. */
@@ -88,6 +93,13 @@ public final class MachineGameTests {
     /** The Incubator's first egg slot (container slots 0 to 8 hold eggs, 9 holds plant matter). */
     private static final int EGG_SLOT = 0;
     private static final Identifier UNINCUBATED_EGG_RECIPE = Constants.modLoc("unincubated_egg");
+    /** The four machines of {@link #generatorOnPartFillsEachMachine}, placed west to east. */
+    private static final List<Supplier<Block>> MACHINES = List.of(BlockInit.PROCESSOR,
+            BlockInit.SEQUENCER, BlockInit.EGG_PRINTER, BlockInit.INCUBATOR);
+    /** Core of the first machine of {@link #generatorOnPartFillsEachMachine}. */
+    private static final BlockPos FIRST_MACHINE_CORE = new BlockPos(4, FLOOR_Y, 4);
+    /** East step between two cores: 2 machine columns and a gap, so no generator touches two. */
+    private static final int MACHINE_SPACING = 6;
 
     private MachineGameTests() {
     }
@@ -114,28 +126,6 @@ public final class MachineGameTests {
     }
 
     /**
-     * Generator against a non-core part only, all synthesis inputs filled: Begin does not start synthesis.
-     * The test passes when synthesis stays off.
-     */
-    public static void sequencerSynthFailsWithGeneratorOnPart(GameTestHelper helper) {
-        SequencerBlockEntity sequencer = placeSequencer(helper, GENERATOR_ON_PART);
-        fillSynthInputs(sequencer);
-        String[] before = new String[1];
-        helper.runAfterDelay(SETTLE_TICKS, () -> {
-            before[0] = readings(sequencer);
-            Constants.LOG.info("[machinetest] onPart before toggle: {}", before[0]);
-            sequencer.toggleSynth();
-        });
-        helper.runAfterDelay(SETTLE_TICKS + AFTER_TOGGLE_TICKS, () -> {
-            String after = readings(sequencer);
-            Constants.LOG.info("[machinetest] onPart {} ticks after toggle: {}", AFTER_TOGGLE_TICKS, after);
-            helper.succeedIf(() -> helper.assertFalse(sequencer.isSynthesizing(),
-                    "expected synthesis to stay off with the generator on a non-core part, but it started; before toggle: "
-                            + before[0] + "; after: " + after));
-        });
-    }
-
-    /**
      * Generator against the core block, no inputs: the core stores more than one synthesis tick of energy.
      */
     public static void sequencerCoreReceivesEnergy(GameTestHelper helper) {
@@ -147,6 +137,64 @@ public final class MachineGameTests {
             helper.succeedIf(() -> helper.assertTrue(stored > sequencer.calculateEnergyConsumption(),
                     "the core stored only " + stored + " FE; " + now));
         });
+    }
+
+    /**
+     * A creative generator against one non-core block of each machine fills that machine's
+     * energy. Only the core has the block entity that stores energy, so a generator, or a cable
+     * from another mod, that touches any other block must reach the core through it.
+     * <p>
+     * Each generator touches the machine's far corner (top row, last column, last depth) from the
+     * west, so the way to the core undoes all three offsets. Before the generators run, the test
+     * also offers 1 FE at that face through the loader's energy lookup
+     * ({@code IPlatformHelper.insertEnergy}, a simulation), the path a cable from another mod
+     * takes: the machine must accept it. The test passes when every machine accepted that offer
+     * and is full; a failure lists every machine that did not.
+     * <p>
+     * <b>Time limit</b> 200 ticks, as the other machine tests: a creative generator pushes 256 FE
+     * a tick, so each 1000 FE store is full after 4 ticks.
+     */
+    public static void generatorOnPartFillsEachMachine(GameTestHelper helper) {
+        List<EnergyStorage> storages = new ArrayList<>();
+        int[] lookupAccepted = new int[MACHINES.size()];
+        for (int i = 0; i < MACHINES.size(); i++) {
+            Block block = MACHINES.get(i).get();
+            BlockPos core = FIRST_MACHINE_CORE.east(i * MACHINE_SPACING);
+            storages.add(energyOf(helper, placeMachine(helper, block, core, BlockEntity.class)));
+            BlockPos corner = farCorner(block, core);
+            lookupAccepted[i] = Services.PLATFORM.insertEnergy(helper.getLevel(),
+                    helper.absolutePos(corner), Direction.WEST, 1, true);
+            helper.setBlock(corner.west(), BlockInit.CREATIVE_GENERATOR.get().defaultBlockState());
+        }
+        helper.succeedWhen(() -> {
+            StringBuilder failures = new StringBuilder();
+            for (int i = 0; i < storages.size(); i++) {
+                EnergyStorage storage = storages.get(i);
+                if (lookupAccepted[i] != 1 || storage.getEnergy() != storage.getCapacity()) {
+                    failures.append(MACHINES.get(i).get()).append(": the loader lookup accepted ")
+                            .append(lookupAccepted[i]).append(" of 1 FE, the generator filled ")
+                            .append(storage.getEnergy()).append(" of ")
+                            .append(storage.getCapacity()).append(" FE; ");
+                }
+            }
+            helper.assertTrue(failures.isEmpty(), "at a non-core block, " + failures);
+        });
+    }
+
+    private static EnergyStorage energyOf(GameTestHelper helper, BlockEntity core) {
+        if (!(core instanceof BalmEnergyStorageProvider provider)) {
+            throw helper.assertionException(Component.literal(core + " stores no energy"));
+        }
+        return provider.getEnergyStorage();
+    }
+
+    /** The block of a north-facing machine farthest from its core (top row, last column, depth). */
+    private static BlockPos farCorner(Block block, BlockPos core) {
+        AABB footprint = ((MultiEntityBlock) block).getFootprint(core,
+                block.defaultBlockState().setValue(MultiBlock.FACING, Direction.NORTH));
+        return core.above((int) footprint.getYsize() - 1)
+                .relative(Direction.WEST, (int) footprint.getXsize() - 1)
+                .relative(Direction.SOUTH, (int) footprint.getZsize() - 1);
     }
 
     /**

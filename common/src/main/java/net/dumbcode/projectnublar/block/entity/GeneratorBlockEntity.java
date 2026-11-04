@@ -4,6 +4,8 @@ import net.blay09.mods.balm.platform.energy.BalmEnergyStorageProvider;
 import net.blay09.mods.balm.platform.energy.DefaultEnergyStorage;
 import net.blay09.mods.balm.platform.energy.EnergyStorage;
 import net.dumbcode.projectnublar.block.GeneratorBlock;
+import net.dumbcode.projectnublar.block.api.multiblock.MultiBlock;
+import net.dumbcode.projectnublar.block.api.multiblock.MultiEntityBlock;
 import net.dumbcode.projectnublar.block.api.sync.SyncingContainerBlockEntity;
 import net.dumbcode.projectnublar.menutypes.GeneratorMenu;
 import net.dumbcode.projectnublar.platform.Services;
@@ -38,7 +40,8 @@ import java.util.List;
  *
  * <p>Push path: a neighbour that is a {@link BalmEnergyStorageProvider} (every Nublar block that
  * holds energy) is filled directly in common code, so Nublar-to-Nublar power never depends on a
- * loader capability or on the Team Reborn Energy switch. Any other neighbour goes through
+ * loader capability or on the Team Reborn Energy switch. Any block of a machine multiblock counts
+ * as the machine's core, which holds the storage. Any other neighbour goes through
  * {@link net.dumbcode.projectnublar.platform.services.IPlatformHelper#insertEnergy}. Balm 26.2.0.9
  * has a block lookup ({@code Balm.capabilities().getCapability(level, pos, state, blockEntity, side,
  * CommonCapabilities.ENERGY_STORAGE)}), but the generator does not use it: on Fabric it is Balm's own
@@ -251,10 +254,17 @@ public class GeneratorBlockEntity extends SyncingContainerBlockEntity implements
 
     /**
      * Offers energy to the block at {@code pos} on {@code side}: directly when it is a
-     * {@link BalmEnergyStorageProvider}, otherwise through the loader's energy lookup.
+     * {@link BalmEnergyStorageProvider}, otherwise through the loader's energy lookup. A block of a
+     * {@link MultiEntityBlock} machine counts as its core, because only the core has the block
+     * entity that stores the machine's energy; so a generator against any face of a machine
+     * powers it.
      */
     private static int insertInto(Level level, BlockPos pos, Direction side, int amount, boolean simulate) {
-        if (level.getBlockEntity(pos) instanceof BalmEnergyStorageProvider provider) {
+        BlockState state = level.getBlockState(pos);
+        BlockPos storagePos = state.getBlock() instanceof MultiEntityBlock
+                ? MultiBlock.getCorePos(state, pos)
+                : pos;
+        if (level.getBlockEntity(storagePos) instanceof BalmEnergyStorageProvider provider) {
             EnergyStorage storage = provider.getEnergyStorage(side);
             return storage == null ? 0 : storage.fill(amount, simulate);
         }

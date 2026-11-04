@@ -54,12 +54,12 @@ public final class GameTestInit {
                 () -> HerdGameTests::scaleFollowsGrowthStage);
         TEST_FUNCTIONS.register("sequencersynthstartswithgeneratoroncore",
                 () -> MachineGameTests::sequencerSynthStartsWithGeneratorOnCore);
-        TEST_FUNCTIONS.register("sequencersynthfailswithgeneratoronpart",
-                () -> MachineGameTests::sequencerSynthFailsWithGeneratorOnPart);
         TEST_FUNCTIONS.register("sequencercorereceivesenergy",
                 () -> MachineGameTests::sequencerCoreReceivesEnergy);
         TEST_FUNCTIONS.register("machinechainsmoke",
                 () -> MachineGameTests::machineChainSmoke);
+        TEST_FUNCTIONS.register("generatoronpartfillseachmachine",
+                () -> MachineGameTests::generatorOnPartFillsEachMachine);
     }
 
     private GameTestInit() {

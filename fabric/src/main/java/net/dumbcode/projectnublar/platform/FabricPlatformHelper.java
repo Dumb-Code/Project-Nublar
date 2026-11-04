@@ -15,6 +15,7 @@ import net.minecraft.core.Direction;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.syncher.EntityDataSerializer;
 import net.minecraft.resources.Identifier;
+import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.server.packs.PackType;
 import net.minecraft.server.packs.resources.PreparableReloadListener;
@@ -108,6 +109,14 @@ public class FabricPlatformHelper implements IPlatformHelper {
             }
             return (int) accepted;
         }
+    }
+
+    /**
+     * Does nothing. Fabric API's {@code BlockApiCache} reads the block state at each lookup and
+     * asks the block's provider again when the state changed, so no cache keeps a stale answer.
+     */
+    @Override
+    public void invalidateCapabilities(ServerLevel level, BlockPos pos) {
     }
 
     /**

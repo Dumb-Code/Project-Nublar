@@ -1,7 +1,7 @@
 {
   "type": "minecraft:function",
   "environment": "minecraft:default",
-  "function": "projectnublar:sequencersynthfailswithgeneratoronpart",
+  "function": "projectnublar:generatoronpartfillseachmachine",
   "max_ticks": 200,
   "structure": "projectnublar:herd_arena"
 }
