@@ -1433,7 +1433,7 @@ Milestone: Dinosaurs.
 | Footprint: quadruped | Triceratops prints | Missing | F2.3 | None. Agent makes it (D330). |
 | Footprint: sauropod | Brachiosaurus prints | Missing | F2.3 | None. Agent makes it (D330). |
 | Air trails | Swipe trails on arm and tail attacks | Missing | F2.3 | None. Agent makes it (D330). |
-| Dust trail | Grey dust puffs behind a running animal: 4 frames of 16×16, played by age. Code tints them by the ground and varies their size and opacity | To check in game | F2.3 | MOD `textures/particle/dust_0.png` to `dust_3.png`, also in REPO `particles/dust/` (not committed there yet). Agent-made, lead approved the mock-up (D330, D340). No particle code yet |
+| Dust trail | Grey dust puffs behind a walking or running animal: 4 frames of 16×16, played by age. Code tints them by the ground and varies their size and opacity | To check in game | F2.3 | MOD `textures/particle/dust_0.png` to `dust_3.png`, also in REPO `particles/dust/` (not committed there yet). Agent-made, lead approved the mock-up (D330, D340). No particle code yet |
 | Screen shake | A T. rex, Triceratops or Brachiosaurus walks close or roars. Config can turn it off | No art needed | F2.3 | Code only |
 
 ### Effects: environment and sleep
