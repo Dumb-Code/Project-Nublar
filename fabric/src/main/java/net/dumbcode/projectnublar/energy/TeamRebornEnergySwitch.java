@@ -2,7 +2,7 @@ package net.dumbcode.projectnublar.energy;
 
 import fuzs.forgeconfigapiport.fabric.api.v5.ModConfigEvents;
 import net.dumbcode.projectnublar.Constants;
-import net.dumbcode.projectnublar.block.api.multiblock.MultiBlock;
+import net.dumbcode.projectnublar.block.api.multiblock.MultiEntityBlock;
 import net.dumbcode.projectnublar.config.FossilsConfig;
 import net.dumbcode.projectnublar.registry.BlockInit;
 import net.minecraft.core.BlockPos;
@@ -11,6 +11,7 @@ import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.state.BlockState;
+import net.neoforged.fml.config.ModConfig;
 import org.jetbrains.annotations.Nullable;
 import team.reborn.energy.api.EnergyStorage;
 
@@ -54,30 +55,35 @@ public final class TeamRebornEnergySwitch {
      * already.
      */
     public static void init() {
-        ModConfigEvents.loading(Constants.MODID).register(config -> {
-            if (loaded || config.getSpec() != FossilsConfig.CONFIG_SPEC) {
-                return;
-            }
-            loaded = true;
-            bridgeEnabled = FossilsConfig.teamRebornEnergyBridge();
-            Block[] machines = {
-                    BlockInit.PROCESSOR.get(),
-                    BlockInit.SEQUENCER.get(),
-                    BlockInit.EGG_PRINTER.get(),
-                    BlockInit.INCUBATOR.get()};
-            if (bridgeEnabled) {
-                EnergyStorage.SIDED.registerForBlocks(TeamRebornEnergySwitch::coreStorage,
-                        machines);
-            } else {
-                EnergyStorage.SIDED.registerForBlocks(
-                        (level, pos, state, blockEntity, side) -> EnergyStorage.EMPTY, machines);
-                EnergyStorage.SIDED.registerForBlockEntities(
-                        (blockEntity, side) -> EnergyStorage.EMPTY,
-                        BlockInit.GENERATOR.get(),
-                        BlockInit.ELECTRIC_FENCE_POST_BLOCK_ENTITY.get(),
-                        BlockInit.FEEDER_BLOCK_ENTITY.get());
-            }
-        });
+        ModConfigEvents.loading(Constants.MODID).register(TeamRebornEnergySwitch::onConfigLoading);
+    }
+
+    /**
+     * Reads the switch at the first load of the fossils config and registers the providers that
+     * it calls for (see the class Javadoc). Later loads and other configs change nothing.
+     */
+    private static void onConfigLoading(ModConfig config) {
+        if (loaded || config.getSpec() != FossilsConfig.CONFIG_SPEC) {
+            return;
+        }
+        loaded = true;
+        bridgeEnabled = FossilsConfig.teamRebornEnergyBridge();
+        Block[] machines = {
+                BlockInit.PROCESSOR.get(),
+                BlockInit.SEQUENCER.get(),
+                BlockInit.EGG_PRINTER.get(),
+                BlockInit.INCUBATOR.get()
+        };
+        if (bridgeEnabled) {
+            EnergyStorage.SIDED.registerForBlocks(TeamRebornEnergySwitch::coreStorage, machines);
+        } else {
+            EnergyStorage.SIDED.registerForBlocks(
+                    (level, pos, state, blockEntity, side) -> EnergyStorage.EMPTY, machines);
+            EnergyStorage.SIDED.registerForBlockEntities((blockEntity, side) -> EnergyStorage.EMPTY,
+                    BlockInit.GENERATOR.get(),
+                    BlockInit.ELECTRIC_FENCE_POST_BLOCK_ENTITY.get(),
+                    BlockInit.FEEDER_BLOCK_ENTITY.get());
+        }
     }
 
     /**
@@ -91,24 +97,18 @@ public final class TeamRebornEnergySwitch {
     }
 
     /**
-     * The storage of the machine that the block at {@code pos} belongs to: the lookup at its core.
-     * Null at the core itself, so the fallback providers (Balm's) answer there, and null when the
-     * core is not loaded or the block there is not this machine's core, so a broken machine never
-     * loads a chunk or loops between two blocks.
+     * The storage of the machine that the block at {@code pos} belongs to: the lookup at its core
+     * ({@link MultiEntityBlock#findCore}). Null at the core itself, so the fallback providers
+     * (Balm's) answer there, and null when {@code findCore} finds no core.
      */
     private static @Nullable EnergyStorage coreStorage(Level level, BlockPos pos, BlockState state,
                                                        @Nullable BlockEntity blockEntity,
                                                        @Nullable Direction side) {
-        BlockPos corePos = MultiBlock.getCorePos(state, pos);
-        if (corePos.equals(pos) || !level.isLoaded(corePos)) {
+        BlockPos corePos = MultiEntityBlock.findCore(level, pos, state);
+        if (corePos == null || corePos.equals(pos)) {
             return null;
         }
-        BlockState coreState = level.getBlockState(corePos);
-        if (!coreState.is(state.getBlock())
-                || !MultiBlock.getCorePos(coreState, corePos).equals(corePos)) {
-            return null;
-        }
-        return EnergyStorage.SIDED.find(level, corePos, coreState, null, side);
+        return EnergyStorage.SIDED.find(level, corePos, side);
     }
 
     private TeamRebornEnergySwitch() {

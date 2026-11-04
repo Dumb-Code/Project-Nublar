@@ -112,6 +112,33 @@ public abstract class MultiEntityBlock extends BaseEntityBlock implements MultiB
         return AABB.encapsulatingFullBlocks(corePos, farCorner);
     }
 
+    /**
+     * Finds the core of the machine that the block at {@code pos} belongs to. Only the core has the
+     * block entity that stores the machine's energy, so the generator and the loader energy
+     * lookups use this for any block of a machine.
+     *
+     * @param level the level of the block
+     * @param pos   the position of the block
+     * @param state the block's state at {@code pos}, a state of a {@code MultiEntityBlock}
+     * @return {@code pos} itself for a core; the core's position for another block of a machine;
+     *         null when the core's position is not loaded (a lookup never loads a chunk), or holds
+     *         another block or a block of this machine that is not a core (a broken machine left
+     *         by a command or a world edit, so two such blocks never send a lookup back and forth)
+     */
+    public static @Nullable BlockPos findCore(Level level, BlockPos pos, BlockState state) {
+        BlockPos corePos = MultiBlock.getCorePos(state, pos);
+        if (corePos.equals(pos)) {
+            return pos;
+        }
+        if (!level.isLoaded(corePos)) {
+            return null;
+        }
+        BlockState coreState = level.getBlockState(corePos);
+        boolean isCore = coreState.is(state.getBlock())
+                && MultiBlock.getCorePos(coreState, corePos).equals(corePos);
+        return isCore ? corePos : null;
+    }
+
     public abstract VoxelShape getShapeForDirection(Direction direction);
     @Override
     public VoxelShape getShape(BlockState pState, BlockGetter pLevel, BlockPos pPos, CollisionContext pContext) {

@@ -4,7 +4,6 @@ import net.blay09.mods.balm.platform.energy.BalmEnergyStorageProvider;
 import net.blay09.mods.balm.platform.energy.DefaultEnergyStorage;
 import net.blay09.mods.balm.platform.energy.EnergyStorage;
 import net.dumbcode.projectnublar.block.GeneratorBlock;
-import net.dumbcode.projectnublar.block.api.multiblock.MultiBlock;
 import net.dumbcode.projectnublar.block.api.multiblock.MultiEntityBlock;
 import net.dumbcode.projectnublar.block.api.sync.SyncingContainerBlockEntity;
 import net.dumbcode.projectnublar.menutypes.GeneratorMenu;
@@ -255,16 +254,17 @@ public class GeneratorBlockEntity extends SyncingContainerBlockEntity implements
     /**
      * Offers energy to the block at {@code pos} on {@code side}: directly when it is a
      * {@link BalmEnergyStorageProvider}, otherwise through the loader's energy lookup. A block of a
-     * {@link MultiEntityBlock} machine counts as its core, because only the core has the block
-     * entity that stores the machine's energy; so a generator against any face of a machine
-     * powers it.
+     * {@link MultiEntityBlock} machine counts as its core ({@link MultiEntityBlock#findCore}),
+     * because only the core has the block entity that stores the machine's energy; so a generator
+     * against any face of a machine powers it.
      */
     private static int insertInto(Level level, BlockPos pos, Direction side, int amount, boolean simulate) {
         BlockState state = level.getBlockState(pos);
         BlockPos storagePos = state.getBlock() instanceof MultiEntityBlock
-                ? MultiBlock.getCorePos(state, pos)
+                ? MultiEntityBlock.findCore(level, pos, state)
                 : pos;
-        if (level.getBlockEntity(storagePos) instanceof BalmEnergyStorageProvider provider) {
+        if (storagePos != null
+                && level.getBlockEntity(storagePos) instanceof BalmEnergyStorageProvider provider) {
             EnergyStorage storage = provider.getEnergyStorage(side);
             return storage == null ? 0 : storage.fill(amount, simulate);
         }

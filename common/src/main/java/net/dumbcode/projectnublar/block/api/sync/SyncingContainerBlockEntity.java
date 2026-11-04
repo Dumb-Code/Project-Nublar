@@ -1,5 +1,8 @@
 package net.dumbcode.projectnublar.block.api.sync;
 
+import net.dumbcode.projectnublar.block.api.multiblock.MultiBlock;
+import net.dumbcode.projectnublar.block.api.multiblock.MultiEntityBlock;
+import net.dumbcode.projectnublar.platform.Services;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.HolderLookup;
 import net.minecraft.core.NonNullList;
@@ -7,6 +10,7 @@ import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.protocol.Packet;
 import net.minecraft.network.protocol.game.ClientGamePacketListener;
 import net.minecraft.network.protocol.game.ClientboundBlockEntityDataPacket;
+import net.minecraft.server.level.ServerLevel;
 import net.minecraft.util.ProblemReporter;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.block.entity.BaseContainerBlockEntity;
@@ -16,6 +20,7 @@ import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.storage.TagValueOutput;
 import net.minecraft.world.level.storage.ValueInput;
 import net.minecraft.world.level.storage.ValueOutput;
+import net.minecraft.world.phys.AABB;
 import org.jetbrains.annotations.Nullable;
 
 /**
@@ -62,6 +67,54 @@ public abstract class SyncingContainerBlockEntity extends BaseContainerBlockEnti
         BlockState blockState = this.getLevel().getBlockState(this.getBlockPos());
         this.getLevel().sendBlockUpdated(this.getBlockPos(), blockState, blockState, 3);
         this.setChanged();
+    }
+
+    /**
+     * Marks the block entity removed (its block broken or its chunk unloaded); a machine core then
+     * refreshes the capability caches of its whole machine ({@code refreshMachineCaches}).
+     */
+    @Override
+    public void setRemoved() {
+        super.setRemoved();
+        refreshMachineCaches();
+    }
+
+    /**
+     * Marks the block entity in the level again (its block placed or its chunk loaded); a machine
+     * core then refreshes the capability caches of its whole machine
+     * ({@code refreshMachineCaches}).
+     */
+    @Override
+    public void clearRemoved() {
+        super.clearRemoved();
+        refreshMachineCaches();
+    }
+
+    /**
+     * On the server, when this is the core of a {@link MultiEntityBlock} machine: refreshes the
+     * loader's capability caches at every block of the machine
+     * ({@code IPlatformHelper.invalidateCapabilities}). Every block of a machine answers an energy
+     * lookup with the core's storage, but a loader refreshes on its own only at the position and
+     * chunk where a block entity comes or goes. A machine can stand across a chunk border, so a
+     * cable at a block in the other chunk would keep the storage of a core block entity that its
+     * chunk unloaded, or keep "no energy" after the chunk loads again. Vanilla calls
+     * {@code setRemoved} and {@code clearRemoved} on the server thread, with the level set, when a
+     * chunk unloads and loads and when the block is broken and placed.
+     */
+    private void refreshMachineCaches() {
+        BlockState state = getBlockState();
+        if (!(level instanceof ServerLevel serverLevel)
+                || !(state.getBlock() instanceof MultiEntityBlock machine)
+                || !MultiBlock.getCorePos(state, worldPosition).equals(worldPosition)) {
+            return;
+        }
+        AABB footprint = machine.getFootprint(worldPosition, state);
+        BlockPos min = BlockPos.containing(footprint.minX, footprint.minY, footprint.minZ);
+        BlockPos max = BlockPos.containing(footprint.maxX - 1, footprint.maxY - 1,
+                footprint.maxZ - 1);
+        for (BlockPos pos : BlockPos.betweenClosed(min, max)) {
+            Services.PLATFORM.invalidateCapabilities(serverLevel, pos.immutable());
+        }
     }
 
     /**

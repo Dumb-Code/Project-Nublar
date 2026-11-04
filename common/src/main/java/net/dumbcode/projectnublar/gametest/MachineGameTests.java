@@ -47,12 +47,12 @@ import java.util.function.Supplier;
  * it from a creative generator, and the machine chain from a fossil to an incubated egg. The
  * Sequencer is a 2 x 2 x 2 multiblock, and only its core block (rows, columns and depth all 0) has
  * the block entity that stores energy; the first two tests put the generator against that core
- * block, and {@code generatoronpartfillseachmachine} checks that a generator or a cable reaches it
- * from any other block of a machine. Every test uses the herd arena template
- * ({@code HerdGameTests.ARENA}) and the {@code minecraft:default} environment.
- * {@code GameTestInit} registers the bodies, and {@code ModGameTestProvider} writes their test
- * instances. Run one test with {@code /test run projectnublar:<name>}, where the name is the
- * method name in lower case:
+ * block, and {@code generatoronpartfillseachmachine} checks that a generator and the loader energy
+ * lookup reach it from one non-core block of each machine (its far corner). Every test uses the
+ * herd arena template ({@code HerdGameTests.ARENA}) and the {@code minecraft:default}
+ * environment. {@code GameTestInit} registers the bodies, and {@code ModGameTestProvider} writes
+ * their test instances. Run one test with {@code /test run projectnublar:<name>}, where the name
+ * is the method name in lower case:
  * <ul>
  * <li>{@code sequencersynthstartswithgeneratoroncore}: generator against the core, all inputs filled;
  * synthesis must start.</li>
@@ -63,7 +63,9 @@ import java.util.function.Supplier;
  * <li>{@code generatoronpartfillseachmachine}: a generator against a non-core block of each of the
  * four machines; each machine must fill up.</li>
  * </ul>
- * Every test logs its readings with the prefix {@code [machinetest]}.
+ * The Sequencer tests and {@code machinechainsmoke} log their readings with the prefix
+ * {@code [machinetest]}; {@code generatoronpartfillseachmachine} puts its readings in its failure
+ * message.
  */
 public final class MachineGameTests {
 

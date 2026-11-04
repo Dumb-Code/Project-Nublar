@@ -19,9 +19,10 @@ import net.neoforged.neoforge.data.event.GatherDataEvent;
 
 /**
  * The NeoForge entry point. FML constructs it once; the event listeners live in
- * {@code NeoForgeModEvents}, {@code NeoForgeGameEvents} and {@code NeoForgeClientEvents}, which
- * FML finds by their {@code @EventBusSubscriber} annotation. The data generation listener is the
- * one listener added here.
+ * {@code NeoForgeModEvents}, {@code NeoForgeGameEvents}, {@code NeoForgeClientEvents},
+ * {@code NeoForgeClientGameEvents} and {@code NeoForgeMachineEnergy} (the energy lookup at every
+ * block of a machine), which FML finds by their {@code @EventBusSubscriber} annotation. The data
+ * generation listener is the one listener added here.
  */
 @Mod(Constants.MODID)
 public class ProjectNublarNeoForge {

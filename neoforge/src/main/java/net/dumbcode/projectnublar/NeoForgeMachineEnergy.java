@@ -1,6 +1,6 @@
 package net.dumbcode.projectnublar;
 
-import net.dumbcode.projectnublar.block.api.multiblock.MultiBlock;
+import net.dumbcode.projectnublar.block.api.multiblock.MultiEntityBlock;
 import net.dumbcode.projectnublar.registry.BlockInit;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
@@ -47,23 +47,17 @@ public final class NeoForgeMachineEnergy {
 
     /**
      * The energy handler of the machine that the block at {@code pos} belongs to: the lookup at
-     * its core. Null at the core itself, so Balm's provider answers there, and null when the core
-     * is not loaded or the block there is not this machine's core, so a broken machine never
-     * loads a chunk or loops between two blocks.
+     * its core ({@link MultiEntityBlock#findCore}). Null at the core itself, so Balm's provider
+     * answers there, and null when {@code findCore} finds no core.
      */
     private static @Nullable EnergyHandler coreEnergy(Level level, BlockPos pos, BlockState state,
                                                       @Nullable BlockEntity blockEntity,
                                                       @Nullable Direction side) {
-        BlockPos corePos = MultiBlock.getCorePos(state, pos);
-        if (corePos.equals(pos) || !level.isLoaded(corePos)) {
+        BlockPos corePos = MultiEntityBlock.findCore(level, pos, state);
+        if (corePos == null || corePos.equals(pos)) {
             return null;
         }
-        BlockState coreState = level.getBlockState(corePos);
-        if (!coreState.is(state.getBlock())
-                || !MultiBlock.getCorePos(coreState, corePos).equals(corePos)) {
-            return null;
-        }
-        return level.getCapability(Capabilities.Energy.BLOCK, corePos, coreState, null, side);
+        return level.getCapability(Capabilities.Energy.BLOCK, corePos, side);
     }
 
     private NeoForgeMachineEnergy() {
