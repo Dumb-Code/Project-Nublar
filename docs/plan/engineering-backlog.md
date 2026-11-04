@@ -3957,7 +3957,7 @@ The code layers add to the clip pose each frame, in this order. No layer writes 
 | 2 | Head overlay | client | Plays short head clips over walk and idle (D341). |
 | 3 | Breathing sway | client | `IdleSway`, faster and deeper at low stamina (D338). It runs before the leg IK, so it never moves a planted foot (D342). |
 | 4 | Footfall bounce | client | A light dip of the body at each foot contact (D347). |
-| 5 | Body pose | server, synced | Lifts, pitches and rolls the body to fit the ground under the feet (F2.1 part B, D380). |
+| 5 | Body pose | server, synced | Lifts, pitches and rolls the body to fit the ground under the feet (F2.1 part C, D380). |
 | 6 | Leg IK | client | Feet on the ground (F2.1 part B). |
 | 7 | Neck and tail bend | server, synced | Bends away from blocks (F2.1 part B). |
 | 8 | Head look | client | Turns the head and neck toward the look target. |
