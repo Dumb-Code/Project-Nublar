@@ -231,7 +231,8 @@ An offset is the lead's by-ear change, kept apart from the measured moment. If t
 **Limits**
 - The renders have no leg IK, and in game clips play at varying speed. The in-game check during F2.3 is the final one.
 - Rendering took about 10 minutes for 12 clips of about 8 s each at 1280×720 in parallel. One run through all 146 clips (511 s) would take about 50 minutes at that rate, so the tool renders only clips that are new or changed.
-- Rendering a machine's clips is not tested. The first slice's Incubator rows find out what they need.
+- Rendering a machine's clips is not tested. The first slice's Carnivore Feeder finds out what it needs. The Incubator has no clips, so its rows are audio only.
+- The feeder's hatch close sound is fitted to `open` in reverse (Lead, 2026-11-05), from the clip's last motion. The art list's rule is that code plays the reverse until a close clip exists, but that code is F3.3 work: today's hatch snaps shut. The lead judges this sound on the render until F3.3.
 
 ## When a clip changes (Lead; details are My call)
 
@@ -450,12 +451,12 @@ Nothing. The matcher finds loud sounds and misses sounds 6 dB or more under the 
 - `check` passes on all staged files: mono, Vorbis, true peak at or below -1 dBFS, no stream under 10 s, each fragment entry has its file and each file has its entry, ids unique, valid JSON.
 - Unit tests cover: art list parsing against the current row counts (161 pending), FNV hashing, FSB5 name reading, motion graph link reading, the registry check, pick order, hatchling and species rules.
 - Every pending row appears in `report.md`.
-- First slice, for the lead to judge before the rest: T. rex and the Incubator, end to end, with the review page and the clip fit stage. It also measures what male and variant graphs add.
+- First slice, for the lead to judge before the rest: T. rex, the Incubator (audio only) and the Carnivore Feeder, end to end, with the review page and the clip fit stage. It also measures what male and variant graphs add.
 - Unit tests also cover the fingerprint, with its shared test vector, and all 7 cases in the "When a clip changes" table, on copies of clips and models. Each case must come back marked, with its approval removed.
 - `check` also passes on sound keys: each expected key is present, with no extras. Every row in the row map has an entry or `none`.
 - In the first slice, a changed copy of a T. rex clip comes back on the review page with its sounds moved, and it cannot reach staging until approved.
 - The T. rex death row is built with the death recipe, and it reproduces the `Sc` sample closely enough for the lead's ear.
-- The layered egg crack and generator start reproduce the samples the lead approved, closely enough for the lead's ear.
+- After the first slice (step 4 of the build plan's outline), the layered egg crack and generator start reproduce the samples the lead approved, closely enough for the lead's ear.
 - The `video` stage finds a planted sound in a test mix (the earlier `plant.py` control) and loads the 10 saved T. rex result files. The review page shows that evidence in the first slice.
 
 ## Left to the builder
