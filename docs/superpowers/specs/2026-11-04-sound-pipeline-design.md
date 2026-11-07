@@ -137,6 +137,7 @@ Any other shared or group sound is a stand-in. Example: Prehistoric Kingdom `Sau
 - **Reading:** the lead picked both "JWE3 when its name matches" and "Asset repo on its 42 Ready rows". The second option's text says JWE3 is ticked only on Missing and Placeholder rows, so Ready rows start on the repo file.
 - **Lead:** PK sounds that overlap a JWE3 row can serve as more variants. The tool offers same-species PK matches as extra variants on a JWE3 row. The page marks a row with mixed sources as "two voices", and the lead judges it by ear. They are not ticked by default (**My call**).
 - Every other candidate stays on the page, one click away.
+- **Lead (2026-11-06):** each sound shows about 15 options first, and the rest sit under "More options". Word rules place each name on the behaviour it says. Clip counts use distinct clips, because one fight clip repeats a sound 39 times. Each shown option has one line of name and clip evidence. Breath and growl options sit under action headings.
 
 ## Rows with no direct recording (Lead)
 

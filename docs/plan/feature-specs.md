@@ -2538,9 +2538,10 @@ F2.3 gives each species its own clips, its own sounds and the full set of dinosa
 
 #### Sound rules
 
-- Each species has its own full set. Design scale: about 30 sounds per species, 47 for the T. rex.
+- Each species has its own full set. Design scale: about 30 sounds per species, 53 for the T. rex.
 - A T. rex roar never serves another species.
 - Footsteps play in time with the walk and run clips. Young footsteps sound higher and quieter.
+- **Action sounds, T. rex first.** Breathing and low growls follow what the animal does. A walking T. rex breathes every few strides and growls now and then. A running T. rex breathes hard. A resting T. rex growls low now and then. A feeding T. rex growls over its food. Other species get these rows when their sounds are reviewed (D394).
 - **Every call plays.** Short sounds play from memory, so ten dinosaurs can call at once while music plays, and no call drops (D349).
 - **No two the same.** Every dinosaur sound plays at a slightly random pitch and volume, so two roars in a row differ. A hatchling sounds higher (D351).
 - **Clean levels.** Each kind of sound has one loudness, so a roar is always louder than a footstep. No sound crackles. Sounds from an animal fade and pan with distance (D350).
@@ -2596,12 +2597,16 @@ The species sections below list what each species needs. The Art list gives the 
 | attack snarl, bite hit, hurt, death | Combat, hit reaction, death |
 | eat (flesh rip, crunch), drink, sleep | Needs |
 | heavy footstep | Walk and run |
-| breath | Idle |
+| breath, idle growl | Idle |
+| walk breath, walk growl | Walking |
+| run breath | Running |
+| eat growl | Feeding |
 | nest call, mating call, hatchling sounds | Breeding and young |
 | yawn, sneeze, snort | Idle and the yawn, sneeze and snort effects |
 
 - The eat sound can be the one shared carnivore eat sound.
 - Hatchling sounds are an own set, not a pitched adult voice. This applies to every species.
+- Attack breath has no sound yet. It stays Missing on the Art list.
 
 #### Velociraptor
 
@@ -2772,7 +2777,7 @@ See Art list → each species (Animations, Sounds), Dinosaur effects.
 
 **Engineering:** backlog F2.3.
 
-**Changed since last review:** Every species raises a little faint dust at a walk, on every ground, a lot less than at any faster movement (D374). Overlays are patchy and blend with the skin, and stay in small zones (D373). Snow builds up and fades, snow and blood show in 4 steps, blood washes off in water, and wet skin shows after a swim or rain (D366 to D369). Sand, dirt and mud coats are in Beta (D370 to D372). The body leans to fit uneven ground at every distance, and feet stay on the ground out to 64 blocks (D380, D393). Every call plays, sounds vary in pitch and volume, levels are clean, and vocals get subtitles (D349 to D352). Dust takes vanilla's block particle colour and grows with speed (D357, D358). Each animal breathes on its own rhythm (D360). Glow looks lit with no shader pack (D355). Head clips over walking keep the head's normal tilt (D341). Breathing never moves a planted foot (D342). A light footfall bounce and control bones (D347, D348). Animals step as they turn, never spinning on the spot (D346). Effects start at the bone nearest the tip. Agents make new clips case by case (D331). Joint fixes per model, a quality bar for every clip, and code layers for head look, short head clips over walking, neck reach, tail lag and breathing (D332, D333). Panting breath (D338). Turn lean waits until after Beta (D337). Effects start at the body part, and the dust trail takes the colour of the ground (D339, D340). Gallimimus gets blood drips and a bloody mouth. Screen shake only on T. rex, Triceratops and Brachiosaurus. T. rex and Dilophosaurus get bloody claws. Only T. rex and Velociraptor play a nesting clip. Per-species walk and run speeds are open. Triceratops rest idle holds the last pose of its lie-down.
+**Changed since last review:** Breathing and low growls follow what a T. rex does: walking, running, resting and feeding (D394). Every species raises a little faint dust at a walk, on every ground, a lot less than at any faster movement (D374). Overlays are patchy and blend with the skin, and stay in small zones (D373). Snow builds up and fades, snow and blood show in 4 steps, blood washes off in water, and wet skin shows after a swim or rain (D366 to D369). Sand, dirt and mud coats are in Beta (D370 to D372). The body leans to fit uneven ground at every distance, and feet stay on the ground out to 64 blocks (D380, D393). Every call plays, sounds vary in pitch and volume, levels are clean, and vocals get subtitles (D349 to D352). Dust takes vanilla's block particle colour and grows with speed (D357, D358). Each animal breathes on its own rhythm (D360). Glow looks lit with no shader pack (D355). Head clips over walking keep the head's normal tilt (D341). Breathing never moves a planted foot (D342). A light footfall bounce and control bones (D347, D348). Animals step as they turn, never spinning on the spot (D346). Effects start at the bone nearest the tip. Agents make new clips case by case (D331). Joint fixes per model, a quality bar for every clip, and code layers for head look, short head clips over walking, neck reach, tail lag and breathing (D332, D333). Panting breath (D338). Turn lean waits until after Beta (D337). Effects start at the body part, and the dust trail takes the colour of the ground (D339, D340). Gallimimus gets blood drips and a bloody mouth. Screen shake only on T. rex, Triceratops and Brachiosaurus. T. rex and Dilophosaurus get bloody claws. Only T. rex and Velociraptor play a nesting clip. Per-species walk and run speeds are open. Triceratops rest idle holds the last pose of its lie-down.
 ### F2.4 Needs: hunger, thirst, stamina, sleep, stress and company
 
 Dinosaurs get hungry, thirsty, tired, sleepy, lonely and stressed, and a park that neglects them pays for it.

@@ -101,7 +101,7 @@ Status words:
 
 | Thing | Done | To check in game | Ready to import | Needs export or conversion | Placeholder or missing | Shared, to confirm | Only if the lead approves (not counted) |
 | --- | --- | --- | --- | --- | --- | --- | --- |
-| Tyrannosaurus | 38 | 3 | 3 | 9 | 29 | 2 | 0 |
+| Tyrannosaurus | 38 | 3 | 3 | 9 | 35 | 2 | 0 |
 | Velociraptor | 31 | 2 | 31 | 24 | 34 | 1 | 1 |
 | Dilophosaurus | 34 | 0 | 22 | 5 | 74 | 3 | 0 |
 | Triceratops | 35 | 4 | 33 | 6 | 30 | 2 | 0 |
@@ -123,11 +123,11 @@ Status words:
 | Feeders | 3 | 0 | 0 | 10 | 20 | 0 | 0 |
 | Digsites and villagers | 0 | 0 | 1 | 0 | 7 | 0 | 0 |
 | Vehicles | 1 | 0 | 2 | 5 | 26 | 0 | 0 |
-| **Total (without guns)** | **250** | **26** | **180** | **70** | **461** | **42** | **1** |
+| **Total (without guns)** | **250** | **26** | **180** | **70** | **467** | **42** | **1** |
 | Guns (blocked) | 0 | 0 | 2 | 11 | 3 | 0 | 0 |
 
 - **Counted rows:** 1029 (guns not included).
-- **Work left:** 737 rows (461 to make, 70 to export or convert, 180 to import, 26 to check in game), plus 42 shared files for the artist to confirm.
+- **Work left:** 743 rows (467 to make, 70 to export or convert, 180 to import, 26 to check in game), plus 42 shared files for the artist to confirm.
 - **Done:** 250.
 - **Not counted:** 1 row that waits on the lead, 32 rows with no art needed, 38 rows not in Beta (6 of them Release 1 groups).
 - **Guns:** blocked on D08. They are not in the total.
@@ -197,13 +197,13 @@ The Decisions register in the Engineering backlog holds the answers to all other
 The large carnivore. It hunts alone or in pairs, roars before it attacks and can break an unpowered fence.
 Milestone: Dinosaurs.
 
-**To make (29)**
+**To make (35)**
 
 - Models (1): Joint fix (seams), agent makes it (D332).
 - Skins, JP set (Rexy female, Buck male) (3): Female: eyelids (closed eyes); Male: eyelids (closed eyes); Bioluminescence glow mask.
 - Animations (8): Call 2; Roar 3; Guard nest; Hatch; Yawn; Sneeze; Startled (extra); Limp (placeholder).
-- Sounds (17):
-  - Missing: Contact call; Nest call; Mating call; Hatchling sounds; Drink; Sleep (snore or slow breath); Footsteps (heavy); Yawn; Sneeze; Snort.
+- Sounds (23):
+  - Missing: Contact call; Nest call; Mating call; Hatchling sounds; Drink; Sleep (snore or slow breath); Footsteps (heavy); Yawn; Sneeze; Snort; Walk breath; Run breath; Attack breath; Idle growl; Walk growl; Eat growl.
   - Placeholder: Roar (10 files); Growl (10 files); Attack snarl (3 files); Bite hit (3 files); Breath (5 files); Hurt (3 files); Death (3 files).
 
 **To import (3)**
@@ -334,6 +334,12 @@ Mod folder: MOD/textures/entity/tyrannosaurus_rex/<gender>/. REPO: dinosaurs/tyr
 | Attack snarl (3 files) | Attack | Placeholder | F2.3 | attack/snarl/: byte copy of distortus_rex |
 | Bite hit (3 files) | Bite lands | Placeholder | F2.3 | attack/bite/: byte copy of distortus_rex |
 | Breath (5 files) | Idle ambient | Placeholder | F2.3 | ambient/breath_1..5.ogg: byte copy of distortus_rex |
+| Walk breath | Breathing while walking, every few strides | Missing | F2.3 | None. Plays on clip move.walk |
+| Run breath | Hard breathing while running | Missing | F2.3 | None. Plays on clip run |
+| Attack breath | Sharp breath in an attack | Missing | F2.3 | None. Plays on clip attack1 |
+| Idle growl | Low growl at rest, now and then | Missing | F2.3 | None |
+| Walk growl | Low growl while walking, now and then | Missing | F2.3 | None. Plays on clip move.walk |
+| Eat growl | Growl over food | Missing | F2.3 | None. Plays on clips eat1, eat2 |
 | Hurt (3 files) | Hit reaction | Placeholder | F2.3 | hurt/: byte copy of distortus_rex. Mod hurt_1 (60 KB) differs from REPO hurt_1 (172 KB) |
 | Death (3 files) | Death | Placeholder | F2.3 | death/: byte copy of distortus_rex |
 | Eat (flesh rip, crunch) | Eating a carcass | Ready to import | F2.3 | REPO dinosaurs/_common/sounds/flesh_rip_1.ogg, flesh_crunch_medium_1, 2. One set for all carnivores |
