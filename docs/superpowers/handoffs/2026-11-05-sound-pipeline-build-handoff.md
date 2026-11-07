@@ -2,6 +2,8 @@
 
 # Sound pipeline build: paused after Task 7
 
+**Update, 2026-11-06.** Tasks 8 to 13c are built and reviewed, and the lead has listened to the T. rex picks. Tool head is `b6901fb`. The lead paused the rest: "that can be done when the sounds need to be made per the project development plan". Start again when F2.3 starts, at **Task 14, base `b6901fb`**, not at Task 8 as written below. Read `W\progress.md` first. Do not delete `SF\work`: `decisions.json` holds the lead's ear picks on 25 rows. Run the listening page from a terminal tab, because the app stops a preview server after about 30 minutes.
+
 ## The lead's rule for all work from here
 
 > "ensure that the work you do does not attempt to conduct rework"

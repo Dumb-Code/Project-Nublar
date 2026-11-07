@@ -4013,6 +4013,7 @@ The code layers add to the clip pose each frame, in this order. No layer writes 
   - They have no subtitle. D352 covers roars, calls, threat sounds, hurt and death only.
   - `breath.attack` is not registered. The Art list row stays Missing until a sound is chosen.
 - Sourcing: source the dinosaur sounds from Jurassic World Evolution 3. Shared sounds may serve as placeholders meanwhile. They count as Missing on the Art list.
+- Sound tool: a local tool pulls, cleans and lists sound options on a listening page. It is built for the T. rex listening stage, and the lead's picks are saved. The rest waits until this package starts: T. rex death blend and footsteps, clip fit, staging, Incubator and Carnivore Feeder sounds, then the other species and machines. Resume steps: `docs/superpowers/handoffs/2026-11-05-sound-pipeline-build-handoff.md`.
 - Defect: `ThreatDisplay` plays the T. rex roar for every species. Each species plays its own warning sound:
   - T. rex: roar.
   - Velociraptor: screech, apart from the pack call.
@@ -7581,3 +7582,4 @@ These rows come from the Recrafted research (`reports/Recrafted visual and sound
 - **2026-11-04 (overlay look):** D373. Overlays are patchy and blend with the skin. Coats stay on the feet, shins and belly, snow on the back and upper sides, blood at the jaws. Strengths start halfway between renders v2 and v3, and v3 is the upper limit.
 - **2026-11-04 (walk dust):** D374. F2.3: every species raises a little faint dust at a walk, on every ground, with half the puffs of a run, at half the size and at lower opacity. Clips with no footstep keyframes spawn dust at a lower chance at a walk.
 - **2026-11-06 (action sounds):** D394. F2.3: T. rex breathing and low growls follow its action. Six new Art list rows; attack breath stays Missing. Code starts these sounds at set rates, so a looping clip does not repeat them on every cycle.
+- **2026-11-06 (sound tool paused):** F2.3: the rest of the sound tool waits until this package starts (lead).
