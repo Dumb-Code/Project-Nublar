@@ -27,6 +27,15 @@ DIET = {"Tyrannosaurus": "Carnivore", "Velociraptor": "Carnivore", "Dilophosauru
         "Triceratops": "Herbivore", "Brachiosaurus": "Herbivore", "Gallimimus": "Omnivore"}
 
 
+def sex_of(asset, used_for):
+    """Sex that a species asset is for: Male, Female, Both, or empty when the row names none."""
+    male = bool(re.search(r"\bmales?\b", asset, re.I))
+    female = bool(re.search(r"\bfemales?\b", asset, re.I))
+    if (male and female) or re.search(r"both (genders|sexes)", asset + " " + used_for, re.I):
+        return "Both"
+    return "Male" if male else "Female" if female else ""
+
+
 def eras_of(art_set):
     """Marks that a skin or model set heading names, in film order: JP, Site B, JP3, JW.
 
@@ -112,7 +121,8 @@ def parse_art():
             group = group_of(status, thing)
             rows.append({
                 "id": f"{code}-{counters[code]:03d}", "thing": name, "art_type": art_type or "Assets",
-                "set": art_set, "era": eras_of(art_set), "diet": DIET.get(name, ""), "asset": cap(asset, 200), "used_for": cap(used_for, 240),
+                "set": art_set, "era": eras_of(art_set), "diet": DIET.get(name, ""),
+                "sex": sex_of(asset, used_for) if name in DIET else "", "asset": cap(asset, 200), "used_for": cap(used_for, 240),
                 "status": group, "status_text": cap(status, 160), "counted": group in COUNTED,
                 "package": features[0] if features else "", "features": ", ".join(features) or feature,
                 "maker": "Agent" if "Agent makes it" in where else "Artist",
