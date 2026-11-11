@@ -123,12 +123,12 @@ Status words:
 | Feeders | 3 | 0 | 0 | 10 | 20 | 0 | 0 |
 | Digsites and villagers | 0 | 0 | 1 | 0 | 7 | 0 | 0 |
 | Vehicles | 1 | 0 | 2 | 5 | 26 | 0 | 0 |
-| **Total (without guns)** | **250** | **26** | **180** | **70** | **468** | **42** | **1** |
+| **Total (without guns)** | **247** | **26** | **180** | **73** | **468** | **42** | **1** |
 | Guns (blocked) | 0 | 0 | 2 | 11 | 3 | 0 | 0 |
 
-- **Counted rows:** 1030 (guns not included).
-- **Work left:** 744 rows (468 to make, 70 to export or convert, 180 to import, 26 to check in game), plus 42 shared files for the artist to confirm.
-- **Done:** 250.
+- **Counted rows:** 1036 (guns not included).
+- **Work left:** 747 rows (468 to make, 73 to export or convert, 180 to import, 26 to check in game), plus 42 shared files for the artist to confirm.
+- **Done:** 247.
 - **Not counted:** 1 row that waits on the lead, 32 rows with no art needed, 38 rows not in Beta (6 of them Release 1 groups).
 - **Guns:** blocked on D08. They are not in the total.
 - **Per-milestone counts:** the roadmap's milestone table. They come from the Feature column of each row (F1.x is M1, F2.x is M2, F3.x is M3, F4.x is M4), with guns left out.
