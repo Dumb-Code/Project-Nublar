@@ -1,8 +1,10 @@
-"""Build the task rows for the plan tracker page.
+"""Build the rows for the plan tracker page and the art list page.
 
 Reads docs/plan/engineering-backlog.md and the detailed task plans in
 docs/superpowers/plans/, merges status.json, and writes tasks.json and
-packages.json into the output folder.
+packages.json into the output folder. Reads docs/plan/art-list.md through
+build_art.py and writes art.json. Both pages use the same packages.json and
+art.json, so their package ids, statuses and art counts agree.
 
 Run from the repo root:
     python tools/plan-tracker/build_tasks.py <output-folder>
@@ -17,6 +19,8 @@ import json
 import re
 import sys
 from pathlib import Path
+
+from build_art import parse_art
 
 ROOT = Path(__file__).resolve().parents[2]
 BACKLOG = ROOT / "docs/plan/engineering-backlog.md"
@@ -179,6 +183,39 @@ def parse_plan(pkg, ms, rel_path, label):
     return out
 
 
+def add_package_status(packages, rows, art):
+    """Give each package its task counts, its status and its art counts.
+
+    The status rule is the same as the plan tracker page's "pkg_progress" calc:
+    Done, Blocked, In progress, Ready (every dependency done) or Waiting.
+    """
+    counts = {}
+    for r in rows:
+        c = counts.setdefault(r["package"], {"total": 0, "Done": 0, "In progress": 0, "Blocked": 0})
+        c["total"] += 1
+        if r["status"] in c:
+            c[r["status"]] += 1
+
+    def finished(pid):
+        c = counts.get(pid)
+        return bool(c) and c["Done"] == c["total"]
+
+    for p in packages:
+        c = counts.get(p["id"], {"total": 0, "Done": 0, "In progress": 0, "Blocked": 0})
+        waiting = [d for d in p["depends_on"].split(", ") if d and not finished(d)]
+        if c["total"] and c["Done"] == c["total"]:
+            status = "Done"
+        elif p["blocked_by"] or c["Blocked"]:
+            status = "Blocked"
+        elif c["In progress"]:
+            status = "In progress"
+        else:
+            status = "Waiting" if waiting else "Ready"
+        mine = [a for a in art if a["package"] == p["id"] and a["counted"]]
+        p.update({"status": status, "tasks_done": c["Done"], "tasks_total": c["total"],
+                  "art_done": sum(a["status"] == "Done" for a in mine), "art_total": len(mine)})
+
+
 def main(out_dir):
     cfg = json.loads(STATUS.read_text(encoding="utf-8"))
     packages, rows = parse_backlog()
@@ -227,8 +264,16 @@ def main(out_dir):
                          "blocked_by": "", "note": "", "source": ""})
     packages.sort(key=lambda p: order[p["milestone"]])
 
+    # Art rows take their milestone from their package. Each package gets its art counts.
+    art = parse_art()
+    ms_name = {p["id"]: p["milestone"] for p in packages}
+    for a in art:
+        a["milestone"] = ms_name.get(a["package"], "")
+    add_package_status(packages, rows, art)
+
     out = Path(out_dir)
     out.mkdir(parents=True, exist_ok=True)
+    (out / "art.json").write_text(json.dumps(art, ensure_ascii=False), encoding="utf-8")
     (out / "tasks.json").write_text(json.dumps(rows, ensure_ascii=False), encoding="utf-8")
     (out / "packages.json").write_text(json.dumps(packages, ensure_ascii=False), encoding="utf-8")
     by = {}
