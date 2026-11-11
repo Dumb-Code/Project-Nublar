@@ -22,6 +22,27 @@ SHARED, LEAD, NO_ART, NOT_BETA, BLOCKED = (
     "Shared, to confirm", "Only if the lead approves", "No art needed", "Not in Beta", "Blocked")
 COUNTED = {DONE, CHECK, IMPORT, EXPORT, MISSING, SHARED}
 
+# Diet per Beta species, from the feature specs (F2.0 and F2.4). The Gallimimus is an omnivore.
+DIET = {"Tyrannosaurus": "Carnivore", "Velociraptor": "Carnivore", "Dilophosaurus": "Carnivore",
+        "Triceratops": "Herbivore", "Brachiosaurus": "Herbivore", "Gallimimus": "Omnivore"}
+
+
+def eras_of(art_set):
+    """Marks that a skin or model set heading names, in film order: JP, Site B, JP3, JW.
+
+    Site B is Isla Sorna, so a Sorna set takes the Site B mark beside its film mark.
+    """
+    eras = []
+    if re.search(r"\bJP\b|Nublar", art_set):
+        eras.append("JP")
+    if "TLW" in art_set or "Sorna" in art_set:
+        eras.append("Site B")
+    if re.search(r"JP3|Sorna", art_set):
+        eras.append("JP3")
+    if re.search(r"\bJWD?\b", art_set):
+        eras.append("JW")
+    return ", ".join(eras)
+
 
 def clean(text):
     text = re.sub(r"\[([^\]]+)\]\([^)]+\)", r"\1", text)
@@ -91,7 +112,7 @@ def parse_art():
             group = group_of(status, thing)
             rows.append({
                 "id": f"{code}-{counters[code]:03d}", "thing": name, "art_type": art_type or "Assets",
-                "set": art_set, "asset": cap(asset, 200), "used_for": cap(used_for, 240),
+                "set": art_set, "era": eras_of(art_set), "diet": DIET.get(name, ""), "asset": cap(asset, 200), "used_for": cap(used_for, 240),
                 "status": group, "status_text": cap(status, 160), "counted": group in COUNTED,
                 "package": features[0] if features else "", "features": ", ".join(features) or feature,
                 "maker": "Agent" if "Agent makes it" in where else "Artist",
