@@ -4063,7 +4063,7 @@ The code layers add to the clip pose each frame, in this order. No layer writes 
   - Blood drips and the bloody mouth: T. rex, Velociraptor, Dilophosaurus and Gallimimus (an omnivore).
   - Bloody claw: T. rex, Velociraptor and Dilophosaurus.
   - Screen shake: T. rex, Triceratops and Brachiosaurus. A client switch turns it off.
-- Screen shake rule (D324):
+- [ ] Screen shake rule (D324):
   - Each client has one shake level from 0 to 1. Each footstep or roar in range adds to it, and a roar adds more.
   - The level falls to 0 in about 1 second. It never goes above 1.
   - The camera moves by the level squared times smooth noise, so small shakes stay small.
@@ -4071,7 +4071,7 @@ The code layers add to the clip pose each frame, in this order. No layer writes 
   - Distance (D395): a footstep or roar adds its amount times (1 − distance ÷ range)². A far animal shakes less, and past the range it adds nothing. At level 1 the view rolls by at most 4° and tilts by at most 2.5°. Both are start values, set in playtest.
   - Accessibility (D396): the shake is multiplied by the vanilla Distortion Effects setting (Accessibility Settings). At 0 % the camera does not shake. `client.screen_shake` stays as the off switch. Check the option on 26.2.
   - The task plan tunes the amounts in a playtest.
-- Roar breath rings (D399):
+- [ ] Roar breath rings (D399):
   - During a large roar, faint rings of air leave the mouth and widen as they move away, so the roar shows as well as sounds.
   - Species: T. rex, Triceratops and Brachiosaurus, the same three as screen shake.
   - The roar clip event starts them at the jaw bone (D339). They spawn on the client tick, not per frame, so the count does not change with the frame rate.
@@ -4084,7 +4084,7 @@ The code layers add to the clip pose each frame, in this order. No layer writes 
   - Per species, the effect bone is the existing bone whose pivot sits nearest the tip, for example a snout bone for the drink splash.
   - One listener object per animal, reused each frame. The renderer adds it only on frames where an effect can start: in water, eating or running. GeckoLib's own objects for it are the F2.2 exception (D343). Effects spawn on the client tick from the last frame's positions.
   - Within 32 blocks only, as the code layers.
-- Dust trail (D340):
+- [ ] Dust trail (D340):
   - A custom particle type with the agent-made grey dust sprites (D330): 4 frames of 16×16 that show one lumpy cloud breaking up into specks. Each puff plays the frames by age, as vanilla campfire smoke does: a cloud at the foot, specks as it fades.
   - Code tints each puff with the colour of the block under the foot, made 30 % paler, because dust is lighter than the ground. The amount is a config value, set in playtest.
   - The colour source is the one vanilla 26.2 `TerrainParticle` uses (D357): the average colour of the block model's particle sprite, times the block's `BlockTintSource.colorAsTerrainParticle`. Grass gives brown dust, as vanilla sprint particles do, because the grass block's particle texture is dirt. A resource pack that recolours a block recolours its dust. Cache the average per sprite.
