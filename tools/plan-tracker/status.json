@@ -1,0 +1,21 @@
+{
+  "_about": "Status that the plan files do not hold. build_tasks.py merges it. Statuses: Done, In progress, To do, Blocked, Paused.",
+  "packages": {
+    "M0.P0": {"all": "Done", "note": "Merged 2026-10-25, PR Dumb-Code/Project-Nublar#66"},
+    "M0.P1": {"all": "Done", "note": "Merged 2026-10-25, PR Dumb-Code/Project-Nublar#67"},
+    "M0.P2": {"Step": "Done", "Acceptance": "In progress", "note": "On branch m0.p2/port-26.2. Acceptance waits for Task 24 (headed run), the final review and the PR"},
+    "F4.3": {"all": "Blocked", "note": "Blocked until the lead decides D08 (guns)"},
+    "F2.3": {"note": "Sound tool paused after Task 13 until the plan reaches the sound work (lead, 2026-11-06)"}
+  },
+  "plans": [
+    {"package": "M0.P0", "label": "T", "path": "docs/superpowers/plans/2026-10-19-m0.p0-branch-integration.md", "default": "Done"},
+    {"package": "M0.P1", "label": "T", "path": "docs/superpowers/plans/2026-10-24-m0.p1-repository-hygiene-and-ci.md", "default": "Done"},
+    {"package": "M0.P2", "label": "T", "path": "docs/superpowers/plans/2026-10-25-m0.p2-port-to-26.2.md", "default": "Done",
+     "ranges": [{"from": 24, "to": 24, "status": "In progress"}]},
+    {"package": "F2.3", "label": "SND", "path": "docs/superpowers/plans/2026-11-05-sound-pipeline.md", "default": "Paused",
+     "ranges": [{"from": 1, "to": 13, "status": "Done"}]}
+  ],
+  "tasks": {
+    "M0.P0-T16": {"status": "Done", "note": "Not needed: the lead kept P12c (D269)"}
+  }
+}
