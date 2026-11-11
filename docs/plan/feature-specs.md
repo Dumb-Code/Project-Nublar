@@ -2716,6 +2716,7 @@ Every effect in the matrix is in Beta. Screen shake has a config switch.
 | Effect | T. rex | Raptor | Dilo | Trike | Brachio | Galli |
 | --- | --- | --- | --- | --- | --- | --- |
 | Spit particles when roaring | yes | yes (screech) | yes | yes | yes (bellow) | no |
+| Breath rings when roaring | yes | no | no | yes | yes (bellow) | no |
 | Drinking water drips | yes | yes | yes | yes | yes | yes |
 | Blood drips when eating | yes | yes | yes | no | no | yes (meat) |
 | Bloody mouth overlay | yes | yes | yes | no | no | yes |
@@ -3087,7 +3088,7 @@ Playtests tune the detection levels and the trust values.
 | Gallimimus | Alarm call | Alarm screech |
 
 - **Sit.** The sit clip plays for "stay".
-- **Effects.** Spit particles on a roar, screen shake on a large roar, air trails on attacks, Dilophosaurus spit blob and splash.
+- **Effects.** Spit particles on a roar, breath rings and screen shake on a large roar, air trails on attacks, Dilophosaurus spit blob and splash.
 
 #### Art needed
 

@@ -107,7 +107,7 @@ Status words:
 | Triceratops | 35 | 4 | 33 | 6 | 30 | 2 | 0 |
 | Brachiosaurus | 25 | 2 | 27 | 2 | 38 | 15 | 0 |
 | Gallimimus | 27 | 1 | 23 | 4 | 36 | 11 | 0 |
-| Dinosaur effects | 0 | 1 | 0 | 0 | 31 | 0 | 0 |
+| Dinosaur effects | 0 | 1 | 0 | 0 | 32 | 0 | 0 |
 | Dinosaur hover box | 0 | 0 | 0 | 0 | 2 | 0 | 0 |
 | Eggs and hatching | 1 | 0 | 4 | 5 | 18 | 0 | 0 |
 | Fossil Processor | 9 | 1 | 0 | 0 | 9 | 3 | 0 |
@@ -123,11 +123,11 @@ Status words:
 | Feeders | 3 | 0 | 0 | 10 | 20 | 0 | 0 |
 | Digsites and villagers | 0 | 0 | 1 | 0 | 7 | 0 | 0 |
 | Vehicles | 1 | 0 | 2 | 5 | 26 | 0 | 0 |
-| **Total (without guns)** | **250** | **26** | **180** | **70** | **467** | **42** | **1** |
+| **Total (without guns)** | **250** | **26** | **180** | **70** | **468** | **42** | **1** |
 | Guns (blocked) | 0 | 0 | 2 | 11 | 3 | 0 | 0 |
 
-- **Counted rows:** 1029 (guns not included).
-- **Work left:** 743 rows (467 to make, 70 to export or convert, 180 to import, 26 to check in game), plus 42 shared files for the artist to confirm.
+- **Counted rows:** 1030 (guns not included).
+- **Work left:** 744 rows (468 to make, 70 to export or convert, 180 to import, 26 to check in game), plus 42 shared files for the artist to confirm.
 - **Done:** 250.
 - **Not counted:** 1 row that waits on the lead, 32 rows with no art needed, 38 rows not in Beta (6 of them Release 1 groups).
 - **Guns:** blocked on D08. They are not in the total.
@@ -1395,9 +1395,9 @@ Milestone: Dinosaurs.
 - **Where effects start:** mouth effects at the jaw or snout, splashes and ripples where a body part crosses the water (D339). The sprites stay the same.
 - **Today in the code:** the mod has no custom particle type.
 
-**To make (31)**
+**To make (32)**
 
-- Effects: mouth and body (16): Roar spit particle; Drinking water drips; Blood drip particle; Bloody mouth overlay: Tyrannosaurus, Velociraptor, Dilophosaurus, Gallimimus; Bloody claw overlay: Tyrannosaurus, Velociraptor, Dilophosaurus; Plant bits particle; Foggy breath; Yawn effect; Sneeze effect; Snort effect; Camouflage look.
+- Effects: mouth and body (17): Roar spit particle; Roar breath rings; Drinking water drips; Blood drip particle; Bloody mouth overlay: Tyrannosaurus, Velociraptor, Dilophosaurus, Gallimimus; Bloody claw overlay: Tyrannosaurus, Velociraptor, Dilophosaurus; Plant bits particle; Foggy breath; Yawn effect; Sneeze effect; Snort effect; Camouflage look.
 - Effects: movement (5): Footprint: small biped, large biped, quadruped, sauropod; Air trails.
 - Effects: environment and sleep (10): Body coat mask: Tyrannosaurus, Velociraptor, Dilophosaurus, Triceratops, Brachiosaurus, Gallimimus; Splash ring; Water ripples; Sleep Zzz; Sleep bubbles.
 
@@ -1414,6 +1414,7 @@ Milestone: Dinosaurs.
 | Asset | Used for | Status | Feature | Where / reference |
 | --- | --- | --- | --- | --- |
 | Roar spit particle | Spit flies when a dinosaur roars | Missing | F2.3 | None. Agent makes it (D330). |
+| Roar breath rings | Faint air rings leave the mouth when a T. rex, Triceratops or Brachiosaurus roars | Missing | F2.3 | None. 3 very faint air sprites of 16×16 in the dust style (D340). Agent makes it (D330, D399). |
 | Drinking water drips | Water drips from the mouth after drinking | Missing | F2.3 | None. Agent makes it (D330). |
 | Blood drip particle | Blood drips while a carnivore or the Gallimimus eats meat | Missing | F2.3 | None. Agent makes it (D330). |
 | Bloody mouth overlay: Tyrannosaurus | Mouth turns red after eating meat | Missing | F2.3 | One grey fill-order mask on the species UV map: dark pixels fill first, and code makes the 4 steps (D367). Agent makes it (D330). |

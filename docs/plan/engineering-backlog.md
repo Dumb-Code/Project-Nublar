@@ -3982,6 +3982,7 @@ The code layers add to the clip pose each frame, in this order. No layer writes 
   - An exact damped spring per tail bone, set by half-life and damping ratio, driven by the body's turn rate and speed. It steps on the client tick, and the render evaluates it forward by the partial tick.
   - Head first, body next, tail last. A light tail overshoots a little. A heavy tail settles with no overshoot.
   - Visual only: hit parts follow the server bend, not the lag.
+  - Reset (D397): the spring starts at rest on the first tick an animal is in view, and after a move of more than 16 blocks in one tick (a teleport or a dimension change). The tail does not whip. A unit test covers both cases.
   - Spring values per species: value open, set in the task plan by eye.
 - [ ] Breathing sway:
   - Amounts per species. Today every species uses the Gallimimus amounts.
@@ -4038,6 +4039,7 @@ The code layers add to the clip pose each frame, in this order. No layer writes 
 | Group | Effect | Trigger |
 | --- | --- | --- |
 | Mouth and body | Spit particles when roaring | roar clip event |
+| Mouth and body | Faint breath rings from the mouth on a large roar | roar clip event |
 | Mouth and body | Drinking water drips, and a small splash when the snout meets the water | the drink clip |
 | Mouth and body | Blood drips when eating meat | eat clip on meat or a carcass |
 | Mouth and body | Bloody mouth overlay | eat clip on meat or a carcass |
@@ -4066,7 +4068,15 @@ The code layers add to the clip pose each frame, in this order. No layer writes 
   - The level falls to 0 in about 1 second. It never goes above 1.
   - The camera moves by the level squared times smooth noise, so small shakes stay small.
   - The shake moves only the camera view. It never turns the player's yaw or pitch, so the aim does not move.
+  - Distance (D395): a footstep or roar adds its amount times (1 − distance ÷ range)². A far animal shakes less, and past the range it adds nothing. At level 1 the view rolls by at most 4° and tilts by at most 2.5°. Both are start values, set in playtest.
+  - Accessibility (D396): the shake is multiplied by the vanilla Distortion Effects setting (Accessibility Settings). At 0 % the camera does not shake. `client.screen_shake` stays as the off switch. Check the option on 26.2.
   - The task plan tunes the amounts in a playtest.
+- Roar breath rings (D399):
+  - During a large roar, faint rings of air leave the mouth and widen as they move away, so the roar shows as well as sounds.
+  - Species: T. rex, Triceratops and Brachiosaurus, the same three as screen shake.
+  - The roar clip event starts them at the jaw bone (D339). They spawn on the client tick, not per frame, so the count does not change with the frame rate.
+  - Art: 3 air sprites of 16×16, made by an agent (D330), very faint, in the D340 style.
+  - Start values, set in playtest: 2 rings per tick while the roar sounds, each puff lives 0.5 s, grows to 1 block and starts at about 12 % opacity.
 - Effects run on the client from synced state and clip events. No server packet per effect.
 - Effects start at the body part (D339):
   - Mouth effects start at the jaw or snout bone of the bone map. Water effects start where a bone of the bone map crosses the water surface. The bone's speed sets the splash and ripple size.
@@ -4079,6 +4089,7 @@ The code layers add to the clip pose each frame, in this order. No layer writes 
   - Code tints each puff with the colour of the block under the foot, made 30 % paler, because dust is lighter than the ground. The amount is a config value, set in playtest.
   - The colour source is the one vanilla 26.2 `TerrainParticle` uses (D357): the average colour of the block model's particle sprite, times the block's `BlockTintSource.colorAsTerrainParticle`. Grass gives brown dust, as vanilla sprint particles do, because the grass block's particle texture is dirt. A resource pack that recolours a block recolours its dust. Cache the average per sprite.
   - Each puff picks a size and an opacity from a range. It is thrown back behind the foot, slows down, rises a little, and fades out at the end of its life. A fast animal may drag some dust forward where that looks right. The amount is set in playtest.
+  - Near the camera (D398): a puff fades as it comes close to the camera, so the dust of a large animal does not cover the screen of a player who stands at its feet. Start values, set in playtest: full opacity at 3 blocks or more, none at 1 block.
   - Each foot makes its burst when it lands: two feet on a biped, four on a quadruped.
   - The count and size per footstep grow with body size and speed. Starting values from the concept renders (2026-11-03), set in playtest:
     - Velociraptor: 4 puffs of 0.45 to 0.8 block, thrown back 0.5 to 1 block, rise 0.25 to 0.5 block, life up to 1.1 s.
@@ -7473,6 +7484,11 @@ These rows come from the Recrafted research (`reports/Recrafted visual and sound
 | D392 | Release 2 | JurassiCraft 3.1.0 flight is a reference for the Pteranodon, which has no clips yet. What goes into the plan? | Answered 2026-11-04 (lead): "One-line pointer". No design and no tasks until the clips exist | Answered |
 | D393 | F2.1 | The plan had full leg IK within 16 blocks and none past 32. With the body pose synced to every distance, where does the leg work stop? | Answered 2026-11-04 (lead): "full IK within 32 and cheaper at 48 and none past 64", then "Three steps to 64". Full IK within 32, every other tick from 32 to 48, a leg root shift from 48 to 64, nothing past 64. Part C (body pose) splits out of part B. The ground sampler stays in part B, because the leg IK needs it | Answered |
 | D394 | F2.3 | Many T. rex breath and growl recordings are tied to an action such as walk, run or attack. One breath row and one growl row cannot hold them. Should the T. rex get action rows? | Answered 2026-11-06 (lead): "Add action rows too", then "Yes, build all six". Six Art list rows: walk breath, run breath, attack breath, idle growl, walk growl, eat growl. The lead heard them and left attack breath Missing. Rates are start values for playtest. Other species get these rows when their sounds are reviewed | Answered |
+| D395 | F2.3 | The shake rule (D324) says "in range" but not how distance counts. A T. rex 30 blocks away would shake the camera as much as one next to the player. Should each footstep and roar add its amount times (1 − distance ÷ range)², with a largest view roll of 4° and tilt of 2.5° at level 1 as start values? | Answered 2026-11-11 (lead): "Accept all five". Accepted as drafted | Answered |
+| D396 | F2.3, BH.1 | Screen shake has only an on/off switch. Vanilla has a Distortion Effects setting for players who get motion sick. Should the shake be multiplied by that setting, with `client.screen_shake` kept as the off switch? | Answered 2026-11-11 (lead): "Accept all five". Accepted as drafted | Answered |
+| D397 | F2.3 | The tail-lag spring has no rule for a teleport or the first tick in view, so a tail can whip across the body. Should the spring start at rest then, with a unit test? | Answered 2026-11-11 (lead): "Accept all five". Accepted as drafted | Answered |
+| D398 | F2.3 | Brachiosaurus dust puffs reach 2.2 blocks and can cover the screen of a player at its feet. Should a puff fade near the camera: full at 3 blocks, none at 1 block, as start values? | Answered 2026-11-11 (lead): "Accept all five". Accepted as drafted | Answered |
+| D399 | F2.3, Art list | A roar shows only spit and screen shake. Should the T. rex, Triceratops and Brachiosaurus roars also send faint air rings from the mouth? It needs 3 agent-made sprites (D330) and one particle type | Answered 2026-11-11 (lead): "Accept all five". Accepted as drafted | Answered |
 
 ---
 
@@ -7583,3 +7599,4 @@ These rows come from the Recrafted research (`reports/Recrafted visual and sound
 - **2026-11-04 (walk dust):** D374. F2.3: every species raises a little faint dust at a walk, on every ground, with half the puffs of a run, at half the size and at lower opacity. Clips with no footstep keyframes spawn dust at a lower chance at a walk.
 - **2026-11-06 (action sounds):** D394. F2.3: T. rex breathing and low growls follow its action. Six new Art list rows; attack breath stays Missing. Code starts these sounds at set rates, so a looping clip does not repeat them on every cycle.
 - **2026-11-06 (sound tool paused):** F2.3: the rest of the sound tool waits until this package starts (lead).
+- **2026-11-11 (effects mod review):** D395 to D399. F2.3: screen shake falls off with distance and follows the vanilla Distortion Effects setting, the tail spring starts at rest after a teleport, dust fades near the camera, and large roars get faint breath rings. Art list: one new row, Roar breath rings.
