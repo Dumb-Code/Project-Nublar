@@ -4004,18 +4004,18 @@ The code layers add to the clip pose each frame, in this order. No layer writes 
 
 #### Scope: sounds
 
-- Each species registers its own sound events from its own folder.
+- [ ] Each species registers its own sound events from its own folder.
   - Events: roar or warning, each call (warn, gather, threaten, contact), nest call, mating call, hatchling sounds, hurt, death, idle breath, eat, drink, sleep, yawn, sneeze, snort, footsteps.
   - Hatchlings, yawn, sneeze and snort get their own sounds per species.
   - One carnivore eat sound may serve all carnivores.
-- T. rex action sounds (D394). Events: `breath.walk`, `breath.run`, `vocals.idle_growl`, `vocals.walk_growl`, `vocals.eat_growl`.
+- [ ] T. rex action sounds (D394). Events: `breath.walk`, `breath.run`, `vocals.idle_growl`, `vocals.walk_growl`, `vocals.eat_growl`.
   - Code starts them, not clip keyframes, so a looping clip does not repeat them on every cycle.
   - Start values (proposal, lead decides in playtest): walk breath every 2 to 4 `move.walk` cycles, walk growl on about 1 cycle in 8, run breath every 2 `run` cycles, eat growl at most once per `eat1` or `eat2` play, idle growl at the species call rate while the animal rests.
   - They have no subtitle. D352 covers roars, calls, threat sounds, hurt and death only.
   - `breath.attack` is not registered. The Art list row stays Missing until a sound is chosen.
 - Sourcing: source the dinosaur sounds from Jurassic World Evolution 3. Shared sounds may serve as placeholders meanwhile. They count as Missing on the Art list.
 - Sound tool: a local tool pulls, cleans and lists sound options on a listening page. It is built for the T. rex listening stage, and the lead's picks are saved. The rest waits until this package starts: T. rex death blend and footsteps, clip fit, staging, Incubator and Carnivore Feeder sounds, then the other species and machines. Resume steps: `docs/superpowers/handoffs/2026-11-05-sound-pipeline-build-handoff.md`.
-- Defect: `ThreatDisplay` plays the T. rex roar for every species. Each species plays its own warning sound:
+- [ ] Defect: `ThreatDisplay` plays the T. rex roar for every species. Each species plays its own warning sound:
   - T. rex: roar.
   - Velociraptor: screech, apart from the pack call.
   - Dilophosaurus: hoot during the frill display.
@@ -4023,15 +4023,15 @@ The code layers add to the clip pose each frame, in this order. No layer writes 
   - Brachiosaurus: bellow.
   - Gallimimus: alarm screech.
 - The snort effect needs no clip. It plays over the idle or the sniff clip.
-- Footsteps play in time through GeckoLib 5 keyframe events.
+- [ ] Footsteps play in time through GeckoLib 5 keyframe events.
   - Every walk and run clip carries footstep keyframes (Art list rows).
   - Wire every keyframe effect name to a sound event.
   - Rename the Brachiosaurus `walk2` and `eatingtall2` effects to names that match their sounds.
-- Gameplay sounds (roars, calls) start from server clip events, not only from keyframes, because Dynamic FPS skips frames.
-- Every call plays (D349). No dinosaur sound shorter than about 10 s has `"stream": true`. Vanilla 26.2 plays at most 8 streamed sounds at once, music included. Today all 37 T. rex entries stream.
-- Variation (D351): every dinosaur sound plays through the voice pitch of `Dinosaur.getVoicePitch` (up to ±0.2 at random, 1.5 for a hatchling) and a small random volume. Roars, calls, footsteps and keyframe sounds included. Today the `ThreatDisplay` roar plays at pitch 1. The volume range is a config value, set in playtest.
-- Levels (D350): the sound files follow the Global constraints "Sound files" rule: one loudness target per sound class, true peak at or below -1 dBFS, mono.
-- Subtitles (D352): roars, calls, threat sounds, hurt and death of every species have a subtitle translation key `subtitles.projectnublar.<event>` with an `en_us.json` line, for example "Tyrannosaurus roars". Footsteps, eating and breathing have none. Today 7 T. rex events carry plain-text subtitles such as "t.rex roar".
+- [ ] Gameplay sounds (roars, calls) start from server clip events, not only from keyframes, because Dynamic FPS skips frames.
+- [ ] Every call plays (D349). No dinosaur sound shorter than about 10 s has `"stream": true`. Vanilla 26.2 plays at most 8 streamed sounds at once, music included. Today all 37 T. rex entries stream.
+- [ ] Variation (D351): every dinosaur sound plays through the voice pitch of `Dinosaur.getVoicePitch` (up to ±0.2 at random, 1.5 for a hatchling) and a small random volume. Roars, calls, footsteps and keyframe sounds included. Today the `ThreatDisplay` roar plays at pitch 1. The volume range is a config value, set in playtest.
+- [ ] Levels (D350): the sound files follow the Global constraints "Sound files" rule: one loudness target per sound class, true peak at or below -1 dBFS, mono.
+- [ ] Subtitles (D352): roars, calls, threat sounds, hurt and death of every species have a subtitle translation key `subtitles.projectnublar.<event>` with an `en_us.json` line, for example "Tyrannosaurus roars". Footsteps, eating and breathing have none. Today 7 T. rex events carry plain-text subtitles such as "t.rex roar".
 - Blocked on D91: the real T. rex recordings. Until the artist names their folder, the T. rex sounds count as Placeholder, and this package is not done.
 
 #### Scope: Dino VFX
@@ -4058,7 +4058,7 @@ The code layers add to the clip pose each frame, in this order. No layer writes 
 | Environment | Ground coats: sand (reddish from red sand), dirt and mud on the legs from walking and on the body from resting | walking, sitting, resting or sleeping on sand, dirt or mud |
 | Sleep | Zzz particles and bubbles | the sleeping state |
 
-- This task makes the effect art that the Art list marks "Agent makes it (D330)": particle sprites, footprints and the overlays on a species texture.
+- [ ] This task makes the effect art that the Art list marks "Agent makes it (D330)": particle sprites, footprints and the overlays on a species texture.
 - Species applicability follows the spec F2.3 matrix.
   - Blood drips and the bloody mouth: T. rex, Velociraptor, Dilophosaurus and Gallimimus (an omnivore).
   - Bloody claw: T. rex, Velociraptor and Dilophosaurus.
@@ -4078,12 +4078,17 @@ The code layers add to the clip pose each frame, in this order. No layer writes 
   - Art: 3 air sprites of 16×16, made by an agent (D330), very faint, in the D340 style.
   - Start values, set in playtest: 2 rings per tick while the roar sounds, each puff lives 0.5 s, grows to 1 block and starts at about 12 % opacity.
 - Effects run on the client from synced state and clip events. No server packet per effect.
-- Effects start at the body part (D339):
+- [ ] Effects start at the body part (D339):
   - Mouth effects start at the jaw or snout bone of the bone map. Water effects start where a bone of the bone map crosses the water surface. The bone's speed sets the splash and ripple size.
   - GeckoLib 5 `RenderPassInfo#addBonePositionListener` gives the bone positions each frame, on 5.5.5 (Fabric) and 5.5.6 (NeoForge). The position is the bone's pivot.
   - Per species, the effect bone is the existing bone whose pivot sits nearest the tip, for example a snout bone for the drink splash.
   - One listener object per animal, reused each frame. The renderer adds it only on frames where an effect can start: in water, eating or running. GeckoLib's own objects for it are the F2.2 exception (D343). Effects spawn on the client tick from the last frame's positions.
   - Within 32 blocks only, as the code layers.
+- [ ] Mouth and body particles, each from its trigger in the table: roar spit, drink drips and the snout splash, blood drips, plant bits, foggy breath, and the yawn, sneeze and snort effects.
+- [ ] Dilophosaurus spit: the splash particles and the blob, drawn on the F2.6 projectile.
+- [ ] Air trails on arm and tail swipes, from attack clip events.
+- [ ] Splash rings and water ripples where a leg, the snout or the tail crosses the water surface.
+- [ ] Zzz particles and bubbles while an animal sleeps.
 - [ ] Dust trail (D340):
   - A custom particle type with the agent-made grey dust sprites (D330): 4 frames of 16×16 that show one lumpy cloud breaking up into specks. Each puff plays the frames by age, as vanilla campfire smoke does: a cloud at the foot, specks as it fades.
   - Code tints each puff with the colour of the block under the foot, made 30 % paler, because dust is lighter than the ground. The amount is a config value, set in playtest.
@@ -4101,30 +4106,30 @@ The code layers add to the clip pose each frame, in this order. No layer writes 
     - Other species: half the puffs of their run, rounded up, and half its size, throw and rise. Life as their run, opacity as above (proposal, lead decides).
     - Renders: `docs/mockups/2026-11-04-raptor-walk-blood-dirt.mp4` and `docs/mockups/2026-11-04-raptor-walk-blood-dirt.png` on dirt, `docs/mockups/2026-11-04-raptor-walk-blood-grass.png` on grass, `docs/mockups/2026-11-04-raptor-walk-dust-before-after.png` for the first and final strength, `docs/mockups/2026-11-04-trex-walk-blood-max-snow.mp4` and `docs/mockups/2026-11-04-trex-walk-blood-max-snow.png` for a T. rex on snow.
   - A walk or run clip with no footstep keyframes yet spawns dust from under the body by a chance per tick that rises with ground speed, with a cap per animal (D358). Each spawn makes 1 or 2 puffs, thrown at a part of the body speed. Starting values, with speed in blocks per tick: chance `speed × 1.6` at a run. At a walk, chance `speed × 0.8` and 1 puff per spawn, at the walk size and opacity (proposal, lead decides). At most 0.25 per tick. Values set in playtest. A walk makes a few faint puffs, a trot more, a sprint the most, and a moving herd does not fill the screen.
-- Overlays (blood, snow) are render layers with F2.2 bone masks.
-- Coverage (D366, D369): each overlay has a coverage value from 0 to 1 per animal, kept on the client from synced state. No packet.
+- [ ] Overlays (blood, snow) are render layers with F2.2 bone masks.
+- [ ] Coverage (D366, D369): each overlay has a coverage value from 0 to 1 per animal, kept on the client from synced state. No packet.
   - Snow: rises while the animal sits, rests or sleeps in a snow biome or in snowfall. It falls slowly once the animal moves, fast in a warm biome, and drops to 0 in water.
   - Bloody mouth: full after the eat clip on meat or a carcass. Bloody claws: full after an attack hit. Both fall over time, and drop to 0 when the animal drinks or swims.
   - Rise and fall rates are config values, set in playtest.
-- Ground coats (D370 to D372): sand, dirt and mud, each its own layer, so two can show at once (muddy legs, a sandy back).
+- [ ] Ground coats (D370 to D372): sand, dirt and mud, each its own layer, so two can show at once (muddy legs, a sandy back).
   - Block tags say which ground gives which coat: `projectnublar:coats/sand` (sand, red sand, suspicious sand), `projectnublar:coats/dirt` (dirt, coarse dirt, rooted dirt, podzol) and `projectnublar:coats/mud` (mud, muddy mangrove roots). Grass blocks give no coat. Other mods' blocks can join the tags.
   - Walking or running on the ground raises the coverage of the feet and shins, faster at a sprint. Sitting, resting or sleeping on it raises the coverage of the belly. Coverage keeps these two zones. A coat stays off the back and flanks (D373). A long mud wallow is the most a body can hold.
   - Mud rises faster and fades slower than sand and dirt. Each coat fades slowly once the animal is off its ground. Water clears the parts under the surface at once.
   - The sand coat takes its colour from the block, with the D357 colour source, so red sand gives a reddish coat.
 - A coat or overlay layer draws only while its coverage is above 0, so most animals draw none.
-- Steps (D367, D373): each overlay draws in 4 steps, at 25, 50, 75 and 100 % coverage. Bare skin holds little, as on elephants, rhinos and crocodilians, so even the last step is patchy and the skin pattern shows through.
+- [ ] Steps (D367, D373): each overlay draws in 4 steps, at 25, 50, 75 and 100 % coverage. Bare skin holds little, as on elephants, rhinos and crocodilians, so even the last step is patchy and the skin pattern shows through.
   - The source is a grey fill-order mask on the species UV map. Dark pixels fill first: crevices, edges and the lower body. Each species has three: a body mask that serves snow and the three ground coats, a mouth mask and a claw mask for blood. The agent makes them (D330).
   - On resource load, code turns each mask into 4 step textures. A pixel is in step n when its mask value is in the darkest n quarters. Code colours each covered pixel from a small fixed palette per overlay (snow whites, sand, dirt and mud browns, blood reds), varied per pixel. The palettes are set in the task plan by eye.
   - Each covered pixel blends with the skin. Start strengths, halfway between renders v2 and v3: sand and dirt about 40 %, mud about 60 %, snow about 55 to 70 %, blood about 55 %. Each is a config value, tuned in game. Render v3 is the strongest they go. Which body zones a layer may use is set per bone. No shader.
   - Snow lies on top surfaces and runs part way down the upper sides, thinning as it goes. Legs stay clear. Blood stays in small patches at the front of the jaws.
   - Target look: between renders v2 and v3 of 2026-11-04 (`docs/mockups/2026-11-04-trex-coats-v2.png`, `docs/mockups/2026-11-04-trex-coats-halfway.png`, `docs/mockups/2026-11-04-trex-coats-v3.png`), with less snow at the last step than v3.
-- Wet skin (D368):
+- [ ] Wet skin (D368):
   - Each body part that was under the water surface gets wet, and the back gets wet in rain. The part list comes from the F2.2 bone masks and the D339 bone positions, which are on while the animal is in water.
   - A wet part is drawn a little darker. It dries in about 20 to 60 s, faster in sunlight and near fire, lava or a lit campfire. Darkness and drying rates are config values, set in playtest.
   - No shader and no texture. The task plan picks the draw method: a darker vertex colour on the masked bones or a masked darkening pass.
-- Footprints are client particles or decals. They never change blocks.
-- Long-lived particles (footprints, plant bits at rest) update every 5th tick when 2 or more blocks from the player, and not at all while out of view (D359). Their fade keeps its speed in steps.
-- Every effect follows the BH.1 low-effects switches: particles (all, reduced, none), screen shake, glow layers.
+- [ ] Footprints are client particles or decals. They never change blocks.
+- [ ] Long-lived particles (footprints, plant bits at rest) update every 5th tick when 2 or more blocks from the player, and not at all while out of view (D359). Their fade keeps its speed in steps.
+- [ ] Every effect follows the BH.1 low-effects switches: particles (all, reduced, none), screen shake, glow layers.
 - Durations, ranges, sizes and fade times are config values, set in the task plan with a stated basis.
 - Every row of Art list → Dinosaur effects is Beta.
 
