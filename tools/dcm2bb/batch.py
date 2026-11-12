@@ -34,7 +34,7 @@ STRAY_MAX = 12.0     # % of painted pixels allowed off the faces
 BONE_MATCH_MIN = 0.80
 SAME_STEM_MATCH_MIN = 0.50   # the old file with the same name is the same animal
 TMP = tempfile.mkdtemp(prefix='dcm2bb_')
-NO_REPROJECT = False
+NO_REPROJECT = False  # --dcm-uv: the .dcm UV map is right; no reprojection and no fill from other cubes
 REPLACE = False      # --replace: take over an old same-named .bbmodel when nothing is lost
 
 
@@ -419,19 +419,29 @@ def port_animations(roots, old):
 
 
 def head_version(path):
-    """The committed version of a file this tool has since replaced, or None."""
+    """The artist's committed version of a file this tool has since replaced, or None."""
     d, f = os.path.split(path)
     try:
         tracked = subprocess.run(["git", "ls-files"], cwd=d, capture_output=True, text=True).stdout.split("\n")
         name = next((t for t in tracked if t.lower() == f.lower()), None)
         if not name:
             return None
-        raw = subprocess.run(["git", "show", "HEAD:./" + name], cwd=d, capture_output=True).stdout
+        # Newest committed version that this tool did not write: HEAD itself is this tool's output once a
+        # conversion has been committed, and the artist's file is then one or more commits back.
+        commits = subprocess.run(["git", "log", "--format=%H", "-n", "12", "--", name], cwd=d,
+                                 capture_output=True, text=True).stdout.split()
         tmp = os.path.join(TMP, "head_" + f)
-        with open(tmp, "wb") as fh:
-            fh.write(raw)
-        old = read_bbmodel(tmp)
-        return None if old["mine"] else old
+        for commit in commits:
+            raw = subprocess.run(["git", "show", f"{commit}:./{name}"], cwd=d, capture_output=True).stdout
+            with open(tmp, "wb") as fh:
+                fh.write(raw)
+            try:
+                old = read_bbmodel(tmp)
+            except Exception:
+                continue
+            if not old["mine"]:
+                return old
+        return None
     except Exception:
         return None
 
@@ -621,6 +631,62 @@ def skin_fit(uvs, masks, tw, th):
         if fit > best[0]:
             best = (float(fit), name)
     return best
+
+
+def uv_score(roots, masks, tw, th):
+    """How wrong a UV map is against the art, in UV texels: texels that two different cubes share, plus
+    painted texels of each skin that no face samples (skins that plainly belong to another model are left
+    out by the caller, which compares two maps on the same skins)."""
+    owner = np.zeros((th, tw), np.int32)
+    shared = np.zeros((th, tw), bool)
+    for i, c in enumerate((c for b in all_bones(roots) for c in b.cubes), 1):
+        mine = np.zeros((th, tw), bool)
+        for u0, v0, u1, v1 in c["faces"].values():
+            x0, x1 = sorted((int(math.floor(min(u0, u1) + 1e-6)), int(math.ceil(max(u0, u1) - 1e-6))))
+            y0, y1 = sorted((int(math.floor(min(v0, v1) + 1e-6)), int(math.ceil(max(v0, v1) - 1e-6))))
+            mine[max(y0, 0):y1, max(x0, 0):x1] = True
+        shared |= mine & (owner > 0)
+        owner[mine] = i
+    used = owner > 0
+    unsampled, bare = {}, {}
+    for name, a in masks:
+        h, w = a.shape
+        if w % tw or h % th or w // tw != h // th:
+            continue
+        k = w // tw
+        big = np.repeat(np.repeat(used, k, 0), k, 1)
+        unsampled[name] = float((a & ~big).sum()) / (k * k)
+        bare[name] = float((big & ~a).sum()) / (k * k)      # face texels with no paint: see-through faces
+    return {"shared": int(shared.sum()), "unsampled": unsampled, "bare": bare}
+
+
+DCM_MAP_MARGIN = 25     # UV texels; measured cases: Velociraptor +13 and -67, Brachiosaurus JP1 +18 (keep the
+#                         reference map), T. rex v2 +34, Dilophosaurus v2 +283, Parasaurolophus +1022 (keep the .dcm map)
+
+
+def dcm_map_wins(dcm, new):
+    """True when the .dcm UV map fits the art better than the map taken from a reference model.
+
+    Per skin that fits one of the two maps (under 10 % of its paint unsampled), the gain of the .dcm map is
+    the paint it samples that the other map loses, less the face area it leaves unpainted that the other map
+    paints. The .dcm map wins when it shares no more texels between cubes and the median gain over those
+    skins is above DCM_MAP_MARGIN. The median, because a folder holds skins of older model versions too.
+    Lessons: dilophosaurus_adult_v2 (the art fits the .dcm; the reference map lost the eyes) and the
+    Velociraptor models (the .dcm is newer than the skins; its head sides and eyes sit on empty texels)."""
+    if dcm["shared"] > new["shared"]:
+        return False, "shares more texels"
+    gains = []
+    for name, ua in dcm["unsampled"].items():
+        ub = new["unsampled"].get(name, 0.0)
+        if min(ua, ub) >= 0.10 * max(dcm["painted"].get(name, 1.0), 1.0):
+            continue
+        ba, bb = dcm["bare"].get(name, 0.0), new["bare"].get(name, 0.0)
+        gains.append((ub - ua) - max(0.0, ba - bb))
+    if not gains:
+        wins = new["shared"] - dcm["shared"] > 8
+        return wins, "no skin fits; fewer shared texels" if wins else "no skin fits"
+    gain = float(np.median(gains))
+    return gain > DCM_MAP_MARGIN, f"median gain {gain:.0f} texels over {len(gains)} skins"
 
 
 def roots_uvs(roots):
@@ -878,6 +944,10 @@ def convert_one(dcm_path, report):
         row["wrappers"] = added
         row["notes"] += notes
     row["clips"] = len(clips)
+    masks = skin_masks(d)
+    painted = {name: float(a.sum()) / ((a.shape[1] // tw) ** 2 or 1) for name, a in masks}
+    raw_cubes = [(c, copy.deepcopy(c)) for b in all_bones(roots) for c in b.cubes]
+    raw_score = dict(uv_score(roots, masks, tw, th), painted=painted)
     if uvref and not NO_REPROJECT:
         if not best:
             add_wrapper_bones(roots, uvref[2])
@@ -887,7 +957,6 @@ def convert_one(dcm_path, report):
         m, c, u = reproject_uvs(roots, uvref[2])
         row["uv_ref"] = f"{uvref[1]}: {m} faces matched ({c} changed), {u} unmatched"
 
-    masks = skin_masks(d)
     fref = fit_reference(d, dcm_path, roots, tw, th, masks, row) if not uvref else None   # artist file wins
     if fref is not None and not NO_REPROJECT:
         saved = [(c, copy.deepcopy(c)) for b in all_bones(roots) for c in b.cubes]
@@ -899,6 +968,26 @@ def convert_one(dcm_path, report):
             row["fit_ref"] += f": NOT USED, only {m} of {m + u} faces lie on it"
         else:
             row["fit_ref"] += f": {m} faces matched ({c} changed), {u} unmatched"
+    # Lesson of dilophosaurus_adult_v2: when the .dcm UV map already samples the art better than the map
+    # taken from a reference model, the .dcm is right. Keep it, and fill nothing from other cubes.
+    keep_dcm_uv = NO_REPROJECT
+    if not NO_REPROJECT:
+        new_score = dict(uv_score(roots, masks, tw, th), painted=painted)
+        wins, why = dcm_map_wins(raw_score, new_score)
+        row["uv_score"] = {"dcm_shared": raw_score["shared"], "new_shared": new_score["shared"], "dcm_map": why}
+        row["uv_detail"] = {n: [round(raw_score["unsampled"][n]), round(new_score["unsampled"].get(n, 0)),
+                                round(raw_score["bare"][n]), round(new_score["bare"].get(n, 0)), round(painted[n])]
+                            for n in raw_score["unsampled"]}
+        if wins:
+            for cube, old_cube in raw_cubes:
+                keep = {k: cube[k] for k in ("name", "from", "to", "inflate")}
+                cube.clear()
+                cube.update(old_cube)
+                cube.update(keep)
+                if keep["from"] != old_cube["from"] or keep["to"] != old_cube["to"]:
+                    cube["box_uv"] = False    # the cube was regrown: box UV would lay out the new size
+            keep_dcm_uv = True
+            row["uv_kept"] = f"dcm UV map kept: shared texels {raw_score['shared']} against {new_score['shared']}"
     row["skin_fit_after"] = round(skin_fit(roots_uvs(roots), masks, tw, th)[0], 3)
     texs, rejected = load_textures(all_bones(roots), tw, th, d)
     default = pick_default(texs)
@@ -906,7 +995,9 @@ def convert_one(dcm_path, report):
     row["layered"] = sum(1 for t in texs if t["kind"] == "layers")
     row["shown"] = texs[default]["name"] if default is not None else None
     if default is not None:
-        row["bare_filled"], row["bare_left"] = fill_bare_faces(roots, texs, tw, th, uvref[2] if uvref else None)
+        if not keep_dcm_uv:
+            row["bare_filled"], row["bare_left"] = fill_bare_faces(roots, texs, tw, th, uvref[2] if uvref else None)
+        # A cube's own empty back face takes its own painted face: no other cube's texels are touched.
         row["plane_backs"] = paint_plane_backs(all_bones(roots), tw, th, texs[default])
     row["rejected"] = rejected
 
@@ -953,9 +1044,11 @@ def main():
     ap.add_argument("--only", default="")
     ap.add_argument("--report")
     ap.add_argument("--replace", action="store_true")
+    ap.add_argument("--dcm-uv", action="store_true", help="keep the .dcm UV map as it is")
     a = ap.parse_args()
-    global REPLACE
+    global REPLACE, NO_REPROJECT
     REPLACE = a.replace
+    NO_REPROJECT = a.dcm_uv
     report = []
     for r, ds, fs in os.walk(a.root):
         if ".git" in r:
@@ -977,6 +1070,8 @@ def main():
                       f"{' MOVED ' + str(row['moved_bones']) if row.get('moved_bones') else ''}"
                       f"{' RENAMED ' + str(row['renamed_bones']) if row.get('renamed_bones') else ''}"
                       f"{' UVREF ' + row['uv_ref'] if row.get('uv_ref') else ''}"
+                      f"{' SCORE ' + str(row['uv_score']) if row.get('uv_score') else ''}"
+                      f"{' KEPT-DCM-UV' if row.get('uv_kept') else ''}"
                       f"{' REPLACED ' + row['replaced'] if row.get('replaced') else ''}"
                       f"{' OLD MOVED TO ' + row['moved_old'] if row.get('moved_old') else ''}"
                       f"{' | ' + row['kept_old'] if row.get('kept_old') else ''}",

@@ -15,10 +15,10 @@ from PIL import Image
 from reproject import new_face_list, clamp01
 
 
-def alpha_masks(texs):
+def alpha_masks(texs, overlays=False):
     out = []
     for t in texs:
-        if t.get("bare", 100) > 50:                # full skins only, not overlays
+        if not overlays and t.get("bare", 100) > 50:   # full skins only, not overlays
             continue
         out.append(np.asarray(Image.open(io.BytesIO(t["data"])).convert("RGBA"))[:, :, 3] > 8)
     return out
@@ -40,12 +40,14 @@ def fill_bare_faces(roots, texs, tw, th, ref=None):
     masks = alpha_masks(texs)
     if not masks:
         return 0, 0
+    every = alpha_masks(texs, overlays=True)        # an eyes or teeth layer is paint too
     faces = new_face_list(roots)
-    info = []                                       # (max paint over skins, paint on default)
+    info = []                                       # (max paint over skins and layers, paint on default)
     for bname, cube, face, pts, n in faces:
         vals = [painted(m, cube["faces"][face], tw, th) for m in masks]
         vals = [v for v in vals if v is not None]
-        info.append((max(vals) if vals else None, vals[0] if vals else None))
+        allv = [v for v in (painted(m, cube["faces"][face], tw, th) for m in every) if v is not None]
+        info.append((max(allv) if allv else None, vals[0] if vals else None))
     # cubes that some skin paints on at least one face are variant parts or normal cubes
     cube_best = {}
     for (bname, cube, face, pts, n), (best, _) in zip(faces, info):
@@ -70,8 +72,11 @@ def fill_bare_faces(roots, texs, tw, th, ref=None):
         is_new = (ref is not None and bname not in ref["bones"]) or bname.lower() in DETAIL_CUBES
         if not is_new:
             continue
-        whole_cube_bare = cube_best.get(id(cube), 0.0) < 0.05
-        some_face_painted = cube_best.get(id(cube), 0.0) >= 0.9
+        # Lesson of dilophosaurus_adult_v2 (eye cubes): a cube with paint on any face, in any skin or
+        # layer, was painted by the artists. Its empty faces are meant to be empty, so only a cube that
+        # is bare on every face in every texture borrows texels.
+        if cube_best.get(id(cube), 0.0) >= 0.05:
+            continue
         centre = p00 + (du + dv) / 2
         pick, loose = None, None
         for i in np.nonzero(dn @ n > 0.85)[0]:
