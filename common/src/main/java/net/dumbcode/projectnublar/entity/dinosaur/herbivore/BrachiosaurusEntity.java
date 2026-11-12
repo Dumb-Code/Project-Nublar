@@ -7,21 +7,24 @@ import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.level.Level;
 
 public class BrachiosaurusEntity extends HerbivoreDinosaur {
-    /** Adult scale at {@code SIZE} gene 0 (moved from the 1.20.1 {@code BrachiosaurusRenderer}). */
-    private static final float ADULT_SCALE_OFFSET = 2.5F;
+    /**
+     * Adult scale at {@code SIZE} gene 0: 12.5 blocks tall, the lead's interim adult height (D11, {@code docs/plan/feature-specs.md}, "Size").
+     * It was 2.5 on 1.20.1.
+     */
+    private static final float ADULT_SCALE_OFFSET = 1.61F;
     /**
      * Corrected adult box width, in blocks: the movement box of {@code docs/dinosaur-hitboxes-and-movement-design.md},
-     * "Part counts and boxes", line 192 (the legs spread 3.68 blocks, "Notes on the layouts", line 223). Used only
-     * with the scale attribute on.
+     * "Part counts and boxes", line 192 (the legs spread 3.68 blocks at render scale 2.5, "Notes on the layouts",
+     * line 223), brought to scale 1.61. Used only with the scale attribute on.
      */
-    private static final float BOX_WIDTH = 3.68F;
+    private static final float BOX_WIDTH = 2.37F;
     /**
      * Corrected adult box height, in blocks: the posed model height 7.723 (measured from
      * {@code brachiosaurus.geo.json} with the bone and cube rotations applied, highest point the male crest) times
-     * render scale 2.5. {@code docs/codebase-analysis.md}, "Model heights", line 2787, lists 7.8; Task 15 confirms
+     * render scale 1.61. {@code docs/codebase-analysis.md}, "Model heights", line 2787, lists 7.8; Task 15 confirms
      * the value with F3+B. Used only with the scale attribute on.
      */
-    private static final float BOX_HEIGHT = 19.31F;
+    private static final float BOX_HEIGHT = 12.43F;
     /**
      * Drawn model reach, in blocks at render scale 1: the largest horizontal distance of any vertex from the model
      * origin in {@code brachiosaurus.geo.json}'s bind pose, bone and cube rotations applied (the tail tip). Used only

@@ -18635,7 +18635,7 @@
 						}
 					}
 				},
-				"leftArmInnerFinger": {
+				"leftIndexFinger": {
 					"rotation": {
 						"0.0": {
 							"post": {
@@ -18675,7 +18675,7 @@
 						}
 					}
 				},
-				"leftArmOuterFinger": {
+				"leftRingFinger": {
 					"rotation": {
 						"0.0": {
 							"post": {
@@ -18715,7 +18715,7 @@
 						}
 					}
 				},
-				"rightArmInnerFinger": {
+				"rightIndexFinger": {
 					"rotation": {
 						"0.0": {
 							"post": {
@@ -18755,7 +18755,7 @@
 						}
 					}
 				},
-				"rightArmOuterFinger": {
+				"rightRingFinger": {
 					"rotation": {
 						"0.0": {
 							"post": {
@@ -73193,7 +73193,7 @@
 						"vector": [0, 0, -5]
 					}
 				},
-				"thighRight": {
+				"legUpperRight": {
 					"rotation": {
 						"vector": [0, -5, 10]
 					},
@@ -73328,7 +73328,7 @@
 						"vector": [0, 0, -5]
 					}
 				},
-				"thighRight": {
+				"legUpperRight": {
 					"rotation": {
 						"vector": [0, 5, 0]
 					},

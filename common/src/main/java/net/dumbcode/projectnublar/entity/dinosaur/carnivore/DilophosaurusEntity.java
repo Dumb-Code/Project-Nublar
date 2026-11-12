@@ -7,18 +7,22 @@ import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.level.Level;
 
 public class DilophosaurusEntity extends CarnivoreDinosaur {
-    /** Adult scale at {@code SIZE} gene 0 (moved from the 1.20.1 {@code DilophosaurusRenderer}). */
-    private static final float ADULT_SCALE_OFFSET = 0.5F;
+    /**
+     * Adult scale at {@code SIZE} gene 0: about 3 blocks tall, the lead's interim adult height (D11, {@code docs/plan/feature-specs.md}, "Size").
+     * It was 0.5 on 1.20.1.
+     */
+    private static final float ADULT_SCALE_OFFSET = 0.7F;
     /**
      * Corrected adult box width, in blocks: the movement box of {@code docs/dinosaur-hitboxes-and-movement-design.md},
-     * "Part counts and boxes", line 194. Used only with the scale attribute on.
+     * "Part counts and boxes", line 194: 0.56 at render scale 0.5, brought to scale 0.7. Used only with the scale
+     * attribute on.
      */
-    private static final float BOX_WIDTH = 0.56F;
+    private static final float BOX_WIDTH = 0.78F;
     /**
-     * Corrected adult box height, in blocks: the posed model height 4.3 times render scale 0.5, with the frill as the
-     * highest point, {@code docs/codebase-analysis.md}, "Model heights", line 2784. Used only with the scale attribute on.
+     * Corrected adult box height, in blocks: the posed model height 4.3 times render scale 0.7, with the frill as
+     * the highest point, {@code docs/codebase-analysis.md}, "Model heights", line 2784. Used only with the scale attribute on.
      */
-    private static final float BOX_HEIGHT = 2.15F;
+    private static final float BOX_HEIGHT = 3.01F;
     /**
      * Drawn model reach, in blocks at render scale 1: the largest horizontal distance of any vertex from the model
      * origin in {@code dilophosaurus.geo.json}'s bind pose, bone and cube rotations applied (the tail tip). Used only

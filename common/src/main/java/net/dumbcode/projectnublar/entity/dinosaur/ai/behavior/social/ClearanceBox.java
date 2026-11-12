@@ -38,10 +38,10 @@ final class ClearanceBox {
 
     /** Per species (entity id path): adult model size. Regenerate with tools/clearance/measure_models.py. */
     static final Map<String, ModelSize> MODEL_SIZES = Map.ofEntries(
-            Map.entry("brachiosaurus", new ModelSize(3.38D, 19.10D)),
-            Map.entry("dilophosaurus", new ModelSize(0.49D, 1.73D)),
+            Map.entry("brachiosaurus", new ModelSize(2.18D, 12.30D)),
+            Map.entry("dilophosaurus", new ModelSize(0.69D, 2.42D)),
             Map.entry("gallimimus", new ModelSize(0.69D, 2.53D)),
-            Map.entry("triceratops", new ModelSize(3.40D, 5.80D)),
+            Map.entry("triceratops", new ModelSize(2.24D, 3.83D)),
             Map.entry("tyrannosaurus_rex", new ModelSize(1.38D, 3.42D)),
             Map.entry("velociraptor", new ModelSize(0.53D, 1.48D)));
 

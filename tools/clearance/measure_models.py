@@ -15,10 +15,10 @@ import os
 GEO = "common/src/main/resources/assets/projectnublar/geo/entity"
 # Adult render scale per species: the constant added to the size gene in each renderer's scaleModelForRender.
 ADULT_SCALE = {
-    "brachiosaurus": 2.5,
-    "dilophosaurus": 0.5,
+    "brachiosaurus": 1.61,
+    "dilophosaurus": 0.7,
     "gallimimus": 1.0,
-    "triceratops": 2.0,
+    "triceratops": 1.32,
     "tyrannosaurus_rex": 1.0,
     "velociraptor": 0.6,
 }

@@ -30,8 +30,8 @@ class ClearanceBoxTest {
     @Test
     void aModelLargerThanItsHitboxSetsTheBox() {
         ClearanceBox box = ClearanceBox.of("triceratops", 2D, 3D, 4, 0D);
-        assertEquals(3.5D, box.width(), EPSILON);
-        assertEquals(6.25D, box.height(), EPSILON);
+        assertEquals(2.25D, box.width(), EPSILON);
+        assertEquals(4.25D, box.height(), EPSILON);
     }
 
     @Test
@@ -48,7 +48,7 @@ class ClearanceBoxTest {
         assertEquals(3.0D, ClearanceBox.of("gallimimus", 1.2D, 2.6D, 4, 10D).height(), EPSILON);
         assertEquals(3.0D, ClearanceBox.of("gallimimus", 1.2D, 2.6D, 4, 100D).height(), EPSILON);
         // A species whose adult model is taller than its hitbox at gene 0 keeps that model top (lead decision 5).
-        assertEquals(6.25D, ClearanceBox.of("triceratops", 2D, 3D, 4, 50D).height(), EPSILON);
+        assertEquals(4.25D, ClearanceBox.of("triceratops", 2D, 3D, 4, 50D).height(), EPSILON);
         // A negative gene still shrinks the model top, down to the hitbox.
         assertEquals(3.25D, ClearanceBox.of("triceratops", 2D, 3D, 4, -50D).height(), EPSILON);
     }

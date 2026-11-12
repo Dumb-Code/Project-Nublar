@@ -11615,12 +11615,12 @@
 		"misc.idle": {
 			"loop": true,
 			"bones": {
-				"bicepLeft": {
+				"armLeft1": {
 					"rotation": {
 						"vector": ["math.cos(query.life_time * 100+90)*3", 0, 0]
 					}
 				},
-				"bicepRight": {
+				"armRight1": {
 					"rotation": {
 						"vector": ["math.cos(query.life_time * 100+90)*3", 0, 0]
 					}
@@ -11660,12 +11660,12 @@
 		"rest": {
 			"loop": true,
 			"bones": {
-				"bicepLeft": {
+				"armLeft1": {
 					"rotation": {
 						"vector": ["math.cos(query.life_time * 100+90)*3", 0, 0]
 					}
 				},
-				"bicepRight": {
+				"armRight1": {
 					"rotation": {
 						"vector": ["math.cos(query.life_time * 100+90)*3", 0, 0]
 					}
@@ -11705,12 +11705,12 @@
 		"restidle": {
 			"loop": true,
 			"bones": {
-				"bicepLeft": {
+				"armLeft1": {
 					"rotation": {
 						"vector": ["math.cos(query.life_time * 100+90)*3", 0, 0]
 					}
 				},
-				"bicepRight": {
+				"armRight1": {
 					"rotation": {
 						"vector": ["math.cos(query.life_time * 100+90)*3", 0, 0]
 					}
@@ -41626,7 +41626,7 @@
 						}
 					}
 				},
-				"bicepLeft": {
+				"armLeft1": {
 					"rotation": {
 						"0.0": {
 							"vector": [0, 0, 0]
@@ -41669,7 +41669,7 @@
 						"vector": [0, 0, 0]
 					}
 				},
-				"forearmLeft": {
+				"armLeft2": {
 					"rotation": {
 						"0.0": {
 							"vector": [0, 0, 0]
@@ -41712,7 +41712,7 @@
 						"vector": [0, 0, 0]
 					}
 				},
-				"leftMiddleFinger": {
+				"leftArmMiddleFinger": {
 					"rotation": {
 						"0.0": {
 							"vector": [0, 0, 0]
@@ -41749,7 +41749,7 @@
 						"vector": [0, 0, 0]
 					}
 				},
-				"bicepRight": {
+				"armRight1": {
 					"rotation": {
 						"0.0": {
 							"vector": [0, 0, 0]
@@ -41792,7 +41792,7 @@
 						"vector": [0, 0, 0]
 					}
 				},
-				"forearmRight": {
+				"armRight2": {
 					"rotation": {
 						"0.0": {
 							"vector": [0, 0, 0]
@@ -41835,7 +41835,7 @@
 						"vector": [0, 0, 0]
 					}
 				},
-				"rightMiddleFinger": {
+				"rightArmMiddleFinger": {
 					"rotation": {
 						"0.0": {
 							"vector": [0, 0, 0]
@@ -43006,7 +43006,7 @@
 			"loop": true,
 			"animation_length": 3.7083,
 			"bones": {
-				"bicepRight": {
+				"armRight1": {
 					"rotation": {
 						"0.0": {
 							"post": {
@@ -43261,7 +43261,7 @@
 						}
 					}
 				},
-				"forearmRight": {
+				"armRight2": {
 					"rotation": {
 						"0.0": {
 							"post": {
@@ -43516,7 +43516,7 @@
 						}
 					}
 				},
-				"bicepLeft": {
+				"armLeft1": {
 					"rotation": {
 						"0.0": {
 							"post": {
@@ -43741,7 +43741,7 @@
 						}
 					}
 				},
-				"forearmLeft": {
+				"armLeft2": {
 					"rotation": {
 						"0.0": {
 							"post": {
