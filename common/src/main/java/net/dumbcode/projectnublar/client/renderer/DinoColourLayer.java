@@ -27,7 +27,7 @@ import net.minecraft.util.ARGB;
  * {@code submitCustomGeometry}; {@code renderColor()} reads {@code DataTickets.RENDER_COLOR} from the render state on
  * every call. So this layer puts the tint into {@code RENDER_COLOR}, submits, puts white in, submits again, and
  * restores the base colour. The 1.20.1 tint used the colour's red, green and blue with alpha 1, hence
- * {@link ARGB#opaque}. Each layer submits at its own order (its position + 1, after the base pass at order 0), the
+ * {@link ARGB#opaque}. Each layer submits at its own order (its draw rank + 1, after the base pass at order 0), the
  * way vanilla keeps equipment and banner layers in sequence: within one order vanilla batches custom geometry by
  * render type, so layers of different textures would otherwise draw in any sequence. Both passes of one layer share
  * a render type and keep their submit order.
@@ -37,6 +37,7 @@ public class DinoColourLayer extends GeoRenderLayer<Dinosaur, Void, LivingEntity
 
     private final boolean male;
     private final int index;
+    private final int drawRank;
     private final boolean tinted;
     private final RenderType renderType;
 
@@ -46,14 +47,17 @@ public class DinoColourLayer extends GeoRenderLayer<Dinosaur, Void, LivingEntity
      *
      * @param renderer the species renderer that draws this layer
      * @param male     {@code true} for a layer of the male list, {@code false} for the female list
-     * @param index    the layer's position in that list; it also picks the layer's colour and visibility
+     * @param index    the layer's position in that list; it picks the layer's colour and visibility
+     * @param drawRank the layer's rank in {@link DinoLayer#drawOrder}: a higher rank is drawn on top
      * @param layer    the layer; a basic layer of -1 means "never tinted", drawn once in white
      * @param texture  the layer's texture
      */
-    public DinoColourLayer(DinosaurRenderer renderer, boolean male, int index, DinoLayer layer, Identifier texture) {
+    public DinoColourLayer(DinosaurRenderer renderer, boolean male, int index, int drawRank, DinoLayer layer,
+            Identifier texture) {
         super(renderer);
         this.male = male;
         this.index = index;
+        this.drawRank = drawRank;
         this.tinted = layer.getBasicLayer() != -1;
         this.renderType = RenderTypes.entityTranslucent(texture);
     }
@@ -67,7 +71,7 @@ public class DinoColourLayer extends GeoRenderLayer<Dinosaur, Void, LivingEntity
             return;
         }
         int baseColour = renderPassInfo.renderColor();
-        OrderedSubmitNodeCollector collector = renderTasks.order(this.index + 1);
+        OrderedSubmitNodeCollector collector = renderTasks.order(this.drawRank + 1);
         state.addGeckolibData(DataTickets.RENDER_COLOR, ARGB.opaque(renderPassInfo.getGeckolibData(DinosaurRenderer.LAYER_COLOURS)[this.index]));
         this.renderer.submitRenderTasks(renderPassInfo, collector, this.renderType);
         if (this.tinted) {

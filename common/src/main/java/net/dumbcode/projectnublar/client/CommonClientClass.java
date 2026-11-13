@@ -62,8 +62,10 @@ public class CommonClientClass {
                 new DinoLayer("nostrils", -1),
                 new DinoLayer("claws", -1),
 
-                new DinoLayer("feet", 3,dino -> dino.getDinoGender() == 2D),
-                new DinoLayer("yellow", 2,dino -> dino.getDinoGender() == 2D)
+                // Male only. The art stacks them under later layers: the feet under the claws, the yellow under
+                // the back. They keep their place in the list (their colour) and are only drawn lower.
+                new DinoLayer("feet", 3,dino -> dino.getDinoGender() == 2D).below("mouth"),
+                new DinoLayer("yellow", 2,dino -> dino.getDinoGender() == 2D).below("back")
 
         ));
 
@@ -78,7 +80,7 @@ public class CommonClientClass {
                 new DinoLayer("belly", 2),
                 new DinoLayer("pattern", 3),
                 new DinoLayer("red", 3),
-                new DinoLayer("whiteoutline", 3),
+                new DinoLayer("whiteoutline", 3).below("red"),   // the art has the red on top
                 new DinoLayer("mouth", -1),
                 new DinoLayer("nostrils", -1),
                 new DinoLayer("teeth", -1),
@@ -123,7 +125,7 @@ public class CommonClientClass {
 
         LAYER_REGISTRY.put(EntityInit.BRACHIOSAURUS.get(),List.of(
                 new DinoLayer("back",1),
-                new DinoLayer("belly",2),
+                new DinoLayer("belly",2).below("back"),   // the art has the back on top
                 // Male only: the JW male skin's blue on the male crest and neck.
                 new DinoLayer("blue", -1, Dinosaur::isMale),
                 new DinoLayer("eyes", -1),
@@ -140,6 +142,7 @@ public class CommonClientClass {
                 new DinoLayer("belly",2),
                 new DinoLayer("tail-stripes",2),
                 new DinoLayer("claws",-1),
+                new DinoLayer("mouth",-1),
                 new DinoLayer("nostrils",-1),
                 new DinoLayer("eyes",-1),
                 // Eyelids show only while the animal rests: resting is the one sleep-like state synced to the client.
@@ -151,9 +154,10 @@ public class CommonClientClass {
                 new DinoLayer("speckle",1),      // as female body-darkness (proposed)
                 new DinoLayer("green",2),        // as female peach (proposed)
                 new DinoLayer("belly",2),        // as female belly
-                new DinoLayer("tail",1),         // as female tail-darkness (proposed)
-                new DinoLayer("pattern",2),      // as female brown (proposed)
-                new DinoLayer("body-stripes",3), // as female body-stripes
+                // The art has the belly on top of the next three; they keep their place here for their colour.
+                new DinoLayer("tail",1).below("belly"),         // as female tail-darkness (proposed)
+                new DinoLayer("pattern",2).below("belly"),      // as female brown (proposed)
+                new DinoLayer("body-stripes",3).below("belly"), // as female body-stripes
                 new DinoLayer("mouth",-1),
                 new DinoLayer("claws",-1),
                 new DinoLayer("nostrils",-1),

@@ -8,19 +8,21 @@ import net.minecraft.world.level.Level;
 
 public class DilophosaurusEntity extends CarnivoreDinosaur {
     /**
-     * Adult scale at {@code SIZE} gene 0: about 3 blocks tall, the lead's interim adult height (D11, {@code docs/plan/feature-specs.md}, "Size").
+     * Adult scale at {@code SIZE} gene 0: about 3 blocks to the top of the crests with the frill folded, the lead's interim
+     * adult height (D11, {@code docs/plan/feature-specs.md}, "Size"). The rest-pose model is 57.4 units tall.
      * It was 0.5 on 1.20.1.
      */
-    private static final float ADULT_SCALE_OFFSET = 0.7F;
+    private static final float ADULT_SCALE_OFFSET = 0.84F;
     /**
      * Corrected adult box width, in blocks: the movement box of {@code docs/dinosaur-hitboxes-and-movement-design.md},
-     * "Part counts and boxes", line 194: 0.56 at render scale 0.5, brought to scale 0.7. Used only with the scale
+     * "Part counts and boxes", line 194: 0.56 at render scale 0.5, brought to scale 0.84. Used only with the scale
      * attribute on.
      */
-    private static final float BOX_WIDTH = 0.78F;
+    private static final float BOX_WIDTH = 0.94F;
     /**
-     * Corrected adult box height, in blocks: the posed model height 4.3 times render scale 0.7, with the frill as
-     * the highest point, {@code docs/codebase-analysis.md}, "Model heights", line 2784. Used only with the scale attribute on.
+     * Corrected adult box height, in blocks: the rest-pose model height 57.4 units (3.59 blocks) times render scale 0.84,
+     * frill folded. It replaces the open-frill height of
+     * {@code docs/codebase-analysis.md}, "Model heights", line 2784. Used only with the scale attribute on.
      */
     private static final float BOX_HEIGHT = 3.01F;
     /**

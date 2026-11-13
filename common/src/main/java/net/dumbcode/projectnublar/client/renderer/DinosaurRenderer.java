@@ -115,10 +115,12 @@ public class DinosaurRenderer extends GeoEntityRenderer<Dinosaur, LivingEntityRe
             return;
         }
         List<DinoLayer> layers = animal.getLayers();
+        int[] drawRanks = DinoLayer.drawOrder(layers);
         for (int i = 0; i < layers.size(); i++) {
             DinoLayer layer = layers.get(i);
             if (layer.getRenderRequirement().apply(animal)) {
-                withRenderLayer(new DinoColourLayer(this, male, i, layer, layer.getTextureLocation(animal)));
+                withRenderLayer(new DinoColourLayer(this, male, i, drawRanks[i], layer,
+                        layer.getTextureLocation(animal)));
             }
         }
         if (male) {
