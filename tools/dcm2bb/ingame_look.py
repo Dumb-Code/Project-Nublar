@@ -1,5 +1,5 @@
 """Draw each in-game model the way the game does: base.png plus the species' registered layers
-(CommonClientClass), per sex, on the working-tree geo, at rest, as head close-ups and in clips.
+(CommonClientClass, listed here in draw order: a layer set below another stands under it), per sex, on the working-tree geo, at rest, as head close-ups and in clips.
 
 Usage: ingame_look.py <repo-root> <out-dir> <mode> [species ...]
   mode: rest | clips
@@ -27,20 +27,20 @@ W, H = 520, 390
 HORNS = ["horn1"]
 LAYERS = {
     ("tyrannosaurus_rex", "female"): ["base", "belly", "back", "pattern", "mouth", "teeth", "eyes", "nostrils", "claws"],
-    ("tyrannosaurus_rex", "male"): ["base", "belly", "back", "pattern", "mouth", "teeth", "eyes", "nostrils", "claws",
-                                    "feet", "yellow"],
+    ("tyrannosaurus_rex", "male"): ["base", "belly", "yellow", "back", "pattern", "feet", "mouth", "teeth", "eyes",
+                                    "nostrils", "claws"],
     ("velociraptor", "female"): ["base"],
     ("velociraptor", "male"): ["base"],
-    ("dilophosaurus", "*"): ["back", "belly", "pattern", "red", "whiteoutline", "mouth", "nostrils", "teeth", "eyes",
+    ("dilophosaurus", "*"): ["back", "belly", "pattern", "whiteoutline", "red", "mouth", "nostrils", "teeth", "eyes",
                              "frills", "frillsgreen", "frillswhite", "frillsred", "claws"],
     ("triceratops", "female"): ["belly", "osteoderms", "toes", "mouth", "nostrils", "eyes"] + HORNS,
     ("triceratops", "male"): ["midtone", "darkercolor", "pattern", "head", "brown", "spots", "toes", "mouth",
                               "eyesockets", "nostrils", "eyes"] + HORNS,
-    ("brachiosaurus", "female"): ["back", "belly", "eyes", "mouth", "nostrils", "toes"],
-    ("brachiosaurus", "male"): ["back", "belly", "blue", "eyes", "mouth", "nostrils", "toes"],
+    ("brachiosaurus", "female"): ["belly", "back", "eyes", "mouth", "nostrils", "toes"],
+    ("brachiosaurus", "male"): ["belly", "back", "blue", "eyes", "mouth", "nostrils", "toes"],
     ("gallimimus", "female"): ["body-darkness", "peach", "tail-darkness", "brown", "body-stripes", "belly",
-                               "tail-stripes", "claws", "nostrils", "eyes"],
-    ("gallimimus", "male"): ["speckle", "green", "belly", "tail", "pattern", "body-stripes", "mouth", "claws",
+                               "tail-stripes", "claws", "mouth", "nostrils", "eyes"],
+    ("gallimimus", "male"): ["speckle", "green", "tail", "pattern", "body-stripes", "belly", "mouth", "claws",
                              "nostrils", "eyes"],
 }
 HIDE = {("brachiosaurus", "male"): "crestFemale1", ("brachiosaurus", "female"): "crestMale1"}
@@ -92,7 +92,7 @@ def head_only(m):
         for n in nodes:
             if isinstance(n, str):
                 continue
-            if re.match(r"^(head|skull)", names.get(n["uuid"], ""), re.I) and (best is None or depth < best[0]):
+            if re.match(os.environ.get("LOOK_PART") or r"^(head|skull)", names.get(n["uuid"], ""), re.I) and (best is None or depth < best[0]):
                 best = (depth, n, path + [n])
             find(n["children"], depth + 1, path + [n])
     find(m["outliner"], 0, [])

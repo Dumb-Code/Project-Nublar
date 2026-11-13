@@ -3,7 +3,7 @@
 Top-down, for each game bone the artist's model also has: the bone's pivot and bind rotation are set so that the bone
 has the artist's world placement under the game's own parent, and the bone takes the artist's cubes (moved by the
 pivot difference, so they land on the artist's world position). Bones only the game has are left alone and move with
-their parent. Bones only the artist has are added under the matching parent. Named bones (--keep) are not touched.
+their parent. Bones only the artist has are not added, and a game bone keeps the cubes it has beyond the artist's. Named bones (--keep) are not touched.
 
 Usage: mod_match.py <game.geo.json> <artist.geo.json> [--rename artist=game ...] [--keep regex] [--write]
 """
@@ -56,11 +56,11 @@ def wa(n):
 
 # artist-only bones go in after their parent
 added = []
-for b in ab:
-    if b["name"] not in gi and b.get("parent") in gi:
-        at = gb.index(gi[b["parent"]]) + 1
-        new = {"name": b["name"], "parent": b["parent"], "pivot": [0, 0, 0]}
-        gb.insert(at, new); gi[b["name"]] = new; added.append(b["name"])
+# Bones only the artist has are not added: the game keeps such a cube on another bone (the Brachiosaurus under-tail
+# is a second cube of tail1, not a child of belly2), and a bone added under the artist's parent moves with the wrong
+# part of the body in the clips. They are listed so that a person can decide.
+skipped = [b["name"] for b in ab if b["name"] not in gi]
+added = []
 # the game's own pivot points, in world space, before any change: clips turn the bones about these, so they stay
 Wold, Xold = {}, {}
 
@@ -77,7 +77,7 @@ for b in gb:
         p = b.get("pivot", [0, 0, 0])
         Xold[b["name"]] = (wold(b["parent"]) if b.get("parent") else np.eye(4)) @ np.array([-p[0], p[1], p[2], 1.0])
 Wg = {}
-moved, kept, pivots_kept = [], [], []
+moved, kept, pivots_kept, bare = [], [], [], []
 
 
 def fix(b):
@@ -119,12 +119,21 @@ def fix(b):
             if "pivot" in c:
                 c["pivot"] = [round(c["pivot"][k] + d[k], 5) + 0.0 for k in range(3)]
             cubes.append(c)
+        # cubes the game keeps on this bone beyond the artist's stay: each artist cube stands for the game cube
+        # nearest in size, and the game cubes left over are not the artist's to replace
+        left = list(range(len(was)))
+        for c in cubes:
+            if left:
+                left.remove(min(left, key=lambda k: sum(abs(was[k]["size"][j] - c["size"][j]) for j in range(3))))
+        cubes += [was[k] for k in left]
         b.pop("cubes", None)
         holder = [x for x in gb if x.get("parent") == n and x["name"] not in ai and x.get("cubes") and not x.get("rotation")]
         if cubes and not was and len(holder) == 1:
             holder[0]["cubes"] = cubes          # the game keeps this bone's cube on a child bone that clips key
-        elif cubes:
+        elif cubes and (was or not a.get("cubes")):
             b["cubes"] = cubes
+        elif cubes:
+            bare.append(n)                      # the game draws this bone's cube on another bone: leave it there
         order = {k: b[k] for k in ("name", "parent", "pivot", "rotation", "cubes") if k in b}
         rest = {k: v for k, v in b.items() if k not in order}
         b.clear(); b.update(order); b.update(rest)
@@ -139,7 +148,8 @@ def fix(b):
 
 for b in [x for x in gb if not x.get("parent")]:
     fix(b)
+print("bones the game keeps without a cube:", bare)
 print("game pivots kept where the artist's differ:", " ".join(pivots_kept))
-print(f"{len(moved)} bones changed, {len(added)} added {added}, {len(kept)} left alone: {kept}")
+print(f"{len(moved)} bones changed, {len(skipped)} artist-only bones not added {skipped}, {len(kept)} left alone: {kept}")
 if "--write" in args:
     open(game_path, "w", encoding="utf-8", newline="").write(geofmt.dumps(game))
