@@ -31,7 +31,7 @@ This page is the master backlog for the Beta and Release 1 of Project Nublar. It
   - `REPO` is the asset repository `Dumb-Code/ProjectNublar-Assets`.
   - Line numbers refer to commit 4244f62 and go stale after M0.
 - **Section numbers** ("section 11.16", "Section: 2.6") refer to `docs/codebase-analysis.md`.
-- **Survey ids** (entity survey S1 to S27, tech survey T1 to T15, JC3 J1 to J23) name clean-room specifications in the survey reports.
+- **Survey ids** (entity survey S1 to S27, tech survey T1 to T15, JC3 J1 to J23, AzureLib review AZ1 to AZ10) name clean-room specifications in the survey reports.
 - **"(proposal, lead decides)"** marks a value that the lead has not confirmed. It applies until the lead answers.
 - **Architecture:** one MultiLoader project with the modules `common`, `fabric` and `neoforge`. Game logic lives in `common`. Each loader module holds only registration glue, platform services, datagen and the client entrypoint. Balm carries energy and fluid storage. Species data, fossil sets, diets and gene effects are datapack JSON. Global balance numbers are one TOML file.
 - **Tech stack:** Java 25, Minecraft 26.2, Fabric Loader and Fabric API, NeoForge, GeckoLib 5, SmartBrainLib 2, Forge Config API Port, Balm (energy and fluid storage only), JUnit 5, the vanilla GameTest framework. Networking uses the vanilla custom payloads: packets and codecs live in `common`, and each loader module registers them in one class of its own (D263). Architectury for registration only (lead, 2026-10-25). No Architectury for networking or config, and no Common Networking. Gradle is the version that ModDevGradle and fabric-loom support for Java 25 at port time (Gradle 9 or later).
@@ -189,7 +189,7 @@ Do not start a work package until each dependency is merged into the integration
 This file gives scope, not steps. Before any code:
 
 - [ ] Read the work package and the section 11 sub-sections that it cites.
-- [ ] Read the survey specifications that it cites (entity survey S1 to S27, tech survey T1 to T15, JC3 J1 to J23).
+- [ ] Read the survey specifications that it cites (entity survey S1 to S27, tech survey T1 to T15, JC3 J1 to J23, AzureLib review AZ1 to AZ10).
   - They are clean-room specifications. Build each from its description only.
 - [ ] For a machine: watch the video at the cited times. Read the animation section of its work package and of its feature spec. They hold the original 1.12.2 and 1.16 motion numbers.
 - [ ] Read the Art list rows named in the Art line.
@@ -3477,6 +3477,12 @@ F2.1 gives each species its own stats, smooth growth, a carcass at death, baby b
   - Leave out the CHAOS tail part and `ServerLimb` (D334). The server bend above covers tails, and nothing reads `ServerLimb`.
   - The foot targets come from the ground sampler. It reads block shapes directly and creates no entity.
   - Each joint stops at its bend budget (F2.3). A foot target out of reach moves the target, never stretches the leg.
+  - The foot target keeps the clip's lift (D403, AzureLib review AZ6). Target height = the sampled ground under the foot + the height at which the clip holds that foot above the model's ground plane. A foot that the clip lifts mid-step stays lifted. The gait weight above still applies.
+  - Solver guards, as unit tests on the kept solver (D403, AZ5):
+    - A target at or past full reach gives finite angles, and the knee keeps its side on the next tick.
+    - A leg that is straight in the rest pose bends to the species' knee side, from the bone map.
+    - The knee stays in the plane that the clip put it in.
+    - The joint limits apply after each solver step, not only at the end.
   - When the animal stops, the legs freeze and the IK pins the feet where they stand.
   - The 2024 board's open IK items (angle constraints, model and entity integration, movement and idle cycles) are context.
 - [ ] A missed part add or remove heals on the next query.
@@ -3569,6 +3575,8 @@ See Art list → each species, and Fossils and amber. Not done until those rows 
 - The head part follows a calling Gallimimus's raised head.
 - A Brachiosaurus tail bends the same way on server and client.
 - A T. rex on a slab path keeps both feet on the slabs.
+- A Gallimimus that walks up a slab step lifts each foot over the step as high as its walk clip lifts it on flat ground (a clip in the PR) (D403).
+- Unit test: a leg IK target past full reach, and a leg that is straight at rest, give finite joint angles with the knee on the species' knee side (D403).
 - 20 Gallimimus within 32 blocks, all with full leg IK, keep the F2.3 frame gate: within 10 % of the F2.2 baseline frame time on the reference setup.
 - Parts appear for a `NoAI` animal on the first tick.
 - Melee and arrows on every part resolve on a dedicated server.
@@ -3599,7 +3607,7 @@ See Art list → each species, and Fossils and amber. Not done until those rows 
 - Every attack deals its damage 20 ticks after it starts, for all species, whatever the clip length (0.83 to 3.71 s) (`Dinosaur.java`, `AnimatableMeleeAttack(20)`).
 - Hits use one axis-aligned box per animal. Tails and neck tips cannot be hit.
 
-**Changed since last review:** Leg IK keeps each joint within its bend budget, never stretches a leg, and pins the feet when the animal stops. Hit ticks come from a marker in each attack clip, and reach counts from the striking bone (D335). The bake also holds clip lengths and event ticks, and the shipped clips leave out bones that never move (D336). Leg IK keeps the CHAOS solver and planner with a new GeckoLib 5 bone writer, and leaves out the CHAOS tail (D334). A carcass lasts one in-game day. Only three species drop a special item, and only the T. rex drops teeth. Hatchlings use their own sounds. Mates share a carcass by feeding spots. Animals wade, then swim, by water depth against body height, with no vanilla bobbing. They wade up to 0.55 of their height, long necks deeper, cross shallow rivers a little slower and climb out at ledges (D382 to D384). The body leans to fit uneven ground on the server, and the torso, neck and tail parts follow it (D380). A block-top ground sampler replaces the IK raycasts (D381). Leg IK is full within 32 blocks, every other tick to 48, and a cheap ground shift to 64 (D393). Part C holds the body pose. A leg IK skip for animals out of view and a part-count gap wait for the lead (D326, D328).
+**Changed since last review:** The leg IK foot target keeps the clip's lift, and the kept solver gets reach and straight-leg guards as unit tests (D403). Leg IK keeps each joint within its bend budget, never stretches a leg, and pins the feet when the animal stops. Hit ticks come from a marker in each attack clip, and reach counts from the striking bone (D335). The bake also holds clip lengths and event ticks, and the shipped clips leave out bones that never move (D336). Leg IK keeps the CHAOS solver and planner with a new GeckoLib 5 bone writer, and leaves out the CHAOS tail (D334). A carcass lasts one in-game day. Only three species drop a special item, and only the T. rex drops teeth. Hatchlings use their own sounds. Mates share a carcass by feeding spots. Animals wade, then swim, by water depth against body height, with no vanilla bobbing. They wade up to 0.55 of their height, long necks deeper, cross shallow rivers a little slower and climb out at ledges (D382 to D384). The body leans to fit uneven ground on the server, and the torso, neck and tail parts follow it (D380). A block-top ground sampler replaces the IK raycasts (D381). Leg IK is full within 32 blocks, every other tick to 48, and a cheap ground shift to 64 (D393). Part C holds the body pose. A leg IK skip for animals out of view and a part-count gap wait for the lead (D326, D328).
 
 ### F2.2: Appearance
 
@@ -3950,7 +3958,7 @@ The models cause most seams: the joints of a bent neck or leg are already open a
 
 #### Scope: procedural layers (D333)
 
-The code layers add to the clip pose each frame, in this order. No layer writes an absolute angle.
+The code layers add to the clip pose each frame, in this order. No layer writes an absolute angle. One layer runner applies the client layers (D403).
 
 | Order | Layer | Side | What it does |
 | --- | --- | --- | --- |
@@ -3965,9 +3973,18 @@ The code layers add to the clip pose each frame, in this order. No layer writes 
 | 9 | Neck reach | client | Brings the snout to the water or food surface. |
 | 10 | Tail lag | client | Swings the tail behind turns. |
 
+- [ ] Layer runner (D403, AzureLib review AZ1, AZ8):
+  - One runner applies the client code layers in the table order. Each frame it starts from the clip pose, adds each layer's change into a scratch pose, and writes the bones once through the bone updater.
+  - Nothing that a layer added carries into the next frame. Unit test: a layer that adds a fixed angle to a bone that no clip keys gives the same pose after 1 frame and after 200.
+  - Each layer has a bone list, a weight from 0 to 1 that scales all that it adds, and a fade. The roar rule and the control bones change the weight through the fade, so no layer pops on or off. Fade length: value open, set in the task plan.
+  - A layer at weight 0 reads and writes no bone.
+  - Every layer that keeps state steps it on the client tick, as the tail lag does. A draw evaluates the state forward by the partial tick and writes nothing back. So an animal that another mod's preview draws twice in one frame moves the same as one drawn once.
+  - Restart: the D397 rule now covers every layer that keeps state (head look, footfall bounce, the breathing damper, tail lag). A layer starts at rest on the first tick an animal is in view, after a move of more than 16 blocks in one tick, after its weight was 0, and after the animal's layers did not run for more than 10 ticks. The 10 ticks is AzureLib's value, a start value.
 - [ ] Head overlay (D341):
   - It plays clips that key only head, neck, jaw or tail bones over walk and idle.
   - A Nublar bone updater samples the overlay clip with its own clip clock and adds the clip's angles to the pose below. It fades in and out.
+  - Rotation and position add the clip's offset from the rest pose, times the layer weight. Scale multiplies the pose below by 1 + (clip scale ÷ rest scale − 1) × weight. A bone's rest rotation is never added twice and never dropped (D403, AZ2).
+  - The sampler keeps each bone's last keyframe index and continues from it. A loop or a jump falls back to a binary search over the keyframe times. It makes no object per frame (D403, AZ9, F2.2).
   - It does not use GeckoLib's additive mode. In GeckoLib 5.5.5 and 5.5.6 that mode drops each keyed bone's model rotation, and 14 to 26 head, neck, jaw and tail bones per species have one.
   - Today only the Triceratops `speak`, `lookleft`, `lookright`, `headshake`, `sniffair`, `attack1` and `attack2` key none of the walk bones. Other look and speak clips qualify after the static-bone cleanup.
 - [ ] Head look:
@@ -3985,6 +4002,12 @@ The code layers add to the clip pose each frame, in this order. No layer writes 
   - Head first, body next, tail last. A light tail overshoots a little. A heavy tail settles with no overshoot.
   - Visual only: hit parts follow the server bend, not the lag.
   - Reset (D397): the spring starts at rest on the first tick an animal is in view, and after a move of more than 16 blocks in one tick (a teleport or a dimension change). The tail does not whip. A unit test covers both cases.
+  - Chain lag (D403, AzureLib review AZ3): each tail bone's spring follows the lagged bone before it, not the body alone. So the lag adds up toward the tip, and the tail bends instead of swinging as one stiff piece.
+  - Keep-out (D403, AZ4): the lagged tail never enters the animal's own legs or the ground under its feet.
+    - The bake fits one capsule to each leg bone's cubes. The ground is the foot plane after the body pose. No new art.
+    - The whole of each tail segment is tested, not only its joints.
+    - Where a lagged segment enters a shape, the lag of that bone and of the bones after it scales back toward the clip pose until the segment is clear. The clip pose itself never changes.
+    - Tail thickness per species: value open, set in the task plan.
   - Spring values per species: value open, set in the task plan by eye.
 - [ ] Breathing sway:
   - Amounts per species. Today every species uses the Gallimimus amounts.
@@ -4000,6 +4023,7 @@ The code layers add to the clip pose each frame, in this order. No layer writes 
 - [ ] Control bones (D348):
   - Each species model gets one empty control bone with no cubes. A clip keys it from 0 to 1 to scale a code layer at exact times, for example head look off during a roar.
   - A clip with no control keys uses the rules above, for example the roar suppression.
+  - When a clip that keys the control bone ends or is interrupted, the layer weight returns to its rule value through the layer fade, with no jump (D403, AzureLib review AZ7).
   - The bone is a model change. It goes in with the species' joint fix, and the lead approves it.
 - [ ] One bone map per species names the head, neck, tail, leg, foot, jaw or snout, and control bones. Names differ: `head1` on the Brachiosaurus, `legUpperRight` and `thighLeft` on the Velociraptor.
 - [ ] Distance: the head overlay, footfall bounce, head look, neck reach and tail lag run within 32 blocks. Past 32 the pose holds (F2.2). Leg IK keeps its F2.1 distances.
@@ -4197,6 +4221,11 @@ See Art list → each species (every clip and sound row), and Dinosaur effects. 
 - The clip-file unit test passes for all six species. No new or changed clip, and no code layer, bends a joint past its bend budget.
 - Each species with its joint fix shows no seam beyond the rest pose in its walk, run, drink and eat clips (before and after renders in the PR).
 - A turning T. rex leads with its head and its tail trails, then settles (a clip in the PR, both loaders).
+- A T. rex that turns hard on the spot swings its tail, the tip trails more than the base, and the tail does not pass through its legs or into the ground (a clip in the PR, both loaders) (D403).
+- Unit test: a code layer that adds a fixed angle to a bone that no clip keys gives the same pose after 1 frame and after 200. Evaluating the layers twice in one tick at the same partial tick gives the same pose both times (D403).
+- Unit test: an overlay clip on a bone with a rest rotation leaves that rotation in place at layer weights 0, 0.5 and 1 (D403).
+- A roar that is cut short lets head look ease back in, with no jump (a clip in the PR) (D403).
+- The dinosaur in the Sequencer screen holds its clip pose, with every code layer at rest (D403).
 - A Gallimimus turns its head and neck toward a still player within 8 blocks, and no neck joint opens.
 - A walking Triceratops plays `headshake` on the overlay while its legs keep walking, and its head and frill keep their normal tilt.
 - The clip check passes for all six species. A walking Gallimimus's planted feet do not slide forward when they land.
@@ -4246,7 +4275,7 @@ See Art list → each species (every clip and sound row), and Dinosaur effects. 
 - Clip files total 12.4 MB; the T. rex file is 5.7 MB.
 - Fabric builds against GeckoLib 5.5.5 and NeoForge against 5.5.6. `RestartableAnimationController` uses 5.5.6 internals.
 
-**Changed since last review:** A body that hits the ground raises dust: a death fall, a Triceratops ram and a Brachiosaurus stomp (D404). The footsteps of one species share a pool per client (D405). Dust strength follows the ground, footprints show on soft ground only, snow and rain need open sky, and each footstep key names its foot (D406 to D409). The two dust ground factors are not set yet (D410). T. rex breathing and low growls follow its action: code starts walk, run, idle and eat sounds at set rates (D394). Every species raises a little faint dust at a walk, on every ground, a lot less than at any faster movement (D374). Overlays are patchy and blend with the skin, and stay in small zones (D373). Snow and blood overlays build up and fade, draw in 4 steps from fill-order masks, and wash off in water (D366, D367, D369). Wet skin below the waterline and on the back in rain (D368). Sand, dirt and mud coats are in Beta, each its own layer, from walking and resting (D370 to D372). A body pose layer runs between the footfall bounce and the leg IK (D380). Short sounds never stream, every dinosaur sound varies in pitch and volume, and vocals get subtitles (D349 to D352). Dust takes vanilla's block particle colour, and the run fallback spawns by a chance from speed (D357, D358). Long-lived particles update less often far away (D359). Each animal breathes on its own phase and rate (D360). Head overlay clips play through a Nublar bone updater, not GeckoLib additive mode (D341). Breathing sway runs before the leg IK (D342). Effects start at the bone nearest the tip, with the listener on only when an effect can start (D343). A clip check in the unit tests (D344). Gallimimus walk and sentry fixes go to an agent (D345). No turning on the spot (D346). A light footfall bounce and control bones (D347, D348). Exact springs for tail lag and head look. The artist's GeckoLib plugin is 4.2.5. Agents make a new clip case by case, when the lead gives them the row (D331). A quality bar and clip checks for every clip, and a joint fix per species model first (D332). Head look, neck reach, tail lag and an additive overlay controller for head clips are in Beta (D333). Panting breath, effects from bone positions, and a dust trail of agent-made dust sprites tinted by the ground (D338 to D340). Turn lean waits until after Beta (D337). Every species gets own clips and sounds, placeholders count as missing. Per-species warning sounds. Only T. rex and Velociraptor have nesting clips. Limp in Beta below 30 % health. Get-up idle fallback is development only. Gallimimus gets blood effects. Screen shake for three large species. Per-species walk and run speeds are open. Triceratops rest idle holds the last pose of its lie-down. Two art-tool proposals wait for the lead (D320, D321). The screen shake rule is set (D324, D395, D396).
+**Changed since last review:** One layer runner applies the code layers: each has a weight and a fade, none drifts or pops, and a draw never steps a layer. The tail lag grows toward the tip and stays out of the legs and the ground. The head overlay keeps each bone's rest rotation and continues from its last keyframe. A layer weight eases back when a clip ends early (D403). A body that hits the ground raises dust: a death fall, a Triceratops ram and a Brachiosaurus stomp (D404). The footsteps of one species share a pool per client (D405). Dust strength follows the ground, footprints show on soft ground only, snow and rain need open sky, and each footstep key names its foot (D406 to D409). The two dust ground factors are not set yet (D410). T. rex breathing and low growls follow its action: code starts walk, run, idle and eat sounds at set rates (D394). Every species raises a little faint dust at a walk, on every ground, a lot less than at any faster movement (D374). Overlays are patchy and blend with the skin, and stay in small zones (D373). Snow and blood overlays build up and fade, draw in 4 steps from fill-order masks, and wash off in water (D366, D367, D369). Wet skin below the waterline and on the back in rain (D368). Sand, dirt and mud coats are in Beta, each its own layer, from walking and resting (D370 to D372). A body pose layer runs between the footfall bounce and the leg IK (D380). Short sounds never stream, every dinosaur sound varies in pitch and volume, and vocals get subtitles (D349 to D352). Dust takes vanilla's block particle colour, and the run fallback spawns by a chance from speed (D357, D358). Long-lived particles update less often far away (D359). Each animal breathes on its own phase and rate (D360). Head overlay clips play through a Nublar bone updater, not GeckoLib additive mode (D341). Breathing sway runs before the leg IK (D342). Effects start at the bone nearest the tip, with the listener on only when an effect can start (D343). A clip check in the unit tests (D344). Gallimimus walk and sentry fixes go to an agent (D345). No turning on the spot (D346). A light footfall bounce and control bones (D347, D348). Exact springs for tail lag and head look. The artist's GeckoLib plugin is 4.2.5. Agents make a new clip case by case, when the lead gives them the row (D331). A quality bar and clip checks for every clip, and a joint fix per species model first (D332). Head look, neck reach, tail lag and an additive overlay controller for head clips are in Beta (D333). Panting breath, effects from bone positions, and a dust trail of agent-made dust sprites tinted by the ground (D338 to D340). Turn lean waits until after Beta (D337). Every species gets own clips and sounds, placeholders count as missing. Per-species warning sounds. Only T. rex and Velociraptor have nesting clips. Limp in Beta below 30 % health. Get-up idle fallback is development only. Gallimimus gets blood effects. Screen shake for three large species. Per-species walk and run speeds are open. Triceratops rest idle holds the last pose of its lie-down. Two art-tool proposals wait for the lead (D320, D321). The screen shake rule is set (D324, D395, D396).
 ### F2.4: Needs
 
 F2.4 gives each dinosaur hunger, thirst, stamina, sleep and stress, makes each need have results, and keeps a 100-dinosaur park at 20 ticks per second.
@@ -6488,6 +6517,7 @@ BH.1 removes dead code and makes a large park run at full speed on a server.
   - the client frame time to draw 100 animals.
 - Profile the four lab machines at work, on the server and on the client. In the lead's playtest of 2026-10-24 the 1.20.1 machines caused visible lag. The whole park meets the machine gate of F1.10: less than 2 ms more server tick with the four machines at work, and at least 90 % of the client frame rate with the lab in view.
 - Profile the JDK vertex-allocation claim once on 26.2 with 100 creatures. Report it upstream if true. The mod has no `Unsafe` vertex code.
+- Read the cost of the glow pass from the client profile. Only if it is a large part of the frame time: draw just the quads whose UVs cover a lit pixel of the glow mask, and skip the pass for a mask with no lit pixel (D403, AzureLib review AZ10).
 
 #### Slow-work intervals
 
@@ -7542,6 +7572,21 @@ These rows come from the Recrafted research (`reports/Recrafted visual and sound
 | D397 | F2.3 | The tail-lag spring has no rule for a teleport or the first tick in view, so a tail can whip across the body. Should the spring start at rest then, with a unit test? | Answered 2026-11-11 (lead): "Accept all five". Accepted as drafted | Answered |
 | D398 | F2.3 | Brachiosaurus dust puffs reach 2.2 blocks and can cover the screen of a player at its feet. Should a puff fade near the camera: full at 3 blocks, none at 1 block, as start values? | Answered 2026-11-11 (lead): "Accept all five". Accepted as drafted | Answered |
 | D399 | F2.3, Art list | A roar shows only spit and screen shake. Should the T. rex, Triceratops and Brachiosaurus roars also send faint air rings from the mouth? It needs 3 agent-made sprites (D330) and one particle type | Answered 2026-11-11 (lead): "Accept all five". Accepted as drafted | Answered |
+
+### D403 and later: AzureLib reference review of 2026-11-27
+
+This row comes from the AzureLib reference review (`reports/AzureLib reference review.md`). D400 to D402 belong to the tool review of 2026-11-21, whose patch is not on this branch yet.
+
+| Id | Work package | Question | Default if unanswered | Status |
+| --- | --- | --- | --- | --- |
+| D403 | F2.1, F2.3, BH.1 | AzureLib added bone hitboxes, pose layers, IK, spring chains with colliders and blend spaces between 2026-10-23 and 2026-11-26. Does Nublar move to it, and which of its techniques go into the plan? | Answered 2026-11-27 (lead): "I'm not proposing we move from geckolib, I just want to take what we can or use azurelib as a reference point to write the code for our own needs/plans", then "Just pull everything that matters and incorporate all of it into the development plan". Nublar stays on GeckoLib 5. Taken, as specifications AZ1 to AZ10: one layer runner with a weight, a fade and a restart rule per code layer; the head overlay offset rule and keyframe cursor; tail lag that grows toward the tip; a tail keep-out for the animal's own legs and the ground; a weight return for control bones; a foot target that keeps the clip's lift; guard tests for the kept leg solver; a glow-pass check in BH.1. Left out: the hitbox sync, which takes box positions from clients, blend spaces, weighted idle pools, neck reach to a target bone, sockets and meshes. The report gives each reason | Answered |
+
+### D404 to D410: Prehistoric Kingdom diary review of 2026-11-21
+
+These rows come from a review of the Prehistoric Kingdom dev diary of October 2026 (https://www.prehistorickingdom.com/news/diary52). They were drafted as D400 to D406 and renumbered on 2026-11-27, because D400 to D402 belong to the tool review and D403 to the AzureLib review.
+
+| Id | Work package | Question | Default if unanswered | Status |
+| --- | --- | --- | --- | --- |
 | D404 | F2.3 | A dying animal falls with no dust, and a ram or a stomp lands with none. Prehistoric Kingdom raises dust when an animal rolls over or is hit by an Apatosaurus (dev diary, October 2026). Should a body that hits the ground raise a burst of the D340 dust? | Answered 2026-11-21 (lead): "add the body impact vfx and herd footsteps". In Beta: the death fall of every species, the Triceratops ram hit and the Brachiosaurus stomp. It reuses the dust sprites, so it needs no new art. The lead was shown death, tranquilised falls and the ram. The tranquilised fall waits for the `tranqed` clip (F4.3). The Brachiosaurus stomp is an addition of this draft, and the lead can drop it. The start values in F2.3 reuse each species' run dust and are a proposal for playtest | Answered |
 | D405 | F2.3 | Every footfall starts its own sound. 12 running Gallimimus land about 30 steps per second (12 × 2 feet ÷ the 0.79 s `run` clip). Prehistoric Kingdom ties its waterfall sound to the number of particles nearby (dev diary, October 2026). Should the footsteps of one species share a pool per client, with a level that follows the number of feet? | Answered 2026-11-21 (lead): "add the body impact vfx and herd footsteps". In Beta. The nearest animals of a species play every step. Every other step adds to a herd level that makes those steps louder. No new sound files. 4 voiced animals per species and the loudness amounts are start values, a proposal for playtest | Answered |
 | D406 | F2.3 | Dust takes the ground's colour (D357) but has the same strength on every ground. Prehistoric Kingdom's dev diary of October 2026 says sand and snow raise the largest plumes and dirt less. It gives no amounts. Should the puff count follow the ground: more on loose ground (sand, gravel, snow), less on hard ground (stone, planks), never none (D374)? | Answered 2026-11-21 (lead): "yes", to all four of D406 to D409. The puff count follows the ground: more on loose ground, less on hard ground, never none. Two block tags name the ground. D410 holds the two factors, which are not set | Answered |
@@ -7660,4 +7705,5 @@ These rows come from the Recrafted research (`reports/Recrafted visual and sound
 - **2026-11-06 (action sounds):** D394. F2.3: T. rex breathing and low growls follow its action. Six new Art list rows; attack breath stays Missing. Code starts these sounds at set rates, so a looping clip does not repeat them on every cycle.
 - **2026-11-06 (sound tool paused):** F2.3: the rest of the sound tool waits until this package starts (lead).
 - **2026-11-11 (effects mod review):** D395 to D399. F2.3: screen shake falls off with distance and follows the vanilla Distortion Effects setting, the tail spring starts at rest after a teleport, dust fades near the camera, and large roars get faint breath rings. Art list: one new row, Roar breath rings. D324 answered: one shake level per client.
-- **2026-11-21 (Prehistoric Kingdom diary review):** D404 to D410, from the dev diary of October 2026 (https://www.prehistorickingdom.com/news/diary52). F2.3: a body that hits the ground raises dust (death fall, Triceratops ram, Brachiosaurus stomp), and the footsteps of one species share a pool per client. Both reuse the dust sprites and footstep sounds that the plan already has. The lead also accepted four rules the same day: dust strength follows the ground, footprints show on soft ground only, snow and rain need open sky, and each footstep key names its foot. D410 is open: the two dust ground factors are not set. Art list: no new row; the Dust trail row also serves body impacts.
+- **2026-11-21 (Prehistoric Kingdom diary review):** D404 to D410, from the dev diary of October 2026 (https://www.prehistorickingdom.com/news/diary52). F2.3: a body that hits the ground raises dust (death fall, Triceratops ram, Brachiosaurus stomp), and the footsteps of one species share a pool per client. Both reuse the dust sprites and footstep sounds that the plan already has. The lead also accepted four rules the same day: dust strength follows the ground, footprints show on soft ground only, snow and rain need open sky, and each footstep key names its foot. D410 is open: the two dust ground factors are not set. Art list: no new row; the Dust trail row also serves body impacts. The rows were drafted as D400 to D406 and renumbered on 2026-11-27: D400 to D402 belong to the tool review, and D403 to the AzureLib review.
+- **2026-11-27 (AzureLib reference review):** D403. Nublar stays on GeckoLib 5 and uses AzureLib as a reference. F2.3: one layer runner with a weight, a fade and a restart rule per layer, tail lag that grows toward the tip and stays out of the legs and the ground, an offset rule and a keyframe cursor for the head overlay, and a weight return for control bones. F2.1: the foot target keeps the clip's lift, and the kept leg solver gets guard tests. BH.1: a glow-pass check. No art change. New report: `reports/AzureLib reference review.md`, with specifications AZ1 to AZ10.

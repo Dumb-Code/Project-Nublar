@@ -100,6 +100,7 @@ The lead made these decisions after the research and the review. Each row gives 
 | Server truth | Baked poses from the real animation files are the default. Hand-tuned angles cover only what the bake cannot cover, such as a look-at-target head turn. No server GeckoLib posing. | Round 1: rest pose plus a procedural estimate. Round 2 body: procedural spine only. |
 | Walking | Yaw history, plus a baked walk and run cycle on top | — |
 | Pose state | The server owns a synced pose state: animation id, start tick, loop flag | — |
+| Client-reported poses | Not used. AzureLib 3.2 lets each client report its hit boxes to the server. The server-truth parts of this page stay (D403, `reports/AzureLib reference review.md`). | — |
 | Bake location | The tables live inside the mod jar. Both sides load them directly, not through data packs or resource packs. A Gradle step builds them. | Round 2 Decisions, first version: tables in `data/`. Review H6: tables under `assets/`. |
 | Bake safety | A hash check on join blocks a client whose tables differ. A golden test guards the bake. | — |
 | Part scan cost | Chunk-section part buckets on both loaders, including a mixin into NeoForge's patched `Level.getEntities`. Distance-based part counts with the same objects and IDs. Direct block reads in herd and IK code, never `noCollision`. | — |
@@ -114,6 +115,7 @@ The lead made these decisions after the research and the review. Each row gives 
 | Body pose | The server lifts, pitches and rolls the body to fit the ground under the feet, and syncs 3 bytes when they change. The model and the torso, neck and tail parts follow it. Leg parts do not move (D380). | — |
 | Ground reads | One block-top sampler for the body pose and the leg IK. It reads block shapes directly, with no raycasts (D381). | Ground raycasts |
 | Leg IK | Client only, visual only. Once per tick, lerped per frame, within 32 blocks. Every other tick from 32 to 48 blocks. A leg root shift with no knee solve from 48 to 64 blocks. None past 64 blocks (D393). | CHAOS branch: per-frame solve and server step planner |
+| Leg IK foot target and guards | The foot target keeps the clip's lift. The kept solver gets reach, straight-leg, knee-plane and joint-limit tests (D403). | — |
 | CHAOS branch IK code | Part of the mod. The team uses it together with its sources: Mowzie's Mobs, the spider repo and others that apply. Credit is given as the Mowzie's Mobs terms require. The lead handles licence questions. | — |
 | Head contact | Eating and drinking count only when the head touches the source. The animal must be able to reach it. | — |
 | Neck reach IK | Deferred until eating and drinking animations exist | — |
@@ -691,6 +693,8 @@ Both are in [Movement](#corner-test-and-the-follower-danger-term). They reduce h
 | Detail by distance | Full IK within 32 blocks of the player. Full IK every other tick from 32 to 48 blocks. From 48 to 64 blocks, each leg root moves up or down to its ground with no knee solve. None past 64 blocks (D393). |
 | Weight by gait | Full when standing, less when walking, 30 % when running, so run clips keep their stride (D381). |
 | Ground reads | The ground sampler above. It reads block shapes directly and creates no entity. |
+| Foot target | The sampled ground under the foot plus the height at which the clip holds that foot above the model's ground plane. A foot that the clip lifts stays lifted (D403, AzureLib review AZ6). |
+| Solver guards | Unit tests on the kept solver: a target at or past full reach gives finite angles, a leg that is straight at rest bends to the species' knee side, the knee stays in the clip's plane, and the joint limits apply after each solver step (D403, AZ5). |
 
 The frame rate matters here. With 20 Gallimimus on screen, colour layers already cost about 80 % of the frame, at about 26 fps ([herd-movement handoff](../docs/superpowers/handoffs/2026-10-09-herd-movement-handoff.md)).
 

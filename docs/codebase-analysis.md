@@ -3218,6 +3218,32 @@ The main results:
 | 5 | Screen labels measured with `font.width`, with "…" and a tooltip when too long; test with a 25 % wider font | F1.4 to F1.8 | Machine screens stay readable with any font pack |
 | 6 | Glow reads without bloom; any halo is painted into the texture | F2.2, F1.10, F3.1 | Eyes, screens and live fences look lit with or without a shader pack |
 
+### 12.6 AzureLib reference review (2026-11-27)
+
+Full report: [AzureLib reference review](../reports/AzureLib%20reference%20review.md).
+
+The review read AzureLib's 1.21.1 branch at e15bc8e (v3.2.9) and compared the cited files with its 26.3 branch. AzureLib is an MIT animation library that began as a fork of GeckoLib 4.
+
+The main results:
+
+- Nublar stays on GeckoLib 5. AzureLib is a reference for Nublar's own code (lead, 2026-11-27).
+- From 23 October to 26 November 2026 AzureLib added bone hitboxes, a pose-layer API, IK, look-at, joint limits, spring chains with colliders, sockets and blend spaces. None of it is on AzureLib's 26.2 branch, which stopped at v4.0.6 on 2026-10-16.
+- Six of the nine code layers of F2.3 have a working AzureLib counterpart. The two synced layers have none, because AzureLib poses on the client only.
+- AzureLib's hitboxes take their positions from players' clients. The server-truth parts of F2.1 stay.
+- AzureLib's code does not port as it is. It writes bones directly, and GeckoLib 5 bones are read-only. So the report gives specifications AZ1 to AZ10.
+- The lead took the changes on 2026-11-27 (D403). The plan has the results.
+
+#### Top changes
+
+| Rank | Change | Module | In-game effect |
+| --- | --- | --- | --- |
+| 1 | Tail lag grows toward the tip and stays out of the animal's own legs and the ground | F2.3 | A turning T. rex bends its tail, and the tail never passes through a leg |
+| 2 | One layer runner with a weight, a fade and a restart rule per code layer | F2.3 | No code layer drifts, pops or leaves a bone turned |
+| 3 | Head overlay adds the clip's offset from rest and continues from its last keyframe | F2.3 | A head clip over a walk keeps the head's normal tilt |
+| 4 | The leg IK foot target keeps the clip's lift, and the kept solver gets guard tests | F2.1 part B | A lifted foot clears a step, and no knee flips at full stretch |
+| 5 | A layer weight returns through its fade when a clip ends early | F2.3 | Head look eases back in after a roar that was cut short |
+| 6 | The glow pass draws only lit quads, if the client profile asks for it | BH.1 | Nothing to see; the glow pass costs less |
+
 ---
 
 ## 13. Sources
