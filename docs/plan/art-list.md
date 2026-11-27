@@ -1392,6 +1392,7 @@ Milestone: Dinosaurs.
 - **Bloody claws:** all three carnivores get them (Tyrannosaurus, Velociraptor, Dilophosaurus).
 - **Screen shake:** only the T. rex, Triceratops and Brachiosaurus cause it.
 - **Dust trail:** 4 grey dust frames of 16×16, made by an agent (D330): one lumpy cloud that breaks up into specks, played by age. Code tints each puff 30 % paler than the ground under the foot and gives it its own size and opacity (D340).
+- **Body impacts:** a death fall, a Triceratops ram and a Brachiosaurus stomp raise a burst of the dust trail frames (D404). No new art.
 - **Where effects start:** mouth effects at the jaw or snout, splashes and ripples where a body part crosses the water (D339). The sprites stay the same.
 - **Today in the code:** the mod has no custom particle type.
 
@@ -1440,7 +1441,7 @@ Milestone: Dinosaurs.
 | Footprint: quadruped | Triceratops prints | Missing | F2.3 | None. Agent makes it (D330). |
 | Footprint: sauropod | Brachiosaurus prints | Missing | F2.3 | None. Agent makes it (D330). |
 | Air trails | Swipe trails on arm and tail attacks | Missing | F2.3 | None. Agent makes it (D330). |
-| Dust trail | Grey dust puffs behind a walking or running animal: 4 frames of 16×16, played by age. Code tints them by the ground and varies their size and opacity | To check in game | F2.3 | MOD `textures/particle/dust_0.png` to `dust_3.png`, also in REPO `particles/dust/` (not committed there yet). Agent-made, lead approved the mock-up (D330, D340). No particle code yet |
+| Dust trail | Grey dust puffs behind a walking or running animal: 4 frames of 16×16, played by age. Code tints them by the ground and varies their size and opacity. Body impacts use the same frames (D404) | To check in game | F2.3 | MOD `textures/particle/dust_0.png` to `dust_3.png`, also in REPO `particles/dust/` (not committed there yet). Agent-made, lead approved the mock-up (D330, D340). No particle code yet |
 | Screen shake | A T. rex, Triceratops or Brachiosaurus walks close or roars. Config can turn it off | No art needed | F2.3 | Code only |
 
 ### Effects: environment and sleep
@@ -1459,7 +1460,7 @@ Milestone: Dinosaurs.
 | Sleep bubbles | Sleeping animal | Missing | F2.3 | None. Agent makes it (D330). |
 | Wound overlays (cuts, scars) | Wound look | Not in Beta | F2.3 | REPO dinosaurs/_common/textures/damage_overlay_*.png |
 
-**Changed since last review:** Each overlay row is one grey fill-order mask; code makes the 4 steps (D367). The snow cover rows became body coat masks: one mask per species serves snow and the sand, dirt and mud coats, so mud needs no row of its own and is in Beta (D370). Wet skin needs no art: it darkens the skin colour (D368). All effects are in Beta. The Gallimimus gets blood drips and a bloody mouth. Screen shake stays with the three large species. All three carnivores get bloody claws. The dust trail is agent-made dust sprites, tinted by the ground (D340). Its 4 frames are in the mod, to check in game.
+**Changed since last review:** Body impacts reuse the dust trail frames, and herd footsteps reuse each species' footstep sounds, so neither adds a row (D404, D405). Each overlay row is one grey fill-order mask; code makes the 4 steps (D367). The snow cover rows became body coat masks: one mask per species serves snow and the sand, dirt and mud coats, so mud needs no row of its own and is in Beta (D370). Wet skin needs no art: it darkens the skin colour (D368). All effects are in Beta. The Gallimimus gets blood drips and a bloody mouth. Screen shake stays with the three large species. All three carnivores get bloody claws. The dust trail is agent-made dust sprites, tinted by the ground (D340). Its 4 frames are in the mod, to check in game.
 
 ---
 
